@@ -7,6 +7,7 @@ Repositório do time KIPP para explorar o desafio **Be An Earth System Trend Det
 ## Estrutura
 
 - [`frontend/`](frontend/): protótipo React, assets, testes e configuração de publicação na Vercel.
+- [`backend/`](backend/): API TypeScript/Fastify, integração Databricks e deploy no Cloud Run.
 - [`context/`](context/): referências e contexto do desafio.
 - [`ml_experiments/`](ml_experiments/): experimentos, variáveis e fontes de dados.
 - [`databricks/`](databricks/): notebooks, descrições de tabelas e bundle dos jobs de ingestão.
@@ -32,6 +33,21 @@ npm run preview
 ```
 
 Consulte a [documentação do frontend](frontend/README.md) para conhecer a experiência, os métodos e as limitações dos dados simulados.
+
+## Rodar o backend
+
+Requer Node.js 24 e as variáveis de ambiente descritas em [`backend/.env.example`](backend/.env.example).
+
+```sh
+cd backend
+npm ci
+# Configure .env com as credenciais da fonte de dados.
+npm run dev
+```
+
+Build: `npm --prefix backend run build`. Publicação no Cloud Run:
+`bash backend/scripts/deploy.sh`. Consulte a [documentação da API](backend/README.md)
+para endpoints, configuração e migração para Lakebase/PostgreSQL.
 
 ## Publicação
 

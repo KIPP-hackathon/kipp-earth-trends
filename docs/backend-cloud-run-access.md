@@ -28,7 +28,7 @@ O deploy usa uma imagem Docker local enviada ao Artifact Registry, evitando
 a necessidade de conceder novas permissões ao Cloud Build. Para repetir:
 
 ```sh
-bash frontend/backend/scripts/deploy.sh
+bash backend/scripts/deploy.sh
 ```
 
 A credencial OAuth de aplicação do Databricks criada para o hackathon tem

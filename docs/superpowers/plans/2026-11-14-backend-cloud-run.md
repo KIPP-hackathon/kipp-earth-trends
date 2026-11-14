@@ -31,7 +31,7 @@ cache limitado, formatos binários e consultas espaciais/temporais parametrizada
 
 ### Task 2: API
 
-- [x] Criar frontend/backend com Fastify, adaptadores e cache.
+- [x] Criar backend/ com Fastify, adaptadores e cache.
 - [x] Implementar catálogo, disponibilidade, frames JSON/Float32 e série por bbox.
 - [x] Documentar contrato e migração para Lakebase.
 
