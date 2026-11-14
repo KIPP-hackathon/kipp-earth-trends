@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_flx_cdq'
+target_table: '`earth-trend-data`.trusted.tb_merra2_flx_cdq'
+source_description: ../../data-extraction/tb_merra2_flx_cdq/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  CDQ: surface_exchange_coefficient_for_moisture

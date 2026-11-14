@@ -1,0 +1,38 @@
+table:
+  name: '`earth-trend-data`.transient.tb_merra2_csp_var_isccpcldfrc'
+  description: Variância mensal Var_ISCCPCLDFRC da coleção MERRA-2 M2TMNXCSP, versão
+    5.12.4, em grade global. isccp total cloud area fraction. CSV exportado para a
+    grade de 0,5 por 0,625 grau.
+  theme: nuvens
+  product: M2TMNXCSP
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXCSP_Var_ISCCPCLDFRC/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  local_evidence:
+  - docs/fontes-transient-dados.csv
+  metadata_uri: null
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador
+      para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Referência temporal mensal preservada do CSV; comparar produtos por
+      ano e mês.
+    unit: null
+    source: Cabeçalho e amostra CSV da origem.
+  Var_ISCCPCLDFRC:
+    description: 'Variância mensal de ISCCPCLDFRC (isccp total cloud area fraction),
+      coleção MERRA-2 M2TMNXCSP. Unidade: (1)^2. Valores preservados do CSV. Diagnóstico
+      do simulador COSP; não representa observação direta do satélite MODIS/ISCCP.'
+    unit: (1)^2
+    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+    unit_derivation: Unidade ao quadrado da variável base na especificação MERRA-2;
+      campo Var_ preservado do exportador, sem conversão numérica.

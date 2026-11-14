@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_flx_var_prectotcorr'
+target_table: '`earth-trend-data`.trusted.tb_merra2_flx_var_prectotcorr'
+source_description: ../../data-extraction/tb_merra2_flx_var_prectotcorr/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  Var_PRECTOTCORR: bias_corrected_total_precipitation_variance
