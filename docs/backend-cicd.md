@@ -92,3 +92,16 @@ amostra de temperatura. Testes cobrem renovação, concorrência, expiração,
 audience incorreta, resposta inválida, erro de metadata e compatibilidade M2M.
 Builds backend/frontend e 29 testes de frontend passaram. O workflow verifica
 novamente o acesso real na revisão candidata antes de promover tráfego.
+
+Em 14/11/2026, o script de deploy publicou e promoveu `kipp-earth-api-00004-say`,
+usando imagem de digest
+`sha256:1f39b32625c8a335c50957eace92ac78884f529b161c962fe7506b93f58e80ee`.
+Os três smoke checks passaram na revisão candidata e na URL de produção.
+A revisão não contém `DATABRICKS_CREDENTIALS` e usa `google-id` com a SA runtime.
+As concessões temporárias de administração IAM/WIF/Artifact Registry e de
+impersonação usadas na configuração e verificação foram removidas.
+
+A ativação da automação GitHub ainda depende de enviar este workflow à `main`:
+o primeiro push foi recusado porque o token OAuth de c0ffex não possui escopo
+`workflow`. A renovação via `gh auth refresh --scopes workflow` aguarda o login
+do usuário. O fluxo OIDC será verificado pelo primeiro run após essa autorização.
