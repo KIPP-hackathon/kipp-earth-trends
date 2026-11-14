@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 
 export const labTabs = [
-  { id: "explore", label: "Explorar", icon: Earth },
-  { id: "compare", label: "Comparar", icon: Columns2 },
+  { id: "real", label: "Dados reais", icon: Earth },
+  { id: "explore", label: "Simulação", icon: Earth },
+  { id: "compare", label: "Comparação simulada", icon: Columns2 },
   { id: "events", label: "Eventos", icon: MapPinned },
   { id: "analysis", label: "Análise", icon: ChartNoAxesCombined },
   { id: "learn", label: "Como funciona", icon: BookOpen },

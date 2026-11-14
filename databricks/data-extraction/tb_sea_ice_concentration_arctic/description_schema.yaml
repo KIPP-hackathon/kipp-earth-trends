@@ -1,34 +1,50 @@
 table:
   name: '`earth-trend-data`.refined.tb_sea_ice_concentration_arctic'
-  description: Concentração mensal de gelo marinho NSIDC G02135 v4 para o Ártico, em percentual, reamostrada
-    por quadratura de área para a grade KIPP. O produtor usa 256 amostras por célula e cobertura integral.
-    Preserva nulos e concentrações médias abaixo de 15% resultantes da mistura com oceano aberto. Há mudança
-    dos sensores de entrada em janeiro de 2025.
+  description: Concentração mensal de gelo marinho no Ártico, NSIDC Sea Ice Index G02135 v4, em porcentagem
+    na grade 0,5 grau de latitude por 0,625 grau de longitude. Remapeamento aproximado por quadratura
+    de área esférica com 16 por 16 amostras por célula. Não é a máscara categórica de extensão de gelo,
+    massa ou área regional em km². Terra, costa, pole hole, ausência e outro hemisfério são nulos. O produto
+    muda de sensores de entrada em janeiro de 2025.
+  theme: gelo
   product: SEA_ICE_CONCENTRATION_G02135_V4_N
   source_path: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/
 provenance:
   reviewed_on: '2026-11-14'
-  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.metadata.json
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/*.metadata.json
   references:
   - https://nsidc.org/sites/default/files/documents/user-guide/g02135-v004-userguide.pdf
+  - https://nsidc.org/data/g02135/versions/4
+  - https://doi.org/10.7265/a98x-0f50
   recovery_note: Recurso recriado após remoção incidental no deploy de correção do leitor MOD13C2.
+  local_evidence:
+  - docs/phase-concentration-extraction.md
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.csv
 columns:
   lat:
-    description: Latitude do ponto da grade, em graus norte.
+    description: Latitude da grade de destino em graus norte, de -90 a 90, com passo de 0,5 grau.
     unit: degrees_north
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/*.metadata.json
   lon:
-    description: Longitude do ponto da grade, em graus leste.
+    description: Longitude da grade de destino em graus leste, de -180 a 179,375, com passo de 0,625 grau.
     unit: degrees_east
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/*.metadata.json
   time:
-    description: Início do mês de referência em UTC, conforme o exportador.
+    description: Início do mês de referência em UTC, no formato YYYY-MM-DD 00:00:00. Periodicidade mensal;
+      cruzamentos entre produtos devem usar ano e mês.
     unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/*.metadata.json
   sea_ice_concentration_pct:
-    description: Concentração média de gelo marinho, em percentual entre 0 e 100. Quadratura de área aproximada
-      do campo mensal. A extensão categórica e a área total regional têm definições próprias.
+    description: Concentração média mensal de gelo marinho no Ártico, de 0 a 100 por cento. Fonte uint16
+      em décimos de porcentagem, convertida pelo exportador e agregada por quadratura aproximada de área
+      esférica. Zero é oceano aberto válido. Flags e concentrações nativas maiores que zero e menores
+      que 15 por cento são excluídos. A média de destino pode ficar abaixo de 15 por cento ao combinar
+      oceano e gelo, sem novo limiar.
     unit: percent
-    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.metadata.json
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/*.metadata.json
   valid_area_fraction:
-    description: Fração válida da área da célula, entre 0 e 1. O exportador exige cobertura integral para disponibilizar
-      a estimativa.
+    description: Fração das 256 amostras de área igual por célula que atingiu pixels nativos válidos de
+      oceano ou gelo (0 a 1). Exclui terra, costa, pole hole, ausência e exterior do domínio. A exportação
+      exige fração 1 para preencher a concentração. É uma aproximação de cobertura, não interseção exata
+      de polígonos.
     unit: '1'
-    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.metadata.json
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/*.metadata.json

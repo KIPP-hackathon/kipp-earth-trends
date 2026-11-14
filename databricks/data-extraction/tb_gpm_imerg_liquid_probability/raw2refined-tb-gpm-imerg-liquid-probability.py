@@ -25,6 +25,8 @@ df = (
     .option("pathGlobFilter", "GPM_3IMERGM_LIQUID_PROBABILITY_V07_*.csv")
     .option("enforceSchema", False)
     .option("mode", "FAILFAST")
+    .option("timestampFormat", "yyyy-MM-dd HH:mm:ss")
+    .option("nullValue", "")
     .csv(STORAGE_PATH, header=True)
 )
 

@@ -25,6 +25,8 @@ df = (
     .option("pathGlobFilter", "SEA_ICE_CONCENTRATION_G02135_V4_N_*.csv")
     .option("enforceSchema", False)
     .option("mode", "FAILFAST")
+    .option("timestampFormat", "yyyy-MM-dd HH:mm:ss")
+    .option("nullValue", "")
     .csv(STORAGE_PATH, header=True)
 )
 

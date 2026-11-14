@@ -12,6 +12,10 @@ Repositório do time KIPP para explorar o desafio **Be An Earth System Trend Det
 - [`ml_experiments/`](ml_experiments/): experimentos, variáveis e fontes de dados.
 - [`databricks/`](databricks/): notebooks, descrições de tabelas e bundle dos jobs de ingestão.
 - [Catálogo de fontes em CSV](docs/fontes-transient-dados.csv): fonte da verdade para origem, dados, unidades, arquivos, períodos e proveniência.
+- [`data/`](data/): extração dos dados NASA; veja o [pipeline mensal do IMERG](docs/imerg-extraction.md).
+  Para o período posterior a setembro de 2025, veja o [pipeline IMERG Late diário → mensal](docs/imerg-late.md).
+  Para GRACE/GRACE-FO, gelo marinho e altimetria, veja a [extração mensal de água e gelo](docs/water-ice-extraction.md).
+  Para tabelas separadas de concentração de gelo e probabilidade de fase líquida, veja a [nova extração mensal](docs/phase-concentration-extraction.md).
 
 ## Rodar o frontend
 

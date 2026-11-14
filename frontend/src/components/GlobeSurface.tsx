@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
+import { colorFrame } from "../lib/earthApi";
+import type { EarthFrame } from "../lib/earthApi";
 
 // Orthographic ray-to-texture projection. SVG data layers use the same center.
 const vertexSource = `attribute vec2 position; varying vec2 point;
 void main(){point=position;gl_Position=vec4(position,0.,1.);}`;
 const fragmentSource = `precision highp float;
-varying vec2 point; uniform sampler2D earth; uniform vec2 center;
+varying vec2 point; uniform sampler2D earth; uniform sampler2D field;
+uniform float showField; uniform vec2 center;
 void main(){
   float r2=dot(point,point); if(r2>1.) discard;
   float z=sqrt(max(0.,1.-r2));
@@ -13,25 +16,39 @@ void main(){
   vec2 uv=vec2(fract((lon+3.14159265)/6.2831853),(1.57079633-lat)/3.14159265);
   vec3 color=texture2D(earth,uv).rgb;
   float light=max(0.,dot(vec3(-.36,.30,.88),vec3(point,z)));
-  gl_FragColor=vec4(color*(.35+.65*light),1.);
+  vec4 layer=texture2D(field,uv);
+  gl_FragColor=vec4(mix(color*(.35+.65*light),layer.rgb,layer.a*showField),1.);
 }`;
 
 export function GlobeSurface({
   longitude,
   latitude,
+  frame,
+  showField = false,
+  onUnavailable,
 }: {
   longitude: number;
   latitude: number;
+  frame?: EarthFrame | null;
+  showField?: boolean;
+  onUnavailable?: () => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const draw = useRef<(() => void) | null>(null);
   const center = useRef([longitude, latitude]);
+  const updateField = useRef<(() => void) | null>(null);
+  const currentField = useRef({ frame, showField });
+  const failure = useRef(onUnavailable);
+  failure.current = onUnavailable;
   useEffect(() => {
     const gl = canvas.current?.getContext("webgl", {
       alpha: true,
       antialias: true,
     });
-    if (!gl) return; // The geographic SVG underneath remains fully interactive.
+    if (!gl) {
+      failure.current?.();
+      return;
+    }
     const shaders: WebGLShader[] = [];
     const compile = (type: number, source: string) => {
       const shader = gl.createShader(type)!;
@@ -47,6 +64,7 @@ export function GlobeSurface({
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       shaders.forEach((s) => gl.deleteShader(s));
       gl.deleteProgram(program);
+      failure.current?.();
       return;
     }
     gl.useProgram(program);
@@ -61,17 +79,86 @@ export function GlobeSurface({
     gl.enableVertexAttribArray(position);
     gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
     const texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     // Clamp supports the non-power-of-two NASA texture on WebGL 1.
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([31, 53, 47, 255]),
+    );
+    gl.uniform1i(gl.getUniformLocation(program, "earth"), 0);
+    const fieldTexture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, fieldTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.uniform1i(gl.getUniformLocation(program, "field"), 1);
+    const showLocation = gl.getUniformLocation(program, "showField");
+    updateField.current = () => {
+      gl.useProgram(program);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, fieldTexture);
+      const current = currentField.current;
+      if (current.frame) {
+        const { width, height } = current.frame.grid;
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          width,
+          height,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          colorFrame(current.frame),
+        );
+      } else {
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGBA,
+          1,
+          1,
+          0,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          new Uint8Array(4),
+        );
+      }
+      gl.uniform1f(showLocation, current.showField && current.frame ? 1 : 0);
+      draw.current?.();
+    };
     const location = gl.getUniformLocation(program, "center");
     let disposed = false;
     const image = new Image();
+    draw.current = () => {
+      gl.useProgram(program);
+      gl.uniform2f(
+        location,
+        (center.current[0] * Math.PI) / 180,
+        (center.current[1] * Math.PI) / 180,
+      );
+      gl.viewport(0, 0, 768, 768);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    };
+    updateField.current();
     image.onload = () => {
       if (disposed) return;
+      gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, texture);
       // Bound GPU memory even on devices with small maximum texture sizes.
       const bitmap = document.createElement("canvas");
@@ -81,25 +168,16 @@ export function GlobeSurface({
         .getContext("2d")!
         .drawImage(image, 0, 0, bitmap.width, bitmap.height);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bitmap);
-      draw.current = () => {
-        gl.useProgram(program);
-        gl.uniform2f(
-          location,
-          (center.current[0] * Math.PI) / 180,
-          (center.current[1] * Math.PI) / 180,
-        );
-        gl.viewport(0, 0, 768, 768);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-      };
-      draw.current();
+      draw.current?.();
     };
     image.src = "/assets/earth-texture.jpg";
     return () => {
       disposed = true;
       image.onload = null;
       draw.current = null;
+      updateField.current = null;
       gl.deleteTexture(texture);
+      gl.deleteTexture(fieldTexture);
       gl.deleteBuffer(buffer);
       shaders.forEach((s) => gl.deleteShader(s));
       gl.deleteProgram(program);
@@ -109,6 +187,10 @@ export function GlobeSurface({
     center.current = [longitude, latitude];
     draw.current?.();
   }, [longitude, latitude]);
+  useEffect(() => {
+    currentField.current = { frame, showField };
+    updateField.current?.();
+  }, [frame, showField]);
   return (
     <foreignObject x="50" y="50" width="540" height="540" pointerEvents="none">
       <canvas

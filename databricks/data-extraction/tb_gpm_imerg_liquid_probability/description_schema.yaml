@@ -1,34 +1,46 @@
 table:
   name: '`earth-trend-data`.refined.tb_gpm_imerg_liquid_probability'
-  description: Probabilidade mensal de fase líquida da precipitação IMERG Final V07, em percentual, exportada
-    para a grade KIPP por média espacial ponderada por área. A ocorrência de chuva exige outra medida. Preserva
-    os valores diagnósticos nativos nas células secas e a cobertura válida.
+  description: Probabilidade mensal da fase líquida da precipitação, IMERG Final V07, em porcentagem.
+    Campo mensal nativo reamostrado para 0,5 grau de latitude por 0,625 grau de longitude por média de
+    área esférica. Não é probabilidade de chover nem fração de volume líquido recalculada na célula de
+    destino. Mantém valores diagnósticos da NASA em células sem precipitação.
+  theme: ciclo_da_agua
   product: GPM_3IMERGM_LIQUID_PROBABILITY_V07
   source_path: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/
 provenance:
   reviewed_on: '2026-11-14'
-  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.metadata.json
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/*.metadata.json
   references:
   - https://gpm.nasa.gov/sites/default/files/2023-07/IMERG_TechnicalDocumentation_final_230713.pdf
+  - https://gpm.nasa.gov/resources/documents/imerg-v07-technical-documentation
+  - https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07
   recovery_note: Recurso recriado após remoção incidental no deploy de correção do leitor MOD13C2.
+  local_evidence:
+  - docs/phase-concentration-extraction.md
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.csv
 columns:
   lat:
-    description: Latitude do ponto da grade, em graus norte.
+    description: Latitude da grade de destino em graus norte, de -90 a 90, com passo de 0,5 grau.
     unit: degrees_north
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/*.metadata.json
   lon:
-    description: Longitude do ponto da grade, em graus leste.
+    description: Longitude da grade de destino em graus leste, de -180 a 179,375, com passo de 0,625 grau.
     unit: degrees_east
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/*.metadata.json
   time:
-    description: Início do mês de referência em UTC, conforme o exportador.
+    description: Início do mês de referência em UTC, no formato YYYY-MM-DD 00:00:00. Periodicidade mensal;
+      cruzamentos entre produtos devem usar ano e mês.
     unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/*.metadata.json
   liquid_precipitation_probability_pct:
-    description: Probabilidade diagnóstica de fase líquida, em percentual entre 0 e 100, originada de Grid/probabilityLiquidPrecipitation.
-      A média espacial usa pesos de área. A interpretação de ocorrência e volume de precipitação exige medidas
-      próprias.
+    description: Probabilidade de fase líquida em porcentagem (0 a 100), obtida pela média espacial por
+      área do campo mensal nativo probabilityLiquidPrecipitation do IMERG Final V07. Zero é válido. O
+      produto nativo usa ponderação temporal pela precipitação e média simples em células secas. Não indica
+      ocorrência de precipitação.
     unit: percent
-    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.metadata.json
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/*.metadata.json
   valid_area_fraction:
-    description: Fração válida da área da célula, entre 0 e 1. O exportador exige cobertura integral para disponibilizar
-      a estimativa.
+    description: Fração da área da célula com probabilidade nativa válida (0 a 1), calculada por sobreposição
+      esférica exata. Esta exportação exige cobertura integral para preencher a probabilidade.
     unit: '1'
-    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.metadata.json
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/*.metadata.json
