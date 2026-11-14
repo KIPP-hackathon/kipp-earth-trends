@@ -1,5 +1,11 @@
 # Acesso e publicação da API
 
+Atualização: o acesso público descrito no histórico abaixo foi substituído por
+[IAM restrito ao proxy Vercel](acesso-vercel-cloud-run.md).
+O CI/CD e o acesso por Google SA são descritos em
+[backend-cicd.md](backend-cicd.md). O texto abaixo registra o deploy inicial
+com OAuth M2M, mantido nas revisões antigas para rollback.
+
 Projeto: `nasa-earth-trends-lab`, região `us-east4`.
 URL: https://kipp-earth-api-583662795760.us-east4.run.app
 

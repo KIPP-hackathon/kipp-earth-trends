@@ -84,9 +84,9 @@ elemento SVG para cada posição. A integração visual permanece uma etapa sepa
 - Até quatro consultas SQL simultâneas por instância; excesso retorna 503 com
   Retry-After. Timeout e cancelamento de consultas pendentes no Databricks.
 - Paginação do Statement API até completar o resultado, sem truncamento silencioso.
-- Credencial OAuth curta renovada automaticamente; segredo da aplicação no
-  Secret Manager. O segredo de cliente criado para o hackathon tem validade de
-  30 dias e exige rotação; isso é separado da renovação automática do access token.
+- Em produção, Google ID token da SA anexada ao Cloud Run, obtido do metadata
+  server com audience do workspace e renovado antes de expirar.
+  OAuth M2M continua disponível para desenvolvimento e revisões antigas.
   Logs não incluem credenciais ou erros SQL detalhados.
 - Cloud Run: mínimo zero, máximo três instâncias, 1 CPU / 512 MiB, concorrência 32.
   Cada instância tem cache próprio. Cold start do warehouse é distinto do da API.
@@ -97,16 +97,30 @@ elemento SVG para cada posição. A integração visual permanece uma etapa sepa
 npm ci
 # Configure .env a partir de .env.example, sem versionar valores secretos.
 npm run dev
+npm test
 npm run build
 bash scripts/deploy.sh
 ```
 
-O deploy padrão constrói e envia uma imagem linux/amd64 usando Docker local, evitando precisar de novas permissões de build na conta trial. Para Cloud Build, use DEPLOY_MODE=source após conceder roles/run.builder à identidade de build.
+O workflow `.github/workflows/backend.yml` testa e compila o backend em PRs.
+Pushes na `main` que alterem `backend/` ou o próprio workflow publicam via OIDC,
+usando uma SA dedicada ao deploy. Também existe execução manual na `main`.
+A imagem usa SHA do commit e é implantada pelo digest imutável. A revisão
+`candidate` passa pela startup probe HTTP `/ready` antes de receber tráfego.
+Após a promoção, o catálogo real é conferido pelo proxy Vercel; falha restaura
+a revisão anterior. O CI não recebe permissão para invocar a API diretamente.
 
-O deploy usa o perfil pessoal isolado `~/.config/gcloud-kipp-nasa` e valida a
-conta `lucas.henrique.tai@gmail.com` ou `admin@kipptrend.space`. Projeto `nasa-earth-trends-lab`. O build da imagem
-compila TypeScript no Dockerfile; a imagem final executa Node 24 como usuário
-sem privilégios. Sem executar suítes de testes nesta etapa, conforme solicitado.
+O filtro `backend/**` inclui este README: uma alteração nele também permite
+verificar o trigger completo após integrar a branch à `main`. Alterações somente
+em `docs/` não publicam o backend. O resultado aparece em GitHub Actions,
+workflow **Backend CI/CD**, nos jobs `check` e `deploy`.
+
+O script manual constrói e envia a imagem linux/amd64 usando Docker local e
+reutiliza o mesmo deploy com smoke checks. Seleciona explicitamente
+`GCP_ACCOUNT=admin@kipptrend.space` (ou `lucas.henrique.tai@gmail.com`), sem
+trocar a conta padrão do gcloud. Projeto `nasa-earth-trends-lab`.
+O Dockerfile compila TypeScript; a imagem final executa Node 24 sem privilégios.
+Detalhes de IAM, operação e rollback em `docs/backend-cicd.md`.
 
 ## Migração para Lakebase/PostgreSQL
 
@@ -130,8 +144,12 @@ trocar o modo. Não foi criado um banco paralelo ou uma cópia dos dados.
 
 URL: https://kipp-earth-api-583662795760.us-east4.run.app
 
-O perfil isolado gcloud usa admin@kipptrend.space. A identidade de execução lê
-somente o segredo específico concedido. A organização restringe allUsers; o
-serviço usa --no-invoker-iam-check para acesso público, conforme o mecanismo
-recomendado pelo Cloud Run. /health evita o caminho /healthz interceptado pela
-infraestrutura do Google. O frontend ainda precisa integrar os campos reais.
+O deploy administrativo usa o perfil isolado `~/.config/gcloud-kipp-nasa` e a
+conta `admin@kipptrend.space`. O CI usa sua identidade dedicada. A SA de execução
+autentica no Databricks com Google ID token, sem montar segredo na nova revisão.
+
+O serviço exige autenticação IAM. Somente a identidade de produção do aplicativo
+Vercel pode assumir a SA invoker. O navegador chama `/api/earth` no próprio site;
+a função Vercel autentica a chamada ao Cloud Run, sem credenciais no cliente.
+Veja [o desenho de acesso](../docs/acesso-vercel-cloud-run.md). O deploy preserva
+a política e recusa publicar se encontrar a verificação IAM desativada.
