@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_sea_ice_antarctic'
+  name: '`earth-trend-data`.transient.tb_sea_ice_antarctic'
   description: Máscara mensal categórica de extensão de gelo marinho para Antártida, NSIDC G02135 versão 4,
     amostrada pela célula polar nativa mais próxima na grade-alvo. Limiar de concentração de 15%. Os flags
     representam classes por ponto. Área regional em km² e média da extensão diária exigem produtos e cálculos

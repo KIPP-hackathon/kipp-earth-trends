@@ -1,0 +1,968 @@
+resources:
+  jobs:
+    merra2_temperature_t10m:
+      name: kipp-raw2trusted-merra2-temperature-t10m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t10m/raw2transient-tb-merra2-temperature-t10m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t10m/transient2trusted-tb-merra2-temperature-t10m.py
+          source: WORKSPACE
+    merra2_wind_speed:
+      name: kipp-raw2trusted-merra2-wind-speed
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_speed/raw2transient-tb-merra2-wind-speed.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_speed/transient2trusted-tb-merra2-wind-speed.py
+          source: WORKSPACE
+    grace_jpl_mass_anomaly:
+      name: kipp-raw2trusted-grace-jpl-mass-anomaly
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_grace_jpl_mass_anomaly/raw2transient-tb-grace-jpl-mass-anomaly.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_grace_jpl_mass_anomaly/transient2trusted-tb-grace-jpl-mass-anomaly.py
+          source: WORKSPACE
+    merra2_cldprs:
+      name: kipp-raw2trusted-merra2-cldprs
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_cldprs/raw2transient-tb-merra2-cldprs.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_cldprs/transient2trusted-tb-merra2-cldprs.py
+          source: WORKSPACE
+    merra2_cldtmp:
+      name: kipp-raw2trusted-merra2-cldtmp
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_cldtmp/raw2transient-tb-merra2-cldtmp.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_cldtmp/transient2trusted-tb-merra2-cldtmp.py
+          source: WORKSPACE
+    merra2_disph:
+      name: kipp-raw2trusted-merra2-disph
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_disph/raw2transient-tb-merra2-disph.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_disph/transient2trusted-tb-merra2-disph.py
+          source: WORKSPACE
+    merra2_h1000:
+      name: kipp-raw2trusted-merra2-h1000
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_h1000/raw2transient-tb-merra2-h1000.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_h1000/transient2trusted-tb-merra2-h1000.py
+          source: WORKSPACE
+    merra2_h250:
+      name: kipp-raw2trusted-merra2-h250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_h250/raw2transient-tb-merra2-h250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_h250/transient2trusted-tb-merra2-h250.py
+          source: WORKSPACE
+    merra2_h500:
+      name: kipp-raw2trusted-merra2-h500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_h500/raw2transient-tb-merra2-h500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_h500/transient2trusted-tb-merra2-h500.py
+          source: WORKSPACE
+    merra2_h850:
+      name: kipp-raw2trusted-merra2-h850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_h850/raw2transient-tb-merra2-h850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_h850/transient2trusted-tb-merra2-h850.py
+          source: WORKSPACE
+    merra2_omega500:
+      name: kipp-raw2trusted-merra2-omega500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_omega500/raw2transient-tb-merra2-omega500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_omega500/transient2trusted-tb-merra2-omega500.py
+          source: WORKSPACE
+    merra2_pbltop:
+      name: kipp-raw2trusted-merra2-pbltop
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_pbltop/raw2transient-tb-merra2-pbltop.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_pbltop/transient2trusted-tb-merra2-pbltop.py
+          source: WORKSPACE
+    merra2_ps:
+      name: kipp-raw2trusted-merra2-ps
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_ps/raw2transient-tb-merra2-ps.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_ps/transient2trusted-tb-merra2-ps.py
+          source: WORKSPACE
+    merra2_q250:
+      name: kipp-raw2trusted-merra2-q250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_q250/raw2transient-tb-merra2-q250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_q250/transient2trusted-tb-merra2-q250.py
+          source: WORKSPACE
+    merra2_q500:
+      name: kipp-raw2trusted-merra2-q500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_q500/raw2transient-tb-merra2-q500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_q500/transient2trusted-tb-merra2-q500.py
+          source: WORKSPACE
+    merra2_q850:
+      name: kipp-raw2trusted-merra2-q850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_q850/raw2transient-tb-merra2-q850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_q850/transient2trusted-tb-merra2-q850.py
+          source: WORKSPACE
+    sea_ice_arctic:
+      name: kipp-raw2trusted-sea-ice-arctic
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_sea_ice_arctic/raw2transient-tb-sea-ice-arctic.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_sea_ice_arctic/transient2trusted-tb-sea-ice-arctic.py
+          source: WORKSPACE
+    sea_ice_antarctic:
+      name: kipp-raw2trusted-sea-ice-antarctic
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_sea_ice_antarctic/raw2transient-tb-sea-ice-antarctic.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_sea_ice_antarctic/transient2trusted-tb-sea-ice-antarctic.py
+          source: WORKSPACE
+    modis_mod13c2_vegetation:
+      name: kipp-raw2trusted-modis-mod13c2-vegetation
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_modis_mod13c2_vegetation/raw2transient-tb-modis-mod13c2-vegetation.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_modis_mod13c2_vegetation/transient2trusted-tb-modis-mod13c2-vegetation.py
+          source: WORKSPACE
+    merra2_qv10m:
+      name: kipp-raw2trusted-merra2-qv10m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_qv10m/raw2transient-tb-merra2-qv10m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_qv10m/transient2trusted-tb-merra2-qv10m.py
+          source: WORKSPACE
+    merra2_qv2m:
+      name: kipp-raw2trusted-merra2-qv2m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_qv2m/raw2transient-tb-merra2-qv2m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_qv2m/transient2trusted-tb-merra2-qv2m.py
+          source: WORKSPACE
+    merra2_slp:
+      name: kipp-raw2trusted-merra2-slp
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_slp/raw2transient-tb-merra2-slp.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_slp/transient2trusted-tb-merra2-slp.py
+          source: WORKSPACE
+    merra2_t250:
+      name: kipp-raw2trusted-merra2-t250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t250/raw2transient-tb-merra2-t250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t250/transient2trusted-tb-merra2-t250.py
+          source: WORKSPACE
+    merra2_t2m:
+      name: kipp-raw2trusted-merra2-t2m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t2m/raw2transient-tb-merra2-t2m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t2m/transient2trusted-tb-merra2-t2m.py
+          source: WORKSPACE
+    merra2_t2mdew:
+      name: kipp-raw2trusted-merra2-t2mdew
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t2mdew/raw2transient-tb-merra2-t2mdew.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t2mdew/transient2trusted-tb-merra2-t2mdew.py
+          source: WORKSPACE
+    merra2_t2mwet:
+      name: kipp-raw2trusted-merra2-t2mwet
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t2mwet/raw2transient-tb-merra2-t2mwet.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t2mwet/transient2trusted-tb-merra2-t2mwet.py
+          source: WORKSPACE
+    merra2_t500:
+      name: kipp-raw2trusted-merra2-t500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t500/raw2transient-tb-merra2-t500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t500/transient2trusted-tb-merra2-t500.py
+          source: WORKSPACE
+    merra2_t850:
+      name: kipp-raw2trusted-merra2-t850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_t850/raw2transient-tb-merra2-t850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_t850/transient2trusted-tb-merra2-t850.py
+          source: WORKSPACE
+    merra2_to3:
+      name: kipp-raw2trusted-merra2-to3
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_to3/raw2transient-tb-merra2-to3.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_to3/transient2trusted-tb-merra2-to3.py
+          source: WORKSPACE
+    merra2_tox:
+      name: kipp-raw2trusted-merra2-tox
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_tox/raw2transient-tb-merra2-tox.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_tox/transient2trusted-tb-merra2-tox.py
+          source: WORKSPACE
+    merra2_tqi:
+      name: kipp-raw2trusted-merra2-tqi
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_tqi/raw2transient-tb-merra2-tqi.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_tqi/transient2trusted-tb-merra2-tqi.py
+          source: WORKSPACE
+    merra2_tql:
+      name: kipp-raw2trusted-merra2-tql
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_tql/raw2transient-tb-merra2-tql.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_tql/transient2trusted-tb-merra2-tql.py
+          source: WORKSPACE
+    merra2_tqv:
+      name: kipp-raw2trusted-merra2-tqv
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_tqv/raw2transient-tb-merra2-tqv.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_tqv/transient2trusted-tb-merra2-tqv.py
+          source: WORKSPACE
+    merra2_troppb:
+      name: kipp-raw2trusted-merra2-troppb
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_troppb/raw2transient-tb-merra2-troppb.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_troppb/transient2trusted-tb-merra2-troppb.py
+          source: WORKSPACE
+    merra2_troppt:
+      name: kipp-raw2trusted-merra2-troppt
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_troppt/raw2transient-tb-merra2-troppt.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_troppt/transient2trusted-tb-merra2-troppt.py
+          source: WORKSPACE
+    merra2_troppv:
+      name: kipp-raw2trusted-merra2-troppv
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_troppv/raw2transient-tb-merra2-troppv.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_troppv/transient2trusted-tb-merra2-troppv.py
+          source: WORKSPACE
+    merra2_tropq:
+      name: kipp-raw2trusted-merra2-tropq
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_tropq/raw2transient-tb-merra2-tropq.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_tropq/transient2trusted-tb-merra2-tropq.py
+          source: WORKSPACE
+    merra2_tropt:
+      name: kipp-raw2trusted-merra2-tropt
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_tropt/raw2transient-tb-merra2-tropt.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_tropt/transient2trusted-tb-merra2-tropt.py
+          source: WORKSPACE
+    merra2_u10m:
+      name: kipp-raw2trusted-merra2-u10m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_u10m/raw2transient-tb-merra2-u10m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_u10m/transient2trusted-tb-merra2-u10m.py
+          source: WORKSPACE
+    merra2_u250:
+      name: kipp-raw2trusted-merra2-u250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_u250/raw2transient-tb-merra2-u250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_u250/transient2trusted-tb-merra2-u250.py
+          source: WORKSPACE
+    merra2_u2m:
+      name: kipp-raw2trusted-merra2-u2m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_u2m/raw2transient-tb-merra2-u2m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_u2m/transient2trusted-tb-merra2-u2m.py
+          source: WORKSPACE
+    merra2_u500:
+      name: kipp-raw2trusted-merra2-u500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_u500/raw2transient-tb-merra2-u500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_u500/transient2trusted-tb-merra2-u500.py
+          source: WORKSPACE
+    merra2_u50m:
+      name: kipp-raw2trusted-merra2-u50m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_u50m/raw2transient-tb-merra2-u50m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_u50m/transient2trusted-tb-merra2-u50m.py
+          source: WORKSPACE
+    merra2_u850:
+      name: kipp-raw2trusted-merra2-u850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_u850/raw2transient-tb-merra2-u850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_u850/transient2trusted-tb-merra2-u850.py
+          source: WORKSPACE
+    merra2_v10m:
+      name: kipp-raw2trusted-merra2-v10m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_v10m/raw2transient-tb-merra2-v10m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_v10m/transient2trusted-tb-merra2-v10m.py
+          source: WORKSPACE
+    merra2_v250:
+      name: kipp-raw2trusted-merra2-v250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_v250/raw2transient-tb-merra2-v250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_v250/transient2trusted-tb-merra2-v250.py
+          source: WORKSPACE
+    merra2_v2m:
+      name: kipp-raw2trusted-merra2-v2m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_v2m/raw2transient-tb-merra2-v2m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_v2m/transient2trusted-tb-merra2-v2m.py
+          source: WORKSPACE
+    merra2_v500:
+      name: kipp-raw2trusted-merra2-v500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_v500/raw2transient-tb-merra2-v500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_v500/transient2trusted-tb-merra2-v500.py
+          source: WORKSPACE
+    merra2_v50m:
+      name: kipp-raw2trusted-merra2-v50m
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_v50m/raw2transient-tb-merra2-v50m.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_v50m/transient2trusted-tb-merra2-v50m.py
+          source: WORKSPACE
+    merra2_v850:
+      name: kipp-raw2trusted-merra2-v850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_v850/raw2transient-tb-merra2-v850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_v850/transient2trusted-tb-merra2-v850.py
+          source: WORKSPACE
+    merra2_var_cldprs:
+      name: kipp-raw2trusted-merra2-var-cldprs
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_cldprs/raw2transient-tb-merra2-var-cldprs.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_cldprs/transient2trusted-tb-merra2-var-cldprs.py
+          source: WORKSPACE
+    merra2_var_cldtmp:
+      name: kipp-raw2trusted-merra2-var-cldtmp
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_cldtmp/raw2transient-tb-merra2-var-cldtmp.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_cldtmp/transient2trusted-tb-merra2-var-cldtmp.py
+          source: WORKSPACE
+    merra2_var_disph:
+      name: kipp-raw2trusted-merra2-var-disph
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_disph/raw2transient-tb-merra2-var-disph.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_disph/transient2trusted-tb-merra2-var-disph.py
+          source: WORKSPACE
+    merra2_var_h1000:
+      name: kipp-raw2trusted-merra2-var-h1000
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_h1000/raw2transient-tb-merra2-var-h1000.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_h1000/transient2trusted-tb-merra2-var-h1000.py
+          source: WORKSPACE
+    merra2_var_h250:
+      name: kipp-raw2trusted-merra2-var-h250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_h250/raw2transient-tb-merra2-var-h250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_h250/transient2trusted-tb-merra2-var-h250.py
+          source: WORKSPACE
+    merra2_var_h500:
+      name: kipp-raw2trusted-merra2-var-h500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_h500/raw2transient-tb-merra2-var-h500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_h500/transient2trusted-tb-merra2-var-h500.py
+          source: WORKSPACE
+    merra2_var_h850:
+      name: kipp-raw2trusted-merra2-var-h850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_h850/raw2transient-tb-merra2-var-h850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_h850/transient2trusted-tb-merra2-var-h850.py
+          source: WORKSPACE
+    merra2_var_omega500:
+      name: kipp-raw2trusted-merra2-var-omega500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_omega500/raw2transient-tb-merra2-var-omega500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_omega500/transient2trusted-tb-merra2-var-omega500.py
+          source: WORKSPACE
+    merra2_var_pbltop:
+      name: kipp-raw2trusted-merra2-var-pbltop
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_pbltop/raw2transient-tb-merra2-var-pbltop.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_pbltop/transient2trusted-tb-merra2-var-pbltop.py
+          source: WORKSPACE
+    merra2_var_ps:
+      name: kipp-raw2trusted-merra2-var-ps
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_ps/raw2transient-tb-merra2-var-ps.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_ps/transient2trusted-tb-merra2-var-ps.py
+          source: WORKSPACE
+    merra2_var_q250:
+      name: kipp-raw2trusted-merra2-var-q250
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_q250/raw2transient-tb-merra2-var-q250.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_q250/transient2trusted-tb-merra2-var-q250.py
+          source: WORKSPACE
+    merra2_var_q500:
+      name: kipp-raw2trusted-merra2-var-q500
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_q500/raw2transient-tb-merra2-var-q500.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_q500/transient2trusted-tb-merra2-var-q500.py
+          source: WORKSPACE
+    merra2_var_q850:
+      name: kipp-raw2trusted-merra2-var-q850
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_var_q850/raw2transient-tb-merra2-var-q850.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_var_q850/transient2trusted-tb-merra2-var-q850.py
+          source: WORKSPACE
+    gpm_imerg_liquid_probability:
+      name: kipp-raw2trusted-gpm-imerg-liquid-probability
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_gpm_imerg_liquid_probability/raw2transient-tb-gpm-imerg-liquid-probability.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_gpm_imerg_liquid_probability/transient2trusted-tb-gpm-imerg-liquid-probability.py
+          source: WORKSPACE
+    sea_ice_concentration_arctic:
+      name: kipp-raw2trusted-sea-ice-concentration-arctic
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_sea_ice_concentration_arctic/raw2transient-tb-sea-ice-concentration-arctic.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_sea_ice_concentration_arctic/transient2trusted-tb-sea-ice-concentration-arctic.py
+          source: WORKSPACE
+    sea_ice_concentration_antarctic:
+      name: kipp-raw2trusted-sea-ice-concentration-antarctic
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_sea_ice_concentration_antarctic/raw2transient-tb-sea-ice-concentration-antarctic.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_sea_ice_concentration_antarctic/transient2trusted-tb-sea-ice-concentration-antarctic.py
+          source: WORKSPACE
+    merra2_surface_temperature:
+      name: kipp-raw2trusted-merra2-surface-temperature-ts
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_ts/raw2transient-tb-merra2-surface-temperature-ts.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_ts/transient2trusted-tb-merra2-surface-temperature-ts.py
+          source: WORKSPACE
+    gpm_imerg_precipitation:
+      name: kipp-raw2trusted-gpm-imerg-precipitation
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_gpm_imerg_precipitation/raw2transient-tb-gpm-imerg-precipitation.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_gpm_imerg_precipitation/transient2trusted-tb-gpm-imerg-precipitation.py
+          source: WORKSPACE
+    gpm_imerg_late_precipitation:
+      name: kipp-raw2trusted-gpm-imerg-late-precipitation
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_gpm_imerg_late_precipitation/raw2transient-tb-gpm-imerg-late-precipitation.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_gpm_imerg_late_precipitation/transient2trusted-tb-gpm-imerg-late-precipitation.py
+          source: WORKSPACE

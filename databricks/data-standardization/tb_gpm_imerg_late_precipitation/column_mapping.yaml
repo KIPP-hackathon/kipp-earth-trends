@@ -1,0 +1,28 @@
+source_table: '`earth-trend-data`.transient.tb_gpm_imerg_late_precipitation'
+target_table: '`earth-trend-data`.trusted.tb_gpm_imerg_late_precipitation'
+source_description: ../../data-extraction/tb_gpm_imerg_late_precipitation/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  precipitation_mm_month: monthly_precipitation_millimeters
+  precipitation_mm_h: precipitation_rate_millimeters_per_hour
+  native_daily_random_error_mean_mm_day: native_daily_precipitation_random_error_mean_millimeters_per_day
+  valid_day_count: valid_day_count
+  valid_area_fraction: valid_area_fraction
+  mean_halfhourly_sample_fraction: mean_half_hourly_sample_fraction
+  source_product: source_product
+  source_run: source_run
+  source_processing_versions: source_processing_versions

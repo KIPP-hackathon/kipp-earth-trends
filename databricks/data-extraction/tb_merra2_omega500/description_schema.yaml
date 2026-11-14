@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_omega500'
+  name: '`earth-trend-data`.transient.tb_merra2_omega500'
   description: Diagnóstico mensal OMEGA500 do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV por ano. Velocidade
     vertical em coordenada de pressão a 500 hPa, em Pa/s.
   theme: atmosfera

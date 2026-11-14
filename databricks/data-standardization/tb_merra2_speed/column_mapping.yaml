@@ -1,0 +1,21 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_speed'
+target_table: '`earth-trend-data`.trusted.tb_merra2_speed'
+source_description: ../../data-extraction/tb_merra2_speed/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  SPEED_K: source_wind_speed_value_pending_validation
+  SPEED_C: invalid_temperature_conversion_of_wind_speed
