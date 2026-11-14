@@ -205,9 +205,9 @@ export function RealGlobe({
         <g
           transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
         >
-          <circle cx="320" cy="320" r="278" fill="#517e6c" opacity=".16" />
-          <circle cx="320" cy="320" r="270" fill="#132c30" />
-          <path d={paths.land} fill="#425e45" />
+          <circle cx="320" cy="320" r="278" fill="#548fdf" opacity=".16" />
+          <circle cx="320" cy="320" r="270" fill="#0b1830" />
+          <path d={paths.land} fill="#566b80" />
           <GlobeSurface
             longitude={view.longitude}
             latitude={view.latitude}
@@ -220,14 +220,14 @@ export function RealGlobe({
             <path
               d={paths.land}
               fill="none"
-              stroke="#d7e6d6"
+              stroke="#dbeaff"
               strokeWidth=".7"
               opacity=".55"
             />
             <path
               d={paths.grid}
               fill="none"
-              stroke="#e9eee0"
+              stroke="#ffffff"
               strokeWidth=".5"
               opacity=".18"
             />
