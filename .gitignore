@@ -8,3 +8,9 @@ dist/
 artifacts/
 
 .vercel/
+
+
+*raw/
+*processed/
+*logs/
+*.pyc
