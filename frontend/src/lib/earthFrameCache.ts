@@ -19,14 +19,19 @@ type Job = {
   key: string;
   variable: EarthVariable;
   month: string;
+  bbox?: string;
   consumers: Map<symbol, Consumer>;
   controller?: AbortController;
   interrupted: boolean;
 };
 const jobs = new Map<string, Job>();
 const active = new Set<Job>();
-export const frameKey = (variable: EarthVariable, month: string) =>
-  `${generation}/${variable.id}/${month}/${JSON.stringify(variable.render ?? null)}`;
+export const frameKey = (
+  variable: EarthVariable,
+  month: string,
+  bbox?: string,
+) =>
+  `${generation}/${variable.id}/${month}/${bbox ?? "global"}/${JSON.stringify(variable.render ?? null)}`;
 const foreground = (job: Job) =>
   [...job.consumers.values()].some(
     (consumer) => consumer.priority === "foreground",
@@ -93,6 +98,7 @@ function pump() {
       job.month,
       controller.signal,
       job.variable.render,
+      job.bbox,
     )
       .then(
         (frame) => {
@@ -127,9 +133,10 @@ export function requestFrame(
   month: string,
   signal: AbortSignal,
   priority: Priority = "foreground",
+  bbox?: string,
 ): Promise<EarthFrame> {
   if (signal.aborted) return Promise.reject(aborted());
-  const key = frameKey(variable, month);
+  const key = frameKey(variable, month, bbox);
   const cached = cache.get(key);
   if (cached && cached.expiresAt > Date.now()) {
     cache.delete(key);
@@ -139,7 +146,14 @@ export function requestFrame(
   if (cached) removeCached(key);
   let job = jobs.get(key);
   if (!job) {
-    job = { key, variable, month, consumers: new Map(), interrupted: false };
+    job = {
+      key,
+      variable,
+      month,
+      bbox,
+      consumers: new Map(),
+      interrupted: false,
+    };
     jobs.set(key, job);
   }
   const current = job;

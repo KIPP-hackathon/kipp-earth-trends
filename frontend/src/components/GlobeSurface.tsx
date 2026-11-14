@@ -7,7 +7,7 @@ const vertexSource = `attribute vec2 position; varying vec2 point;
 void main(){point=position;gl_Position=vec4(position,0.,1.);}`;
 const fragmentSource = `precision highp float;
 varying vec2 point; uniform sampler2D earth; uniform sampler2D field;
-uniform float showField; uniform vec2 center;
+uniform float showField; uniform vec2 center; uniform vec4 fieldBounds;
 void main(){
   float r2=dot(point,point); if(r2>1.) discard;
   float z=sqrt(max(0.,1.-r2));
@@ -16,7 +16,9 @@ void main(){
   vec2 uv=vec2(fract((lon+3.14159265)/6.2831853),(1.57079633-lat)/3.14159265);
   vec3 color=texture2D(earth,uv).rgb;
   float light=max(0.,dot(vec3(-.36,.30,.88),vec3(point,z)));
-  vec4 layer=texture2D(field,uv);
+  vec2 fieldUv=vec2(mod(lon-fieldBounds.x+12.5663706,6.2831853)/fieldBounds.z,(fieldBounds.y-lat)/fieldBounds.w);
+  vec4 layer=texture2D(field,fieldUv);
+  if(fieldUv.x<0. || fieldUv.x>1. || fieldUv.y<0. || fieldUv.y>1.) layer=vec4(0.);
   gl_FragColor=vec4(mix(color*(.35+.65*light),layer.rgb,layer.a*showField),1.);
 }`;
 
@@ -108,12 +110,22 @@ export function GlobeSurface({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.uniform1i(gl.getUniformLocation(program, "field"), 1);
+    const boundsLocation = gl.getUniformLocation(program, "fieldBounds");
     const showLocation = gl.getUniformLocation(program, "showField");
     updateField.current = () => {
       gl.useProgram(program);
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, fieldTexture);
       const current = currentField.current;
+      const bounds = current.frame?.grid.bounds ?? [-180, -90, 180, 90];
+      const radians = Math.PI / 180;
+      gl.uniform4f(
+        boundsLocation,
+        bounds[0] * radians,
+        bounds[3] * radians,
+        (bounds[2] - bounds[0]) * radians,
+        (bounds[3] - bounds[1]) * radians,
+      );
       if (current.frame) {
         const { width, height } = current.frame.grid;
         gl.texImage2D(

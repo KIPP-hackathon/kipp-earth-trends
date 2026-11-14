@@ -1,3 +1,4 @@
+import { validFrameBounds } from "./globeSelection";
 export const earthApi = "/api/earth";
 
 export type EarthRender = {
@@ -199,11 +200,12 @@ export async function loadFrame(
   month: string,
   signal: AbortSignal,
   render?: EarthRender,
+  bbox?: string,
 ): Promise<EarthFrame> {
   const factor =
     render && [1, 2, 4, 8, 16, 32].includes(render.factor) ? render.factor : 1;
   const response = await checked(
-    `/v1/frames/${encodeURIComponent(variable)}/${month}?factor=${factor}&format=f32`,
+    `/v1/frames/${encodeURIComponent(variable)}/${month}?factor=${factor}&format=f32${bbox ? `&bbox=${encodeURIComponent(bbox)}` : ""}`,
     signal,
   );
   const bytes = await response.arrayBuffer();
@@ -237,9 +239,20 @@ export async function loadFrame(
     count > 210_000 ||
     offset + count * 8 !== bytes.byteLength ||
     metadata.grid.orientation !== "north_to_south,west_to_east" ||
-    JSON.stringify(metadata.grid.bounds) !== "[-180,-90,180,90]"
+    !validFrameBounds(metadata.grid.bounds)
   )
     throw new Error("A grade recebida não é compatível com o globo.");
+  const expectedBounds = bbox
+    ? bbox.split(",").map(Number)
+    : [-180, -90, 180, 90];
+  if (expectedBounds[2] <= expectedBounds[0]) expectedBounds[2] += 360;
+  if (
+    !validFrameBounds(expectedBounds) ||
+    expectedBounds.some(
+      (value, index) => Math.abs(value - metadata.grid.bounds[index]) > 1e-6,
+    )
+  )
+    throw new Error("O quadro recebido não corresponde ao recorte solicitado.");
   // Decode explicitly as little-endian, including on a big-endian client.
   const values = new Float32Array(count),
     coverage = new Float32Array(count);

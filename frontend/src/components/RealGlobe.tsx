@@ -1,8 +1,15 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
-import { Layers3, Minus, Plus, RotateCcw } from "lucide-react";
+import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
+import { SpaceBackdrop } from "./SpaceBackdrop";
+import "./space-scene.css";
+import {
+  frameCellIndex,
+  geographicPointer,
+  selectionBounds,
+} from "../lib/globeSelection";
 import { dragGlobe, globeProjection } from "../lib/globeProjection";
 import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
@@ -48,11 +55,15 @@ export function RealGlobe({
   region,
   colorRange,
   onColorRange,
+  onSelectArea,
+  onClearArea,
 }: {
   frame?: EarthFrame;
   region?: EarthRegion;
   colorRange?: EarthColorRange;
   onColorRange?: (value?: EarthColorRange) => void;
+  onSelectArea?: (bbox: string) => void;
+  onClearArea?: () => void;
   view: GlobeView;
   onView: (view: GlobeView) => void;
 }) {
@@ -60,6 +71,28 @@ export function RealGlobe({
   const [unavailable, setUnavailable] = useState(false);
   const [probe, setProbe] = useState<[number, number] | null>(null);
   const id = useId();
+  const [drawing, setDrawing] = useState(false);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [areaNotice, setAreaNotice] = useState("");
+  const areaDrag = useRef<{
+    pointerId: number;
+    first: [number, number];
+    view: GlobeView;
+  } | null>(null);
+  const clearDraft = () => {
+    areaDrag.current = null;
+    setDraft(null);
+  };
+  const cancelDrawing = () => {
+    clearDraft();
+    setDrawing(false);
+  };
+  const draftOutline = useMemo(() => {
+    const boundary = draft ? regionBoundary(draft) : null;
+    return boundary
+      ? (geoPath(globeProjection(view)).digits(1)(boundary) ?? "")
+      : "";
+  }, [draft, view.longitude, view.latitude]);
   const drag = useRef<{
     pointerId: number;
     x: number;
@@ -91,18 +124,7 @@ export function RealGlobe({
       : "";
   }, [view.longitude, view.latitude, region?.bbox]);
   const scale = frame ? displayScale(frame, colorRange) : null;
-  const cellIndex =
-    frame && probe
-      ? Math.min(
-          frame.grid.height - 1,
-          Math.max(0, Math.floor(((90 - probe[1]) / 180) * frame.grid.height)),
-        ) *
-          frame.grid.width +
-        Math.min(
-          frame.grid.width - 1,
-          Math.max(0, Math.floor(((probe[0] + 180) / 360) * frame.grid.width)),
-        )
-      : -1;
+  const cellIndex = frame && probe ? frameCellIndex(frame.grid, probe) : -1;
   const sampled =
     frame && cellIndex >= 0 && frame.coverage[cellIndex] > 0
       ? frame.values[cellIndex]
@@ -123,137 +145,242 @@ export function RealGlobe({
           <Layers3 size={14} /> Camada real
         </button>
       </div>
-      <svg
-        viewBox="0 0 640 640"
-        className="real-globe-svg"
-        tabIndex={0}
-        role="group"
-        aria-label="Globo de dados reais. Arraste para girar. Use as setas ou Home."
-        onPointerDown={(e) => {
-          if (e.button !== 0 || drag.current) return;
-          // Taking the pointer cancels a programmatic flight at the displayed camera.
-          onView(view);
-          drag.current = {
-            pointerId: e.pointerId,
-            x: e.clientX,
-            y: e.clientY,
-            view,
-          };
-          e.currentTarget.setPointerCapture(e.pointerId);
-        }}
-        onPointerMove={(e) => {
-          const start = drag.current;
-          if (!start) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x =
-              (((e.clientX - rect.left) / rect.width) * 640 - 320) / view.zoom +
-              320;
-            const y =
-              (((e.clientY - rect.top) / rect.height) * 640 - 320) / view.zoom +
-              320;
-            if (Math.hypot(x - 320, y - 320) > 270) {
+      {onSelectArea && (
+        <div className="globe-area-controls">
+          <button
+            type="button"
+            aria-pressed={drawing}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                cancelDrawing();
+              }
+            }}
+            onClick={() => {
+              clearDraft();
+              setDrawing(!drawing);
+              setAreaNotice("");
+            }}
+          >
+            <Scan size={15} />
+            {drawing ? "Cancel drawing" : "Draw area"}
+          </button>
+          {region && onClearArea && (
+            <button
+              type="button"
+              onClick={() => {
+                cancelDrawing();
+                setAreaNotice("");
+                onClearArea();
+              }}
+            >
+              <X size={14} />
+              Clear area
+            </button>
+          )}
+        </div>
+      )}
+      {onSelectArea && (
+        <p className="globe-area-hint" role="status">
+          {areaNotice ||
+            (drawing
+              ? "Drag between two points on the globe. Release to filter this panel. Esc cancels."
+              : region
+                ? `Selected coordinates: ${region.bbox}`
+                : "Draw an area to filter the layer and analyze its monthly observations.")}
+        </p>
+      )}
+      <div className={`real-globe-scene ${drawing ? "is-drawing" : ""}`}>
+        <SpaceBackdrop />
+        <svg
+          viewBox="0 0 640 640"
+          className="real-globe-svg"
+          tabIndex={0}
+          role="group"
+          aria-label="Globo de dados reais. Arraste para girar. Use as setas ou Home."
+          onPointerDown={(e) => {
+            if (e.button !== 0 || drag.current || areaDrag.current) return;
+            if (drawing) {
+              const first = geographicPointer(
+                e.currentTarget,
+                e.clientX,
+                e.clientY,
+                view,
+              );
+              if (!first) {
+                setAreaNotice("Start inside the visible planet.");
+                return;
+              }
+              onView(view);
               setProbe(null);
+              setAreaNotice("");
+              areaDrag.current = { pointerId: e.pointerId, first, view };
+              e.currentTarget.setPointerCapture(e.pointerId);
               return;
             }
-            const point = globeProjection(view).invert?.([x, y]);
-            setProbe(point && point.every(Number.isFinite) ? point : null);
-            return;
-          }
-          if (start.pointerId !== e.pointerId) return;
-          setProbe(null);
-          const factor = 640 / e.currentTarget.getBoundingClientRect().width;
-          onView(
-            dragGlobe(
-              start.view,
-              (e.clientX - start.x) * factor,
-              (e.clientY - start.y) * factor,
-            ),
-          );
-        }}
-        onPointerUp={(e) => {
-          drag.current = null;
-          if (e.currentTarget.hasPointerCapture(e.pointerId))
-            e.currentTarget.releasePointerCapture(e.pointerId);
-        }}
-        onPointerCancel={() => {
-          drag.current = null;
-        }}
-        onLostPointerCapture={() => {
-          drag.current = null;
-        }}
-        onPointerLeave={() => setProbe(null)}
-        onKeyDown={(e) => {
-          const moves: Record<string, [number, number]> = {
-            ArrowLeft: [-25, 0],
-            ArrowRight: [25, 0],
-            ArrowUp: [0, -25],
-            ArrowDown: [0, 25],
-          };
-          if (moves[e.key]) {
-            e.preventDefault();
-            onView(dragGlobe(view, ...moves[e.key]));
-          }
-          if (e.key === "Home") {
-            e.preventDefault();
-            onView({ ...initialGlobeView, showLayer: view.showLayer });
-          }
-        }}
-      >
-        <defs>
-          <clipPath id={id}>
-            <circle cx="320" cy="320" r="270" />
-          </clipPath>
-        </defs>
-        <g
-          transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
+            // Taking the pointer cancels a programmatic flight at the displayed camera.
+            onView(view);
+            drag.current = {
+              pointerId: e.pointerId,
+              x: e.clientX,
+              y: e.clientY,
+              view,
+            };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => {
+            const selection = areaDrag.current;
+            if (selection) {
+              if (selection.pointerId !== e.pointerId) return;
+              const point = geographicPointer(
+                e.currentTarget,
+                e.clientX,
+                e.clientY,
+                selection.view,
+              );
+              setDraft(point ? selectionBounds(selection.first, point) : null);
+              return;
+            }
+            const start = drag.current;
+            if (!start) {
+              setProbe(
+                drawing
+                  ? null
+                  : geographicPointer(
+                      e.currentTarget,
+                      e.clientX,
+                      e.clientY,
+                      view,
+                    ),
+              );
+              return;
+            }
+            if (start.pointerId !== e.pointerId) return;
+            setProbe(null);
+            const factor = 640 / e.currentTarget.getBoundingClientRect().width;
+            onView(
+              dragGlobe(
+                start.view,
+                (e.clientX - start.x) * factor,
+                (e.clientY - start.y) * factor,
+              ),
+            );
+          }}
+          onPointerUp={(e) => {
+            const selection = areaDrag.current;
+            if (selection && selection.pointerId === e.pointerId) {
+              const last = geographicPointer(
+                e.currentTarget,
+                e.clientX,
+                e.clientY,
+                selection.view,
+              );
+              const bbox = last ? selectionBounds(selection.first, last) : null;
+              clearDraft();
+              if (bbox) {
+                setDrawing(false);
+                setAreaNotice("");
+                onSelectArea?.(bbox);
+              } else
+                setAreaNotice(
+                  "Release inside the planet with a rectangle wider and taller than 0.02°.",
+                );
+            }
+            drag.current = null;
+            if (e.currentTarget.hasPointerCapture(e.pointerId))
+              e.currentTarget.releasePointerCapture(e.pointerId);
+          }}
+          onPointerCancel={() => {
+            drag.current = null;
+            clearDraft();
+          }}
+          onLostPointerCapture={() => {
+            drag.current = null;
+            clearDraft();
+          }}
+          onPointerLeave={() => setProbe(null)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              cancelDrawing();
+              return;
+            }
+            if (areaDrag.current) return;
+            const moves: Record<string, [number, number]> = {
+              ArrowLeft: [-25, 0],
+              ArrowRight: [25, 0],
+              ArrowUp: [0, -25],
+              ArrowDown: [0, 25],
+            };
+            if (moves[e.key]) {
+              e.preventDefault();
+              onView(dragGlobe(view, ...moves[e.key]));
+            }
+            if (e.key === "Home") {
+              e.preventDefault();
+              onView({ ...initialGlobeView, showLayer: view.showLayer });
+            }
+          }}
         >
-          <circle cx="320" cy="320" r="278" fill="#548fdf" opacity=".16" />
-          <circle cx="320" cy="320" r="270" fill="#0b1830" />
-          <path d={paths.land} fill="#566b80" />
-          <GlobeSurface
-            longitude={view.longitude}
-            latitude={view.latitude}
-            frame={frame}
-            colorRange={colorRange}
-            showField={view.showLayer}
-            onUnavailable={() => setUnavailable(true)}
-          />
-          <g clipPath={`url(#${id})`} pointerEvents="none">
-            <path
-              d={paths.land}
-              fill="none"
-              stroke="#dbeaff"
-              strokeWidth=".7"
-              opacity=".55"
+          <defs>
+            <clipPath id={id}>
+              <circle cx="320" cy="320" r="270" />
+            </clipPath>
+          </defs>
+          <g
+            transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
+          >
+            <circle cx="320" cy="320" r="278" fill="#548fdf" opacity=".16" />
+            <circle cx="320" cy="320" r="270" fill="#0b1830" />
+            <path d={paths.land} fill="#566b80" />
+            <GlobeSurface
+              longitude={view.longitude}
+              latitude={view.latitude}
+              frame={frame}
+              colorRange={colorRange}
+              showField={view.showLayer}
+              onUnavailable={() => setUnavailable(true)}
             />
-            <path
-              d={paths.grid}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth=".5"
-              opacity=".18"
-            />
-            {region && (
-              <g aria-label={`Recorte da série: ${region.name}`}>
-                <path
-                  d={outline}
-                  fill="none"
-                  stroke="#12201a"
-                  strokeWidth="3.2"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <path
-                  d={outline}
-                  fill="none"
-                  stroke="#f3dea0"
-                  strokeWidth="1.4"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </g>
-            )}
+            <g clipPath={`url(#${id})`} pointerEvents="none">
+              <path
+                d={paths.land}
+                fill="none"
+                stroke="#dbeaff"
+                strokeWidth=".7"
+                opacity=".55"
+              />
+              <path
+                d={paths.grid}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth=".5"
+                opacity=".18"
+              />
+              {draftOutline && (
+                <path d={draftOutline} className="globe-draft-outline" />
+              )}
+              {region && (
+                <g aria-label={`Recorte da série: ${region.name}`}>
+                  <path
+                    d={outline}
+                    fill="none"
+                    stroke="#12201a"
+                    strokeWidth="3.2"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <path
+                    d={outline}
+                    fill="none"
+                    stroke="#f3dea0"
+                    strokeWidth="1.4"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              )}
+            </g>
           </g>
-        </g>
-      </svg>
+        </svg>
+      </div>
       {region && (
         <p className="real-region-outline-note">
           Contorno: recorte da série; não área do evento · {region.name}

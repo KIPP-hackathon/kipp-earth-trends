@@ -176,47 +176,41 @@ function EventCards({
     </>
   );
 }
-function App() {
-  const version = useRef(0);
-  const commandNonce = useRef(0);
+const globalStudyRegion: EarthRegion = {
+  id: "custom-global",
+  name: "Global view",
+  bbox: "-180,-90,180,90",
+  longitude: initialGlobeView.longitude,
+  latitude: initialGlobeView.latitude,
+};
+
+// Each workspace owns its camera and panel state. Only immutable catalog/data
+// caches are shared; changing Explore cannot mutate a comparison scenario.
+function useLabWorkspace(onManualChange: () => void) {
+  const camera = useGlobeCamera(initialGlobeView);
   const snapshots = useRef<Partial<Record<PanelSide, PanelSnapshot>>>({});
-  const [hasSnapshot, setHasSnapshot] = useState(false);
-  const markChanged = useCallback(() => {
-    version.current++;
-  }, []);
-  const receiveSnapshot = useCallback((snapshot: PanelSnapshot) => {
-    if (
-      JSON.stringify(snapshots.current[snapshot.side]) !==
-      JSON.stringify(snapshot)
-    ) {
-      snapshots.current[snapshot.side] = snapshot;
-      if (snapshot.side === "A") setHasSnapshot(true);
-    }
-  }, []);
-  const [active, setActive] = useState<LabTab>("explore");
-  const { view, setView, flyTo } = useGlobeCamera(initialGlobeView);
-  const changeView = (next: GlobeView) => {
-    markChanged();
-    setView(next);
-  };
+  const [ready, setReady] = useState(false);
   const [colorRanges, setColorRanges] = useState<
     Record<string, EarthColorRange>
   >({});
-  const changeColorRange = (variable: string, value?: EarthColorRange) => {
-    markChanged();
-    setColorRanges((previous) => {
-      const next = { ...previous };
-      if (value) next[variable] = value;
-      else delete next[variable];
-      return next;
-    });
-  };
-  const [modal, setModal] = useState<"sources" | "guide" | null>(null);
-  const [presetA, setPresetA] = useState<PanelPreset>();
-  const [presetB, setPresetB] = useState<PanelPreset>();
+  const [presets, setPresets] = useState<
+    Partial<Record<PanelSide, PanelPreset>>
+  >({});
   const [playbackCommands, setPlaybackCommands] = useState<
     Partial<Record<PanelSide, PlaybackCommand>>
   >({});
+  const [customRegions, setCustomRegions] = useState<EarthRegion[]>([]);
+  const [eventContext, setEventContext] = useState<EarthEvent>();
+  const receiveSnapshot = useCallback((snapshot: PanelSnapshot) => {
+    snapshots.current[snapshot.side] = snapshot;
+    if (snapshot.side === "A") setReady(true);
+  }, []);
+  const registerRegion = useCallback((region: EarthRegion) => {
+    setCustomRegions((previous) => [
+      ...previous.filter((entry) => entry.id !== region.id),
+      structuredClone(region),
+    ]);
+  }, []);
   const acknowledgePlayback = useCallback((side: PanelSide, nonce: number) => {
     setPlaybackCommands((previous) => {
       if (previous[side]?.nonce !== nonce) return previous;
@@ -225,31 +219,112 @@ function App() {
       return next;
     });
   }, []);
-  const [customRegions, setCustomRegions] = useState<EarthRegion[]>([]);
-  const [eventContext, setEventContext] = useState<EarthEvent>();
+  const setPreset = useCallback((side: PanelSide, preset: PanelPreset) => {
+    setPresets((previous) => ({ ...previous, [side]: preset }));
+  }, []);
+  const changeView = useCallback(
+    (next: GlobeView) => {
+      onManualChange();
+      camera.setView(next);
+    },
+    [onManualChange, camera.setView],
+  );
+  const changeColorRange = useCallback(
+    (variable: string, value?: EarthColorRange) => {
+      onManualChange();
+      setColorRanges((previous) => {
+        const next = { ...previous };
+        if (value) next[variable] = value;
+        else delete next[variable];
+        return next;
+      });
+    },
+    [onManualChange],
+  );
+  const live = useRef({ view: camera.view, colorRanges });
+  live.current = { view: camera.view, colorRanges };
+  const getContext = useCallback(
+    (tab: LabTab, version: number): AssistantContext => {
+      const panels = [
+        snapshots.current.A,
+        ...(tab === "compare" ? [snapshots.current.B] : []),
+      ].filter((panel): panel is PanelSnapshot => !!panel);
+      return structuredClone({
+        version,
+        tab,
+        panels,
+        camera: live.current.view,
+        colorRanges: live.current.colorRanges,
+      });
+    },
+    [],
+  );
+  return {
+    camera,
+    ready,
+    colorRanges,
+    setColorRanges,
+    presets,
+    setPresets,
+    setPreset,
+    playbackCommands,
+    setPlaybackCommands,
+    acknowledgePlayback,
+    customRegions,
+    registerRegion,
+    eventContext,
+    setEventContext,
+    receiveSnapshot,
+    changeView,
+    changeColorRange,
+    getContext,
+  };
+}
+
+function App() {
+  const version = useRef(0);
+  const commandNonce = useRef(0);
+  const markChanged = useCallback(() => {
+    version.current++;
+  }, []);
+  const [active, setActive] = useState<LabTab>("explore");
+  const exploration = useLabWorkspace(markChanged);
+  const comparison = useLabWorkspace(markChanged);
+  const [modal, setModal] = useState<"sources" | "guide" | null>(null);
   const catalog = useEarthResource("catalog", loadCatalog);
   const config = useEarthResource("configuration", loadConfig);
-  const workspaceConfig = config.data
-    ? { ...config.data, regions: [...config.data.regions, ...customRegions] }
-    : undefined;
-  const live = useRef({ active, view, colorRanges });
-  live.current = { active, view, colorRanges };
-  const getContext = useCallback((): AssistantContext => {
-    const state = live.current;
-    const panels = [
-      snapshots.current.A,
-      ...(state.active === "compare" ? [snapshots.current.B] : []),
-    ].filter((panel): panel is PanelSnapshot => !!panel);
-    return structuredClone({
-      version: version.current,
-      tab: state.active,
-      panels,
-      camera: state.view,
-      colorRanges: state.colorRanges,
-    });
-  }, []);
-  const isWorkspace =
-    active === "explore" || active === "compare" || active === "analysis";
+  const configFor = (workspace: ReturnType<typeof useLabWorkspace>) =>
+    config.data
+      ? {
+          ...config.data,
+          regions: [
+            ...new Map(
+              [
+                ...config.data.regions,
+                globalStudyRegion,
+                ...workspace.customRegions,
+              ].map((region) => [region.id, region]),
+            ).values(),
+          ],
+        }
+      : undefined;
+  const explorationConfig = configFor(exploration);
+  const comparisonConfig = configFor(comparison);
+  const activeTab = useRef(active);
+  activeTab.current = active;
+  const getWorkspaceContext = useCallback(
+    (tab: LabTab) =>
+      (tab === "compare" ? comparison : exploration).getContext(
+        tab,
+        version.current,
+      ),
+    [comparison.getContext, exploration.getContext],
+  );
+  const getContext = useCallback(
+    () => getWorkspaceContext(activeTab.current),
+    [getWorkspaceContext],
+  );
+  const isExploration = active === "explore" || active === "analysis";
   const showTab = (tab: LabTab) => {
     markChanged();
     setActive(tab);
@@ -270,23 +345,24 @@ function App() {
     markChanged();
     const before = available.filter((month) => month < event.window[0]).at(-1);
     const after = available.find((month) => month > event.window[1]);
-    setPresetA({
+    const workspace = compare ? comparison : exploration;
+    workspace.setPreset("A", {
       variable: event.variable,
       region: event.region,
       month: compare ? (before ?? during[0]) : during.at(-1)!,
     });
-    setPresetB({
-      variable: event.variable,
-      region: event.region,
-      month: compare
-        ? during.at(-1)! === (before ?? during[0])
-          ? (after ?? available.at(-1)!)
-          : during.at(-1)!
-        : (after ?? available.at(-1)!),
-    });
-    setEventContext(event);
-    flyTo({
-      ...view,
+    if (compare)
+      workspace.setPreset("B", {
+        variable: event.variable,
+        region: event.region,
+        month:
+          during.at(-1)! === (before ?? during[0])
+            ? (after ?? available.at(-1)!)
+            : during.at(-1)!,
+      });
+    workspace.setEventContext(event);
+    workspace.camera.flyTo({
+      ...workspace.camera.view,
       longitude: event.longitude,
       latitude: event.latitude,
     });
@@ -317,28 +393,73 @@ function App() {
       current.version !== requested.version
     )
       return "The view changed while this request was running. No commands applied; please retry with the current view.";
+    const finalTab = response.actions.reduce<LabTab>((tab, raw) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return tab;
+      const action = raw as Record<string, unknown>;
+      return action.type === "set_tab" &&
+        labTabs.some((entry) => entry.id === action.tab)
+        ? (action.tab as LabTab)
+        : tab;
+    }, current.tab);
+    const workspace = finalTab === "compare" ? comparison : exploration;
+    const workspaceConfig =
+      finalTab === "compare" ? comparisonConfig : explorationConfig;
     if (!catalog.data || !workspaceConfig)
       return "The catalog is unavailable. No commands applied.";
+    const destination = getWorkspaceContext(finalTab);
+    // A cross-tab command may explicitly reuse a source area. Copy its geometry
+    // at this moment, never share a mutable selection/region registry.
+    const importedRegions = [
+      ...new Map(
+        current.panels
+          .map((panel) => panel.region)
+          .filter(
+            (region) =>
+              region.id.startsWith("custom-") &&
+              response.actions.some(
+                (raw) =>
+                  raw &&
+                  typeof raw === "object" &&
+                  !Array.isArray(raw) &&
+                  (raw as Record<string, unknown>).type === "set_panel" &&
+                  (raw as Record<string, unknown>).regionId === region.id,
+              ),
+          )
+          .map((region) => [region.id, region]),
+      ).values(),
+    ];
+    const validationConfig = {
+      ...workspaceConfig,
+      regions: [
+        ...workspaceConfig.regions.filter(
+          (region) => !importedRegions.some((entry) => entry.id === region.id),
+        ),
+        ...importedRegions,
+      ],
+    };
     const actions = validateAssistantActions(
       response.actions,
       catalog.data,
-      workspaceConfig,
-      current,
+      validationConfig,
+      destination,
     );
     if (!actions)
       return "The proposed view commands could not be validated. No commands applied.";
+    if (
+      (current.tab === "compare") !== (finalTab === "compare") &&
+      !actions.some((action) => action.type === "set_area") &&
+      actions.some((action) => action.type === "set_panel" && !action.regionId)
+    )
+      return "Explore and Comparison have independent study areas. The proposed commands did not specify the destination areas, so no commands were applied. Please retry.";
     const nonce = ++commandNonce.current;
-    const finalTab =
-      actions.filter((action) => action.type === "set_tab").at(-1)?.tab ??
-      current.tab;
     const presets: Partial<Record<PanelSide, PanelPreset>> = {};
     const playback: Partial<Record<PanelSide, PlaybackCommand>> = {};
     const regions: EarthRegion[] = [];
-    let nextView = { ...current.camera };
-    const ranges = { ...current.colorRanges };
+    let nextView = { ...destination.camera };
+    const ranges = { ...destination.colorRanges };
     const panelPreset = (side: PanelSide): PanelPreset => {
       if (presets[side]) return presets[side]!;
-      const panel = current.panels.find((entry) => entry.side === side);
+      const panel = destination.panels.find((entry) => entry.side === side);
       const variable =
         catalog.data!.variables.find((v) => v.id === panel?.variable) ??
         catalog.data!.variables.find(
@@ -351,7 +472,11 @@ function App() {
           (side === "A"
             ? variable.months.at(-1)!.month
             : variable.months[0].month),
-        region: panel?.region.id ?? workspaceConfig.regions[0].id,
+        region:
+          panel?.region.id ??
+          (finalTab === "compare"
+            ? workspaceConfig.regions[0].id
+            : globalStudyRegion.id),
         start: panel?.start,
         end: panel?.end,
         nonce,
@@ -393,7 +518,17 @@ function App() {
           id: `custom-${nonce}-${regions.length}`,
           name: action.name,
           bbox: bbox.join(","),
-          longitude: (bbox[0] + bbox[2]) / 2,
+          longitude:
+            ((((bbox[0] +
+              (bbox[2] >= bbox[0]
+                ? bbox[2] - bbox[0]
+                : bbox[2] + 360 - bbox[0]) /
+                2 +
+              180) %
+              360) +
+              360) %
+              360) -
+            180,
           latitude: (bbox[1] + bbox[3]) / 2,
         };
         regions.push(region);
@@ -408,20 +543,23 @@ function App() {
       }
     }
     markChanged();
-    setEventContext(undefined);
-    if (regions.length)
-      setCustomRegions((previous) => [...previous, ...regions]);
-    if (presets.A) setPresetA(presets.A);
-    if (presets.B) setPresetB(presets.B);
+    workspace.setEventContext(undefined);
+    for (const region of [...importedRegions, ...regions])
+      workspace.registerRegion(region);
+    if (Object.keys(presets).length)
+      workspace.setPresets((previous) => ({ ...previous, ...presets }));
     if (Object.keys(playback).length)
-      setPlaybackCommands((previous) => ({ ...previous, ...playback }));
+      workspace.setPlaybackCommands((previous) => ({
+        ...previous,
+        ...playback,
+      }));
     if (
       actions.some(
         (action) => action.type === "set_camera" || action.type === "set_area",
       )
     )
-      flyTo(nextView);
-    setColorRanges(ranges);
+      workspace.camera.flyTo(nextView);
+    workspace.setColorRanges(ranges);
     setActive(finalTab);
     return [
       "View commands accepted. Panels will show loading status while observations are fetched.",
@@ -430,29 +568,79 @@ function App() {
       .filter(Boolean)
       .join(" ");
   };
-  const contextVariable = catalog.data?.variables.find(
-    (entry) => entry.id === eventContext?.variable,
-  );
-  const contextMonths =
-    contextVariable?.months
-      .filter((entry) => entry.validSamples > 0)
-      .map((entry) => entry.month) ?? [];
-  const phases = eventContext
-    ? [
-        {
-          label: "Antes",
-          month: contextMonths
-            .filter((month) => month < eventContext.window[0])
-            .at(-1),
-        },
-        { label: "Durante", month: eventContext.months.at(-1) },
-        {
-          label: "Depois",
-          month: contextMonths.find((month) => month > eventContext.window[1]),
-        },
-        { label: "Mais recente", month: contextMonths.at(-1) },
-      ]
-    : [];
+  const renderEventContext = (
+    workspace: ReturnType<typeof useLabWorkspace>,
+    compare: boolean,
+  ) => {
+    const event = workspace.eventContext;
+    if (!event) return null;
+    const months =
+      catalog.data?.variables
+        .find((entry) => entry.id === event.variable)
+        ?.months.filter((entry) => entry.validSamples > 0)
+        .map((entry) => entry.month) ?? [];
+    const phases = [
+      {
+        label: "Antes",
+        month: months.filter((month) => month < event.window[0]).at(-1),
+      },
+      { label: "Durante", month: event.months.at(-1) },
+      {
+        label: "Depois",
+        month: months.find((month) => month > event.window[1]),
+      },
+      { label: "Mais recente", month: months.at(-1) },
+    ];
+    return (
+      <aside className="real-event-context">
+        <div>
+          <span className="eyebrow">CONTEXTO HISTÓRICO</span>
+          <h2>{event.title}</h2>
+          <p>{event.limitation}</p>
+          <a href={event.source.url} target="_blank" rel="noreferrer">
+            Fonte: {event.source.name} <ExternalLink size={11} />
+          </a>
+        </div>
+        <div className="real-phase-controls">
+          {(["A", ...(compare ? ["B"] : [])] as PanelSide[]).map((side) => (
+            <label key={side}>
+              Mês do painel {side}
+              <select
+                aria-label={`Período do evento no painel ${side}`}
+                value=""
+                onChange={(change) => {
+                  if (!change.target.value) return;
+                  markChanged();
+                  workspace.setPreset(side, {
+                    variable: event.variable,
+                    region: event.region,
+                    month: change.target.value,
+                  });
+                }}
+              >
+                <option value="">Escolha um contexto disponível</option>
+                {phases.map((phase) => (
+                  <option
+                    key={phase.label}
+                    value={phase.month ?? ""}
+                    disabled={!phase.month}
+                  >
+                    {phase.label}
+                    {phase.month
+                      ? ` · ${realMonth(phase.month)}`
+                      : " · sem mês disponível"}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+          <button onClick={() => workspace.setEventContext(undefined)}>
+            Limpar contexto
+          </button>
+        </div>
+      </aside>
+    );
+  };
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -493,125 +681,84 @@ function App() {
         {config.error && (
           <RequestFailure message={config.error} retry={config.retry} />
         )}
-        {catalog.data && workspaceConfig && (
+        {catalog.data && explorationConfig && comparisonConfig && (
           <>
             <section
-              hidden={!isWorkspace}
+              hidden={!isExploration}
               role="tabpanel"
-              id={`panel-${isWorkspace ? active : "explore"}`}
-              aria-labelledby={`tab-${isWorkspace ? active : "explore"}`}
+              id={`panel-${active === "analysis" ? "analysis" : "explore"}`}
+              aria-labelledby={`tab-${active === "analysis" ? "analysis" : "explore"}`}
               className={`real-workspace ${active === "analysis" ? "is-analysis" : ""}`}
             >
-              {active === "compare" && (
-                <p className="real-comparison-note">
-                  Dois globos, câmera compartilhada. Filtros independentes. A
-                  mesma variável mantém a mesma escala nos dois lados; produtos
-                  e unidades diferentes devem ser interpretados separadamente.
-                </p>
-              )}
-              {eventContext && (
-                <aside className="real-event-context">
-                  <div>
-                    <span className="eyebrow">CONTEXTO HISTÓRICO</span>
-                    <h2>{eventContext.title}</h2>
-                    <p>{eventContext.limitation}</p>
-                    <a
-                      href={eventContext.source.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Fonte: {eventContext.source.name}{" "}
-                      <ExternalLink size={11} />
-                    </a>
-                  </div>
-                  <div className="real-phase-controls">
-                    {(
-                      ["A", ...(active === "compare" ? ["B"] : [])] as (
-                        "A" | "B"
-                      )[]
-                    ).map((side) => (
-                      <label key={side}>
-                        Mês do painel {side}
-                        <select
-                          aria-label={`Período do evento no painel ${side}`}
-                          value=""
-                          onChange={(event) => {
-                            if (!event.target.value) return;
-                            markChanged();
-                            const preset = {
-                              variable: eventContext.variable,
-                              region: eventContext.region,
-                              month: event.target.value,
-                            };
-                            (side === "A" ? setPresetA : setPresetB)(preset);
-                          }}
-                        >
-                          <option value="">
-                            Escolha um contexto disponível
-                          </option>
-                          {phases.map((phase) => (
-                            <option
-                              key={phase.label}
-                              value={phase.month ?? ""}
-                              disabled={!phase.month}
-                            >
-                              {phase.label}
-                              {phase.month
-                                ? ` · ${realMonth(phase.month)}`
-                                : " · sem mês disponível"}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ))}
-                    <button onClick={() => setEventContext(undefined)}>
-                      Limpar contexto
-                    </button>
-                  </div>
-                </aside>
-              )}
-              <div
-                className={`real-panels ${active === "compare" ? "is-comparing" : ""}`}
-              >
+              {renderEventContext(exploration, false)}
+              <div className="real-panels">
                 <RealPanel
+                  key="explore-A"
+                  instanceId="explore-A"
+                  overview
+                  initialRegion={globalStudyRegion}
                   catalog={catalog.data}
-                  config={workspaceConfig}
+                  config={explorationConfig}
                   side="A"
-                  view={view}
-                  onView={changeView}
-                  preset={presetA}
-                  active={isWorkspace}
-                  colorRanges={colorRanges}
-                  onColorRange={changeColorRange}
-                  onSnapshot={receiveSnapshot}
+                  view={exploration.camera.view}
+                  onView={exploration.changeView}
+                  preset={exploration.presets.A}
+                  active={isExploration}
+                  colorRanges={exploration.colorRanges}
+                  onColorRange={exploration.changeColorRange}
+                  onSnapshot={exploration.receiveSnapshot}
                   onManualChange={markChanged}
-                  playbackCommand={playbackCommands.A}
-                  onPlaybackApplied={acknowledgePlayback}
+                  playbackCommand={exploration.playbackCommands.A}
+                  onPlaybackApplied={exploration.acknowledgePlayback}
+                  onCustomRegion={exploration.registerRegion}
                 />
-                {active === "compare" && (
-                  <RealPanel
-                    catalog={catalog.data}
-                    config={workspaceConfig}
-                    side="B"
-                    view={view}
-                    onView={changeView}
-                    preset={presetB}
-                    colorRanges={colorRanges}
-                    onColorRange={changeColorRange}
-                    onSnapshot={receiveSnapshot}
-                    onManualChange={markChanged}
-                    playbackCommand={playbackCommands.B}
-                    onPlaybackApplied={acknowledgePlayback}
-                    active
-                  />
-                )}
               </div>
               <p className="real-method-note">
                 A grade do globo é agregada para visualização. A série regional
-                usa os pontos da grade de origem dentro do bbox. Consulte o
-                método e a qualidade específicos de cada variável. Não
-                calculamos tendências ou significância a partir deste histórico
-                curto.
+                usa os pontos da grade de origem dentro do retângulo
+                selecionado. Consulte o método e a qualidade de cada variável.
+              </p>
+            </section>
+            <section
+              hidden={active !== "compare"}
+              role="tabpanel"
+              id="panel-compare"
+              aria-labelledby="tab-compare"
+              className="real-workspace"
+            >
+              <p className="real-comparison-note">
+                Dois globos, câmera compartilhada. Filtros independentes. A
+                mesma variável mantém a mesma escala nos dois lados; produtos e
+                unidades diferentes devem ser interpretados separadamente.
+              </p>
+              {renderEventContext(comparison, true)}
+              <div className="real-panels is-comparing">
+                {(["A", "B"] as PanelSide[]).map((side) => (
+                  <RealPanel
+                    key={`compare-${side}`}
+                    instanceId={`compare-${side}`}
+                    catalog={catalog.data!}
+                    config={comparisonConfig}
+                    side={side}
+                    view={comparison.camera.view}
+                    onView={comparison.changeView}
+                    preset={comparison.presets[side]}
+                    active={active === "compare"}
+                    colorRanges={comparison.colorRanges}
+                    onColorRange={comparison.changeColorRange}
+                    onSnapshot={comparison.receiveSnapshot}
+                    onManualChange={markChanged}
+                    playbackCommand={comparison.playbackCommands[side]}
+                    onPlaybackApplied={comparison.acknowledgePlayback}
+                    onCustomRegion={comparison.registerRegion}
+                  />
+                ))}
+              </div>
+              <p className="real-method-note">
+                A grade do globo é agregada para visualização. Cada série
+                regional usa seu próprio retângulo. Comparação visual e
+                diferenças descritivas não estabelecem significância ou
+                causalidade.
               </p>
             </section>
             {active === "events" && (
@@ -671,7 +818,11 @@ function App() {
         </footer>
       </main>
       <Assistant
-        ready={!!catalog.data && !!workspaceConfig && hasSnapshot}
+        ready={
+          !!catalog.data &&
+          !!config.data &&
+          (active === "compare" ? comparison.ready : exploration.ready)
+        }
         getContext={getContext}
         applyResponse={applyAssistantResponse}
       />
@@ -691,7 +842,9 @@ function App() {
                 Os campos mensais são derivados de produtos NASA e servidos pelo
                 catálogo de dados do laboratório. Cada variável identifica o
                 produto, a unidade, a agregação e os filtros de qualidade. A
-                imagem de base é NASA Blue Marble, estática.
+                imagem de base é NASA Blue Marble, estática. O fundo estrelado é
+                uma ambientação decorativa, sem representar posições
+                astronômicas ou observações científicas.
               </p>
               <p>
                 As fichas de eventos são curadas e citam suas fontes históricas.

@@ -2,7 +2,7 @@
 
 Implemented with AI assistance on 14 November 2026. Team review remains pending.
 
-The floating assistant answers in the user's language and can select tabs, configure two comparison panels, choose observed months and study periods, move the shared globe camera, start/stop playback, set a shared numeric color range and select rectangular study areas. V1 areas cannot cross the antimeridian. Areas are study rectangles, not event footprints. It cannot execute arbitrary code, SQL, shell commands or external requests.
+The floating assistant answers in the user's language and can select tabs, configure two comparison panels, choose observed months and study periods, move the shared globe camera, start/stop playback, set a shared numeric color range and select rectangular study areas. Study rectangles can cross the antimeridian; bounds and display sampling preserve the wrapped longitude interval. Areas are study rectangles, not event footprints. It cannot execute arbitrary code, SQL, shell commands or external requests.
 
 ## Data and interpretation
 

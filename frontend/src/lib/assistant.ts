@@ -140,10 +140,13 @@ export function parseStudyBbox(
     return undefined;
   const [west, south, east, north] = parts as number[];
   return west >= -180 &&
+    west <= 180 &&
+    east >= -180 &&
     east <= 180 &&
     south >= -90 &&
     north <= 90 &&
-    west < east &&
+    west !== east &&
+    !(west === 180 && east === -180) &&
     south < north
     ? [west, south, east, north]
     : undefined;

@@ -375,11 +375,28 @@ export function createAssistantTools({ data, catalog }: AssistantToolOptions) {
       items: assistantActionSchema,
     });
     const actions = raw as AssistantAction[];
+    const finalTab =
+      actions.filter((action) => action.type === "set_tab").at(-1)?.tab ??
+      context.tab;
+    const switchesWorkspace =
+      (context.tab === "compare") !== (finalTab === "compare");
+    const setsArea = actions.some((action) => action.type === "set_area");
+    if (
+      switchesWorkspace &&
+      actions.some(
+        (action) =>
+          action.type === "set_panel" &&
+          ((!action.regionId && !setsArea) || !action.start || !action.end),
+      )
+    )
+      throw new ApiError(
+        400,
+        "DESTINATION_FILTERS_REQUIRED",
+        "Explore and Comparison have independent filters. When switching workspaces, every set_panel must specify start, end and regionId, or set_area must explicitly provide the desired bbox. To reuse the drawn source area, use its exact context region.id or bbox.",
+      );
     for (const action of actions) {
       if (action.type === "set_area") {
         parseBounds(action.bbox);
-        const [west,,east] = action.bbox.split(",").map(Number);
-        if (west >= east) throw new ApiError(400, "INVALID_AREA", "V1 study rectangles cannot cross the antimeridian. Select a rectangle west of east.");
         if (!action.name.trim())
           throw new ApiError(
             400,

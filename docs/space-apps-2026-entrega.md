@@ -163,3 +163,20 @@ Publicação conferida em `62c17eb`: cinco tabs no header, sem hero, conteúdo a
 intermediárias sincronizadas A/B durante aproximadamente 900 ms. Os ajustes
 de tema claro que chegaram pela `main` foram preservados. Isso registra UX,
 sem modificar as observações ou encerrar os itens científicos pendentes.
+
+## Evidência incremental — seleção espacial e workspaces (14/11/2026)
+
+OpenAI Codex assistiu o desenho de retângulos, grade limitada por bbox, calendário
+mensal, ambiente espacial decorativo e separação persistente de Explorar/Comparar.
+Ver [fluxo, método e evidências](area-selection.md). O fundo de estrelas não é
+um catálogo astronômico nem uma camada de observações. Nenhuma credencial ou
+permissão de provedor foi adicionada. Revisão humana da equipe pendente.
+
+O navegador confirmou o desenho com soltura aplicando o mesmo bbox à camada
+e à série real (21×24 bins de exibição, 33 meses); calendário só com meses
+disponíveis; ausência de seletor de recorte em Explorar; três canvases e filtros/
+câmeras independentes entre workspaces. A troca feita pelo agente passou a
+exigir área/período explícitos para evitar analisar um bbox e mostrar outro.
+Builds Node.js 24 e 29 verificações preexistentes passaram; consulta real também
+conferiu um recorte cruzando o antimeridiano. Esses controles não demonstram
+significância, previsão ou causalidade, nem encerram a investigação/submissão.
