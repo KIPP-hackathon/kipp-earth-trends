@@ -1,4 +1,14 @@
 import { ApiError } from "./core.ts";
+import { unavailableIndicatorReference } from "./indicator-reference.ts";
+import type {
+  IndicatorReferenceService,
+  IndicatorSearchArguments,
+} from "./indicator-reference.ts";
+import { unavailableTrendReference } from "./trend-reference.ts";
+import type {
+  TrendReferenceService,
+  TrendReferenceArguments,
+} from "./trend-reference.ts";
 import { historicalEvents, regions } from "./config.ts";
 import { parseBounds, variableFor } from "./data.ts";
 import type { CatalogVariable, DataService } from "./data.ts";
@@ -36,6 +46,8 @@ export type AssistantToolResult = {
 export type AssistantToolOptions = {
   data: Pick<DataService, "series">;
   catalog: () => Promise<CatalogVariable[]>;
+  indicatorReference?: IndicatorReferenceService;
+  trendReference?: TrendReferenceService;
 };
 const periodArguments = {
   variable: variableSchema,
@@ -48,6 +60,37 @@ const declarations: {
   description: string;
   parameters: JsonSchema;
 }[] = [
+  {
+    name: "search_trends",
+    description:
+      "Search stored, precomputed MERRA-2 surface-temperature trend estimates. These cover fixed regions and periods, never an arbitrary drawn area. Query short region/topic keywords, optionally exact regionId/method/variable filters from returned availableFilters. Results preserve units, coverage, method, uncertainty and limitations. Compare methods that handle seasonality/autocorrelation before interpreting statistical evidence. No forecasts or causal attribution.",
+    parameters: objectSchema(
+      {
+        query: { type: "string", minLength: 1, maxLength: 200 },
+        regionId: { type: "string", minLength: 1, maxLength: 100 },
+        method: { type: "string", minLength: 1, maxLength: 100 },
+        variable: { type: "string", minLength: 1, maxLength: 100 },
+        limit: { type: "integer", minimum: 1, maximum: 12 },
+      },
+      ["query"],
+    ),
+  },
+  {
+    name: "search_indicators",
+    description:
+      "Search the curated Databricks indicator reference by name, code or topic in English/Portuguese. Metadata is broader than the app catalog and does not prove available layers or observations. Optional filters use known reference values; no arbitrary SQL. Use describe_variable for actual coverage and authoritative runtime units.",
+    parameters: objectSchema(
+      {
+        query: { type: "string", minLength: 1, maxLength: 200 },
+        role: { type: "string", minLength: 1, maxLength: 40 },
+        source: { type: "string", minLength: 1, maxLength: 40 },
+        domain: { type: "string", minLength: 1, maxLength: 40 },
+        accessibility: { type: "string", minLength: 1, maxLength: 40 },
+        limit: { type: "integer", minimum: 1, maximum: 12 },
+      },
+      ["query"],
+    ),
+  },
   {
     name: "list_variables",
     description:
@@ -268,7 +311,12 @@ function summarize(
   };
 }
 
-export function createAssistantTools({ data, catalog }: AssistantToolOptions) {
+export function createAssistantTools({
+  data,
+  catalog,
+  indicatorReference,
+  trendReference,
+}: AssistantToolOptions) {
   async function analyze(
     variable: CatalogVariable,
     bbox: string,
@@ -480,6 +528,40 @@ export function createAssistantTools({ data, catalog }: AssistantToolOptions) {
         );
       assertSchema(raw, declaration.parameters);
       const args = raw as Record<string, unknown>;
+      if (name === "search_trends") {
+        const result = trendReference
+          ? await trendReference.search(args as TrendReferenceArguments)
+          : unavailableTrendReference();
+        return {
+          result,
+          evidence: [
+            {
+              title: "Precomputed MERRA-2 trends",
+              detail:
+                result.status === "reference"
+                  ? `${result.referenceTable}; ${result.returnedCount} of ${result.matchedCount} stored trend matches. Interpret only the exact returned method, region, period and unit; these are not a trend calculation for the current drawn area.`
+                  : `${result.referenceTable}; stored trends unavailable. No estimates were invented.`,
+            },
+          ],
+        };
+      }
+      if (name === "search_indicators") {
+        const result = indicatorReference
+          ? await indicatorReference.search(args as IndicatorSearchArguments)
+          : unavailableIndicatorReference();
+        return {
+          result,
+          evidence: [
+            {
+              title: "Curated indicator reference",
+              detail:
+                result.status === "reference"
+                  ? `${result.referenceTable}; ${result.returnedCount} of ${result.matchedCount} metadata matches. Stage, role and reviewed mapping are supplied per result; actual observation availability is not checked.`
+                  : `${result.referenceTable}; reference unavailable. No observations or metadata were invented.`,
+            },
+          ],
+        };
+      }
       let entries: CatalogVariable[];
       try {
         entries = await catalog();

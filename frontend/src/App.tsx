@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -11,6 +11,11 @@ import {
 import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
 import { RealPanel } from "./components/RealDataView";
+import { SpaceBackdrop } from "./components/SpaceBackdrop";
+import { useCountryLocation } from "./lib/useCountryLocation";
+import { brazilCountry } from "./lib/countries";
+import type { CountrySelection } from "./lib/countries";
+import "./country-location.css";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
 import { useGlobeCamera } from "./lib/useGlobeCamera";
@@ -290,10 +295,54 @@ function App() {
   const [active, setActive] = useState<LabTab>("explore");
   const exploration = useLabWorkspace(markChanged);
   const comparison = useLabWorkspace(markChanged);
+  const location = useCountryLocation();
+  const [startingCountry, setStartingCountry] = useState(brazilCountry);
+  const locationVersion = useRef(0);
+  const handledLocation = useRef<string | null>(null);
+  const applyCountry = (country: CountrySelection) => {
+    markChanged();
+    setStartingCountry(country);
+    const panel = exploration.getContext("explore", version.current).panels[0];
+    if (panel)
+      exploration.setPreset("A", {
+        variable: panel.variable,
+        month: panel.selectedMonth ?? panel.end,
+        start: panel.start,
+        end: panel.end,
+        region: country.region.id,
+        nonce: ++commandNonce.current,
+      });
+    exploration.camera.flyTo({
+      ...exploration.camera.view,
+      longitude: country.region.longitude,
+      latitude: country.region.latitude,
+    });
+  };
+  useEffect(() => {
+    if (location.status === "locating") {
+      handledLocation.current = null;
+      return;
+    }
+    if (
+      location.status !== "detected" ||
+      handledLocation.current === location.country.countryCode
+    )
+      return;
+    handledLocation.current = location.country.countryCode;
+    // The permission dialog can resolve after someone has already drawn or
+    // navigated. A late location must never overwrite that manual work.
+    if (version.current === locationVersion.current)
+      applyCountry(location.country);
+    // Only a new permission result bootstraps a country, not camera/data renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.status, location.country]);
   const [modal, setModal] = useState<"sources" | "guide" | null>(null);
   const catalog = useEarthResource("catalog", loadCatalog);
   const config = useEarthResource("configuration", loadConfig);
-  const configFor = (workspace: ReturnType<typeof useLabWorkspace>) =>
+  const configFor = (
+    workspace: ReturnType<typeof useLabWorkspace>,
+    country?: EarthRegion,
+  ) =>
     config.data
       ? {
           ...config.data,
@@ -302,13 +351,14 @@ function App() {
               [
                 ...config.data.regions,
                 globalStudyRegion,
+                ...(country ? [country] : []),
                 ...workspace.customRegions,
               ].map((region) => [region.id, region]),
             ).values(),
           ],
         }
       : undefined;
-  const explorationConfig = configFor(exploration);
+  const explorationConfig = configFor(exploration, startingCountry.region);
   const comparisonConfig = configFor(comparison);
   const activeTab = useRef(active);
   activeTab.current = active;
@@ -642,7 +692,8 @@ function App() {
     );
   };
   return (
-    <div className="app-shell">
+    <div className="app-shell immersive-space">
+      <SpaceBackdrop fullScreen />
       <a className="skip-link" href="#main-content">
         Pular para a investigação
       </a>
@@ -670,6 +721,42 @@ function App() {
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
+        {active === "explore" && (
+          <div className="country-location-note">
+            <p role="status" aria-live="polite">
+              {location.status === "locating"
+                ? `Choose whether to share location in your browser. ${startingCountry.name} is shown while waiting.`
+                : location.status === "detected"
+                  ? location.country.countryCode === startingCountry.countryCode
+                    ? `Starting country: ${startingCountry.name}. Device coordinates stay in your browser.`
+                    : `Country found: ${location.country.name}. Your current selection was preserved.`
+                  : location.status === "denied"
+                    ? `Location not shared. Starting country: ${startingCountry.name}.`
+                    : `Country could not be determined. Starting country: ${startingCountry.name}.`}
+            </p>
+            <div>
+              {location.status === "detected" && (
+                <button
+                  type="button"
+                  onClick={() => applyCountry(location.country)}
+                >
+                  Use {location.country.name}
+                </button>
+              )}
+              {location.status !== "locating" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    locationVersion.current = version.current;
+                    location.requestLocation();
+                  }}
+                >
+                  Use my location
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {(catalog.loading || config.loading) && (
           <p className="real-notice" role="status">
             Conectando ao catálogo e às regiões de estudo…
@@ -696,7 +783,9 @@ function App() {
                   key="explore-A"
                   instanceId="explore-A"
                   overview
-                  initialRegion={globalStudyRegion}
+                  initialRegion={startingCountry.region}
+                  initialOutline={startingCountry.geometry}
+                  initializationKey={startingCountry.countryCode}
                   catalog={catalog.data}
                   config={explorationConfig}
                   side="A"
@@ -716,7 +805,8 @@ function App() {
               <p className="real-method-note">
                 A grade do globo é agregada para visualização. A série regional
                 usa os pontos da grade de origem dentro do retângulo
-                selecionado. Consulte o método e a qualidade de cada variável.
+                selecionado. A camada global permanece visível. Consulte o
+                método e a qualidade de cada variável.
               </p>
             </section>
             <section

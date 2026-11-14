@@ -25,6 +25,8 @@ import { configuration, historicalEvents, regions } from "./config.ts";
 import { HybridDataService } from "./routing.ts";
 
 import { createAssistant } from "./assistant.ts";
+import { TrendReferenceService } from "./trend-reference.ts";
+import { IndicatorReferenceService } from "./indicator-reference.ts";
 import {
   assistantRequestSchema,
   validateAssistantRequest,
@@ -231,7 +233,12 @@ async function catalogData() {
       });
   return catalogPending;
 }
-const assistant = createAssistant({ data, catalog: catalogData });
+const assistant = createAssistant({
+  data,
+  catalog: catalogData,
+  indicatorReference: sql ? new IndicatorReferenceService(sql) : undefined,
+  trendReference: sql ? new TrendReferenceService(sql) : undefined,
+});
 api.post(
   "/v1/assistant",
   { bodyLimit: 32768, schema: { body: assistantRequestSchema } },

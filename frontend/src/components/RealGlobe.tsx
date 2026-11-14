@@ -3,7 +3,6 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
-import { SpaceBackdrop } from "./SpaceBackdrop";
 import "./space-scene.css";
 import {
   frameCellIndex,
@@ -53,6 +52,7 @@ export function RealGlobe({
   view,
   onView,
   region,
+  outlineGeometry,
   colorRange,
   onColorRange,
   onSelectArea,
@@ -60,6 +60,7 @@ export function RealGlobe({
 }: {
   frame?: EarthFrame;
   region?: EarthRegion;
+  outlineGeometry?: GeoPermissibleObjects;
   colorRange?: EarthColorRange;
   onColorRange?: (value?: EarthColorRange) => void;
   onSelectArea?: (bbox: string) => void;
@@ -118,11 +119,12 @@ export function RealGlobe({
     };
   }, [view.longitude, view.latitude, land]);
   const outline = useMemo(() => {
-    const boundary = region ? regionBoundary(region.bbox) : null;
+    const boundary =
+      outlineGeometry ?? (region ? regionBoundary(region.bbox) : null);
     return boundary
       ? (geoPath(globeProjection(view)).digits(1)(boundary) ?? "")
       : "";
-  }, [view.longitude, view.latitude, region?.bbox]);
+  }, [view.longitude, view.latitude, region?.bbox, outlineGeometry]);
   const scale = frame ? displayScale(frame, colorRange) : null;
   const cellIndex = frame && probe ? frameCellIndex(frame.grid, probe) : -1;
   const sampled =
@@ -184,14 +186,13 @@ export function RealGlobe({
         <p className="globe-area-hint" role="status">
           {areaNotice ||
             (drawing
-              ? "Drag between two points on the globe. Release to filter this panel. Esc cancels."
+              ? "Drag between two points on the globe. Release to analyze this area. Esc cancels."
               : region
                 ? `Selected coordinates: ${region.bbox}`
-                : "Draw an area to filter the layer and analyze its monthly observations.")}
+                : "Draw an area to compare its monthly series with the global series.")}
         </p>
       )}
       <div className={`real-globe-scene ${drawing ? "is-drawing" : ""}`}>
-        <SpaceBackdrop />
         <svg
           viewBox="0 0 640 640"
           className="real-globe-svg"
@@ -383,7 +384,10 @@ export function RealGlobe({
       </div>
       {region && (
         <p className="real-region-outline-note">
-          Contorno: recorte da série; não área do evento · {region.name}
+          {outlineGeometry
+            ? "Country boundary · series uses its rectangular extent"
+            : "Series area boundary"}{" "}
+          · {region.name}
         </p>
       )}
       <div className="real-globe-actions">

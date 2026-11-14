@@ -1,3 +1,5 @@
+import "./space-scene.css";
+
 // Decorative, deterministic star field. It is not a catalog of stellar positions.
 const stars = Array.from({ length: 250 }, (_, index) => {
   const hash = (value: number) => {
@@ -11,10 +13,14 @@ const stars = Array.from({ length: 250 }, (_, index) => {
     opacity: 0.2 + hash(index + 1741) * 0.65,
   };
 });
-export function SpaceBackdrop() {
+export function SpaceBackdrop({
+  fullScreen = false,
+}: {
+  fullScreen?: boolean;
+}) {
   return (
     <svg
-      className="space-backdrop"
+      className={`space-backdrop${fullScreen ? " space-backdrop-fullscreen" : ""}`}
       viewBox="0 0 1000 1000"
       preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"

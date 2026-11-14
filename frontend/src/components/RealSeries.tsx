@@ -8,8 +8,14 @@ export function RealSeries({
   data,
   month,
   onMonth,
+  title = "Regional monthly series",
+  context = "regional",
+  domain,
 }: {
   data: EarthSeries;
+  title?: string;
+  context?: "regional" | "country-extent" | "global";
+  domain?: [number, number];
   month: string;
   onMonth: (month: string) => void;
 }) {
@@ -20,9 +26,12 @@ export function RealSeries({
   );
   if (!rows.length || !finite.length)
     return (
-      <p className="real-notice">
-        Sem valores válidos neste recorte. Escolha outra região.
-      </p>
+      <section className="real-series" aria-labelledby={id}>
+        <h3 id={id}>{title}</h3>
+        <p className="real-notice">
+          No valid observations for this area and period.
+        </p>
+      </section>
     );
   const categorical = data.aggregation === "weighted_mode";
   const categories = data.render?.categories ?? [
@@ -31,10 +40,10 @@ export function RealSeries({
   ];
   const low = categorical
       ? Math.min(...categories.map((category) => category.value))
-      : Math.min(...finite),
+      : (domain?.[0] ?? Math.min(...finite)),
     high = categorical
       ? Math.max(...categories.map((category) => category.value))
-      : Math.max(...finite),
+      : (domain?.[1] ?? Math.max(...finite)),
     pad = Math.max(0.1, (high - low) * 0.15);
   const chartLeft = categorical ? 125 : 48;
   const y = (value: number) =>
@@ -90,7 +99,7 @@ export function RealSeries({
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = `kipp-real-${data.variable}.csv`;
+    link.download = `kipp-real-${data.variable}-${context}.csv`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -102,7 +111,7 @@ export function RealSeries({
     );
     const link = document.createElement("a");
     link.href = url;
-    link.download = `kipp-real-${data.variable}.json`;
+    link.download = `kipp-real-${data.variable}-${context}.json`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -110,20 +119,20 @@ export function RealSeries({
     <section className="real-series" aria-labelledby={id}>
       <div className="real-series-heading">
         <div>
-          <h3 id={id}>Série mensal do recorte</h3>
+          <h3 id={id}>{title}</h3>
           <small>
             {realUnit(data.unit)} · {aggregationLabel(data.aggregation)}
           </small>
         </div>
         <div className="real-export-actions">
-          <button onClick={exportCsv}>Baixar CSV</button>
-          <button onClick={exportJson}>Baixar JSON</button>
+          <button onClick={exportCsv}>CSV</button>
+          <button onClick={exportJson}>JSON</button>
         </div>
       </div>
       <svg
         viewBox="0 0 620 210"
         role="group"
-        aria-label={`Série real de ${realMonth(rows[0].month)} a ${realMonth(rows.at(-1)!.month)}. Selecione um ponto para mudar o mês.`}
+        aria-label={`${title}: ${realMonth(rows[0].month)} to ${realMonth(rows.at(-1)!.month)}. Select a point to change the month.`}
       >
         {ticks.map(({ value, label }) => {
           return (
@@ -187,35 +196,40 @@ export function RealSeries({
         </text>
       </svg>
       <p className="real-observation">
-        {month ? realMonth(month) : "Nenhum mês exibido"}:{" "}
+        {month ? realMonth(month) : "No displayed month"}:{" "}
         <strong>
           {!month
-            ? "aguardando quadro"
+            ? "waiting for frame"
             : active?.value != null
               ? formatObservation(active.value)
-              : "sem dado"}
+              : "no data"}
         </strong>
         {active?.coverage != null && (
           <span>
             {" "}
-            · cobertura válida do recorte: {(active.coverage * 100).toFixed(1)}%
+            · valid area coverage: {(active.coverage * 100).toFixed(1)}%
           </span>
         )}
       </p>
       <small>
         {categorical &&
-          "Pontos representam classes mensais discretas; não há interpolação entre classes. "}
-        Recorte retangular (bbox), sem máscara exata de bacia. Valores mensais
-        observados; sem inferência de tendência ou previsão.
+          "Points represent discrete monthly classes; classes are not interpolated. "}
+        {context === "global"
+          ? "Global grid aggregate (180°W–180°E, 90°S–90°N), using available valid cells. "
+          : context === "country-extent"
+            ? "Country extent (rectangular bbox), including cells outside the country boundary; no exact country mask. "
+            : "Rectangular area (bbox); no exact basin or country mask. "}
+        Monthly source values; no trend inference or forecast. Missing values
+        remain gaps.
       </small>
       <details className="real-series-method">
-        <summary>Método e proveniência da consulta</summary>
+        <summary>Method and query provenance</summary>
         <p>
-          Produto: {data.product}
+          Product: {data.product}
           {data.run ? ` · ${data.run}` : ""}
         </p>
         <p>
-          Variável: {data.variable} · bbox [{data.bbox.join(", ")}]
+          Variable: {data.variable} · bbox [{data.bbox.join(", ")}]
         </p>
         <p>{aggregationLabel(data.aggregation)}</p>
         <p>{data.method}</p>

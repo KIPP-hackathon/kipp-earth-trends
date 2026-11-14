@@ -1,0 +1,35 @@
+.country-location-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid #a9c6ed33;
+  border-radius: 8px;
+  color: #d5e4f7;
+  background: #0b1b32b3;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.country-location-note > div {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.country-location-note button {
+  border: 1px solid #9bb6dc66;
+  padding: 6px 9px;
+  border-radius: 5px;
+  color: #e9f2ff;
+}
+.country-location-note button:hover {
+  background: #24476b;
+  color: white;
+}
+@media (max-width: 760px) {
+  .country-location-note {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

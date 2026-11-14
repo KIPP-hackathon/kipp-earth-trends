@@ -1,4 +1,6 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { GeoPermissibleObjects } from "d3-geo";
+import "./global-comparison.css";
 import {
   ChevronLeft,
   ChevronRight,
@@ -58,11 +60,15 @@ export function RealPanel({
   instanceId = side,
   overview = false,
   initialRegion,
+  initialOutline,
+  initializationKey,
   onCustomRegion,
 }: {
   instanceId?: string;
   overview?: boolean;
   initialRegion?: EarthRegion;
+  initialOutline?: GeoPermissibleObjects;
+  initializationKey?: string;
   onCustomRegion?: (region: EarthRegion) => void;
   catalog: EarthCatalog;
   config: EarthConfig;
@@ -88,6 +94,12 @@ export function RealPanel({
   );
   const [drawnRegion, setDrawnRegion] = useState<EarthRegion>();
   const drawnSequence = useRef(0);
+  useEffect(() => {
+    if (initializationKey && initialRegion && !drawnRegion)
+      setRegionId(initialRegion.id);
+    // A bootstrap update never overwrites a rectangle selected by the user.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initializationKey]);
   const [period, setPeriod] = useState({ start: "", end: "" });
   useEffect(() => {
     if (!preset) return;
@@ -152,7 +164,7 @@ export function RealPanel({
     config.regions[0];
   const spatialBbox =
     region.bbox === "-180,-90,180,90" ? undefined : region.bbox;
-  const seriesEnabled = active && (!overview || Boolean(spatialBbox));
+  const globalBbox = "-180,-90,180,90";
   const regionOptions = drawnRegion
     ? [
         ...config.regions.filter((entry) => entry.id !== drawnRegion.id),
@@ -208,15 +220,52 @@ export function RealPanel({
     { ...variable, months: allMonths },
     month,
     config.playback.lookAhead,
-    spatialBbox,
+    undefined,
     active,
   );
-  const series = useEarthResource(
-    seriesEnabled
-      ? `${variable.id}/${region.bbox}/${months[0].month}/${months.at(-1)!.month}`
+  const globalSeries = useEarthResource(
+    active ? `${variable.id}/${globalBbox}/${start}/${end}` : null,
+    (signal) => loadSeries({ ...variable, months }, globalBbox, signal),
+  );
+  const regionalSeries = useEarthResource(
+    active && spatialBbox
+      ? `${variable.id}/${region.bbox}/${start}/${end}`
       : null,
     (signal) => loadSeries({ ...variable, months }, region.bbox, signal),
   );
+  const series = spatialBbox ? regionalSeries : globalSeries;
+  const previousDomain = useRef<
+    { key: string; domain: [number, number] } | undefined
+  >(undefined);
+  const domainKey = `${variable.id}/${start}/${end}`;
+  const sharedDomain = useMemo<[number, number] | undefined>(() => {
+    if (variable.render?.kind === "categorical") return undefined;
+    if (
+      (series.loading || globalSeries.loading) &&
+      previousDomain.current?.key === domainKey
+    )
+      return previousDomain.current.domain;
+    const values = [series.data, globalSeries.data].flatMap(
+      (data) =>
+        data?.observations.flatMap((row) =>
+          row.value !== null && Number.isFinite(row.value) ? [row.value] : [],
+        ) ?? [],
+    );
+    if (!values.length) return undefined;
+    const domain: [number, number] = [Math.min(...values), Math.max(...values)];
+    return domain;
+  }, [
+    series.data,
+    globalSeries.data,
+    series.loading,
+    globalSeries.loading,
+    domainKey,
+    variable.render?.kind,
+  ]);
+  useEffect(() => {
+    if (sharedDomain && !series.loading && !globalSeries.loading)
+      previousDomain.current = { key: domainKey, domain: sharedDomain };
+  }, [sharedDomain, series.loading, globalSeries.loading, domainKey]);
   const snapshotKey = JSON.stringify({
     side,
     variable: variable.id,
@@ -225,7 +274,9 @@ export function RealPanel({
     start,
     end,
     region,
-    loading: active && (frame.loading || series.loading || buffering),
+    loading:
+      active &&
+      (frame.loading || series.loading || globalSeries.loading || buffering),
     playing: active && playing,
   });
   useEffect(() => {
@@ -239,7 +290,7 @@ export function RealPanel({
     setPlaybackError(undefined);
     setSelection({ variable: variable.id, month: value });
   };
-  const playbackKey = frameKey(variable, month, spatialBbox);
+  const playbackKey = frameKey(variable, month);
   useEffect(() => {
     if (!playing || !active) {
       playbackStarted.current = false;
@@ -276,7 +327,7 @@ export function RealPanel({
           next,
           controller.signal,
           "background",
-          spatialBbox,
+          undefined,
         ),
       ),
     )
@@ -405,6 +456,9 @@ export function RealPanel({
           view={view}
           onView={onView}
           region={spatialBbox ? region : undefined}
+          outlineGeometry={
+            region.id === initialRegion?.id ? initialOutline : undefined
+          }
           onSelectArea={selectArea}
           onClearArea={spatialBbox ? clearArea : undefined}
           colorRange={colorRanges[variable.id]}
@@ -439,8 +493,7 @@ export function RealPanel({
         <p className="real-grid-info">
           {frame.data.grid.width} × {frame.data.grid.height} células de exibição
           · {((frame.data.validCells / frame.data.totalCells) * 100).toFixed(1)}
-          % com valor ·{" "}
-          {spatialBbox ? "selected geographic area" : "global frame"}
+          % com valor · global frame · area selection affects series only
         </p>
       )}
       <div
@@ -515,8 +568,8 @@ export function RealPanel({
       )}
       {overview && !spatialBbox && (
         <p className="real-notice">
-          Draw an area on the globe to filter the layer and analyze its monthly
-          series.
+          Draw an area on the globe to compare its monthly series with the
+          global series. The global map remains visible.
         </p>
       )}
       <details className="real-provenance">
@@ -528,8 +581,18 @@ export function RealPanel({
           {realUnit(variable.unit)}
         </p>
         <p>
-          Recorte: {region.name} · bbox [{region.bbox}]
+          Series area: {region.name} · bbox [{region.bbox}]
         </p>
+        <p>
+          The map always displays the global field. Area selection affects the
+          regional series only.
+        </p>
+        {region.id === initialRegion?.id && initialOutline && (
+          <p>
+            The country outline is a visual reference; series values use its
+            rectangular extent, including cells outside the border.
+          </p>
+        )}
         {variable.quality?.rule && (
           <p>Critério de qualidade: {variable.quality.rule}</p>
         )}
@@ -537,19 +600,55 @@ export function RealPanel({
           <p key={note}>{note}</p>
         ))}
       </details>
-      {series.loading && (
-        <p role="status" className="real-notice">
-          Consultando série regional…
+      <div
+        className="real-series-comparison"
+        aria-label="Regional and global monthly series"
+      >
+        <p className="real-series-comparison-note">
+          Same variable and study period · continuous charts share the same
+          vertical scale. Area selection changes the regional series only.
         </p>
-      )}
-      {series.error && <Failure message={series.error} retry={series.retry} />}
-      {series.data && (
-        <RealSeries
-          data={series.data}
-          month={frame.data?.month ?? ""}
-          onMonth={selectMonth}
-        />
-      )}
+        {series.loading && (
+          <p role="status" className="real-notice">
+            Loading {region.name} monthly series…
+          </p>
+        )}
+        {series.error && (
+          <Failure message={series.error} retry={series.retry} />
+        )}
+        {series.data && spatialBbox && (
+          <RealSeries
+            data={series.data}
+            title={region.name}
+            context={
+              region.id === initialRegion?.id && initialOutline
+                ? "country-extent"
+                : "regional"
+            }
+            domain={sharedDomain}
+            month={frame.data?.month ?? ""}
+            onMonth={selectMonth}
+          />
+        )}
+        {globalSeries.loading && spatialBbox && (
+          <p role="status" className="real-notice">
+            Loading global monthly series…
+          </p>
+        )}
+        {globalSeries.error && spatialBbox && (
+          <Failure message={globalSeries.error} retry={globalSeries.retry} />
+        )}
+        {globalSeries.data && (
+          <RealSeries
+            data={globalSeries.data}
+            title="Global"
+            context="global"
+            domain={sharedDomain}
+            month={frame.data?.month ?? ""}
+            onMonth={selectMonth}
+          />
+        )}
+      </div>
     </article>
   );
 }

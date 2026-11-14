@@ -1,0 +1,27 @@
+.real-series-comparison {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+.real-series-comparison > .real-series {
+  margin-top: 0;
+}
+.real-series-comparison-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+@media (min-width: 1000px) {
+  .real-panels:not(.is-comparing) .real-panel > .real-series-comparison {
+    grid-column: 2;
+    grid-row: 3 / span 8;
+    align-self: start;
+    margin-top: 0;
+  }
+  .is-analysis .real-panels .real-panel > .real-series-comparison {
+    grid-row: 2 / span 8;
+  }
+}

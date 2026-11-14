@@ -180,3 +180,26 @@ exigir área/período explícitos para evitar analisar um bbox e mostrar outro.
 Builds Node.js 24 e 29 verificações preexistentes passaram; consulta real também
 conferiu um recorte cruzando o antimeridiano. Esses controles não demonstram
 significância, previsão ou causalidade, nem encerram a investigação/submissão.
+
+
+## Evidência incremental — país, contexto global e referências do agente (14/11/2026)
+
+OpenAI Codex assistiu a geolocalização com resolução local do país e fallback no
+Brasil, contorno Natural Earth, pares de gráficos regional/global, preservação
+da camada global e fundo espacial de toda a janela. Coordenadas do dispositivo
+não são enviadas à API nem ao modelo. A série do país usa seu bbox explicitamente
+identificado, não uma máscara nacional exata. Ver [geometria e privacidade](country-location.md)
+e [comportamento atualizado](area-selection.md).
+
+O agente ganhou consultas tipadas e limitadas ao dicionário `tb_dim_indicators`
+(467 registros) e às tendências pré-calculadas `tb_trend_merra2_ts` (35 resultados,
+sete regiões e cinco métodos; temperatura de superfície, jan/2024–set/2026).
+Referência de indicador não prova disponibilidade de camada; tendência armazenada
+não é cálculo para um recorte arbitrário. Método, período, unidades, incerteza,
+sazonalidade, autocorrelação e divergências entre métodos devem ser preservados.
+Ver [dicionário](indicator-reference.md) e [tendências](trend-reference.md).
+
+Builds Node.js 24, verificações preexistentes, consultas reais limitadas, revisão
+de código e inspeção de fonte/bundle não encontraram novos segredos expostos.
+Isso registra implementação e conferência técnica; revisão humana e investigação
+científica reproduzível seguem pendentes. Não encerra submissão ou regras de IA.
