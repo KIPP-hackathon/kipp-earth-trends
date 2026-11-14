@@ -12,5 +12,9 @@
 - [x] Validar DataService com banco real: catálogo, frame e série para cada variável.
 - [x] Atualizar deploy-image.sh para modo Lakebase por padrão e SQL explícito para rollback; smoke exige provider configurado e quatro coberturas.
 - [x] Compilar backend, rodar testes backend/frontend e build frontend; validar shell/actionlint.
-- [ ] Integrar branch à main preservando alterações concorrentes; acompanhar deploy com SA real.
-- [ ] Confirmar provider, meses, frames e séries remotos; registrar revisão e execução.
+- [x] Integrar branch à main preservando alterações concorrentes; acompanhar deploy com SA real.
+- [x] Confirmar provider, meses, frames e séries remotos; registrar revisão e execução.
+
+PR #5 integrado. Execução 43632060854 concluída com sucesso; revisão
+`kipp-earth-api-00013-zoh` com 100% do tráfego. Catálogo, frames e séries via
+Vercel confirmaram Lakebase para as quatro variáveis; Cloud Run direto retorna 403.

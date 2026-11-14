@@ -77,6 +77,13 @@ catálogo, frames e séries para as quatro variáveis; detalhes em
 dados e não encerra os itens de investigação científica, significância ou
 submissão oficial acima.
 
+Publicação verificada: revisão `kipp-earth-api-00013-zoh` com 100% do tráfego,
+[CI/CD concluído](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43632060854).
+O [catálogo público pelo aplicativo](https://kipp-earth-trends-lab.vercel.app/api/earth/v1/catalog)
+confirmou `lakebase-postgres`; frames e séries das quatro variáveis também
+foram consultados sem login pela rota Vercel. Isso é evidência de integração
+dos dados, sem declarar concluída a investigação científica final.
+
 Não confundir IA usada no desenvolvimento com IA executada dentro do produto. A declaração deve abranger ambas quando existirem. Não declarar o histórico completo como revisado a partir desta única sessão.
 
 | Ferramenta/modelo | Data e finalidade | Conteúdo gerado/assistido | Revisão humana |

@@ -54,3 +54,14 @@ Lakebase não são modificados pelo deploy.
 
 O modo SQL permanece disponível explicitamente com `DATA_PROVIDER=databricks-sql`
 no script manual. Não há fallback silencioso entre fontes.
+
+## Produção confirmada
+
+O [PR #5](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/5) foi integrado
+e a [execução 43632060854](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43632060854)
+concluiu com sucesso. Revisão `kipp-earth-api-00013-zoh`, com 100% do tráfego.
+O [catálogo via aplicação](https://kipp-earth-trends-lab.vercel.app/api/earth/v1/catalog)
+retornou `provider=lakebase-postgres` e as coberturas 33/33/21/13. Frames com
+células válidas e séries não nulas foram conferidos pela mesma rota Vercel para
+as quatro variáveis; `X-Data-Provider` também confirmou Lakebase nas respostas.
+O acesso anônimo direto ao Cloud Run retornou 403, preservando a política privada.
