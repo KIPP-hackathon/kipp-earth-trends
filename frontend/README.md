@@ -2,6 +2,26 @@
 
 Protótipo exploratório, com a identidade provisória da equipe **KIPP**, de uma experiência didática para o desafio **Be An Earth System Trend Detective!**, do NASA Space Apps 2026.
 
+## Dados reais
+
+A entrada padrão **Dados reais** consome a API pública do Cloud Run:
+`https://kipp-earth-api-583662795760.us-east4.run.app`.
+Pode ser configurada com `VITE_EARTH_API_URL` antes do build. Essa URL é pública;
+credenciais do Databricks permanecem no backend.
+
+- Catálogo e meses reais vêm de `/v1/catalog`.
+- Quadros globais Float32 vêm de `/v1/frames` e são desenhados como textura WebGL.
+- Séries por bbox vêm de `/v1/series`, com nulos preservados e exportação CSV.
+- Temperatura do ar a **10 m**, superfície e chuva Final/Late são seleções distintas.
+- Dois painéis compartilham a câmera e mantêm filtros independentes e escalas fixas.
+- Erros não acionam dados simulados como fallback. A demonstração nas outras abas
+  continua identificada como simulação. Não há cálculo de tendência ou climatologia
+  sobre as séries reais nesta integração inicial.
+
+Para desenvolvimento, use a porta 5173, autorizada no CORS da API. Em produção,
+a origem permitida é `https://kipp-earth-trends-lab.vercel.app`. Um novo domínio
+de frontend precisa ser autorizado no backend antes do uso.
+
 ## Executar
 
 Requer Node.js 24. A versão também está fixada em `package.json` para o ambiente da Vercel.

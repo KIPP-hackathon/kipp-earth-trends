@@ -35,6 +35,8 @@ import {
   X,
 } from "lucide-react";
 import { LabTabs } from "./components/LabTabs";
+import { RealDataView } from "./components/RealDataView";
+import { earthApi } from "./lib/earthApi";
 import type { LabTab } from "./components/LabTabs";
 import { ComparisonView } from "./components/ComparisonView";
 import { EventCatalog } from "./components/EventCatalog";
@@ -135,7 +137,7 @@ function download(name: string, contents: string, type: string) {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<LabTab>("explore");
+  const [activeTab, setActiveTab] = useState<LabTab>("real");
   const [comparison, dispatchComparison] = useReducer(
     comparisonReducer,
     undefined,
@@ -342,7 +344,7 @@ function App() {
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            showTab("explore");
+            showTab("real");
           }}
           className="brand"
           aria-label="KIPP, início"
@@ -367,7 +369,7 @@ function App() {
             <i /> PROTÓTIPO
           </span>
           <button className="field-guide-button" onClick={openGuide}>
-            <BookOpen size={15} /> Guia de campo <ArrowUpRight size={14} />
+            <BookOpen size={15} /> Guia da simulação <ArrowUpRight size={14} />
           </button>
         </div>
       </header>
@@ -399,6 +401,7 @@ function App() {
         </section>
 
         <LabTabs active={activeTab} onChange={showTab} />
+        {activeTab === "real" && <RealDataView />}
         <div
           className="workbench-top"
           id="investigation"
@@ -1075,20 +1078,33 @@ function App() {
               <div className="demo-notice">
                 <FlaskConical size={21} />
                 <div>
-                  <strong>Missões reais. Valores simulados.</strong>
+                  <strong>Dados observados e demonstração educacional.</strong>
                   <p>
-                    Este protótipo não consulta a NASA. Todas as séries,
-                    tendências e células coloridas são fictícias e servem para
-                    demonstrar a experiência. A imagem de base é uma composição
-                    estática Blue Marble de janeiro de 2004.
+                    A aba Dados reais consulta observações derivadas de produtos
+                    NASA via API: temperatura do ar a 10 m e da superfície
+                    MERRA-2 e precipitação IMERG Final/Late. Os meses
+                    disponíveis vêm do catálogo. Nas demais abas, séries,
+                    tendências e campos são simulados para ensino. A imagem de
+                    base é a composição estática Blue Marble de janeiro de 2004.
                   </p>
                 </div>
               </div>
               <p className="modal-intro">
-                Estes são os produtos científicos previstos para uma futura
-                integração. A resolução do dado determina o tamanho da pergunta
-                que podemos fazer.
+                Os dados observados usam uma grade de exibição agregada; as
+                séries regionais usam recortes retangulares, sem máscara exata
+                de bacias. Vegetação ainda não está configurada nesta
+                integração. As referências abaixo também acompanham o material
+                educativo.
               </p>
+              <a
+                className="text-button"
+                href={`${earthApi}/v1/catalog`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Consultar catálogo dos dados observados{" "}
+                <ExternalLink size={14} />
+              </a>
               <div className="source-list">
                 {variableKeys.map((key) => {
                   const v = variables[key];
@@ -1115,7 +1131,7 @@ function App() {
                 })}
               </div>
               <div className="method-note">
-                <h3>O que a análise deste protótipo calcula?</h3>
+                <h3>Método da demonstração simulada</h3>
                 <p>
                   Regressão linear das médias anuais completas dos dados
                   simulados. O intervalo de 95% usa Student-t e pressupõe erros
@@ -1124,13 +1140,13 @@ function App() {
                   causal.
                 </p>
                 <p>
-                  O mapa e o gráfico exibem valores mensais simulados ou
-                  anomalias em relação à referência fixa 2001–2024, por mês do
-                  calendário. As cores têm escala fixa durante o playback. A
-                  inferência continua usando apenas médias anuais completas do
-                  período selecionado. O mapa usa regiões e hexágonos
-                  esquemáticos, sem representar fronteiras de bacias ou medições
-                  reais.
+                  Na demonstração, o mapa e o gráfico exibem valores mensais
+                  simulados ou anomalias em relação à referência fixa 2001–2024,
+                  por mês do calendário. As cores têm escala fixa durante o
+                  playback. A inferência continua usando apenas médias anuais
+                  completas do período selecionado. O mapa usa regiões e
+                  hexágonos esquemáticos, sem representar fronteiras de bacias
+                  ou medições reais.
                 </p>
               </div>
               <div className="source-credits">
@@ -1146,19 +1162,21 @@ function App() {
                   Projeto independente, sem afiliação institucional à NASA.
                 </span>
               </div>
-              <button
-                className="primary-button"
-                onClick={() => {
-                  download(
-                    `kipp-${region}-${variable}.csv`,
-                    toCsv(series, variable, region),
-                    "text/csv;charset=utf-8",
-                  );
-                  showToast("CSV dos dados simulados exportado.");
-                }}
-              >
-                <ArrowDownToLine size={15} /> Baixar série de demonstração
-              </button>
+              {activeTab !== "real" && (
+                <button
+                  className="primary-button"
+                  onClick={() => {
+                    download(
+                      `kipp-${region}-${variable}.csv`,
+                      toCsv(series, variable, region),
+                      "text/csv;charset=utf-8",
+                    );
+                    showToast("CSV dos dados simulados exportado.");
+                  }}
+                >
+                  <ArrowDownToLine size={15} /> Baixar série de demonstração
+                </button>
+              )}
             </div>
           )}
           {modal === "reading" && (
