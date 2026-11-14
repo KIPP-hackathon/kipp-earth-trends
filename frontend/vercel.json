@@ -12,8 +12,14 @@
     }
   },
   "functions": {
-    "api/earth/[...path].ts": {
+    "api/earth.ts": {
       "maxDuration": 60
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/earth/:path*",
+      "destination": "/api/earth?__path=:path*"
+    }
+  ]
 }

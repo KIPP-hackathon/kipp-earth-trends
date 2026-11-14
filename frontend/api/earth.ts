@@ -94,8 +94,16 @@ export default async function handler(
       request.url ?? "",
       "https://kipp-earth-trends-lab.vercel.app",
     );
-    path = decodeURIComponent(url.pathname).replace(/^\/api\/earth/, "");
     query = url.searchParams;
+    const routedPath = query.get("__path");
+    if (query.getAll("__path").length > 1)
+      return fail(400, "INVALID_PARAMETERS");
+    path = decodeURIComponent(
+      routedPath === null
+        ? url.pathname.replace(/^\/api\/earth/, "")
+        : `/${routedPath}`,
+    );
+    query.delete("__path");
     // No arbitrary upstream URLs, SQL, methods, paths or browser authorization headers.
     if (
       !/^\/v1\/(catalog|config|events|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|series\/[a-z0-9_]{1,60})$/.test(
