@@ -2,14 +2,17 @@
 
 ## Objetivo
 
-Carregar os CSVs publicados em `gs://nasa-earth-trends-lab-raw/transient/` como tabelas Delta no schema `earth-trend-data.refined`, seguindo o notebook `tb_merra2_ts/raw2refined-tb-merra2-surface-temperature-ts.py`.
+Carregar os conjuntos publicados em `gs://nasa-earth-trends-lab-raw/` como tabelas Delta no schema `earth-trend-data.refined`, seguindo o padrão de pastas por tabela, notebook e YAML de descrições.
+
+O [acompanhamento das fontes](../../docs/acompanhamento-fontes.md) registra o inventário atualizado, períodos, arquivos, jobs e tabelas observadas. O mapeamento de cinco fontes abaixo preserva o levantamento inicial.
 
 ## Formato dos notebooks
 
 - Arquivos Python exportáveis para o Databricks, iniciados por `# Databricks notebook source`.
 - Células separadas por `# COMMAND ----------`, com instalação de PyYAML, configuração, leitura e gravação com comentários.
 - `TABLE` define a tabela de destino e `STORAGE_PATH` define a pasta de origem.
-- Leitura com `spark.read`, `pathGlobFilter`, cabeçalho e inferência de schema.
+- Leitura CSV com `spark.read`, `pathGlobFilter` e cabeçalho. Os novos conjuntos usam schema explícito e leitura recursiva para subpastas anuais. Os cinco notebooks iniciais preservam sua leitura original.
+- MOD13C2 usa `binaryFile` e `mapInPandas` com PyHDF para ler HDF4 por blocos, calibrar NDVI/EVI e preservar os campos de qualidade da grade nativa.
 - Gravação com `df.write.format("delta").saveAsTable(TABLE)`.
 - Cada notebook preserva as colunas recebidas do CSV e seleciona apenas seu produto pelo nome do arquivo.
 - Cada tabela possui uma pasta `<nome-da-tabela>/` com o notebook e `description_schema.yaml`. O módulo `table_metadata.py` valida as descrições e publica comentários da tabela e de todas as colunas.

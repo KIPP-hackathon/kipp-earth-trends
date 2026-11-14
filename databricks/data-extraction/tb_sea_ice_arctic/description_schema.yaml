@@ -1,0 +1,39 @@
+table:
+  name: '`earth-trend-data`.refined.tb_sea_ice_arctic'
+  description: Máscara mensal categórica de extensão de gelo marinho para Ártico, NSIDC G02135 versão 4, amostrada
+    pela célula polar nativa mais próxima na grade-alvo. Limiar de concentração de 15%. Os flags representam
+    classes por ponto. Área regional em km² e média da extensão diária exigem produtos e cálculos próprios.
+  theme: gelo
+  product: SEA_ICE_G02135_V4_N
+  source_path: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_G02135_V4_N/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://nsidc.org/data/g02135/versions/4
+  - https://doi.org/10.7265/a98x-0f50
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_G02135_V4_N/SEA_ICE_G02135_V4_N_2024_01.csv
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_G02135_V4_N/SEA_ICE_G02135_V4_N_2024_01.metadata.json
+columns:
+  lat:
+    description: Latitude do ponto da grade em graus norte.
+    unit: degrees_north
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  lon:
+    description: Longitude do ponto da grade em graus leste.
+    unit: degrees_east
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  time:
+    description: Timestamp do mês preservado da fonte. Cruzamentos entre produtos devem usar ano e mês.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  sea_ice_extent_flag:
+    description: Classe de extensão de gelo mensal no ponto, 1 para gelo e 0 para oceano aberto. Terra, costa,
+      ausência e exterior do domínio são nulos. A contagem de flags na grade-alvo exige tratamento espacial
+      antes de estimar extensão regional.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_G02135_V4_N/SEA_ICE_G02135_V4_N_2024_01.metadata.json
+  valid_sample:
+    description: Indicador de validade da amostra categórica do exportador, 1 para amostra válida e 0 para
+      ausência.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_G02135_V4_N/SEA_ICE_G02135_V4_N_2024_01.metadata.json

@@ -1,0 +1,32 @@
+table:
+  name: '`earth-trend-data`.refined.tb_merra2_u850'
+  description: Diagnóstico mensal U850 do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
+    anuais. Média mensal de U850 (eastward wind at 850 hPa), na unidade m s-1 indicada pelo atributo units
+    do arquivo MERRA-2.
+  theme: atmosfera
+  product: M2TMNXSLV_U850
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_U850/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_U850/2024/M2TMNXSLV_U850_2024_01.csv
+  original_sample: MERRA2_400.tavgM_2d_slv_Nx.202401.nc4
+  original_long_name: eastward_wind_at_850_hPa
+  original_units: m s-1
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+  lon:
+    description: Longitude do ponto da grade, em graus leste.
+    unit: degrees_east
+  time:
+    description: Timestamp mensal preservado do CSV MERRA-2. Cruzamentos com outras fontes devem considerar
+      ano e mês.
+    unit: null
+  U850:
+    description: Média mensal de U850 (eastward wind at 850 hPa), na unidade m s-1 indicada pelo atributo units
+      do arquivo MERRA-2.
+    unit: m s-1
+    source: Atributos long_name e units do NetCDF original, cabeçalho CSV e especificação MERRA-2.

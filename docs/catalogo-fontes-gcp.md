@@ -1,5 +1,7 @@
 # Inventário de fontes no GCP
 
+Este documento preserva o inventário inicial e as 62 referências do catálogo. Consulte o [acompanhamento das fontes](acompanhamento-fontes.md) para o inventário atualizado dos arquivos, jobs, tabelas e pendências do projeto.
+
 Consulta realizada em 14/11/2026 no bucket `gs://nasa-earth-trends-lab-raw/`, por listagem recursiva dos objetos e leitura do catálogo JSON. Comparação com os notebooks e o mapeamento de `databricks/data-extraction/CONTEXT.md`.
 
 ## Resultado da comparação

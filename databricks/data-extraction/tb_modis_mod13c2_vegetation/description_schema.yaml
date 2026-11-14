@@ -1,0 +1,65 @@
+table:
+  name: '`earth-trend-data`.refined.tb_modis_mod13c2_vegetation'
+  description: Índices mensais NDVI e EVI do MODIS Terra MOD13C2 coleção 061, lidos diretamente do HDF4 na
+    grade geográfica global de 0,05 grau. Retém valores inteiros originais, índices calibrados, bitfield de
+    qualidade e confiabilidade. Fill e valores fora da faixa válida viram nulos apenas nos índices calibrados.
+    A seleção de qualidade para análise deve usar os campos QA preservados.
+  theme: vegetacao
+  product: MOD13C2.061
+  source_path: gs://nasa-earth-trends-lab-raw/kipp/raw/nasa/MOD13C2/version=061/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://doi.org/10.5067/MODIS/MOD13C2.061
+  - https://fhs.github.io/pyhdf/modules/SD.html
+  sample_file: MOD13C2.A2024001.061.2024038052740.hdf
+  calibration: Atributo HDF4 scale_factor=10000 e add_offset=0. Índice físico = inteiro / 10000, conforme codificação
+    desta coleção.
+  quality_policy: Preservar QA e confiabilidade. O leitor calibra e mascara fill/faixa, sem aplicar o filtro
+    do derivado GeoTIFF.
+columns:
+  lat:
+    description: Latitude do centro do pixel ou ponto nativo da grade, em graus norte.
+    unit: degrees_north
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  lon:
+    description: Longitude do centro do pixel ou ponto nativo da grade, em graus leste, no intervalo [-180,
+      180).
+    unit: degrees_east
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  time:
+    description: Referência temporal mensal preservada do NetCDF ou extraída da data inicial do HDF4. UTC.
+    unit: null
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  ndvi_raw:
+    description: Valor inteiro original do NDVI. Fill -3000 e faixa válida [-2000,10000], conforme o SDS.
+    unit: encoded integer
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  evi_raw:
+    description: Valor inteiro original do EVI. Fill -3000 e faixa válida [-2000,10000], conforme o SDS.
+    unit: encoded integer
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  ndvi:
+    description: Índice NDVI adimensional, obtido por ndvi_raw / 10000. Fill e valores fora da faixa são nulos.
+      Filtrar qualidade com os campos QA antes de analisar tendências.
+    unit: '1'
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  evi:
+    description: Índice EVI adimensional, obtido por evi_raw / 10000. Fill e valores fora da faixa são nulos.
+      Filtrar qualidade com os campos QA antes de analisar tendências.
+    unit: '1'
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  vi_quality:
+    description: Bitfield inteiro original CMG Monthly VI Quality. Fill 65535 preservado. Consultar a legenda
+      da coleção CMG 061 para interpretar os bits.
+    unit: bit field
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  pixel_reliability:
+    description: Rank de confiabilidade original, -1 para fill, 0 para bom, 1 marginal, 2 neve/gelo, 3 nuvens
+      e 4 estimado, conforme legenda do arquivo.
+    unit: rank
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.
+  source_file:
+    description: URI GCS do HDF4 de origem do registro.
+    unit: null
+    source: Atributos do arquivo original e leitura local de janeiro de 2024.

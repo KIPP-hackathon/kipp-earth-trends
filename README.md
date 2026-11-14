@@ -9,6 +9,8 @@ Repositório do time KIPP para explorar o desafio **Be An Earth System Trend Det
 - [`frontend/`](frontend/): protótipo React, assets, testes e configuração de publicação na Vercel.
 - [`context/`](context/): referências e contexto do desafio.
 - [`ml_experiments/`](ml_experiments/): experimentos, variáveis e fontes de dados.
+- [`databricks/`](databricks/): notebooks, descrições de tabelas e bundle dos jobs de ingestão.
+- [Acompanhamento das fontes](docs/acompanhamento-fontes.md): arquivos no GCS, jobs publicados, tabelas existentes e checklist do que falta obter e analisar.
 
 ## Rodar o frontend
 

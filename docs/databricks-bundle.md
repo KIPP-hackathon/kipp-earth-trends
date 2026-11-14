@@ -1,10 +1,10 @@
 # Deploy manual dos jobs Databricks
 
-O bundle em `databricks/databricks.yml` publica os notebooks e cinco jobs no workspace `https://8259554586019913.3.gcp.databricks.com`, usando o target `kipp`.
+O bundle em `databricks/databricks.yml` publica os notebooks e os jobs de ingestão no workspace `https://8259554586019913.3.gcp.databricks.com`, usando o target `kipp`.
 
 Cada job executa o notebook de extração do produto em uma única tarefa `extract`. Execute `CREATE SCHEMA.py` manualmente uma única vez na preparação do ambiente. O compute escolhido é serverless, definido pela ausência de configuração de cluster nas tarefas de notebook. O workspace precisa disponibilizar serverless para jobs e acesso ao bucket GCS por esse compute.
 
-Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler `gs://nasa-earth-trends-lab-raw/transient/`. O catálogo e os schemas devem existir previamente.
+Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler as pastas de origem em `gs://nasa-earth-trends-lab-raw/`, incluindo `transient/` e `kipp/raw/nasa/MOD13C2/`. O catálogo e os schemas devem existir previamente.
 
 ## Preparação
 
@@ -32,6 +32,8 @@ databricks bundle summary --target kipp --profile kipp-gcp
 O deploy cria ou atualiza os jobs e publica os notebooks. A execução é manual, pela interface do workspace ou por `bundle run`.
 
 ## Execução dos produtos
+
+A lista completa de jobs, links, formatos e pendências está no [acompanhamento das fontes](acompanhamento-fontes.md). A tabela abaixo mostra os cinco jobs iniciais.
 
 | Chave do job | Produto |
 | --- | --- |

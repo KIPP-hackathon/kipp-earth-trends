@@ -1,0 +1,48 @@
+table:
+  name: '`earth-trend-data`.refined.tb_grace_jpl_mass_anomaly'
+  description: Anomalia mensal de massa superficial total GRACE/GRACE-FO JPL CRI RL06.3Mv04, relativa à média
+    2004–2009, exportada na grade 0,5 × 0,625 grau. Inclui contribuições de água continental, gelo e oceano.
+    A estimativa isolada de água subterrânea exige separação de componentes. Ganhos hidrológicos não foram
+    aplicados.
+  theme: agua_e_gelo
+  product: GRACE_JPL_CRI_RL06.3Mv04
+  source_path: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://grace.jpl.nasa.gov/data/get-data/jpl_global_mascons/
+  - https://doi.org/10.5067/TEMSC-3JC634
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.csv
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+columns:
+  lat:
+    description: Latitude do ponto da grade em graus norte.
+    unit: degrees_north
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  lon:
+    description: Longitude do ponto da grade em graus leste.
+    unit: degrees_east
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  time:
+    description: Timestamp do mês preservado da fonte. Cruzamentos entre produtos devem usar ano e mês.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  mass_anomaly_mm_we:
+    description: Anomalia de massa superficial em mm de água equivalente, convertida de lwe_thickness em cm
+      e reamostrada por área. Referência temporal 2004–2009.
+    unit: mm water equivalent
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  valid_area_fraction:
+    description: Fração de área válida na célula reamostrada, entre 0 e 1. O exportador exige cobertura integral.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  cell_mass_anomaly_gt:
+    description: Anomalia de massa da célula-alvo, em gigatoneladas, calculada com sua área esférica. A estimativa
+      de massa de uma calota exige agregação regional apropriada.
+    unit: Gt
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  native_uncertainty_mean_mm_we:
+    description: Média descritiva da incerteza nativa, em mm de água equivalente. A propagação de incerteza
+      exige considerar a correlação entre pixels do mesmo mascon.
+    unit: mm water equivalent
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json

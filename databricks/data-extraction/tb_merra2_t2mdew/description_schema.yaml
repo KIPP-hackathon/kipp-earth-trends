@@ -1,0 +1,32 @@
+table:
+  name: '`earth-trend-data`.refined.tb_merra2_t2mdew'
+  description: Diagnóstico mensal T2MDEW do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
+    anuais. Média mensal de T2MDEW (dew point temperature at 2 m), na unidade K indicada pelo atributo units
+    do arquivo MERRA-2.
+  theme: atmosfera
+  product: M2TMNXSLV_T2MDEW
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_T2MDEW/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_T2MDEW/2024/M2TMNXSLV_T2MDEW_2024_01.csv
+  original_sample: MERRA2_400.tavgM_2d_slv_Nx.202401.nc4
+  original_long_name: dew_point_temperature_at_2_m
+  original_units: K
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+  lon:
+    description: Longitude do ponto da grade, em graus leste.
+    unit: degrees_east
+  time:
+    description: Timestamp mensal preservado do CSV MERRA-2. Cruzamentos com outras fontes devem considerar
+      ano e mês.
+    unit: null
+  T2MDEW:
+    description: Média mensal de T2MDEW (dew point temperature at 2 m), na unidade K indicada pelo atributo
+      units do arquivo MERRA-2.
+    unit: K
+    source: Atributos long_name e units do NetCDF original, cabeçalho CSV e especificação MERRA-2.
