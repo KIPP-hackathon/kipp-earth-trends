@@ -18,3 +18,4 @@ artifacts/
 # Estado local e credenciais de deploy do Databricks
 .databricks/
 .databrickscfg
+gha-creds-*.json

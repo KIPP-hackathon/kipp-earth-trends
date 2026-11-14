@@ -1,0 +1,68 @@
+name: Backend CI/CD
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm --prefix backend ci --ignore-scripts
+      - run: npm --prefix backend test
+      - run: npm --prefix backend run build
+
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: backend-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GCP_PROJECT: nasa-earth-trends-lab
+      GCP_REGION: us-east4
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: projects/583662795760/locations/global/workloadIdentityPools/kipp-github/providers/github
+          service_account: kipp-earth-deployer@nasa-earth-trends-lab.iam.gserviceaccount.com
+          project_id: nasa-earth-trends-lab
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+      - name: Build, push, and deploy after smoke checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="us-east4-docker.pkg.dev/$GCP_PROJECT/cloud-run-source-deploy/kipp-earth-api:$GITHUB_SHA"
+          gcloud auth configure-docker us-east4-docker.pkg.dev --quiet
+          docker build --platform linux/amd64 --tag "$image" backend
+          docker push "$image"
+          digest="$(gcloud artifacts docker images describe "$image" --project "$GCP_PROJECT" --format='value(image_summary.digest)')"
+          test -n "$digest"
+          bash backend/scripts/deploy-image.sh "${image%:*}@$digest"
