@@ -49,7 +49,7 @@ Por exemplo, para carregar a temperatura a 10 m, execute a partir de `databricks
 databricks bundle run --target kipp --profile kipp-gcp merra2_temperature_t10m
 ```
 
-Os notebooks fazem uma carga inicial e usam o modo padrão de `saveAsTable`. Uma execução com a tabela já existente falha. A estratégia de atualização dos dados precisa ser definida para recargas. O limite de uma execução simultânea se aplica a cada job.
+Os notebooks usam `mode("overwrite")` por padrão e substituem os dados da tabela a cada execução, reaplicando as descrições do YAML. A tabela é criada quando ainda não existe. O limite de uma execução simultânea se aplica a cada job.
 
 O mapeamento de arquivos, tabelas e limitações dos dados está em [CONTEXT.md](../databricks/data-extraction/CONTEXT.md).
 

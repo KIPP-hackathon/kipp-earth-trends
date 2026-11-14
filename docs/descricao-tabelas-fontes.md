@@ -18,7 +18,7 @@ Cada execução lê os arquivos de origem, valida as descrições, grava a tabel
 
 Os arquivos YAML são publicados junto dos notebooks pelo bundle. O notebook usa o diretório atual para localizar seu YAML e o módulo compartilhado. Essa resolução depende do comportamento padrão dos notebooks em runtimes modernos, nos quais o diretório atual corresponde à pasta do notebook. [Diretório de trabalho no Databricks](https://docs.databricks.com/gcp/en/files/cwd-dbr-14)
 
-A gravação mantém o comportamento de carga inicial e falha quando a tabela existe. Para reprocessar, prepare a tabela de destino conforme sua estratégia de recarga. Os jobs continuam com uma única tarefa `extract`, com criação de schemas feita na preparação do ambiente.
+A gravação usa `mode("overwrite")` por padrão para substituir os dados da tabela em cada reprocessamento. As descrições do YAML são reaplicadas após a gravação. Os jobs continuam com uma única tarefa `extract`, com criação de schemas feita na preparação do ambiente.
 
 ## De onde obter as descrições
 

@@ -53,6 +53,8 @@ Os HDF4 MOD13C2 já continham NDVI e EVI, além dos GeoTIFFs NDVI e frames de vi
 
 ## Checklist das próximas etapas
 
+Os notebooks usam `mode("overwrite")` por padrão. Cada reprocessamento substitui o conteúdo da tabela pelos arquivos de origem selecionados e reaplica os comentários do YAML.
+
 - [ ] Executar os novos jobs e confirmar contagens, período, nulos e comentários nas tabelas criadas.
 - [ ] Recarregar IMERG Late conforme a estratégia do time para incluir os meses posteriores a 2026-01 indicados no GCS.
 - [ ] Aplicar as descrições YAML às tabelas existentes durante o reprocessamento. Os comentários estavam ausentes na consulta do catálogo.
