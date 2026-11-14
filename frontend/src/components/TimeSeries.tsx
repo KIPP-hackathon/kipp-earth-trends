@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Info } from "lucide-react";
 import {
   anomalies,
@@ -36,6 +36,7 @@ export function TimeSeries({
   onDeseasonalize,
   onExplain,
 }: Props) {
+  const id = useId().replace(/:/g, "");
   const [hover, setHover] = useState<number | null>(null);
   const [width, setWidth] = useState(880);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,7 +133,7 @@ export function TimeSeries({
     );
   };
   return (
-    <section className="chart-panel" id="series">
+    <section className="chart-panel" id={`series-${id}`}>
       <div className="chart-heading">
         <div>
           <span className="eyebrow">
@@ -202,7 +203,7 @@ export function TimeSeries({
           onPointerLeave={() => setHover(null)}
         >
           <defs>
-            <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={`chart-fill-${id}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor={config.color} stopOpacity=".12" />
               <stop offset="1" stopColor={config.color} stopOpacity="0" />
             </linearGradient>
@@ -236,7 +237,7 @@ export function TimeSeries({
           })}
           <path
             d={`${chart.path} L${chart.x(chart.visible.length - 1)},${height - bottom} L${left},${height - bottom} Z`}
-            fill="url(#chart-fill)"
+            fill={`url(#chart-fill-${id})`}
           />
           <path d={chart.band} fill={config.color} opacity=".12" />
           <path

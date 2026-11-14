@@ -15,6 +15,7 @@ import {
   Check,
   CheckCheck,
   ChevronDown,
+  Columns2,
   CircleHelp,
   Droplets,
   Earth,
@@ -33,6 +34,18 @@ import {
   Waves,
   X,
 } from "lucide-react";
+import { LabTabs } from "./components/LabTabs";
+import type { LabTab } from "./components/LabTabs";
+import { ComparisonView } from "./components/ComparisonView";
+import { EventCatalog } from "./components/EventCatalog";
+import {
+  comparisonReducer,
+  createComparison,
+  createScenario,
+  initialGlobeView,
+} from "./lib/comparison";
+import type { Scenario } from "./lib/comparison";
+import { referenceScenario } from "./lib/events";
 import { Globe } from "./components/Globe";
 import { TimeSeries } from "./components/TimeSeries";
 import { Modal } from "./components/Modal";
@@ -122,6 +135,16 @@ function download(name: string, contents: string, type: string) {
 }
 
 function App() {
+  const [activeTab, setActiveTab] = useState<LabTab>("explore");
+  const [comparison, dispatchComparison] = useReducer(
+    comparisonReducer,
+    undefined,
+    () => createComparison(),
+  );
+  const [globeView, setGlobeView] = useState(initialGlobeView);
+  const [investigationContext, setInvestigationContext] =
+    useState<Scenario | null>(null);
+  const isInvestigating = activeTab === "explore" || activeTab === "analysis";
   const [region, setRegion] = useState<RegionId>("saofrancisco");
   const [variable, setVariable] = useState<Variable>("temperature");
   const [timeline, dispatchTimeline] = useReducer(
@@ -166,6 +189,9 @@ function App() {
   const isConsistent = trend?.significant ?? false;
 
   useEffect(() => {
+    if (activeTab !== "explore") dispatchTimeline({ type: "pause" });
+  }, [activeTab]);
+  useEffect(() => {
     if (!timeline.playing) return;
     const timer = setInterval(
       () => dispatchTimeline({ type: "tick" }),
@@ -199,13 +225,62 @@ function App() {
     [],
   );
   const selectRegion = useCallback(
-    (value: RegionId) => startTransition(() => setRegion(value)),
+    (value: RegionId) =>
+      startTransition(() => {
+        setRegion(value);
+        const selected = regions.find((r) => r.id === value)!;
+        setGlobeView((v) => ({
+          ...v,
+          longitude: selected.location[0],
+          latitude: selected.location[1],
+        }));
+      }),
     [],
   );
   const seekFrame = useCallback(
     (frame: number) => dispatchTimeline({ type: "seek", frame }),
     [],
   );
+  const showTab = (tab: LabTab) => {
+    setActiveTab(tab);
+    setMobileControls(false);
+    requestAnimationFrame(() => {
+      const button = document.getElementById(`tab-${tab}`);
+      button?.focus({ preventScroll: true });
+      button?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  };
+  const currentScenario = () =>
+    createScenario({
+      region,
+      variable,
+      timeline,
+      view: globeView,
+      mode: deseasonalized ? "anomaly" : "absolute",
+    });
+  const compareScenario = (scenario: Scenario, useReference = false) => {
+    dispatchComparison({
+      type: "load",
+      scenarios: [
+        scenario,
+        useReference ? referenceScenario(scenario) : createScenario(scenario),
+      ],
+    });
+    if (useReference) dispatchComparison({ type: "sync", mode: "relative" });
+    showTab("compare");
+  };
+  const investigateScenario = (scenario: Scenario) => {
+    selectRegion(scenario.region);
+    selectVariable(scenario.variable);
+    setDeseasonalized(scenario.mode === "anomaly");
+    dispatchTimeline({
+      type: "preset",
+      start: scenario.timeline.start,
+      end: scenario.timeline.end,
+    });
+    setInvestigationContext(scenario);
+    showTab("explore");
+  };
   const openGuide = () => {
     setGuideStep(0);
     setModal("guide");
@@ -259,11 +334,19 @@ function App() {
 
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#investigation">
+      <a className="skip-link" href="#main-content">
         Pular para a investigação
       </a>
       <header className="site-header">
-        <a href="#" className="brand" aria-label="KIPP, início">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            showTab("explore");
+          }}
+          className="brand"
+          aria-label="KIPP, início"
+        >
           <span className="brand-mark">
             <Earth size={29} strokeWidth={1.25} />
             <i />
@@ -274,11 +357,7 @@ function App() {
           <span className="brand-divider" />
           <small>EARTH SYSTEMS LAB</small>
         </a>
-        <nav className="desktop-nav" aria-label="Navegação principal">
-          <a className="active" href="#investigation">
-            Explorar
-          </a>
-          <a href="#how-it-works">Como funciona</a>
+        <nav className="desktop-nav" aria-label="Recursos do laboratório">
           <button onClick={() => setModal("sources")}>
             Fontes & ciência <ArrowUpRight size={12} />
           </button>
@@ -293,8 +372,8 @@ function App() {
         </div>
       </header>
 
-      <main>
-        <section className="intro">
+      <main id="main-content" tabIndex={-1}>
+        <section className="intro" hidden={activeTab !== "explore"}>
           <div>
             <div className="intro-kicker">
               <span className="kicker-line" /> UM PLANETA. INFINITAS PISTAS.
@@ -319,7 +398,12 @@ function App() {
           </button>
         </section>
 
-        <div className="workbench-top" id="investigation">
+        <LabTabs active={activeTab} onChange={showTab} />
+        <div
+          className="workbench-top"
+          id="investigation"
+          hidden={!isInvestigating}
+        >
           <div>
             <span className="workspace-icon">
               <ScanLine size={14} />
@@ -339,17 +423,21 @@ function App() {
           </div>
           <button
             className="mobile-filter-button"
+            aria-expanded={mobileControls}
+            aria-controls="investigation-filters"
             onClick={() => setMobileControls((v) => !v)}
           >
-            <Menu size={16} /> Investigar
+            <Menu size={16} /> {mobileControls ? "Fechar filtros" : "Filtros"}
           </button>
         </div>
 
         <div
-          className="workspace-grid"
+          className="workspace-grid tabbed-workspace"
+          hidden={!isInvestigating}
           style={{ "--variable-color": config.color } as React.CSSProperties}
         >
           <aside
+            id="investigation-filters"
             className={`controls-panel ${mobileControls ? "mobile-open" : ""}`}
             aria-label="Configurar investigação"
           >
@@ -530,181 +618,292 @@ function App() {
             </div>
           </aside>
 
-          <div className="center-column">
-            <Globe
-              region={region}
-              variable={variable}
-              onRegion={selectRegion}
-              timeline={timeline}
-              onAction={dispatchTimeline}
-              mode={deseasonalized ? "anomaly" : "absolute"}
-              onModeChange={(mode) => setDeseasonalized(mode === "anomaly")}
-            />
-            <TimeSeries
-              series={series}
-              reference={allSeries}
-              frame={timeline.frame}
-              onFrame={seekFrame}
-              variable={variable}
-              deseasonalized={deseasonalized}
-              onDeseasonalize={() => setDeseasonalized((v) => !v)}
-              onExplain={() => setModal("reading")}
-            />
-          </div>
-
-          <aside
-            className="insights-panel"
-            aria-label="Resultados da investigação"
-          >
-            <span className="eyebrow">
-              <span className="tiny-number">03</span> CONECTE AS PISTAS
-            </span>
-            <div className="insights-title">
-              <h2>O que encontramos?</h2>
-              <span>EXEMPLO SIMULADO</span>
-            </div>
-            <div className="frame-readout">
-              <span>
-                MÊS EM EXIBIÇÃO<small>{formatMonth(timeline.frame)}</small>
-              </span>
-              <strong style={{ color: config.color }}>
-                {formatValue(
-                  currentObservation.value,
-                  variable,
-                  deseasonalized,
-                )}
-                <small>
-                  {config.unit} · {deseasonalized ? "anomalia" : "valor médio"}
-                </small>
-              </strong>
-            </div>
-            <p className="period-analysis-label">
-              TENDÊNCIA · {formatMonth(timeline.start)} —{" "}
-              {formatMonth(timeline.end)}
-            </p>
-            <div
-              className={`finding-card ${isConsistent ? "consistent" : "uncertain"}`}
+          <div className="investigation-content">
+            <section
+              id="panel-explore"
+              role="tabpanel"
+              aria-labelledby="tab-explore"
+              tabIndex={0}
+              hidden={activeTab !== "explore"}
             >
-              <div className="finding-status">
-                {isConsistent ? (
-                  <ShieldCheck size={15} />
-                ) : (
-                  <CircleHelp size={15} />
-                )}{" "}
-                {!trend
-                  ? "Período insuficiente para estimar"
-                  : isConsistent
-                    ? "Sinal consistente no exemplo"
-                    : "Resultado inconclusivo"}
-              </div>
-              <span className="finding-label">{config.name}</span>
-              <div className="finding-value">
-                {trend ? formatValue(trend.slope, variable, true) : "—"}
-                <span>{config.decadeUnit}</span>
-              </div>
-              <p>
-                {!trend
-                  ? "Este recorte mostra a dinâmica mensal. São necessários pelo menos três anos completos para executar esta regressão simplificada; estudos climáticos exigem mais contexto e uma série adequada."
-                  : isConsistent
-                    ? `A série simulada indica ${trend.slope > 0 ? "aumento" : "redução"} ao longo do período escolhido.`
-                    : "A variação deste exemplo ainda é compatível com ausência de tendência."}
-              </p>
-              <div className="confidence">
-                <div>
-                  <span>Intervalo de confiança · 95%</span>
-                  <button
-                    aria-label="Entender o intervalo de confiança"
-                    onClick={() => setModal("reading")}
-                  >
-                    <CircleHelp size={12} />
-                  </button>
-                </div>
-                <strong>
-                  {trend ? formatValue(trend.interval[0], variable, true) : "—"}{" "}
-                  <span>a</span>{" "}
-                  {trend ? formatValue(trend.interval[1], variable, true) : "—"}
-                </strong>
-              </div>
-            </div>
-            <div className="translation">
-              <span className="translation-icon">
-                <BookOpen size={16} />
-              </span>
-              <div>
-                <span className="eyebrow">EM OUTRAS PALAVRAS</span>
-                <p>
-                  {!trend
-                    ? "Observar um ciclo é diferente de medir uma tendência. Você pode reproduzir este recorte e depois ampliar a janela da investigação."
-                    : isConsistent
-                      ? "O sinal aparece além das oscilações deste exemplo. Isso não explica, por si só, o que causou a mudança."
-                      : "Não encontrar um sinal claro também ensina. Mais tempo ou dados melhores podem mudar a conclusão."}
-                </p>
-              </div>
-            </div>
-            <div className="other-signals">
-              <div className="section-label">
-                UMA REGIÃO, TRÊS SINAIS
-                <button
-                  aria-label="Entender as variáveis"
-                  onClick={() => setModal("definition")}
-                >
-                  <CircleHelp size={12} />
-                </button>
-              </div>
-              {metrics.map(({ key, result }) => {
-                const Icon = variableIcons[key];
-                return (
-                  <button
-                    key={key}
-                    className={`signal-row ${key === variable ? "selected" : ""}`}
-                    onClick={() => selectVariable(key)}
-                  >
-                    <span style={{ color: variables[key].color }}>
-                      <Icon size={15} />
-                    </span>
+              {investigationContext &&
+                investigationContext.region === region &&
+                investigationContext.timeline.start === timeline.start &&
+                investigationContext.timeline.end === timeline.end && (
+                  <div className="preset-context">
+                    <FlaskConical size={15} />
                     <span>
-                      {variables[key].short}
+                      {investigationContext.context}
                       <small>
-                        {!result
-                          ? "Período curto"
-                          : result.significant
-                            ? "Sinal no exemplo"
-                            : "Inconclusivo"}
+                        Recorte de uma série inventada; não representa
+                        observações do evento.
                       </small>
                     </span>
-                    <strong style={{ color: variables[key].color }}>
-                      {result ? formatValue(result.slope, key, true) : "—"}
-                      <small>{variables[key].unit}/déc.</small>
-                    </strong>
-                    <ChevronDown size={12} />
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              className="robustness-button"
-              onClick={() => setModal("robustness")}
+                  </div>
+                )}
+              <Globe
+                view={globeView}
+                onViewChange={setGlobeView}
+                region={region}
+                variable={variable}
+                onRegion={selectRegion}
+                timeline={timeline}
+                onAction={dispatchTimeline}
+                mode={deseasonalized ? "anomaly" : "absolute"}
+                onModeChange={(mode) => setDeseasonalized(mode === "anomaly")}
+              />
+              <div className="explore-next">
+                <div>
+                  <span className="eyebrow">A OBSERVAÇÃO É SÓ O COMEÇO</span>
+                  <p>O que muda quando você olha de outro jeito?</p>
+                </div>
+                <button
+                  className="secondary-button"
+                  onClick={() => compareScenario(currentScenario())}
+                >
+                  <Columns2 size={15} />
+                  Comparar cenário
+                </button>
+                <button
+                  className="primary-button"
+                  onClick={() => showTab("analysis")}
+                >
+                  Ver análise
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </section>
+            <section
+              id="panel-analysis"
+              role="tabpanel"
+              aria-labelledby="tab-analysis"
+              tabIndex={0}
+              className="analysis-layout"
+              hidden={activeTab !== "analysis"}
             >
-              <ShieldCheck size={17} />
-              <span>
-                A conclusão resiste?<small>Teste outros períodos</small>
-              </span>
-              <ArrowUpRight size={15} />
-            </button>
-            <div className="evidence-footer">
-              <span>
-                <Fingerprint size={13} /> {series.length} pontos simulados ·{" "}
-                {annualSeries.length} anos completos
-              </span>
-              <button className="export-button" onClick={exportInvestigation}>
-                <ArrowDownToLine size={15} /> Exportar investigação
-              </button>
-              <small>Dados + escolhas + método. Ciência rastreável.</small>
-            </div>
-          </aside>
+              <div className="analysis-chart-column">
+                <div className="analysis-context">
+                  <span className="eyebrow">SUA INVESTIGAÇÃO</span>
+                  <h2>{currentRegion.name}</h2>
+                  <p>
+                    {config.name} · {formatMonth(timeline.start)} —{" "}
+                    {formatMonth(timeline.end)}
+                  </p>
+                  <button
+                    className="text-button"
+                    onClick={() => showTab("explore")}
+                  >
+                    Voltar ao globo
+                    <ArrowUpRight size={13} />
+                  </button>
+                </div>
+                <TimeSeries
+                  series={series}
+                  reference={allSeries}
+                  frame={timeline.frame}
+                  onFrame={seekFrame}
+                  variable={variable}
+                  deseasonalized={deseasonalized}
+                  onDeseasonalize={() => setDeseasonalized((v) => !v)}
+                  onExplain={() => setModal("reading")}
+                />{" "}
+              </div>
+              <aside
+                className="insights-panel"
+                aria-label="Resultados da investigação"
+              >
+                <span className="eyebrow">
+                  <span className="tiny-number">03</span> CONECTE AS PISTAS
+                </span>
+                <div className="insights-title">
+                  <h2>O que encontramos?</h2>
+                  <span>EXEMPLO SIMULADO</span>
+                </div>
+                <div className="frame-readout">
+                  <span>
+                    MÊS EM EXIBIÇÃO<small>{formatMonth(timeline.frame)}</small>
+                  </span>
+                  <strong style={{ color: config.color }}>
+                    {formatValue(
+                      currentObservation.value,
+                      variable,
+                      deseasonalized,
+                    )}
+                    <small>
+                      {config.unit} ·{" "}
+                      {deseasonalized ? "anomalia" : "valor médio"}
+                    </small>
+                  </strong>
+                </div>
+                <p className="period-analysis-label">
+                  TENDÊNCIA · {formatMonth(timeline.start)} —{" "}
+                  {formatMonth(timeline.end)}
+                </p>
+                <div
+                  className={`finding-card ${isConsistent ? "consistent" : "uncertain"}`}
+                >
+                  <div className="finding-status">
+                    {isConsistent ? (
+                      <ShieldCheck size={15} />
+                    ) : (
+                      <CircleHelp size={15} />
+                    )}{" "}
+                    {!trend
+                      ? "Período insuficiente para estimar"
+                      : isConsistent
+                        ? "Sinal consistente no exemplo"
+                        : "Resultado inconclusivo"}
+                  </div>
+                  <span className="finding-label">{config.name}</span>
+                  <div className="finding-value">
+                    {trend ? formatValue(trend.slope, variable, true) : "—"}
+                    <span>{config.decadeUnit}</span>
+                  </div>
+                  <p>
+                    {!trend
+                      ? "Este recorte mostra a dinâmica mensal. São necessários pelo menos três anos completos para executar esta regressão simplificada; estudos climáticos exigem mais contexto e uma série adequada."
+                      : isConsistent
+                        ? `A série simulada indica ${trend.slope > 0 ? "aumento" : "redução"} ao longo do período escolhido.`
+                        : "A variação deste exemplo ainda é compatível com ausência de tendência."}
+                  </p>
+                  <div className="confidence">
+                    <div>
+                      <span>Intervalo de confiança · 95%</span>
+                      <button
+                        aria-label="Entender o intervalo de confiança"
+                        onClick={() => setModal("reading")}
+                      >
+                        <CircleHelp size={12} />
+                      </button>
+                    </div>
+                    <strong>
+                      {trend
+                        ? formatValue(trend.interval[0], variable, true)
+                        : "—"}{" "}
+                      <span>a</span>{" "}
+                      {trend
+                        ? formatValue(trend.interval[1], variable, true)
+                        : "—"}
+                    </strong>
+                  </div>
+                </div>
+                <div className="translation">
+                  <span className="translation-icon">
+                    <BookOpen size={16} />
+                  </span>
+                  <div>
+                    <span className="eyebrow">EM OUTRAS PALAVRAS</span>
+                    <p>
+                      {!trend
+                        ? "Observar um ciclo é diferente de medir uma tendência. Você pode reproduzir este recorte e depois ampliar a janela da investigação."
+                        : isConsistent
+                          ? "O sinal aparece além das oscilações deste exemplo. Isso não explica, por si só, o que causou a mudança."
+                          : "Não encontrar um sinal claro também ensina. Mais tempo ou dados melhores podem mudar a conclusão."}
+                    </p>
+                  </div>
+                </div>
+                <div className="other-signals">
+                  <div className="section-label">
+                    UMA REGIÃO, TRÊS SINAIS
+                    <button
+                      aria-label="Entender as variáveis"
+                      onClick={() => setModal("definition")}
+                    >
+                      <CircleHelp size={12} />
+                    </button>
+                  </div>
+                  {metrics.map(({ key, result }) => {
+                    const Icon = variableIcons[key];
+                    return (
+                      <button
+                        key={key}
+                        className={`signal-row ${key === variable ? "selected" : ""}`}
+                        onClick={() => selectVariable(key)}
+                      >
+                        <span style={{ color: variables[key].color }}>
+                          <Icon size={15} />
+                        </span>
+                        <span>
+                          {variables[key].short}
+                          <small>
+                            {!result
+                              ? "Período curto"
+                              : result.significant
+                                ? "Sinal no exemplo"
+                                : "Inconclusivo"}
+                          </small>
+                        </span>
+                        <strong style={{ color: variables[key].color }}>
+                          {result ? formatValue(result.slope, key, true) : "—"}
+                          <small>{variables[key].unit}/déc.</small>
+                        </strong>
+                        <ChevronDown size={12} />
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  className="robustness-button"
+                  onClick={() => setModal("robustness")}
+                >
+                  <ShieldCheck size={17} />
+                  <span>
+                    A conclusão resiste?<small>Teste outros períodos</small>
+                  </span>
+                  <ArrowUpRight size={15} />
+                </button>
+                <div className="evidence-footer">
+                  <span>
+                    <Fingerprint size={13} /> {series.length} pontos simulados ·{" "}
+                    {annualSeries.length} anos completos
+                  </span>
+                  <button
+                    className="export-button"
+                    onClick={exportInvestigation}
+                  >
+                    <ArrowDownToLine size={15} /> Exportar investigação
+                  </button>
+                  <small>Dados + escolhas + método. Ciência rastreável.</small>
+                </div>
+              </aside>
+            </section>
+          </div>
         </div>
 
-        <section className="learning-section" id="how-it-works">
+        <section
+          id="panel-compare"
+          role="tabpanel"
+          aria-labelledby="tab-compare"
+          tabIndex={0}
+          hidden={activeTab !== "compare"}
+        >
+          <ComparisonView
+            state={comparison}
+            dispatch={dispatchComparison}
+            active={activeTab === "compare" && !modal}
+            onExplain={() => setModal("reading")}
+          />
+        </section>
+        <section
+          id="panel-events"
+          role="tabpanel"
+          aria-labelledby="tab-events"
+          tabIndex={0}
+          hidden={activeTab !== "events"}
+        >
+          <EventCatalog
+            onInvestigate={investigateScenario}
+            onCompare={(scenario) => compareScenario(scenario, true)}
+          />
+        </section>
+        <section
+          className="learning-section"
+          id="panel-learn"
+          role="tabpanel"
+          aria-labelledby="tab-learn"
+          tabIndex={0}
+          hidden={activeTab !== "learn"}
+        >
           <div className="learning-intro">
             <span className="eyebrow">MENOS MISTÉRIO. MAIS ENTENDIMENTO.</span>
             <h2>
@@ -763,7 +962,14 @@ function App() {
         </section>
 
         <footer className="site-footer">
-          <a href="#" className="footer-brand">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              showTab("explore");
+            }}
+            className="footer-brand"
+          >
             <Earth size={19} /> KIPP.
           </a>
           <span>Feito para cultivar curiosidade sobre o nosso planeta.</span>
@@ -848,9 +1054,12 @@ function App() {
                       if (guideStep < 4) setGuideStep((s) => s + 1);
                       else {
                         setModal(null);
-                        document
-                          .getElementById("investigation")
-                          ?.scrollIntoView({ behavior: "smooth" });
+                        showTab("explore");
+                        requestAnimationFrame(() =>
+                          document
+                            .getElementById("investigation")
+                            ?.scrollIntoView({ behavior: "smooth" }),
+                        );
                       }
                     }}
                   >

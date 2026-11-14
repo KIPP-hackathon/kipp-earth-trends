@@ -1,11 +1,42 @@
-import { memo, useMemo, useState } from "react";
-import { Compass, Layers3, Minus, Plus, LocateFixed } from "lucide-react";
-import { regionCoordinates } from "../lib/mapGeometry";
+import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
+import { geoPath, geoGraticule10 } from "d3-geo";
+import type { GeoPermissibleObjects } from "d3-geo";
+import { Compass, Layers3, Minus, Plus, LocateFixed, Move } from "lucide-react";
 import { regions, variables, formatValue } from "../lib/analysis";
-import { getSpatialFrame, getColorScale, formatMonth } from "../lib/playback";
+import {
+  getSpatialFrame,
+  getColorScale,
+  formatMonth,
+  spatialCells,
+} from "../lib/playback";
 import type { PlaybackState, PlaybackAction, MapMode } from "../lib/playback";
+import { initialGlobeView } from "../lib/comparison";
+import type { GlobeView } from "../lib/comparison";
+import {
+  dragGlobe,
+  globeProjection,
+  visibleOnGlobe,
+} from "../lib/globeProjection";
 import { PlaybackControls } from "./PlaybackControls";
+import { GlobeSurface } from "./GlobeSurface";
 import type { RegionId, Variable } from "../lib/analysis";
+
+const originalProjection = globeProjection(initialGlobeView);
+const geographicCells = Object.fromEntries(
+  regions.map((r) => [
+    r.id,
+    spatialCells[r.id].map((cell) => {
+      const ring = cell.points
+        .split(" ")
+        .map((point) =>
+          originalProjection.invert!(
+            point.split(",").map(Number) as [number, number],
+          )!,
+        );
+      return { type: "Polygon" as const, coordinates: [[...ring, ring[0]]] };
+    }),
+  ]),
+) as Record<string, { type: "Polygon"; coordinates: number[][][] }[]>;
 
 type Props = {
   region: RegionId;
@@ -15,6 +46,8 @@ type Props = {
   onAction: (action: PlaybackAction) => void;
   mode: MapMode;
   onModeChange: (mode: MapMode) => void;
+  view?: GlobeView;
+  onViewChange?: (view: GlobeView) => void;
 };
 
 export const Globe = memo(function Globe({
@@ -25,9 +58,35 @@ export const Globe = memo(function Globe({
   onAction,
   mode,
   onModeChange,
+  view: controlledView,
+  onViewChange,
 }: Props) {
-  const [zoom, setZoom] = useState(1);
-  const [showLayer, setShowLayer] = useState(true);
+  const [land, setLand] = useState<GeoPermissibleObjects | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    import("../lib/land.geo.json")
+      .then((module) => {
+        if (mounted) setLand(module.default as GeoPermissibleObjects);
+      })
+      .catch(() => {
+        /* Textured globe remains available if boundaries cannot load. */
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  const [localView, setLocalView] = useState(initialGlobeView);
+  const view = controlledView ?? localView;
+  const changeView = (next: GlobeView) =>
+    onViewChange ? onViewChange(next) : setLocalView(next);
+  const id = useId().replace(/:/g, "");
+  const drag = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+    view: GlobeView;
+  } | null>(null);
+  const didDrag = useRef(false);
   const current = regions.find((r) => r.id === region)!;
   const color = variables[variable].color;
   const frames = useMemo(
@@ -37,6 +96,23 @@ export const Globe = memo(function Globe({
   );
   const currentFrame = frames[regions.findIndex((r) => r.id === region)];
   const scale = getColorScale(variable, mode);
+  const projection = useMemo(
+    () => globeProjection(view),
+    [view.longitude, view.latitude],
+  );
+  const paths = useMemo(() => {
+    const path = geoPath(projection).digits(1);
+    return {
+      land: land ? (path(land) ?? "") : "",
+      grid: path(geoGraticule10()) ?? "",
+      cells: Object.fromEntries(
+        regions.map((r) => [
+          r.id,
+          geographicCells[r.id].map((cell) => path(cell) ?? ""),
+        ]),
+      ) as Record<RegionId, string[]>,
+    };
+  }, [projection, land]);
   return (
     <section
       className="globe-panel living-globe"
@@ -52,9 +128,9 @@ export const Globe = memo(function Globe({
           <i className="live-dot" /> PERSPECTIVA DA TERRA
         </span>
         <button
-          className={`layer-button ${showLayer ? "selected" : ""}`}
-          onClick={() => setShowLayer(!showLayer)}
-          aria-pressed={showLayer}
+          className={`layer-button ${view.showLayer ? "selected" : ""}`}
+          onClick={() => changeView({ ...view, showLayer: !view.showLayer })}
+          aria-pressed={view.showLayer}
         >
           <Layers3 size={14} /> Campo simulado
         </button>
@@ -78,64 +154,123 @@ export const Globe = memo(function Globe({
         </button>
       </div>
       <div className="map-coordinate">
-        {current.coords}
-        <span>AMÉRICA DO SUL</span>
+        {Math.abs(view.latitude).toFixed(0)}° {view.latitude < 0 ? "S" : "N"},{" "}
+        {Math.abs(view.longitude).toFixed(0)}° {view.longitude < 0 ? "O" : "L"}
+        <span>BASE VISUAL GLOBAL · DADOS EM 3 REGIÕES</span>
       </div>
       <div className="globe-stage">
         <svg
-          className="globe-svg"
+          className="globe-svg interactive-globe"
           viewBox="0 0 640 640"
           role="group"
-          aria-label="Globo com três regiões brasileiras selecionáveis"
+          tabIndex={0}
+          aria-label="Globo interativo. Arraste para girar ou use as setas do teclado. Home restaura a vista."
+          onPointerDown={(e) => {
+            if (e.button !== 0 || drag.current) return;
+            drag.current = {
+              pointerId: e.pointerId,
+              x: e.clientX,
+              y: e.clientY,
+              view,
+            };
+            didDrag.current = false;
+          }}
+          onPointerMove={(e) => {
+            if (!drag.current || drag.current.pointerId !== e.pointerId) return;
+            const dx = e.clientX - drag.current.x,
+              dy = e.clientY - drag.current.y;
+            if (!didDrag.current && Math.hypot(dx, dy) < 4) return;
+            didDrag.current = true;
+            if (!e.currentTarget.hasPointerCapture(e.pointerId))
+              e.currentTarget.setPointerCapture(e.pointerId);
+            const factor = 640 / e.currentTarget.getBoundingClientRect().width;
+            changeView(dragGlobe(drag.current.view, dx * factor, dy * factor));
+          }}
+          onPointerUp={(e) => {
+            if (drag.current?.pointerId !== e.pointerId) return;
+            drag.current = null;
+            if (e.currentTarget.hasPointerCapture(e.pointerId))
+              e.currentTarget.releasePointerCapture(e.pointerId);
+          }}
+          onPointerCancel={(e) => {
+            if (drag.current?.pointerId === e.pointerId) drag.current = null;
+          }}
+          onLostPointerCapture={(e) => {
+            if (drag.current?.pointerId === e.pointerId) drag.current = null;
+          }}
+          onPointerLeave={(e) => {
+            if (
+              drag.current?.pointerId === e.pointerId &&
+              !e.currentTarget.hasPointerCapture(e.pointerId)
+            )
+              drag.current = null;
+          }}
+          onKeyDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            const moves: Record<string, [number, number]> = {
+              ArrowLeft: [-25, 0],
+              ArrowRight: [25, 0],
+              ArrowUp: [0, -25],
+              ArrowDown: [0, 25],
+            };
+            if (moves[e.key]) {
+              e.preventDefault();
+              changeView(dragGlobe(view, ...moves[e.key]));
+            }
+            if (e.key === "Home") {
+              e.preventDefault();
+              changeView({ ...initialGlobeView, showLayer: view.showLayer });
+            }
+          }}
         >
           <defs>
-            <radialGradient id="atmosphere">
+            <radialGradient id={`${id}-atmosphere`}>
               <stop offset="88%" stopColor="#78afaf" stopOpacity="0" />
               <stop offset="97%" stopColor="#76b4ad" stopOpacity=".2" />
               <stop offset="100%" stopColor="#8dd5c5" stopOpacity="0" />
             </radialGradient>
-            <radialGradient id="earth-shade" cx="35%" cy="28%" r="75%">
-              <stop offset="30%" stopColor="#082621" stopOpacity="0" />
-              <stop offset="100%" stopColor="#03110e" stopOpacity=".62" />
-            </radialGradient>
-            <filter id="glow">
+            <filter id={`${id}-glow`}>
               <feGaussianBlur stdDeviation="5" />
             </filter>
-            <clipPath id="earth-clip">
+            <clipPath id={`${id}-clip`}>
               <circle cx="320" cy="320" r="270" />
             </clipPath>
           </defs>
-          <circle cx="320" cy="320" r="289" fill="url(#atmosphere)" />
+          <circle cx="320" cy="320" r="289" fill={`url(#${id}-atmosphere)`} />
           <g
-            style={{
-              transform: `translate(320px,320px) scale(${zoom}) translate(-320px,-320px)`,
-              transition: "transform .5s ease",
-            }}
+            transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
           >
-            <circle cx="320" cy="320" r="270" fill="#18302b" />
-            <image
-              href="/assets/globe.webp"
-              x="50"
-              y="50"
-              width="540"
-              height="540"
-            />
-            <circle cx="320" cy="320" r="270" fill="url(#earth-shade)" />
-            <g clipPath="url(#earth-clip)">
-              <image href="/assets/boundaries.svg" width="640" height="640" />
-              {showLayer &&
+            <circle cx="320" cy="320" r="270" fill="#102e30" />
+            <path d={paths.land} fill="#365343" />
+            <GlobeSurface longitude={view.longitude} latitude={view.latitude} />
+            <g clipPath={`url(#${id}-clip)`}>
+              <path
+                d={paths.land}
+                fill="none"
+                stroke="#a9c3b7"
+                strokeWidth=".65"
+                opacity=".4"
+              />
+              <path
+                d={paths.grid}
+                fill="none"
+                stroke="#a6c7bc"
+                strokeWidth=".45"
+                opacity=".15"
+              />
+              {view.showLayer &&
                 frames.map((frame, ri) => (
                   <g
                     key={regions[ri].id}
-                    aria-hidden="true"
                     opacity={region === regions[ri].id ? 0.92 : 0.28}
+                    aria-hidden="true"
                   >
                     {frame.cells.map((cell, i) => (
-                      <polygon
+                      <path
                         key={i}
                         className="climate-cell"
                         data-value={cell.value.toFixed(5)}
-                        points={cell.points}
+                        d={paths.cells[regions[ri].id][i]}
                         fill={cell.color}
                         stroke="#f4f2de"
                         strokeOpacity=".18"
@@ -150,7 +285,7 @@ export const Globe = memo(function Globe({
                           )}{" "}
                           {variables[variable].unit} · simulado
                         </title>
-                      </polygon>
+                      </path>
                     ))}
                   </g>
                 ))}
@@ -163,74 +298,90 @@ export const Globe = memo(function Globe({
               stroke="#c7e0ce"
               strokeOpacity=".2"
             />
-            {regions.map((r) => {
-              const [x, y] = regionCoordinates[r.id];
-              return (
-                <g
-                  key={r.id}
-                  onClick={() => onRegion(r.id)}
-                  className="map-point"
-                >
-                  <g
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Investigar ${r.name}`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onRegion(r.id);
-                      }
-                    }}
-                  >
-                    <circle cx={x} cy={y} r="20" fill="transparent" />
-                    {region === r.id && (
-                      <>
-                        <circle
-                          cx={x}
-                          cy={y}
-                          r="16"
-                          fill={color}
-                          opacity=".25"
-                          filter="url(#glow)"
-                        />
-                        <circle
-                          cx={x}
-                          cy={y}
-                          r="13"
-                          stroke={color}
-                          fill="none"
-                          strokeOpacity=".5"
-                        />
-                      </>
-                    )}
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={region === r.id ? 4.5 : 3}
-                      fill={region === r.id ? "#fff8e9" : "#c5cdbf"}
+            {regions
+              .filter((r) => visibleOnGlobe(view, [...r.location]))
+              .map((r) => {
+                const [x, y] = projection([...r.location])!;
+                const choose = () => {
+                  if (!didDrag.current) {
+                    onRegion(r.id);
+                    changeView({
+                      ...view,
+                      longitude: r.location[0],
+                      latitude: r.location[1],
+                    });
+                  }
+                };
+                return (
+                  <g key={r.id} className="map-point" onClick={choose}>
+                    <g
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Investigar ${r.name}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onRegion(r.id);
+                          changeView({
+                            ...view,
+                            longitude: r.location[0],
+                            latitude: r.location[1],
+                          });
+                        }
+                      }}
+                    >
+                      <circle cx={x} cy={y} r="20" fill="transparent" />
+                      {region === r.id && (
+                        <>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="16"
+                            fill={color}
+                            opacity=".25"
+                            filter={`url(#${id}-glow)`}
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="13"
+                            stroke={color}
+                            fill="none"
+                            strokeOpacity=".5"
+                          />
+                        </>
+                      )}
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={region === r.id ? 4.5 : 3}
+                        fill={region === r.id ? "#fff8e9" : "#c5cdbf"}
+                      />
+                    </g>
+                    <path
+                      d={`M${x + 9},${y - 9} l18,-16 h82`}
+                      stroke={region === r.id ? color : "#a8b3a1"}
+                      strokeWidth=".7"
+                      fill="none"
+                      opacity=".7"
                     />
+                    <text
+                      x={x + 32}
+                      y={y - 32}
+                      fill={region === r.id ? "#f5f4e7" : "#abb9aa"}
+                      fontSize="10"
+                      fontWeight={region === r.id ? 700 : 500}
+                    >
+                      {r.short}
+                    </text>
                   </g>
-                  <path
-                    d={`M${x + 9},${y - 9} l18,-16 h${r.id === "saofrancisco" ? 112 : 82}`}
-                    stroke={region === r.id ? color : "#a8b3a1"}
-                    strokeWidth=".7"
-                    fill="none"
-                    opacity=".7"
-                  />
-                  <text
-                    x={x + 32}
-                    y={y - 32}
-                    fill={region === r.id ? "#f5f4e7" : "#abb9aa"}
-                    fontSize="10"
-                    fontWeight={region === r.id ? 700 : 500}
-                  >
-                    {r.short}
-                  </text>
-                </g>
-              );
-            })}
+                );
+              })}
           </g>
         </svg>
+      </div>
+      <div className="globe-drag-hint">
+        <Move size={11} /> Arraste para girar · setas no teclado
       </div>
       <div className="map-frame-card">
         <span>
@@ -259,17 +410,26 @@ export const Globe = memo(function Globe({
         <div>
           <button
             aria-label="Aproximar globo"
-            onClick={() => setZoom((z) => Math.min(z + 0.2, 1.8))}
+            onClick={() =>
+              changeView({ ...view, zoom: Math.min(view.zoom + 0.2, 1.8) })
+            }
           >
             <Plus size={17} />
           </button>
           <button
             aria-label="Afastar globo"
-            onClick={() => setZoom((z) => Math.max(z - 0.2, 0.8))}
+            onClick={() =>
+              changeView({ ...view, zoom: Math.max(view.zoom - 0.2, 0.8) })
+            }
           >
             <Minus size={17} />
           </button>
-          <button aria-label="Restaurar globo" onClick={() => setZoom(1)}>
+          <button
+            aria-label="Restaurar globo"
+            onClick={() =>
+              changeView({ ...initialGlobeView, showLayer: view.showLayer })
+            }
+          >
             <LocateFixed size={16} />
           </button>
         </div>

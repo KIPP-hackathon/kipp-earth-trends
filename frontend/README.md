@@ -44,10 +44,13 @@ As credenciais e conexões de login são gerenciadas nas contas pessoais das pla
 
 ## Experiência
 
+- Cinco abas: Explorar, Comparar, Eventos, Análise e Como funciona. Os filtros da investigação são preservados entre abas.
+- Comparação A/B com filtros independentes, duplicação de cenário e sincronização opcional da rotação, zoom, camada e tempo (mesma data ou meses desde o início). Em celular, alternar A/B.
+- Catálogo histórico pesquisável de queimadas, El Niño, furacões e tsunamis. Presets educativos de antes/durante/depois nas regiões disponíveis; fichas sem cobertura explicam os dados necessários.
 - Três regiões brasileiras: São Francisco, Amazônia central e Pantanal.
 - Três variáveis com séries mensais determinísticas e simuladas: temperatura do ar, precipitação e EVI.
 - Seleção exata de mês inicial e final, com atalhos para um ano, cinco anos e o histórico completo.
-- Globo com base NASA Blue Marble, limites Natural Earth, seleção de região e zoom. Campos espaciais simulados mudam mensalmente com escalas de cores fixas e valores quantitativos.
+- Globo com base NASA Blue Marble, limites Natural Earth, seleção de região, zoom e rotação por arraste ou setas do teclado. Home e Restaurar globo voltam à vista inicial. Campos espaciais simulados mudam mensalmente com escalas de cores fixas e valores quantitativos.
 - Player com play/pausa, quadro anterior/seguinte, reinício, velocidade 0,5×/1×/2×/4× e repetição opcional. A reprodução para no fim do recorte e pausa quando a página fica oculta.
 - Marcador do gráfico sincronizado com o globo; clicar na série escolhe o mês e pausa o player. Valores absolutos e anomalias podem ser alternados nos dois lugares.
 - Recortes curtos continuam navegáveis, com indicação de insuficiência para a regressão anual.
@@ -58,12 +61,23 @@ As credenciais e conexões de login são gerenciadas nas contas pessoais das pla
 
 ## Stack e desempenho
 
-React **19.3.1**, React DOM **19.3.1**, TypeScript, Vite 8 e Lucide. Sem backend, credenciais ou serviços pagos. Fontes são servidas localmente, o globo é uma imagem WebP de aproximadamente 91 kB, limites são pré-projetados em SVG e as análises são calculadas localmente com memoização. Não há motor WebGL ou biblioteca de gráficos pesada. d3-geo e topojson são utilizados apenas para gerar os assets, não são carregados no frontend. O gráfico usa ResizeObserver para manter texto legível em telas pequenas.
+React **19.3.1**, React DOM **19.3.1**, TypeScript, Vite 8 e Lucide. Sem backend, credenciais ou serviços pagos. Fontes e assets são servidos localmente. A textura NASA Blue Marble é projetada em uma esfera com WebGL; d3-geo reprojeta o contorno geográfico, os marcadores e as células na mesma orientação. Um mapa vetorial mantém a rotação disponível quando WebGL não existe. O GeoJSON é carregado em um chunk separado. A textura visual continua sendo uma imagem de janeiro de 2004, independentemente do mês selecionado. O gráfico usa ResizeObserver para manter texto legível em telas pequenas.
+
+Os presets não geram sinais artificiais que imitem eventos: somente selecionam datas e regiões nas séries educativas existentes. Não há observações atuais, classificação automática de similaridade ou previsão. O recorte de comparação em 2024 mantém os meses do calendário do preset, sem ser apresentado como dado atual.
 
 ## Organização
 
 - `src/App.tsx`: fluxo da investigação, seleção e exportação.
-- `src/components/Globe.tsx`: mapa e navegação temporal ilustrativa.
+- `src/components/LabTabs.tsx`: navegação acessível por abas.
+- `src/components/ComparisonView.tsx`: filtros e visualização de cenários A/B.
+- `src/components/EventCatalog.tsx`: busca, filtros, fichas históricas e presets.
+- `src/lib/comparison.ts`: estado dos cenários e limites da reprodução vinculada.
+- `src/lib/events.ts`: catálogo curado e recortes educativos.
+- `src/components/Globe.tsx`: mapa interativo e navegação temporal ilustrativa.
+- `src/components/GlobeSurface.tsx`: projeção da textura Blue Marble com WebGL.
+- `src/lib/globeProjection.ts`: orientação, visibilidade e movimento do globo.
+- `src/lib/land.geo.json`: continentes Natural Earth para reprojeção.
+- `scripts/generate-interactive-globe.mjs`: baixa a textura original NASA e gera o GeoJSON dos continentes. Requer rede somente ao regenerar assets.
 - `src/components/TimeSeries.tsx`: gráfico SVG, anomalias, cursor temporal e intervalo da média estimada.
 - `src/components/PlaybackControls.tsx`: controles de reprodução mensal.
 - `src/lib/playback.ts`: máquina de estados temporal, recorte mensal, campos espaciais e escalas fixas.
