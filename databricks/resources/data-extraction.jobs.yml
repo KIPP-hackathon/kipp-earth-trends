@@ -1,0 +1,42 @@
+resources:
+  jobs:
+    merra2_surface_temperature:
+      name: kipp-merra2-surface-temperature-ts
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/raw2refined-tb-merra2-surface-temperature-ts.py
+            source: WORKSPACE
+    merra2_temperature_t10m:
+      name: kipp-merra2-temperature-t10m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/raw2refined-tb-merra2-temperature-t10m.py
+            source: WORKSPACE
+    merra2_wind_speed:
+      name: kipp-merra2-wind-speed
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/raw2refined-tb-merra2-wind-speed.py
+            source: WORKSPACE
+    gpm_imerg_precipitation:
+      name: kipp-gpm-imerg-precipitation
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/raw2refined-tb-gpm-imerg-precipitation.py
+            source: WORKSPACE
+    gpm_imerg_late_precipitation:
+      name: kipp-gpm-imerg-late-precipitation
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/raw2refined-tb-gpm-imerg-late-precipitation.py
+            source: WORKSPACE
