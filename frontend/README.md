@@ -4,10 +4,9 @@ Protótipo exploratório, com a identidade provisória da equipe **KIPP**, de um
 
 ## Dados reais
 
-A entrada padrão **Dados reais** consome a API pública do Cloud Run:
-`https://kipp-earth-api-583662795760.us-east4.run.app`.
-Pode ser configurada com `VITE_EARTH_API_URL` antes do build. Essa URL é pública;
-credenciais do Databricks permanecem no backend.
+A entrada padrão **Dados reais** usa `/api/earth` na própria aplicação Vercel.
+A função server-side troca a identidade OIDC da Vercel por um ID token Google
+para chamar o Cloud Run autenticado. Credenciais e tokens não chegam ao navegador.
 
 - Catálogo e meses reais vêm de `/v1/catalog`.
 - Quadros globais Float32 vêm de `/v1/frames` e são desenhados como textura WebGL.
@@ -18,9 +17,14 @@ credenciais do Databricks permanecem no backend.
   continua identificada como simulação. Não há cálculo de tendência ou climatologia
   sobre as séries reais nesta integração inicial.
 
-Para desenvolvimento, use a porta 5173, autorizada no CORS da API. Em produção,
-a origem permitida é `https://kipp-earth-trends-lab.vercel.app`. Um novo domínio
-de frontend precisa ser autorizado no backend antes do uso.
+Em produção, o acesso ao Cloud Run é reservado à identidade do projeto Vercel
+em ambiente production, via Workload Identity Federation. A API de leitura da
+aplicação continua disponível aos visitantes do site. CORS não é usado como
+controle de autenticação. Consulte `docs/acesso-vercel-cloud-run.md` na raiz.
+
+No desenvolvimento local, execute o backend na porta 8080 com suas credenciais
+locais e o frontend com `npm run dev`. O Vite encaminha `/api/earth` ao backend
+local. Essa configuração não abre acesso anônimo ao Cloud Run.
 
 ## Executar
 

@@ -10,5 +10,10 @@
       "*": false,
       "main": true
     }
+  },
+  "functions": {
+    "api/earth/[...path].ts": {
+      "maxDuration": 60
+    }
   }
 }

@@ -7,4 +7,4 @@ gcloud secrets add-iam-policy-binding kipp-earth-api-databricks \
   --role=roles/secretmanager.secretAccessor --quiet
 gcloud run services update kipp-earth-api \
   --project=nasa-earth-trends-lab --region=us-east4 \
-  --no-invoker-iam-check --quiet
+  --invoker-iam-check --quiet

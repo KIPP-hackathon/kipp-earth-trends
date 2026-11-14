@@ -1,7 +1,4 @@
-export const earthApi = (
-  import.meta.env.VITE_EARTH_API_URL ||
-  "https://kipp-earth-api-583662795760.us-east4.run.app"
-).replace(/\/$/, "");
+export const earthApi = "/api/earth";
 
 export type EarthVariable = {
   id: string;
