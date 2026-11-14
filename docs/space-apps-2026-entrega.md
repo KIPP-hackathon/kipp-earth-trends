@@ -156,3 +156,4 @@ A distinção entre dados derivados, imagem base estática e limites científico
 permanece nas fontes/proveniência e em nota abaixo do conteúdo. Em 390 px,
 o header manteve as cinco tabs em barra rolável sem overflow horizontal da página.
 Build Node.js 24 verificado; revisão humana da equipe pendente.
+Revisão visual em 14/11/2026: tema claro solicitado pela equipe, com superfícies brancas, fundo cinza-azulado, azul NASA #0B3D91 e vermelho #FC3D21. Implementação assistida por OpenAI Codex; escalas dos dados preservadas.
