@@ -133,14 +133,14 @@ export function RealSeries({
                 x2="588"
                 y1={y(value)}
                 y2={y(value)}
-                stroke="#293b53"
+                stroke="#d5dfec"
                 strokeDasharray="3 5"
               />
               <text
                 x={chartLeft - 8}
                 y={y(value) + 4}
                 textAnchor="end"
-                fill="#a5b4c5"
+                fill="#52647a"
                 fontSize="10"
               >
                 {label}
@@ -149,7 +149,7 @@ export function RealSeries({
           );
         })}
         {!categorical && (
-          <path d={path} fill="none" stroke="#80baff" strokeWidth="2" />
+          <path d={path} fill="none" stroke="#0b3d91" strokeWidth="2" />
         )}
         {rows.map((p, i) =>
           p.value === null || !Number.isFinite(p.value) ? null : (
@@ -171,7 +171,7 @@ export function RealSeries({
                 cx={x(i)}
                 cy={y(p.value)}
                 r={p.month === month ? 5 : categorical ? 4 : 2.5}
-                fill={p.month === month ? "#ffffff" : "#80baff"}
+                fill={p.month === month ? "#d52b1e" : "#0b3d91"}
               />
               <title>
                 {realMonth(p.month)} · {formatObservation(p.value)}
@@ -179,10 +179,10 @@ export function RealSeries({
             </g>
           ),
         )}
-        <text x={chartLeft} y="200" fill="#a5b4c5" fontSize="11">
+        <text x={chartLeft} y="200" fill="#52647a" fontSize="11">
           {realMonth(rows[0].month)}
         </text>
-        <text x="588" y="200" textAnchor="end" fill="#a5b4c5" fontSize="11">
+        <text x="588" y="200" textAnchor="end" fill="#52647a" fontSize="11">
           {realMonth(rows.at(-1)!.month)}
         </text>
       </svg>

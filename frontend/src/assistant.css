@@ -8,13 +8,13 @@
   align-items: flex-end;
   gap: 12px;
   font-family: inherit;
-  color: #e3e7ed;
+  color: #47566b;
 }
 .assistant-trigger {
   display: flex;
   align-items: center;
   gap: 9px;
-  border: 1px solid #899eb9;
+  border: 1px solid #cbd7e6;
   border-radius: 30px;
   padding: 13px 20px;
   background: #a9c0dd;
@@ -22,16 +22,16 @@
   font: inherit;
   font-size: 13px;
   font-weight: 750;
-  box-shadow: 0 7px 30px #0005;
+  box-shadow: 0 7px 30px #0b3d9114;
   cursor: pointer;
 }
 .assistant-panel {
   width: min(430px, calc(100vw - 32px));
   height: min(640px, calc(100dvh - 115px));
-  background: #181d23;
-  border: 1px solid #495564;
+  background: #ffffff;
+  border: 1px solid #cbd7e6;
   border-radius: 18px;
-  box-shadow: 0 18px 70px #0007;
+  box-shadow: 0 18px 70px #0b3d9114;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -42,7 +42,7 @@
   align-items: center;
   gap: 8px;
   padding: 19px 18px 12px;
-  border-bottom: 1px solid #3a4450;
+  border-bottom: 1px solid #cbd7e6;
 }
 .assistant-header > div {
   flex: 1;
@@ -50,7 +50,7 @@
 .assistant-header .eyebrow {
   font-size: 9px;
   letter-spacing: 0.13em;
-  color: #a8b9d0;
+  color: #47566b;
 }
 .assistant-header h2 {
   font-family: inherit;
@@ -61,7 +61,7 @@
 .assistant-header button {
   display: flex;
   background: transparent;
-  border: 1px solid #4b5767;
+  border: 1px solid #cbd7e6;
   border-radius: 7px;
   color: inherit;
   padding: 7px;
@@ -72,8 +72,8 @@
   line-height: 1.5;
   margin: 0;
   padding: 10px 18px;
-  background: #20262d;
-  color: #b6bfcb;
+  background: #edf3fa;
+  color: #47566b;
 }
 .assistant-history {
   overflow-y: auto;
@@ -87,7 +87,7 @@
 .assistant-welcome {
   font-size: 13px;
   line-height: 1.6;
-  color: #c5ccd6;
+  color: #47566b;
 }
 .assistant-welcome p {
   margin: 0 0 12px;
@@ -96,7 +96,7 @@
   display: block;
   margin-top: 14px;
   font-size: 11px;
-  color: #a5afbd;
+  color: #47566b;
 }
 .assistant-suggestions {
   display: flex;
@@ -104,12 +104,12 @@
   gap: 7px;
 }
 .assistant-suggestions button {
-  background: #282f38;
-  border: 1px solid #4a5666;
+  background: #edf3fa;
+  border: 1px solid #cbd7e6;
   border-radius: 8px;
   padding: 9px 11px;
   text-align: left;
-  color: #d9e1eb;
+  color: #47566b;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
@@ -117,7 +117,7 @@
 .assistant-message {
   padding: 12px 13px;
   border-radius: 10px;
-  background: #232930;
+  background: #edf3fa;
   margin: 0 20px 12px 0;
   font-size: 12px;
   line-height: 1.65;
@@ -127,10 +127,10 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #afc0d7;
+  color: #47566b;
 }
 .assistant-message.is-user {
-  background: #313943;
+  background: #edf3fa;
   margin-left: 26px;
   margin-right: 0;
 }
@@ -141,20 +141,20 @@
 .assistant-snapshot {
   margin: 10px 0 0;
   padding-top: 8px;
-  border-top: 1px solid #475261;
-  color: #a4b0bf;
+  border-top: 1px solid #cbd7e6;
+  color: #47566b;
   font-size: 10px;
   line-height: 1.5;
   white-space: pre-wrap;
 }
 .assistant-evidence {
-  border-top: 1px solid #475261;
+  border-top: 1px solid #cbd7e6;
   margin-top: 12px;
   padding-top: 8px;
 }
 .assistant-evidence summary {
   cursor: pointer;
-  color: #bbcbdf;
+  color: #47566b;
   font-size: 11px;
 }
 .assistant-evidence > div {
@@ -165,40 +165,40 @@
   white-space: pre-wrap;
 }
 .assistant-evidence a {
-  color: #b9ceea;
+  color: #0b3d91;
   text-decoration: underline;
 }
 .assistant-action-status {
-  color: #bccbdf;
-  border-top: 1px solid #475261;
+  color: #47566b;
+  border-top: 1px solid #cbd7e6;
   padding-top: 8px;
   margin: 10px 0 0;
   font-size: 11px;
 }
 .assistant-notice {
   font-size: 12px;
-  color: #bdcadb;
+  color: #47566b;
   line-height: 1.5;
   margin: 8px 0 12px;
 }
 .assistant-form {
-  border-top: 1px solid #3c4653;
+  border-top: 1px solid #cbd7e6;
   padding: 12px 16px;
-  background: #1d2229;
+  background: #ffffff;
 }
 .assistant-form label {
   display: block;
   font-size: 11px;
   margin-bottom: 6px;
-  color: #b8c6d8;
+  color: #47566b;
 }
 .assistant-form textarea {
   width: 100%;
   box-sizing: border-box;
   resize: none;
-  background: #12171d;
-  color: #e7ecf3;
-  border: 1px solid #4a5767;
+  background: #ffffff;
+  color: #47566b;
+  border: 1px solid #cbd7e6;
   border-radius: 8px;
   padding: 10px 11px;
   font: inherit;
@@ -207,7 +207,7 @@
   min-height: 65px;
 }
 .assistant-form textarea::placeholder {
-  color: #919eaf;
+  color: #47566b;
 }
 .assistant-form-footer {
   display: flex;
@@ -218,7 +218,7 @@
 }
 .assistant-form-footer small {
   font-size: 10px;
-  color: #a0abba;
+  color: #47566b;
 }
 .assistant-form-footer button {
   display: flex;
@@ -251,15 +251,15 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #b2bcc9;
+  color: #47566b;
   font-size: 11px;
 }
 .real-period-controls select {
   width: 100%;
   padding: 9px;
-  background: #1b2128;
-  color: #d8dfe9;
-  border: 1px solid #414b59;
+  background: #ffffff;
+  color: #47566b;
+  border: 1px solid #cbd7e6;
   border-radius: 5px;
   font: inherit;
 }
@@ -295,4 +295,4 @@
   }
 }
 
-.assistant-trigger, .assistant-form-footer button { background: var(--nasa-blue); color: #ffffff; }
+.assistant-trigger, .assistant-form-footer button { background: var(--nasa-blue); color: #47566b; }

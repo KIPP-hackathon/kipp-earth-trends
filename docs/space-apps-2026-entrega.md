@@ -140,3 +140,4 @@ O navegador configurou A/B em março/junho de 2024 e escala compartilhada
 retornou 403; varredura do bundle público não encontrou tokens, chaves privadas
 ou implementação de autenticação servidora. Chat público com limites persistentes,
 sem afirmar que Origin autentica cada visitante ou que IA comprova resultados científicos.
+Revisão visual em 14/11/2026: tema claro solicitado pela equipe, com superfícies brancas, fundo cinza-azulado, azul NASA #0B3D91 e vermelho #FC3D21. Implementação assistida por OpenAI Codex; escalas dos dados preservadas.
