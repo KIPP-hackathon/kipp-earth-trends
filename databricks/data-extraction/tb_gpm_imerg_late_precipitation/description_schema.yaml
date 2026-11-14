@@ -11,8 +11,7 @@ provenance:
   references:
   - https://gpm.nasa.gov/data/imerg
   local_evidence:
-  - databricks/data-extraction/CONTEXT.md
-  - docs/catalogo-fontes-gcp.md
+  - docs/fontes-transient-dados.csv
   metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
 columns:
   lat:

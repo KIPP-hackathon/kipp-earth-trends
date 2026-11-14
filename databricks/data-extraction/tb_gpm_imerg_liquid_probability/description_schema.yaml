@@ -1,0 +1,34 @@
+table:
+  name: '`earth-trend-data`.refined.tb_gpm_imerg_liquid_probability'
+  description: Probabilidade mensal de fase líquida da precipitação IMERG Final V07, em percentual, exportada
+    para a grade KIPP por média espacial ponderada por área. A ocorrência de chuva exige outra medida. Preserva
+    os valores diagnósticos nativos nas células secas e a cobertura válida.
+  product: GPM_3IMERGM_LIQUID_PROBABILITY_V07
+  source_path: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/
+provenance:
+  reviewed_on: '2026-11-14'
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.metadata.json
+  references:
+  - https://gpm.nasa.gov/sites/default/files/2023-07/IMERG_TechnicalDocumentation_final_230713.pdf
+  recovery_note: Recurso recriado após remoção incidental no deploy de correção do leitor MOD13C2.
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+  lon:
+    description: Longitude do ponto da grade, em graus leste.
+    unit: degrees_east
+  time:
+    description: Início do mês de referência em UTC, conforme o exportador.
+    unit: null
+  liquid_precipitation_probability_pct:
+    description: Probabilidade diagnóstica de fase líquida, em percentual entre 0 e 100, originada de Grid/probabilityLiquidPrecipitation.
+      A média espacial usa pesos de área. A interpretação de ocorrência e volume de precipitação exige medidas
+      próprias.
+    unit: percent
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.metadata.json
+  valid_area_fraction:
+    description: Fração válida da área da célula, entre 0 e 1. O exportador exige cobertura integral para disponibilizar
+      a estimativa.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM_LIQUID_PROBABILITY_V07/GPM_3IMERGM_LIQUID_PROBABILITY_V07_2024_01.metadata.json

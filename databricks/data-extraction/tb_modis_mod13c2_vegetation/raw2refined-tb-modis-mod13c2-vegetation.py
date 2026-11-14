@@ -22,10 +22,16 @@ spark.conf.set("spark.sql.session.timeZone", "UTC")
 # COMMAND ----------
 
 def read_mod13_batches(batches):
+    import os
     import re
     import tempfile
     from datetime import datetime
     from pathlib import Path
+
+    # The bundled libcrypto 1.1.1k treats even "0" as enabling FIPS.
+    # Normalize Databricks' false value before loading the native library.
+    if os.environ.get("OPENSSL_FORCE_FIPS_MODE") == "0":
+        del os.environ["OPENSSL_FORCE_FIPS_MODE"]
 
     import numpy as np
     import pandas as pd
