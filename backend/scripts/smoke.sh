@@ -14,11 +14,11 @@ const [path, file] = process.argv.slice(2);
 const data = JSON.parse(fs.readFileSync(file, 'utf8'));
 if (path === 'ready') {
   assert.equal(data.status, 'ready');
-  assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'lakebase-postgres');
+  assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'hybrid');
 }
 if (path === 'v1/catalog') {
   assert.equal(data.simulated, false);
-  assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'lakebase-postgres');
+  assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'hybrid');
   assert.ok(Array.isArray(data.variables) && data.variables.length >= 4, 'Expected the real data catalog');
   for (const id of ['temperature', 'surface_temperature', 'rainfall', 'rainfall_late']) {
     assert.ok(data.variables.some(variable => variable.id === id && variable.months.length > 0), `Missing real data for ${id}`);

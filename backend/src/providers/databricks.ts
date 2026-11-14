@@ -20,9 +20,12 @@ type Chunk = {
 
 export class DatabricksProvider implements Provider {
   readonly dialect = "databricks" as const;
-  private auth = new DatabricksOAuth();
+  private auth: DatabricksOAuth;
   private warehouse = required("DATABRICKS_WAREHOUSE_ID");
   private gate = new Gate(boundedEnv("UPSTREAM_CONCURRENCY", 4, 1, 16));
+  constructor(host?: string) {
+    this.auth = new DatabricksOAuth(host);
+  }
   async query(
     statement: string,
     parameters: Parameters = {},

@@ -22,13 +22,23 @@ import {
 import { DatabricksProvider } from "./providers/databricks.ts";
 import { PostgresProvider } from "./providers/postgres.ts";
 import { configuration, historicalEvents, regions } from "./config.ts";
+import { HybridDataService } from "./routing.ts";
 
 const mode = process.env.DATA_PROVIDER ?? "databricks-sql";
-if (!["databricks-sql", "lakebase-postgres"].includes(mode))
+if (!["databricks-sql", "lakebase-postgres", "hybrid"].includes(mode))
   throw new Error("Unsupported DATA_PROVIDER");
-const provider: Provider =
-  mode === "databricks-sql" ? new DatabricksProvider() : new PostgresProvider();
-const data = new DataService(provider);
+const providers: Provider[] = [];
+const sql = mode !== "lakebase-postgres" ? new DatabricksProvider() : undefined;
+const postgres =
+  mode !== "databricks-sql"
+    ? new PostgresProvider(process.env.LAKEBASE_DATABRICKS_HOST)
+    : undefined;
+if (sql) providers.push(sql);
+if (postgres) providers.push(postgres);
+const data =
+  mode === "hybrid"
+    ? new HybridDataService(sql!, postgres!)
+    : new DataService(providers[0]);
 const cache = new ResponseCache(
   boundedEnv("CACHE_BYTES", 64 * 1024 * 1024, 1024 * 1024, 256 * 1024 * 1024),
 );
@@ -149,7 +159,11 @@ api.get("/health", async () => ({
   version: process.env.K_REVISION ?? "local",
 }));
 api.get("/ready", async (_request, reply) => {
-  await provider.query("SELECT 1 AS ready", {}, 1);
+  await withQueryBudget(() =>
+    Promise.all(
+      providers.map((provider) => provider.query("SELECT 1 AS ready", {}, 1)),
+    ),
+  );
   reply.header("Cache-Control", "no-store");
   return { status: "ready", provider: mode };
 });
@@ -345,7 +359,7 @@ api.get<{
   },
 );
 api.addHook("onClose", async () => {
-  await provider.close();
+  await Promise.all(providers.map((provider) => provider.close()));
 });
 const stop = async () => {
   await api.close();

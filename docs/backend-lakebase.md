@@ -1,6 +1,11 @@
 # Backend com leitura Lakebase
 
-O deploy usa por padrão `DATA_PROVIDER=lakebase-postgres`. As quatro tabelas
+Atualização: o deploy usa `DATA_PROVIDER=hybrid`, preservando estas quatro
+variáveis no RT e usando SQL para as demais fontes revisadas. A seleção é
+explícita por variável, sem fallback silencioso. O modo exclusivo
+`DATA_PROVIDER=lakebase-postgres` continua disponível para operação controlada.
+
+O texto abaixo registra a validação da primeira integração Lakebase. As quatro tabelas
 usadas pela API já estavam sincronizadas no Lakebase; nenhuma cópia adicional
 ou rotina de sync foi criada para esta alteração.
 

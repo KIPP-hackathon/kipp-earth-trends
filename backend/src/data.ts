@@ -100,17 +100,32 @@ export type CatalogVariable = ReturnType<typeof metadataOf> & {
   lastMonth: string | null;
   unavailableReason: { code: string; message: string } | null;
 };
+export type DataServiceOptions = { schema?: string; variables?: Variable[] };
 export class DataService {
   provider: Provider;
-  constructor(provider: Provider) {
+  readonly variables: Variable[];
+  private schema: string;
+  constructor(provider: Provider, options: DataServiceOptions = {}) {
     this.provider = provider;
+    this.variables = options.variables ?? variables;
+    this.schema = options.schema ?? process.env.DATA_SCHEMA ?? "refined";
+  }
+  private variable(id: string) {
+    const variable = this.variables.find((v) => v.id === id);
+    if (!variable)
+      throw new ApiError(
+        404,
+        "VARIABLE_NOT_FOUND",
+        "Variável indisponível nesta fonte. Consulte /v1/catalog.",
+      );
+    return variable;
   }
   private q(value: string) {
     return quoteIdentifier(value, this.provider.dialect);
   }
   private table(v: Variable) {
     const override = process.env[`TABLE_${v.id.toUpperCase()}`] ?? v.table;
-    const schema = process.env.DATA_SCHEMA ?? "refined";
+    const schema = this.schema;
     const parts =
       this.provider.dialect === "databricks"
         ? [process.env.DATA_CATALOG ?? "earth-trend-data", schema, override]
@@ -196,7 +211,7 @@ export class DataService {
   async catalog(): Promise<CatalogVariable[]> {
     if (!queryBudget.getStore()) return withQueryBudget(() => this.catalog());
     const groups: Variable[][] = [];
-    for (const variable of variables) {
+    for (const variable of this.variables) {
       const existing = groups.find(
         (g) => this.table(g[0]) === this.table(variable),
       );
@@ -294,7 +309,7 @@ export class DataService {
         "CATALOG_UNAVAILABLE",
         "Não foi possível consultar o catálogo de dados reais.",
       );
-    return variables.map((v) => {
+    return this.variables.map((v) => {
       const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
         a.month.localeCompare(b.month),
       );
@@ -359,7 +374,7 @@ export class DataService {
     factor: number,
     maxCells = 210_000,
   ) {
-    const variable = variableFor(id),
+    const variable = this.variable(id),
       month = parseMonth(monthInput),
       bounds = parseBounds(bbox);
     if (![1, 2, 4, 8, 16, 32].includes(factor))
@@ -478,7 +493,7 @@ export class DataService {
     return { metadata, values, coverage };
   }
   async series(id: string, startInput: string, endInput: string, bbox: string) {
-    const variable = variableFor(id),
+    const variable = this.variable(id),
       start = parseMonth(startInput),
       end = parseMonth(endInput),
       bounds = parseBounds(bbox);

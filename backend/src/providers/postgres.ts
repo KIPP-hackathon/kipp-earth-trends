@@ -1,14 +1,15 @@
 import pg from "pg";
-import { ApiError, required } from "../core.ts";
+import { ApiError, Gate, boundedEnv, queryBudget, required } from "../core.ts";
 import type { Parameters, Provider, Row } from "../core.ts";
 import { DatabricksOAuth } from "./oauth.ts";
 
 export class PostgresProvider implements Provider {
   readonly dialect = "postgres" as const;
   private pool: pg.Pool;
-  constructor() {
+  private gate = new Gate(boundedEnv("UPSTREAM_CONCURRENCY", 4, 1, 16));
+  constructor(authHost?: string) {
     const password = process.env.PGPASSWORD;
-    const auth = password ? null : new DatabricksOAuth();
+    const auth = password ? null : new DatabricksOAuth(authHost);
     const endpoint = password ? null : required("LAKEBASE_ENDPOINT");
     this.pool = new pg.Pool({
       host: required("PGHOST"),
@@ -17,6 +18,7 @@ export class PostgresProvider implements Provider {
       port: Number(process.env.PGPORT ?? 5432),
       ssl: { rejectUnauthorized: true },
       max: 4,
+      options: "-c default_transaction_read_only=on -c timezone=UTC",
       connectionTimeoutMillis: 10_000,
       idleTimeoutMillis: 30_000,
       maxLifetimeSeconds: 3000,
@@ -57,17 +59,53 @@ export class PostgresProvider implements Provider {
         return `$${names.indexOf(name) + 1}`;
       },
     );
-    const result = await this.pool.query(
-      text,
-      names.map((name) => parameters[name]),
-    );
-    if (result.rows.length > rowLimit)
-      throw new ApiError(
-        413,
-        "RESULT_TOO_LARGE",
-        "Consulta excedeu o limite de resultados.",
-      );
-    return result.rows;
+    return this.gate.run(async () => {
+      const deadline = queryBudget.getStore()?.deadline ?? Date.now() + 45_000;
+      const timeout = () => {
+        const remaining = Math.floor(deadline - Date.now());
+        if (remaining <= 0 || queryBudget.getStore()?.signal.aborted)
+          throw new ApiError(
+            504,
+            "QUERY_TIMEOUT",
+            "Consulta excedeu o tempo disponível.",
+          );
+        return remaining;
+      };
+      timeout();
+      const client = await this.pool.connect();
+      try {
+        // Each borrowed connection receives the remaining request budget. The
+        // PostgreSQL server cancels the query too, rather than just the HTTP wait.
+        await client.query(
+          "SELECT set_config('statement_timeout', $1, false)",
+          [String(timeout())],
+        );
+        const config: pg.QueryConfig & { query_timeout: number } = {
+          text,
+          values: names.map((name) => parameters[name]),
+          query_timeout: timeout(),
+        };
+        const result = await client.query(config);
+        if (result.rows.length > rowLimit)
+          throw new ApiError(
+            413,
+            "RESULT_TOO_LARGE",
+            "Consulta excedeu o limite de resultados.",
+          );
+        return result.rows;
+      } catch (error) {
+        const code = (error as { code?: string }).code;
+        if (code === "57014" || Date.now() >= deadline)
+          throw new ApiError(
+            504,
+            "QUERY_TIMEOUT",
+            "Consulta excedeu o tempo disponível.",
+          );
+        throw error;
+      } finally {
+        client.release();
+      }
+    });
   }
   async close() {
     await this.pool.end();

@@ -1,7 +1,8 @@
 # Dados reais, reprodução e Lakebase
 
-A API mantém o Databricks SQL como origem publicada enquanto a cobertura do
-Lakebase é validada. Não lê volumes `kipp/serving` ou GCS.
+A API usa roteamento explícito por variável: temperatura do ar a 10 m,
+superfície e chuva mensal Final/Late vêm do Lakebase; as demais variáveis
+revisadas vêm do Databricks SQL. Não há fallback silencioso entre as origens. Não lê volumes `kipp/serving` ou GCS.
 
 ## Catálogo
 
@@ -44,9 +45,12 @@ WebSocket para esse comportamento.
 Workspace `8259552519150212.2.gcp.databricks.com`, projeto `rt-demo`, branch
 `production`, database `databricks_postgres`, schema `default`, us-east4.
 Endpoint de 0,5 CU e PostgreSQL 17. Foram encontradas 32 tabelas, contra 70 na
-origem SQL. Na inspeção, T2M e T10M retornaram COUNT=0 e uma consulta de cobertura
-de chuva excedeu 8 s. Tempo baixo em uma tabela vazia não demonstra performance
-sobre observações reais. Não migrar toda a API para esse endpoint antes da carga.
+origem SQL. Na primeira inspeção, T2M e T10M retornaram COUNT=0 e uma consulta de cobertura
+de chuva excedeu 8 s. Depois, o time concluiu a sincronização das quatro fontes
+já publicadas, conforme [validação Lakebase](backend-lakebase.md), com 20.793.600
+registros e cobertura conferida. Essas quatro variáveis passam a usar RT; as
+demais continuam no Warehouse. Tempo baixo em uma tabela vazia não demonstra performance
+sobre observações reais. Não migrar as outras fontes para esse endpoint antes da carga e validação.
 
 A identidade dedicada OAuth M2M foi habilitada no workspace e recebeu somente
 CONNECT/USAGE/SELECT nas 32 tabelas explicitadas em

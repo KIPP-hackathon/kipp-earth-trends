@@ -8,8 +8,8 @@ export class DatabricksOAuth {
   private token = "";
   private expires = 0;
   private refreshing: Promise<string> | null = null;
-  constructor() {
-    const host = new URL(required("DATABRICKS_HOST"));
+  constructor(hostOverride?: string) {
+    const host = new URL(hostOverride ?? required("DATABRICKS_HOST"));
     if (
       host.protocol !== "https:" ||
       host.username ||
@@ -34,7 +34,9 @@ export class DatabricksOAuth {
     if (this.refreshing) return this.refreshing;
     this.refreshing = (async () => {
       if (this.authType === "google-id") {
-        const url = new URL("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity");
+        const url = new URL(
+          "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity",
+        );
         url.searchParams.set("audience", this.host);
         url.searchParams.set("format", "full");
         const response = await fetch(url, {
@@ -43,13 +45,23 @@ export class DatabricksOAuth {
           signal: AbortSignal.timeout(10_000),
         });
         if (!response.ok)
-          throw new ApiError(502, "UPSTREAM_AUTH", "Falha na autenticação da fonte de dados.");
+          throw new ApiError(
+            502,
+            "UPSTREAM_AUTH",
+            "Falha na autenticação da fonte de dados.",
+          );
         const token = (await response.text()).trim();
         try {
           const parts = token.split(".");
           if (parts.length !== 3) throw new Error("Invalid token");
-          const claims = JSON.parse(Buffer.from(parts[1]!, "base64url").toString());
-          if (claims.aud !== this.host || !Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now() + 120_000)
+          const claims = JSON.parse(
+            Buffer.from(parts[1]!, "base64url").toString(),
+          );
+          if (
+            claims.aud !== this.host ||
+            !Number.isFinite(claims.exp) ||
+            claims.exp * 1000 <= Date.now() + 120_000
+          )
             throw new Error("Invalid claims");
           // The token comes directly from Google's fixed metadata endpoint.
           // Databricks verifies its signature; decode only to bound the cache.
@@ -57,7 +69,11 @@ export class DatabricksOAuth {
           this.expires = claims.exp * 1000;
           return token;
         } catch {
-          throw new ApiError(502, "UPSTREAM_AUTH", "Resposta de autenticação inválida.");
+          throw new ApiError(
+            502,
+            "UPSTREAM_AUTH",
+            "Resposta de autenticação inválida.",
+          );
         }
       }
       const response = await fetch(`${this.host}/oidc/v1/token`, {
