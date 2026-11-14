@@ -130,3 +130,4 @@ sem observações. O navegador confirmou dois globos com temperatura MERRA-2
 no Pantanal, janeiro–março e abril–junho de 2024. A resposta preserva o snapshot
 do pedido e não apresenta diferenças descritivas como significância ou causa.
 Essa integração não encerra os bloqueadores científicos e de submissão acima.
+Atualização visual em 14/11/2026: paleta da interface inspirada na referência NASA fornecida pela equipe (azul #0B3D91, branco e vermelho #FC3D21), assistida por OpenAI Codex. Escalas científicas dos dados preservadas. Revisão humana pendente.

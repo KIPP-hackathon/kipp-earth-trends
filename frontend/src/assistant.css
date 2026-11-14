@@ -8,17 +8,17 @@
   align-items: flex-end;
   gap: 12px;
   font-family: inherit;
-  color: #e8ede3;
+  color: #e3e7ed;
 }
 .assistant-trigger {
   display: flex;
   align-items: center;
   gap: 9px;
-  border: 1px solid #a0b989;
+  border: 1px solid #899eb9;
   border-radius: 30px;
   padding: 13px 20px;
-  background: #c8dda9;
-  color: #17251b;
+  background: #a9c0dd;
+  color: #171d25;
   font: inherit;
   font-size: 13px;
   font-weight: 750;
@@ -28,8 +28,8 @@
 .assistant-panel {
   width: min(430px, calc(100vw - 32px));
   height: min(640px, calc(100dvh - 115px));
-  background: #18231f;
-  border: 1px solid #4d6051;
+  background: #181d23;
+  border: 1px solid #495564;
   border-radius: 18px;
   box-shadow: 0 18px 70px #0007;
   display: flex;
@@ -42,7 +42,7 @@
   align-items: center;
   gap: 8px;
   padding: 19px 18px 12px;
-  border-bottom: 1px solid #3d4d40;
+  border-bottom: 1px solid #3a4450;
 }
 .assistant-header > div {
   flex: 1;
@@ -50,7 +50,7 @@
 .assistant-header .eyebrow {
   font-size: 9px;
   letter-spacing: 0.13em;
-  color: #bdd0a8;
+  color: #a8b9d0;
 }
 .assistant-header h2 {
   font-family: inherit;
@@ -61,7 +61,7 @@
 .assistant-header button {
   display: flex;
   background: transparent;
-  border: 1px solid #52634f;
+  border: 1px solid #4b5767;
   border-radius: 7px;
   color: inherit;
   padding: 7px;
@@ -72,8 +72,8 @@
   line-height: 1.5;
   margin: 0;
   padding: 10px 18px;
-  background: #202d25;
-  color: #becbb6;
+  background: #20262d;
+  color: #b6bfcb;
 }
 .assistant-history {
   overflow-y: auto;
@@ -82,12 +82,12 @@
   min-height: 0;
   padding: 16px;
   scrollbar-width: thin;
-  scrollbar-color: #607258 transparent;
+  scrollbar-color: #556375 transparent;
 }
 .assistant-welcome {
   font-size: 13px;
   line-height: 1.6;
-  color: #ccd6c5;
+  color: #c5ccd6;
 }
 .assistant-welcome p {
   margin: 0 0 12px;
@@ -96,7 +96,7 @@
   display: block;
   margin-top: 14px;
   font-size: 11px;
-  color: #acbda5;
+  color: #a5afbd;
 }
 .assistant-suggestions {
   display: flex;
@@ -104,12 +104,12 @@
   gap: 7px;
 }
 .assistant-suggestions button {
-  background: #28382c;
-  border: 1px solid #51634c;
+  background: #282f38;
+  border: 1px solid #4a5666;
   border-radius: 8px;
   padding: 9px 11px;
   text-align: left;
-  color: #e2ebd9;
+  color: #d9e1eb;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
@@ -117,7 +117,7 @@
 .assistant-message {
   padding: 12px 13px;
   border-radius: 10px;
-  background: #233029;
+  background: #232930;
   margin: 0 20px 12px 0;
   font-size: 12px;
   line-height: 1.65;
@@ -127,10 +127,10 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #c4d7af;
+  color: #afc0d7;
 }
 .assistant-message.is-user {
-  background: #344331;
+  background: #313943;
   margin-left: 26px;
   margin-right: 0;
 }
@@ -141,20 +141,20 @@
 .assistant-snapshot {
   margin: 10px 0 0;
   padding-top: 8px;
-  border-top: 1px solid #526048;
-  color: #aebfa4;
+  border-top: 1px solid #475261;
+  color: #a4b0bf;
   font-size: 10px;
   line-height: 1.5;
   white-space: pre-wrap;
 }
 .assistant-evidence {
-  border-top: 1px solid #526048;
+  border-top: 1px solid #475261;
   margin-top: 12px;
   padding-top: 8px;
 }
 .assistant-evidence summary {
   cursor: pointer;
-  color: #cfdfbb;
+  color: #bbcbdf;
   font-size: 11px;
 }
 .assistant-evidence > div {
@@ -165,40 +165,40 @@
   white-space: pre-wrap;
 }
 .assistant-evidence a {
-  color: #d6eab9;
+  color: #b9ceea;
   text-decoration: underline;
 }
 .assistant-action-status {
-  color: #d3dfbc;
-  border-top: 1px solid #526048;
+  color: #bccbdf;
+  border-top: 1px solid #475261;
   padding-top: 8px;
   margin: 10px 0 0;
   font-size: 11px;
 }
 .assistant-notice {
   font-size: 12px;
-  color: #cfdbbd;
+  color: #bdcadb;
   line-height: 1.5;
   margin: 8px 0 12px;
 }
 .assistant-form {
-  border-top: 1px solid #41513e;
+  border-top: 1px solid #3c4653;
   padding: 12px 16px;
-  background: #1d2922;
+  background: #1d2229;
 }
 .assistant-form label {
   display: block;
   font-size: 11px;
   margin-bottom: 6px;
-  color: #c9d8b8;
+  color: #b8c6d8;
 }
 .assistant-form textarea {
   width: 100%;
   box-sizing: border-box;
   resize: none;
-  background: #121d17;
-  color: #edf3e7;
-  border: 1px solid #53664b;
+  background: #12171d;
+  color: #e7ecf3;
+  border: 1px solid #4a5767;
   border-radius: 8px;
   padding: 10px 11px;
   font: inherit;
@@ -207,7 +207,7 @@
   min-height: 65px;
 }
 .assistant-form textarea::placeholder {
-  color: #9aaf91;
+  color: #919eaf;
 }
 .assistant-form-footer {
   display: flex;
@@ -218,14 +218,14 @@
 }
 .assistant-form-footer small {
   font-size: 10px;
-  color: #a9b9a1;
+  color: #a0abba;
 }
 .assistant-form-footer button {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #c8dda9;
-  color: #1c2a1c;
+  background: #a9c0dd;
+  color: #1c222a;
   border: 0;
   border-radius: 6px;
   padding: 8px 12px;
@@ -238,7 +238,7 @@
   cursor: not-allowed;
 }
 .lab-assistant :focus-visible {
-  outline: 2px solid #e7ecc6;
+  outline: 2px solid #c6d6ec;
   outline-offset: 3px;
 }
 .real-period-controls {
@@ -251,15 +251,15 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #bbc9b2;
+  color: #b2bcc9;
   font-size: 11px;
 }
 .real-period-controls select {
   width: 100%;
   padding: 9px;
-  background: #1b2820;
-  color: #e2e9d8;
-  border: 1px solid #485842;
+  background: #1b2128;
+  color: #d8dfe9;
+  border: 1px solid #414b59;
   border-radius: 5px;
   font: inherit;
 }
@@ -294,3 +294,5 @@
     padding: 10px 12px;
   }
 }
+
+.assistant-trigger, .assistant-form-footer button { background: var(--nasa-blue); color: #ffffff; }
