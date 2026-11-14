@@ -28,7 +28,7 @@
 .assistant-panel {
   width: min(430px, calc(100vw - 32px));
   height: min(640px, calc(100dvh - 115px));
-  background: #ffffff;
+  background: #e5e8ec;
   border: 1px solid #cbd7e6;
   border-radius: 18px;
   box-shadow: 0 18px 70px #0b3d9114;
@@ -72,7 +72,7 @@
   line-height: 1.5;
   margin: 0;
   padding: 10px 18px;
-  background: #edf3fa;
+  background: #d9dfe6;
   color: #47566b;
 }
 .assistant-history {
@@ -104,7 +104,7 @@
   gap: 7px;
 }
 .assistant-suggestions button {
-  background: #edf3fa;
+  background: #d9dfe6;
   border: 1px solid #cbd7e6;
   border-radius: 8px;
   padding: 9px 11px;
@@ -117,7 +117,7 @@
 .assistant-message {
   padding: 12px 13px;
   border-radius: 10px;
-  background: #edf3fa;
+  background: #d9dfe6;
   margin: 0 20px 12px 0;
   font-size: 12px;
   line-height: 1.65;
@@ -130,7 +130,7 @@
   color: #47566b;
 }
 .assistant-message.is-user {
-  background: #edf3fa;
+  background: #d9dfe6;
   margin-left: 26px;
   margin-right: 0;
 }
@@ -184,7 +184,7 @@
 .assistant-form {
   border-top: 1px solid #cbd7e6;
   padding: 12px 16px;
-  background: #ffffff;
+  background: #e5e8ec;
 }
 .assistant-form label {
   display: block;
@@ -196,7 +196,7 @@
   width: 100%;
   box-sizing: border-box;
   resize: none;
-  background: #ffffff;
+  background: #e5e8ec;
   color: #47566b;
   border: 1px solid #cbd7e6;
   border-radius: 8px;
@@ -257,7 +257,7 @@
 .real-period-controls select {
   width: 100%;
   padding: 9px;
-  background: #ffffff;
+  background: #e5e8ec;
   color: #47566b;
   border: 1px solid #cbd7e6;
   border-radius: 5px;

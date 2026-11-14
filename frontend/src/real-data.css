@@ -54,7 +54,7 @@
   color: var(--muted);
 }
 .real-disclosure {
-  background: #edf3fa;
+  background: #d9dfe6;
   border: 1px solid #cbd7e6;
   color: #47566b;
   padding: 13px 17px;
@@ -96,7 +96,7 @@
   margin-bottom: 20px;
 }
 .real-panel-letter {
-  background: #edf3fa;
+  background: #d9dfe6;
   padding: 6px 10px;
   border-radius: 5px;
   font-size: 12px;
@@ -121,7 +121,7 @@
   border-radius: 6px;
   padding: 11px;
   color: #47566b;
-  background: #ffffff;
+  background: #e5e8ec;
   font-size: 12px;
 }
 .real-source,
@@ -220,7 +220,7 @@
   width: max-content;
   max-width: 90%;
   padding: 15px 20px;
-  background: #ffffffe8;
+  background: #e5e8ece8;
   border: 1px solid #cbd7e6;
   border-radius: 8px;
   color: #0b3d91;
@@ -304,7 +304,7 @@
 .real-error {
   padding: 16px;
   border: 1px solid #cbd7e6;
-  background: #edf3fa;
+  background: #d9dfe6;
   border-radius: 7px;
   font-size: 12px;
   line-height: 1.7;
@@ -458,7 +458,7 @@
   padding: 20px 24px;
   border-radius: 10px;
   margin-bottom: 20px;
-  background: #edf3fa;
+  background: #d9dfe6;
 }
 .real-event-context h2 {
   margin: 8px 0;
@@ -481,7 +481,7 @@
   border: 1px solid var(--line);
   border-radius: 5px;
   color: #47566b;
-  background: #ffffff;
+  background: #e5e8ec;
   font-size: 11px;
 }
 .real-phase-controls button {
@@ -595,7 +595,7 @@
   padding: 9px 10px;
   border: 1px solid #cbd7e6;
   border-radius: 5px;
-  background: #ffffff;
+  background: #e5e8ec;
   color: #47566b;
   font: inherit;
 }
