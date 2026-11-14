@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -23,8 +23,19 @@ import type {
 } from "./lib/earthApi";
 import { useEarthResource } from "./lib/useEarthResource";
 import { invalidateFrames } from "./lib/earthFrameCache";
+import { Assistant } from "./components/Assistant";
+import { parseStudyBbox, validateAssistantActions } from "./lib/assistant";
+import type {
+  AssistantContext,
+  AssistantResponse,
+  PanelPreset,
+  PanelSide,
+  PanelSnapshot,
+  PlaybackCommand,
+} from "./lib/assistant";
+import type { EarthRegion } from "./lib/earthApi";
+import type { GlobeView } from "./lib/comparison";
 
-type Preset = { variable: string; month: string; region: string };
 function RequestFailure({
   message,
   retry,
@@ -166,12 +177,33 @@ function EventCards({
   );
 }
 function App() {
+  const version = useRef(0);
+  const commandNonce = useRef(0);
+  const snapshots = useRef<Partial<Record<PanelSide, PanelSnapshot>>>({});
+  const [hasSnapshot, setHasSnapshot] = useState(false);
+  const markChanged = useCallback(() => {
+    version.current++;
+  }, []);
+  const receiveSnapshot = useCallback((snapshot: PanelSnapshot) => {
+    if (
+      JSON.stringify(snapshots.current[snapshot.side]) !==
+      JSON.stringify(snapshot)
+    ) {
+      snapshots.current[snapshot.side] = snapshot;
+      if (snapshot.side === "A") setHasSnapshot(true);
+    }
+  }, []);
   const [active, setActive] = useState<LabTab>("explore");
   const [view, setView] = useState(initialGlobeView);
+  const changeView = (next: GlobeView) => {
+    markChanged();
+    setView(next);
+  };
   const [colorRanges, setColorRanges] = useState<
     Record<string, EarthColorRange>
   >({});
   const changeColorRange = (variable: string, value?: EarthColorRange) => {
+    markChanged();
     setColorRanges((previous) => {
       const next = { ...previous };
       if (value) next[variable] = value;
@@ -180,14 +212,46 @@ function App() {
     });
   };
   const [modal, setModal] = useState<"sources" | "guide" | null>(null);
-  const [presetA, setPresetA] = useState<Preset>();
-  const [presetB, setPresetB] = useState<Preset>();
+  const [presetA, setPresetA] = useState<PanelPreset>();
+  const [presetB, setPresetB] = useState<PanelPreset>();
+  const [playbackCommands, setPlaybackCommands] = useState<
+    Partial<Record<PanelSide, PlaybackCommand>>
+  >({});
+  const acknowledgePlayback = useCallback((side: PanelSide, nonce: number) => {
+    setPlaybackCommands((previous) => {
+      if (previous[side]?.nonce !== nonce) return previous;
+      const next = { ...previous };
+      delete next[side];
+      return next;
+    });
+  }, []);
+  const [customRegions, setCustomRegions] = useState<EarthRegion[]>([]);
   const [eventContext, setEventContext] = useState<EarthEvent>();
   const catalog = useEarthResource("catalog", loadCatalog);
   const config = useEarthResource("configuration", loadConfig);
+  const workspaceConfig = config.data
+    ? { ...config.data, regions: [...config.data.regions, ...customRegions] }
+    : undefined;
+  const live = useRef({ active, view, colorRanges });
+  live.current = { active, view, colorRanges };
+  const getContext = useCallback((): AssistantContext => {
+    const state = live.current;
+    const panels = [
+      snapshots.current.A,
+      ...(state.active === "compare" ? [snapshots.current.B] : []),
+    ].filter((panel): panel is PanelSnapshot => !!panel);
+    return structuredClone({
+      version: version.current,
+      tab: state.active,
+      panels,
+      camera: state.view,
+      colorRanges: state.colorRanges,
+    });
+  }, []);
   const isWorkspace =
     active === "explore" || active === "compare" || active === "analysis";
   const showTab = (tab: LabTab) => {
+    markChanged();
     setActive(tab);
     requestAnimationFrame(() =>
       document.getElementById(`tab-${tab}`)?.focus({ preventScroll: true }),
@@ -203,6 +267,7 @@ function App() {
       .map((entry) => entry.month);
     const during = event.months.filter((month) => available.includes(month));
     if (!during.length) return;
+    markChanged();
     const before = available.filter((month) => month < event.window[0]).at(-1);
     const after = available.find((month) => month > event.window[1]);
     setPresetA({
@@ -226,6 +291,139 @@ function App() {
       latitude: event.latitude,
     }));
     showTab(compare ? "compare" : "explore");
+  };
+  const applyAssistantResponse = (
+    response: AssistantResponse,
+    requested: AssistantContext,
+  ) => {
+    // Versions represent explicit view edits. Playback and network progress keep
+    // refreshing snapshots without invalidating a pending pause/view command.
+    const current = getContext();
+    const frameAdvanced = requested.panels.some((panel) => {
+      const latest = current.panels.find((entry) => entry.side === panel.side);
+      return (
+        latest?.selectedMonth !== panel.selectedMonth ||
+        latest?.displayedMonth !== panel.displayedMonth
+      );
+    });
+    const snapshotNotice = frameAdvanced
+      ? "The timeline advanced while this request was running. Analysis refers to the dated request snapshot below."
+      : current.version !== requested.version
+        ? "This response refers to the dated request snapshot below; the lab view has changed since it was sent."
+        : "";
+    if (!response.actions.length) return snapshotNotice;
+    if (
+      response.contextVersion !== requested.version ||
+      current.version !== requested.version
+    )
+      return "The view changed while this request was running. No commands applied; please retry with the current view.";
+    if (!catalog.data || !workspaceConfig)
+      return "The catalog is unavailable. No commands applied.";
+    const actions = validateAssistantActions(
+      response.actions,
+      catalog.data,
+      workspaceConfig,
+      current,
+    );
+    if (!actions)
+      return "The proposed view commands could not be validated. No commands applied.";
+    const nonce = ++commandNonce.current;
+    const finalTab =
+      actions.filter((action) => action.type === "set_tab").at(-1)?.tab ??
+      current.tab;
+    const presets: Partial<Record<PanelSide, PanelPreset>> = {};
+    const playback: Partial<Record<PanelSide, PlaybackCommand>> = {};
+    const regions: EarthRegion[] = [];
+    let nextView = { ...current.camera };
+    const ranges = { ...current.colorRanges };
+    const panelPreset = (side: PanelSide): PanelPreset => {
+      if (presets[side]) return presets[side]!;
+      const panel = current.panels.find((entry) => entry.side === side);
+      const variable =
+        catalog.data!.variables.find((v) => v.id === panel?.variable) ??
+        catalog.data!.variables.find(
+          (v) => v.available !== false && v.months.length,
+        )!;
+      return {
+        variable: variable.id,
+        month:
+          panel?.selectedMonth ??
+          (side === "A"
+            ? variable.months.at(-1)!.month
+            : variable.months[0].month),
+        region: panel?.region.id ?? workspaceConfig.regions[0].id,
+        start: panel?.start,
+        end: panel?.end,
+        nonce,
+      };
+    };
+    for (const action of actions) {
+      if (action.type === "set_panel") {
+        const previous = panelPreset(action.side);
+        const variable = catalog.data.variables.find(
+          (v) => v.id === action.variable,
+        )!;
+        const same = previous.variable === variable.id;
+        presets[action.side] = {
+          variable: action.variable,
+          month: action.month,
+          region: action.regionId ?? previous.region,
+          start: action.start ?? (same ? previous.start : undefined),
+          end: action.end ?? (same ? previous.end : undefined),
+          nonce,
+        };
+      }
+      if (action.type === "set_camera")
+        nextView = {
+          ...nextView,
+          longitude: Math.max(-180, Math.min(180, action.longitude)),
+          latitude: Math.max(-90, Math.min(90, action.latitude)),
+          zoom: Math.max(0.8, Math.min(1.8, action.zoom ?? nextView.zoom)),
+        };
+      if (action.type === "set_range")
+        ranges[action.variable] = {
+          domain: [action.minimum, action.maximum],
+          hideOutside: action.hideOutside,
+        };
+      if (action.type === "set_playback")
+        playback[action.side] = { playing: action.playing, nonce };
+      if (action.type === "set_area") {
+        const bbox = parseStudyBbox(action.bbox)!;
+        const region: EarthRegion = {
+          id: `custom-${nonce}-${regions.length}`,
+          name: action.name,
+          bbox: bbox.join(","),
+          longitude: (bbox[0] + bbox[2]) / 2,
+          latitude: (bbox[1] + bbox[3]) / 2,
+        };
+        regions.push(region);
+        presets.A = { ...panelPreset("A"), region: region.id, nonce };
+        if (finalTab === "compare")
+          presets.B = { ...panelPreset("B"), region: region.id, nonce };
+        nextView = {
+          ...nextView,
+          longitude: region.longitude,
+          latitude: region.latitude,
+        };
+      }
+    }
+    markChanged();
+    setEventContext(undefined);
+    if (regions.length)
+      setCustomRegions((previous) => [...previous, ...regions]);
+    if (presets.A) setPresetA(presets.A);
+    if (presets.B) setPresetB(presets.B);
+    if (Object.keys(playback).length)
+      setPlaybackCommands((previous) => ({ ...previous, ...playback }));
+    setView(nextView);
+    setColorRanges(ranges);
+    setActive(finalTab);
+    return [
+      "View commands accepted. Panels will show loading status while observations are fetched.",
+      snapshotNotice,
+    ]
+      .filter(Boolean)
+      .join(" ");
   };
   const contextVariable = catalog.data?.variables.find(
     (entry) => entry.id === eventContext?.variable,
@@ -325,6 +523,7 @@ function App() {
           <div className="real-intro-actions">
             <button
               onClick={() => {
+                markChanged();
                 invalidateFrames();
                 catalog.retry();
                 config.retry();
@@ -362,7 +561,7 @@ function App() {
         {config.error && (
           <RequestFailure message={config.error} retry={config.retry} />
         )}
-        {catalog.data && config.data && (
+        {catalog.data && workspaceConfig && (
           <>
             <section
               hidden={!isWorkspace}
@@ -406,6 +605,7 @@ function App() {
                           value=""
                           onChange={(event) => {
                             if (!event.target.value) return;
+                            markChanged();
                             const preset = {
                               variable: eventContext.variable,
                               region: eventContext.region,
@@ -443,25 +643,33 @@ function App() {
               >
                 <RealPanel
                   catalog={catalog.data}
-                  config={config.data}
+                  config={workspaceConfig}
                   side="A"
                   view={view}
-                  onView={setView}
+                  onView={changeView}
                   preset={presetA}
                   active={isWorkspace}
                   colorRanges={colorRanges}
                   onColorRange={changeColorRange}
+                  onSnapshot={receiveSnapshot}
+                  onManualChange={markChanged}
+                  playbackCommand={playbackCommands.A}
+                  onPlaybackApplied={acknowledgePlayback}
                 />
                 {active === "compare" && (
                   <RealPanel
                     catalog={catalog.data}
-                    config={config.data}
+                    config={workspaceConfig}
                     side="B"
                     view={view}
-                    onView={setView}
+                    onView={changeView}
                     preset={presetB}
                     colorRanges={colorRanges}
                     onColorRange={changeColorRange}
+                    onSnapshot={receiveSnapshot}
+                    onManualChange={markChanged}
+                    playbackCommand={playbackCommands.B}
+                    onPlaybackApplied={acknowledgePlayback}
                     active
                   />
                 )}
@@ -512,6 +720,11 @@ function App() {
           </div>
         </footer>
       </main>
+      <Assistant
+        ready={!!catalog.data && !!workspaceConfig && hasSnapshot}
+        getContext={getContext}
+        applyResponse={applyAssistantResponse}
+      />
       {modal && (
         <Modal
           title={

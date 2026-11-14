@@ -22,6 +22,11 @@ import {
 import type { GlobeView } from "../lib/comparison";
 import { RealGlobe } from "./RealGlobe";
 import { RealSeries } from "./RealSeries";
+import type {
+  PanelPreset,
+  PanelSnapshot,
+  PlaybackCommand,
+} from "../lib/assistant";
 
 function Failure({ message, retry }: { message: string; retry: () => void }) {
   return (
@@ -44,10 +49,18 @@ export function RealPanel({
   active = true,
   colorRanges,
   onColorRange,
+  onSnapshot,
+  onManualChange,
+  playbackCommand,
+  onPlaybackApplied,
 }: {
   catalog: EarthCatalog;
   config: EarthConfig;
-  preset?: { variable: string; month: string; region: string };
+  preset?: PanelPreset;
+  playbackCommand?: PlaybackCommand;
+  onPlaybackApplied: (side: "A" | "B", nonce: number) => void;
+  onSnapshot: (snapshot: PanelSnapshot) => void;
+  onManualChange: () => void;
   active?: boolean;
   colorRanges: Record<string, EarthColorRange>;
   onColorRange: (variable: string, value?: EarthColorRange) => void;
@@ -61,11 +74,13 @@ export function RealPanel({
     month: "",
   });
   const [regionId, setRegionId] = useState(config.regions[0].id);
+  const [period, setPeriod] = useState({ start: "", end: "" });
   useEffect(() => {
     if (!preset) return;
     setPlaying(false);
     setSelection({ variable: preset.variable, month: preset.month });
     setRegionId(preset.region);
+    setPeriod({ start: preset.start ?? "", end: preset.end ?? "" });
   }, [preset]);
   useEffect(() => {
     if (!active) setPlaying(false);
@@ -73,6 +88,13 @@ export function RealPanel({
   const [playing, setPlaying] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const [playbackError, setPlaybackError] = useState<string>();
+  useEffect(() => {
+    if (playbackCommand) {
+      setPlaybackError(undefined);
+      setPlaying(active && playbackCommand.playing);
+      onPlaybackApplied(side, playbackCommand.nonce);
+    }
+  }, [playbackCommand]);
   const playbackStarted = useRef(false);
   useEffect(() => {
     const pause = () => {
@@ -87,7 +109,15 @@ export function RealPanel({
         v.id === selection.variable && v.available !== false && v.months.length,
     ) ??
     catalog.variables.find((v) => v.available !== false && v.months.length)!;
-  const months = variable.months;
+  const allMonths = variable.months;
+  const start = allMonths.some((m) => m.month === period.start)
+    ? period.start
+    : allMonths[0].month;
+  const end =
+    allMonths.some((m) => m.month === period.end) && period.end >= start
+      ? period.end
+      : allMonths.at(-1)!.month;
+  const months = allMonths.filter((m) => m.month >= start && m.month <= end);
   const month = months.some((m) => m.month === selection.month)
     ? selection.month
     : side === "A"
@@ -103,10 +133,26 @@ export function RealPanel({
   const frame = useEarthFrame(variable, month, config.playback.lookAhead);
   const series = useEarthResource(
     `${variable.id}/${region.bbox}/${months[0].month}/${months.at(-1)!.month}`,
-    (signal) => loadSeries(variable, region.bbox, signal),
+    (signal) => loadSeries({ ...variable, months }, region.bbox, signal),
   );
+  const snapshotKey = JSON.stringify({
+    side,
+    variable: variable.id,
+    selectedMonth: month,
+    displayedMonth: frame.data?.month ?? null,
+    start,
+    end,
+    region,
+    loading: frame.loading || series.loading || buffering,
+    playing,
+  });
+  useEffect(() => {
+    onSnapshot(JSON.parse(snapshotKey) as PanelSnapshot);
+  }, [snapshotKey, onSnapshot]);
   const index = months.findIndex((m) => m.month === month);
   const selectMonth = (value: string) => {
+    if (!months.some((entry) => entry.month === value)) return;
+    onManualChange();
     setPlaying(false);
     setPlaybackError(undefined);
     setSelection({ variable: variable.id, month: value });
@@ -126,7 +172,7 @@ export function RealPanel({
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const nextMonths = followingMonths(
-      variable,
+      { ...variable, months },
       month,
       Math.max(1, Math.min(3, config.playback.lookAhead)),
     );
@@ -175,7 +221,7 @@ export function RealPanel({
     };
     // Frame keys include the rendering policy; camera movement never resets playback.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing, playbackKey, frame.data, frame.error]);
+  }, [playing, playbackKey, frame.data, frame.error, start, end]);
   return (
     <article className="real-panel" aria-label={`Painel real ${side}`}>
       <div className="real-panel-title">
@@ -189,8 +235,10 @@ export function RealPanel({
             id={`${id}-variable`}
             value={variable.id}
             onChange={(e) => {
+              onManualChange();
               setPlaying(false);
               setPlaybackError(undefined);
+              setPeriod({ start: "", end: "" });
               setSelection({ variable: e.target.value, month });
             }}
           >
@@ -231,6 +279,54 @@ export function RealPanel({
           </select>
         </label>
       </div>
+      <div
+        className="real-period-controls"
+        role="group"
+        aria-label={`Study period for panel ${side}`}
+      >
+        <label htmlFor={`${id}-start`}>
+          Period start
+          <select
+            id={`${id}-start`}
+            value={start}
+            onChange={(event) => {
+              onManualChange();
+              setPlaying(false);
+              setPeriod({
+                start: event.target.value,
+                end: event.target.value > end ? event.target.value : end,
+              });
+            }}
+          >
+            {allMonths.map((entry) => (
+              <option key={entry.month} value={entry.month}>
+                {realMonth(entry.month)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label htmlFor={`${id}-end`}>
+          Period end
+          <select
+            id={`${id}-end`}
+            value={end}
+            onChange={(event) => {
+              onManualChange();
+              setPlaying(false);
+              setPeriod({
+                start: event.target.value < start ? event.target.value : start,
+                end: event.target.value,
+              });
+            }}
+          >
+            {allMonths.map((entry) => (
+              <option key={entry.month} value={entry.month}>
+                {realMonth(entry.month)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <p className="real-source">
         {variable.product}
         {variable.run ? ` · ${variable.run}` : ""} · {realUnit(variable.unit)} ·{" "}
@@ -264,6 +360,7 @@ export function RealPanel({
         <Failure
           message={playbackError}
           retry={() => {
+            onManualChange();
             setPlaybackError(undefined);
             setPlaying(true);
           }}
@@ -293,6 +390,7 @@ export function RealPanel({
           aria-pressed={playing}
           disabled={months.length < 2}
           onClick={() => {
+            onManualChange();
             setPlaybackError(undefined);
             setPlaying((v) => !v);
           }}
@@ -321,6 +419,7 @@ export function RealPanel({
           id={`${id}-region`}
           value={region.id}
           onChange={(e) => {
+            onManualChange();
             const next = config.regions.find(
               (entry) => entry.id === e.target.value,
             )!;

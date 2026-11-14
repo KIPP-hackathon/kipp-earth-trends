@@ -8,6 +8,11 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
+      "/api/assistant": {
+        target: "http://127.0.0.1:8080",
+        rewrite: () => "/v1/assistant",
+        headers: {"x-kipp-agent-client": "0".repeat(64)},
+      },
       "/api/earth": {
         target: "http://127.0.0.1:8080",
         rewrite: (path) => path.replace(/^\/api\/earth/, ""),

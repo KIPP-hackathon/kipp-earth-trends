@@ -14,6 +14,9 @@
   "functions": {
     "api/earth.ts": {
       "maxDuration": 60
+    },
+    "api/assistant.ts": {
+      "maxDuration": 60
     }
   },
   "rewrites": [

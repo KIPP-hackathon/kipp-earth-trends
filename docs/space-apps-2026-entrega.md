@@ -115,3 +115,18 @@ Uso de IA nesta alteração: OpenAI Codex assistiu a implementação de controle
 renderização e estado de escala nos componentes do frontend e neste registro.
 Identificador exato do modelo não verificado; revisão humana da equipe pendente.
 Os controles novos usam inglês; a tradução integral do percurso continua pendente.
+
+## Evidência incremental — assistente v1 (14/11/2026)
+
+OpenAI Codex assistiu a implementação do chat, contratos, ferramentas, autenticação
+servidora e controles de uso. O produto executa Gemini 3.8 Flash no Vertex AI,
+com ADC e processamento US multi-region, para interpretar perguntas e propor
+comandos. Cálculos descritivos e acesso aos dados são feitos pelo backend.
+Respostas são conteúdo gerado por IA, identificado na interface; revisão humana
+da equipe pendente. Ver [arquitetura, limites e evidências](assistant-v1.md).
+
+Consultas reais conferiram quatro variáveis Lakebase, comparação e períodos
+sem observações. O navegador confirmou dois globos com temperatura MERRA-2
+no Pantanal, janeiro–março e abril–junho de 2024. A resposta preserva o snapshot
+do pedido e não apresenta diferenças descritivas como significância ou causa.
+Essa integração não encerra os bloqueadores científicos e de submissão acima.
