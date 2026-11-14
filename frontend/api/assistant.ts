@@ -1,7 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
-import { cloudRunOrigin, cloudRunIdentityToken } from "../server/cloudRunAuth.js";
+import {
+  cloudRunOrigin,
+  cloudRunIdentityToken,
+} from "../server/cloudRunAuth.js";
 
 export default async function handler(
   request: IncomingMessage,
@@ -49,12 +52,19 @@ export default async function handler(
   const deadline = Date.now() + 52000;
   try {
     const declaredSize = Number(request.headers["content-length"] ?? 0);
-    if (!Number.isFinite(declaredSize) || declaredSize > 32768) return fail(413, "REQUEST_TOO_LARGE");
-    const parsed = (request as IncomingMessage & {body?: unknown}).body;
+    if (!Number.isFinite(declaredSize) || declaredSize > 32768)
+      return fail(413, "REQUEST_TOO_LARGE");
+    const parsed = (request as IncomingMessage & { body?: unknown }).body;
     let body: string;
     if (parsed !== undefined) {
-      body = typeof parsed === "string" ? parsed : Buffer.isBuffer(parsed) ? parsed.toString("utf8") : JSON.stringify(parsed);
-      if (Buffer.byteLength(body) > 32768) return fail(413, "REQUEST_TOO_LARGE");
+      body =
+        typeof parsed === "string"
+          ? parsed
+          : Buffer.isBuffer(parsed)
+            ? parsed.toString("utf8")
+            : JSON.stringify(parsed);
+      if (Buffer.byteLength(body) > 32768)
+        return fail(413, "REQUEST_TOO_LARGE");
     } else {
       let size = 0;
       const chunks: Buffer[] = [];

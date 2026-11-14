@@ -25,7 +25,10 @@ import { configuration, historicalEvents, regions } from "./config.ts";
 import { HybridDataService } from "./routing.ts";
 
 import { createAssistant } from "./assistant.ts";
-import { assistantRequestSchema, validateAssistantRequest } from "./assistant-contract.ts";
+import {
+  assistantRequestSchema,
+  validateAssistantRequest,
+} from "./assistant-contract.ts";
 
 const mode = process.env.DATA_PROVIDER ?? "databricks-sql";
 if (!["databricks-sql", "lakebase-postgres", "hybrid"].includes(mode))
@@ -79,8 +82,16 @@ api.addHook("onRequest", async (request, reply) => {
 api.setErrorHandler((error, request, reply) => {
   const known = error instanceof ApiError;
   const validation = Boolean((error as { validation?: unknown }).validation);
-  const frameworkStatus = (error as {statusCode?: number}).statusCode;
-  const status = known ? error.statusCode : validation ? 400 : frameworkStatus === 413 ? 413 : frameworkStatus === 400 ? 400 : 500;
+  const frameworkStatus = (error as { statusCode?: number }).statusCode;
+  const status = known
+    ? error.statusCode
+    : validation
+      ? 400
+      : frameworkStatus === 413
+        ? 413
+        : frameworkStatus === 400
+          ? 400
+          : 500;
   if (status >= 500)
     request.log.warn(
       { code: known ? error.code : "INTERNAL_ERROR", requestId: request.id },
@@ -220,19 +231,32 @@ async function catalogData() {
       });
   return catalogPending;
 }
-const assistant = createAssistant({data, catalog: catalogData});
-api.post("/v1/assistant", {bodyLimit: 32768, schema: {body: assistantRequestSchema}}, async (request, reply) => {
-  reply.header("Cache-Control", "no-store");
-  const client = request.headers["x-kipp-agent-client"];
-  if (typeof client !== "string" || !/^[a-f0-9]{64}$/.test(client))
-    throw new ApiError(400, "INVALID_CLIENT", "A trusted client identity is required.");
-  try {
-    return await assistant(validateAssistantRequest(request.body), client, request.id);
-  } catch (error) {
-    if (error instanceof ApiError && error.statusCode === 429) reply.header("Retry-After", "3600");
-    throw error;
-  }
-});
+const assistant = createAssistant({ data, catalog: catalogData });
+api.post(
+  "/v1/assistant",
+  { bodyLimit: 32768, schema: { body: assistantRequestSchema } },
+  async (request, reply) => {
+    reply.header("Cache-Control", "no-store");
+    const client = request.headers["x-kipp-agent-client"];
+    if (typeof client !== "string" || !/^[a-f0-9]{64}$/.test(client))
+      throw new ApiError(
+        400,
+        "INVALID_CLIENT",
+        "A trusted client identity is required.",
+      );
+    try {
+      return await assistant(
+        validateAssistantRequest(request.body),
+        client,
+        request.id,
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.statusCode === 429)
+        reply.header("Retry-After", "3600");
+      throw error;
+    }
+  },
+);
 api.get("/v1/catalog", async (request, reply) =>
   serve(request, reply, "catalog", 300, async () =>
     json({

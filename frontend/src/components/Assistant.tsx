@@ -67,7 +67,12 @@ export function Assistant({
     const history = messages
       .slice(-8)
       .map(({ role, content }) => ({ role, content: content.slice(0, 3000) }));
-    while (history.length && new TextEncoder().encode(JSON.stringify({message, history, context})).byteLength > 32768) history.shift();
+    while (
+      history.length &&
+      new TextEncoder().encode(JSON.stringify({ message, history, context }))
+        .byteLength > 32768
+    )
+      history.shift();
     setMessages((previous) => [
       ...previous.slice(-39),
       { role: "user", content: message },
