@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { colorFrame } from "../lib/earthApi";
-import type { EarthFrame } from "../lib/earthApi";
+import type { EarthColorRange, EarthFrame } from "../lib/earthApi";
 
 // Orthographic ray-to-texture projection. SVG data layers use the same center.
 const vertexSource = `attribute vec2 position; varying vec2 point;
@@ -26,18 +26,20 @@ export function GlobeSurface({
   frame,
   showField = false,
   onUnavailable,
+  colorRange,
 }: {
   longitude: number;
   latitude: number;
   frame?: EarthFrame | null;
   showField?: boolean;
   onUnavailable?: () => void;
+  colorRange?: EarthColorRange;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const draw = useRef<(() => void) | null>(null);
   const center = useRef([longitude, latitude]);
   const updateField = useRef<(() => void) | null>(null);
-  const currentField = useRef({ frame, showField });
+  const currentField = useRef({ frame, showField, colorRange });
   const failure = useRef(onUnavailable);
   failure.current = onUnavailable;
   useEffect(() => {
@@ -123,7 +125,7 @@ export function GlobeSurface({
           0,
           gl.RGBA,
           gl.UNSIGNED_BYTE,
-          colorFrame(current.frame),
+          colorFrame(current.frame, current.colorRange),
         );
       } else {
         gl.texImage2D(
@@ -188,9 +190,9 @@ export function GlobeSurface({
     draw.current?.();
   }, [longitude, latitude]);
   useEffect(() => {
-    currentField.current = { frame, showField };
+    currentField.current = { frame, showField, colorRange };
     updateField.current?.();
-  }, [frame, showField]);
+  }, [frame, showField, colorRange]);
   return (
     <foreignObject x="50" y="50" width="540" height="540" pointerEvents="none">
       <canvas

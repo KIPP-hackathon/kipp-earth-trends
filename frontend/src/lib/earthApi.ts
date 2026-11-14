@@ -7,6 +7,17 @@ export type EarthRender = {
   factor: number;
   categories?: { value: number; label: string }[];
 };
+export type EarthColorRange = {
+  domain: [number, number];
+  hideOutside: boolean;
+};
+export function validColorDomain(domain: [number, number]) {
+  return (
+    domain.every(Number.isFinite) &&
+    domain[0] < domain[1] &&
+    Number.isFinite(domain[1] - domain[0])
+  );
+}
 export type EarthAggregation = "area_weighted_mean" | "sum" | "weighted_mode";
 export type EarthQuality = { rule: string; notes: string[] };
 export type EarthRegion = {
@@ -342,15 +353,33 @@ export function realScale(
           colors: ["#e2e6df", "#526b67"],
         };
 }
-export function colorFrame(frame: EarthFrame): Uint8Array {
+export function displayScale(
+  frame: EarthFrame,
+  range?: EarthColorRange,
+): EarthRender {
   const scale = realScale(frame);
+  return scale.kind === "continuous" && range && validColorDomain(range.domain)
+    ? { ...scale, domain: range.domain }
+    : scale;
+}
+export function colorFrame(
+  frame: EarthFrame,
+  range?: EarthColorRange,
+): Uint8Array {
+  const scale = displayScale(frame, range);
   const palette = scale.colors.map((s) =>
     [1, 3, 5].map((i) => parseInt(s.slice(i, i + 2), 16)),
   );
   const pixels = new Uint8Array(frame.values.length * 4);
+  const hideOutside =
+    scale.kind === "continuous" &&
+    range?.hideOutside &&
+    validColorDomain(range.domain);
   for (let i = 0; i < frame.values.length; i++) {
     const value = frame.values[i];
     if (!Number.isFinite(value) || frame.coverage[i] <= 0) continue;
+    if (hideOutside && (value < scale.domain[0] || value > scale.domain[1]))
+      continue;
     const t =
       Math.max(
         0,

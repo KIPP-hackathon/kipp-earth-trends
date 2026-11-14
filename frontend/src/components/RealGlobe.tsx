@@ -6,8 +6,9 @@ import { GlobeSurface } from "./GlobeSurface";
 import { dragGlobe, globeProjection } from "../lib/globeProjection";
 import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
-import type { EarthFrame, EarthRegion } from "../lib/earthApi";
-import { realMonth, realScale, realUnit } from "../lib/earthApi";
+import type { EarthColorRange, EarthFrame, EarthRegion } from "../lib/earthApi";
+import { displayScale, realMonth, realScale, realUnit } from "../lib/earthApi";
+import { ColorScaleControls } from "./ColorScaleControls";
 
 function regionBoundary(bbox: string): GeoPermissibleObjects | null {
   const bounds = bbox.split(",").map(Number);
@@ -45,9 +46,13 @@ export function RealGlobe({
   view,
   onView,
   region,
+  colorRange,
+  onColorRange,
 }: {
   frame?: EarthFrame;
   region?: EarthRegion;
+  colorRange?: EarthColorRange;
+  onColorRange?: (value?: EarthColorRange) => void;
   view: GlobeView;
   onView: (view: GlobeView) => void;
 }) {
@@ -85,7 +90,7 @@ export function RealGlobe({
       ? (geoPath(globeProjection(view)).digits(1)(boundary) ?? "")
       : "";
   }, [view.longitude, view.latitude, region?.bbox]);
-  const scale = frame ? realScale(frame) : null;
+  const scale = frame ? displayScale(frame, colorRange) : null;
   const cellIndex =
     frame && probe
       ? Math.min(
@@ -102,6 +107,11 @@ export function RealGlobe({
     frame && cellIndex >= 0 && frame.coverage[cellIndex] > 0
       ? frame.values[cellIndex]
       : NaN;
+  const hiddenSample =
+    scale?.kind === "continuous" &&
+    colorRange?.hideOutside &&
+    Number.isFinite(sampled) &&
+    (sampled < scale.domain[0] || sampled > scale.domain[1]);
   return (
     <div className="real-globe">
       <div className="real-globe-toolbar">
@@ -202,6 +212,7 @@ export function RealGlobe({
             longitude={view.longitude}
             latitude={view.latitude}
             frame={frame}
+            colorRange={colorRange}
             showField={view.showLayer}
             onUnavailable={() => setUnavailable(true)}
           />
@@ -279,9 +290,11 @@ export function RealGlobe({
         <p className="real-grid-info">
           Célula de exibição em {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
           <strong>
-            {Number.isFinite(sampled)
-              ? `${sampled.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${realUnit(frame.unit)}`
-              : "sem dado"}
+            {hiddenSample
+              ? "Outside selected range (hidden)"
+              : Number.isFinite(sampled)
+                ? `${sampled.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${realUnit(frame.unit)}`
+                : "sem dado"}
           </strong>
         </p>
       )}
@@ -318,8 +331,15 @@ export function RealGlobe({
           <small>
             {scale.kind === "categorical"
               ? "Classes discretas"
-              : "Escala fixa · cores saturam nos limites"}{" "}
-            · transparente = sem dado
+              : colorRange
+                ? colorRange.hideOutside
+                  ? "Custom range · outside values hidden"
+                  : "Custom scale · colors saturate at limits"
+                : "Default scale · colors saturate at limits"}{" "}
+            ·{" "}
+            {colorRange?.hideOutside && scale.kind === "continuous"
+              ? "transparent = no data or outside range"
+              : "transparent = no data"}
           </small>
           {scale.categories && (
             <div className="real-category-labels">
@@ -329,6 +349,15 @@ export function RealGlobe({
                 </span>
               ))}
             </div>
+          )}
+          {scale.kind === "continuous" && onColorRange && (
+            <ColorScaleControls
+              key={frame.variable}
+              domain={realScale(frame).domain}
+              unit={realUnit(frame.unit)}
+              value={colorRange}
+              onChange={onColorRange}
+            />
           )}
         </div>
       )}

@@ -568,3 +568,54 @@
   line-height: 1.7;
   text-align: center;
 }
+
+.color-range-controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.color-range-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.color-range-fields label {
+  display: grid;
+  flex: 1 1 120px;
+  gap: 7px;
+  color: #d7e5ce;
+  font-size: 12px;
+}
+.color-range-fields input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #52644b;
+  border-radius: 5px;
+  background: #15231d;
+  color: #f0f4e9;
+  font: inherit;
+}
+.color-range-fields input[aria-invalid="true"] {
+  border-color: #e4a894;
+}
+.color-range-fields button {
+  min-height: 36px;
+}
+.color-range-mask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.color-range-controls > small {
+  line-height: 1.6;
+}
+.color-range-controls > p {
+  margin: 0;
+  color: #edb4a2;
+  font-size: 12px;
+}

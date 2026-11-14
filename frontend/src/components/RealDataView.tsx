@@ -7,7 +7,11 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { loadSeries, realMonth, realUnit } from "../lib/earthApi";
-import type { EarthCatalog, EarthConfig } from "../lib/earthApi";
+import type {
+  EarthCatalog,
+  EarthColorRange,
+  EarthConfig,
+} from "../lib/earthApi";
 import { useEarthResource } from "../lib/useEarthResource";
 import { useEarthFrame } from "../lib/useEarthFrame";
 import {
@@ -38,11 +42,15 @@ export function RealPanel({
   config,
   preset,
   active = true,
+  colorRanges,
+  onColorRange,
 }: {
   catalog: EarthCatalog;
   config: EarthConfig;
   preset?: { variable: string; month: string; region: string };
   active?: boolean;
+  colorRanges: Record<string, EarthColorRange>;
+  onColorRange: (variable: string, value?: EarthColorRange) => void;
   side: "A" | "B";
   view: GlobeView;
   onView: (view: GlobeView) => void;
@@ -234,6 +242,8 @@ export function RealPanel({
           view={view}
           onView={onView}
           region={region}
+          colorRange={colorRanges[variable.id]}
+          onColorRange={(value) => onColorRange(variable.id, value)}
         />
         {(frame.loading || buffering) && (
           <div

@@ -97,3 +97,21 @@ Rascunho **parcial** em inglês, para completar antes de publicar:
 > AI use disclosure (partial draft): We used OpenAI Codex to assist with repository review, challenge research, and drafting the requirements and submission checklist on November 14, 2026. The generated documentation is identified in our AI-use register. Team review is pending. Additional AI-assisted code, text, translations, images, synthetic data, or presentation materials must be listed before submission. Synthetic prototype values are not NASA observations or scientific findings.
 
 Registrar ferramenta/modelo quando conhecido, finalidade, arquivos/trechos gerados e revisão. Não inventar identificadores ou validação humana. A forma final de identificação precisa obedecer ao guia oficial, ainda pendente de conferência.
+
+## Evidência incremental — faixa visual do mapa (14/11/2026)
+
+A legenda permite mínimo/máximo em unidades da variável, Apply/Reset e opção de
+ocultar células fora da faixa inclusiva. A mesma variável compartilha os limites
+entre os painéis A/B; classes categóricas preservam seus rótulos. A operação é
+apenas visual: não recalcula dados, QA, série, taxa de mudança, significância ou
+exportações. Não encerra os bloqueadores científicos ou de submissão acima.
+
+Build Node.js 24 e verificação de um quadro real de temperatura (51.840 células)
+confirmaram 31.926 células visíveis na faixa 0–50 °C para janeiro de 2024,
+limites inclusivos e arrays originais preservados. Essa contagem é de bins de
+exibição, não de área terrestre nem resultado de investigação climática.
+
+Uso de IA nesta alteração: OpenAI Codex assistiu a implementação de controles,
+renderização e estado de escala nos componentes do frontend e neste registro.
+Identificador exato do modelo não verificado; revisão humana da equipe pendente.
+Os controles novos usam inglês; a tradução integral do percurso continua pendente.

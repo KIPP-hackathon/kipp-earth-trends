@@ -15,7 +15,12 @@ import { RealPanel } from "./components/RealDataView";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
 import { loadCatalog, loadConfig, loadEvents, realMonth } from "./lib/earthApi";
-import type { EarthCatalog, EarthConfig, EarthEvent } from "./lib/earthApi";
+import type {
+  EarthCatalog,
+  EarthColorRange,
+  EarthConfig,
+  EarthEvent,
+} from "./lib/earthApi";
 import { useEarthResource } from "./lib/useEarthResource";
 import { invalidateFrames } from "./lib/earthFrameCache";
 
@@ -163,6 +168,17 @@ function EventCards({
 function App() {
   const [active, setActive] = useState<LabTab>("explore");
   const [view, setView] = useState(initialGlobeView);
+  const [colorRanges, setColorRanges] = useState<
+    Record<string, EarthColorRange>
+  >({});
+  const changeColorRange = (variable: string, value?: EarthColorRange) => {
+    setColorRanges((previous) => {
+      const next = { ...previous };
+      if (value) next[variable] = value;
+      else delete next[variable];
+      return next;
+    });
+  };
   const [modal, setModal] = useState<"sources" | "guide" | null>(null);
   const [presetA, setPresetA] = useState<Preset>();
   const [presetB, setPresetB] = useState<Preset>();
@@ -433,6 +449,8 @@ function App() {
                   onView={setView}
                   preset={presetA}
                   active={isWorkspace}
+                  colorRanges={colorRanges}
+                  onColorRange={changeColorRange}
                 />
                 {active === "compare" && (
                   <RealPanel
@@ -442,6 +460,8 @@ function App() {
                     view={view}
                     onView={setView}
                     preset={presetB}
+                    colorRanges={colorRanges}
+                    onColorRange={changeColorRange}
                     active
                   />
                 )}
