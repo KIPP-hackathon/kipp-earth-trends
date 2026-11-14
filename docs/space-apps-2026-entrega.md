@@ -131,3 +131,12 @@ no Pantanal, janeiro–março e abril–junho de 2024. A resposta preserva o sna
 do pedido e não apresenta diferenças descritivas como significância ou causa.
 Essa integração não encerra os bloqueadores científicos e de submissão acima.
 Atualização visual em 14/11/2026: paleta da interface inspirada na referência NASA fornecida pela equipe (azul #0B3D91, branco e vermelho #FC3D21), assistida por OpenAI Codex. Escalas científicas dos dados preservadas. Revisão humana pendente.
+
+Publicação do assistente conferida em produção: código `b43559a`,
+revisão Cloud Run `kipp-earth-api-00027-buk`,
+[CI/CD aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43639597761).
+O navegador configurou A/B em março/junho de 2024 e escala compartilhada
+0–50 °C por pedido em linguagem natural. Acesso anônimo direto ao Cloud Run
+retornou 403; varredura do bundle público não encontrou tokens, chaves privadas
+ou implementação de autenticação servidora. Chat público com limites persistentes,
+sem afirmar que Origin autentica cada visitante ou que IA comprova resultados científicos.

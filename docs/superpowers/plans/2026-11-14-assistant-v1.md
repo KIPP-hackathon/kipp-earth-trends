@@ -14,5 +14,5 @@
 - [x] Backend typed tools, input/action validation and provenance from actual catalog/data.
 - [x] Gemini ADC integration; fixed model endpoint; bounded loop/tokens/deadline; generic errors and redacted logs.
 - [x] Authenticated BFF POST, server-derived client quota key, persistent global/per-client quotas, fail closed on quota failure.
-- [ ] Build Node24, real tools/model/browser smoke, independent security review, secret scan, publish and verify protected direct Cloud Run access.
+- [x] Build Node24, real tools/model/browser smoke, independent security review, secret scan, publish and verify protected direct Cloud Run access.
 - [x] Update Space Apps evidence/AI register without claiming overall challenge completion.
