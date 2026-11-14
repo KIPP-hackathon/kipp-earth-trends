@@ -73,6 +73,7 @@ task_url="${task_deployment[1]:-}"
 gcloud run services update-traffic "$task_service" --project "$task_project" \
   --region "$task_region" --to-revisions "$task_revision=100" --quiet
 task_production="$(gcloud run services describe "$task_service" --project "$task_project" --region "$task_region" --format='value(status.url)')"
+export EXPECTED_REVISION="$task_revision"
 if ! bash "$(dirname "$0")/smoke.sh" "https://kipp-earth-trends-lab.vercel.app/api/earth"; then
   echo 'Vercel data check failed; restoring the previous production revision.' >&2
   gcloud run services update-traffic "$task_service" --project "$task_project" \

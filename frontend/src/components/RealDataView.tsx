@@ -1,23 +1,20 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Database,
   Pause,
   Play,
   RefreshCw,
 } from "lucide-react";
-import {
-  loadCatalog,
-  loadFrame,
-  loadSeries,
-  realMonth,
-  realRegions,
-  realUnit,
-} from "../lib/earthApi";
-import type { EarthCatalog } from "../lib/earthApi";
+import { loadSeries, realMonth, realUnit } from "../lib/earthApi";
+import type { EarthCatalog, EarthConfig } from "../lib/earthApi";
 import { useEarthResource } from "../lib/useEarthResource";
-import { initialGlobeView } from "../lib/comparison";
+import { useEarthFrame } from "../lib/useEarthFrame";
+import {
+  followingMonths,
+  frameKey,
+  requestFrame,
+} from "../lib/earthFrameCache";
 import type { GlobeView } from "../lib/comparison";
 import { RealGlobe } from "./RealGlobe";
 import { RealSeries } from "./RealSeries";
@@ -33,13 +30,19 @@ function Failure({ message, retry }: { message: string; retry: () => void }) {
   );
 }
 
-function RealPanel({
+export function RealPanel({
   catalog,
   side,
   view,
   onView,
+  config,
+  preset,
+  active = true,
 }: {
   catalog: EarthCatalog;
+  config: EarthConfig;
+  preset?: { variable: string; month: string; region: string };
+  active?: boolean;
   side: "A" | "B";
   view: GlobeView;
   onView: (view: GlobeView) => void;
@@ -49,8 +52,20 @@ function RealPanel({
     variable: "temperature",
     month: "",
   });
-  const [regionIndex, setRegionIndex] = useState(0);
+  const [regionId, setRegionId] = useState(config.regions[0].id);
+  useEffect(() => {
+    if (!preset) return;
+    setPlaying(false);
+    setSelection({ variable: preset.variable, month: preset.month });
+    setRegionId(preset.region);
+  }, [preset]);
+  useEffect(() => {
+    if (!active) setPlaying(false);
+  }, [active]);
   const [playing, setPlaying] = useState(false);
+  const [buffering, setBuffering] = useState(false);
+  const [playbackError, setPlaybackError] = useState<string>();
+  const playbackStarted = useRef(false);
   useEffect(() => {
     const pause = () => {
       if (document.hidden) setPlaying(false);
@@ -59,18 +74,25 @@ function RealPanel({
     return () => document.removeEventListener("visibilitychange", pause);
   }, []);
   const variable =
-    catalog.variables.find((v) => v.id === selection.variable) ??
-    catalog.variables[0];
+    catalog.variables.find(
+      (v) =>
+        v.id === selection.variable && v.available !== false && v.months.length,
+    ) ??
+    catalog.variables.find((v) => v.available !== false && v.months.length)!;
   const months = variable.months;
   const month = months.some((m) => m.month === selection.month)
     ? selection.month
     : side === "A"
       ? months.at(-1)!.month
       : months[0].month;
-  const region = realRegions[regionIndex];
-  const frame = useEarthResource(`${variable.id}/${month}`, (signal) =>
-    loadFrame(variable.id, month, signal),
-  );
+  const region =
+    config.regions.find((entry) => entry.id === regionId) ?? config.regions[0];
+  const groups = [
+    ...new Set(
+      catalog.variables.map((entry) => entry.category ?? entry.product),
+    ),
+  ];
+  const frame = useEarthFrame(variable, month, config.playback.lookAhead);
   const series = useEarthResource(
     `${variable.id}/${region.bbox}/${months[0].month}/${months.at(-1)!.month}`,
     (signal) => loadSeries(variable, region.bbox, signal),
@@ -78,25 +100,79 @@ function RealPanel({
   const index = months.findIndex((m) => m.month === month);
   const selectMonth = (value: string) => {
     setPlaying(false);
+    setPlaybackError(undefined);
     setSelection({ variable: variable.id, month: value });
   };
+  const playbackKey = frameKey(variable, month);
   useEffect(() => {
-    if (!playing || !frame.data) return;
-    const timer = setTimeout(
-      () =>
-        setSelection({
-          variable: variable.id,
-          month: months[(index + 1) % months.length].month,
-        }),
-      1500,
+    if (!playing) {
+      playbackStarted.current = false;
+      setBuffering(false);
+      return;
+    }
+    if (frame.error) {
+      setPlaying(false);
+      return;
+    }
+    if (!frame.data || frame.data.month !== month || months.length < 2) return;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const nextMonths = followingMonths(
+      variable,
+      month,
+      Math.max(1, Math.min(3, config.playback.lookAhead)),
     );
-    return () => clearTimeout(timer);
-  }, [playing, frame.data, index, variable.id, months]);
+    const started = playbackStarted.current;
+    const deadline = Date.now() + config.playback.cadenceMs;
+    setBuffering(true);
+    // Fill two slots when play starts. Later steps need only the next frame;
+    // the independent look-ahead keeps another two months ready behind it.
+    const needed = started
+      ? nextMonths.slice(0, 1)
+      : nextMonths.slice(
+          0,
+          Math.max(1, Math.min(3, config.playback.initialBuffer)),
+        );
+    void Promise.all(
+      needed.map((next) =>
+        requestFrame(variable, next, controller.signal, "background"),
+      ),
+    )
+      .then(() => {
+        if (controller.signal.aborted) return;
+        playbackStarted.current = true;
+        setBuffering(false);
+        timer = setTimeout(
+          () => {
+            if (!controller.signal.aborted)
+              setSelection({ variable: variable.id, month: nextMonths[0] });
+          },
+          started
+            ? Math.max(0, deadline - Date.now())
+            : config.playback.cadenceMs,
+        );
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setPlaybackError(
+          error instanceof Error
+            ? error.message
+            : "Falha ao preparar a reprodução.",
+        );
+        setPlaying(false);
+      });
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+    // Frame keys include the rendering policy; camera movement never resets playback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, playbackKey, frame.data, frame.error]);
   return (
     <article className="real-panel" aria-label={`Painel real ${side}`}>
       <div className="real-panel-title">
         <span className="real-panel-letter">{side}</span>
-        <span>DADOS REAIS · {variable.run ?? "MERRA-2"}</span>
+        <span>DADOS REAIS · {variable.product}</span>
       </div>
       <div className="real-panel-filters">
         <label htmlFor={`${id}-variable`}>
@@ -106,13 +182,29 @@ function RealPanel({
             value={variable.id}
             onChange={(e) => {
               setPlaying(false);
+              setPlaybackError(undefined);
               setSelection({ variable: e.target.value, month });
             }}
           >
-            {catalog.variables.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name}
-              </option>
+            {groups.map((group) => (
+              <optgroup key={group} label={group}>
+                {catalog.variables
+                  .filter(
+                    (entry) => (entry.category ?? entry.product) === group,
+                  )
+                  .map((v) => (
+                    <option
+                      key={v.id}
+                      value={v.id}
+                      disabled={v.available === false || !v.months.length}
+                    >
+                      {v.name}
+                      {v.available === false || !v.months.length
+                        ? " · sem meses disponíveis"
+                        : ""}
+                    </option>
+                  ))}
+              </optgroup>
             ))}
           </select>
         </label>
@@ -137,14 +229,36 @@ function RealPanel({
         {months.length} meses disponíveis
       </p>
       <div className="real-globe-container" aria-busy={frame.loading}>
-        <RealGlobe frame={frame.data} view={view} onView={onView} />
-        {frame.loading && (
-          <div className="real-loading" role="status">
-            Consultando campo real de {realMonth(month)}…
+        <RealGlobe
+          frame={frame.data}
+          view={view}
+          onView={onView}
+          region={region}
+        />
+        {(frame.loading || buffering) && (
+          <div
+            className={`real-loading ${frame.data ? "has-frame" : ""}`}
+            role="status"
+          >
+            {frame.loading
+              ? `Consultando ${realMonth(month)}…`
+              : "Preparando próximos meses…"}
+            {frame.data &&
+              frame.data.month !== month &&
+              ` Exibindo ${realMonth(frame.data.month)}.`}
           </div>
         )}
       </div>
       {frame.error && <Failure message={frame.error} retry={frame.retry} />}
+      {playbackError && (
+        <Failure
+          message={playbackError}
+          retry={() => {
+            setPlaybackError(undefined);
+            setPlaying(true);
+          }}
+        />
+      )}
       {frame.data && (
         <p className="real-grid-info">
           {frame.data.grid.width} × {frame.data.grid.height} células de exibição
@@ -167,7 +281,11 @@ function RealPanel({
         <button
           aria-label={`${playing ? "Pausar" : "Reproduzir"} meses do painel ${side}`}
           aria-pressed={playing}
-          onClick={() => setPlaying((v) => !v)}
+          disabled={months.length < 2}
+          onClick={() => {
+            setPlaybackError(undefined);
+            setPlaying((v) => !v);
+          }}
         >
           {playing ? <Pause size={16} /> : <Play size={16} />}
         </button>
@@ -191,24 +309,44 @@ function RealPanel({
         Região da série
         <select
           id={`${id}-region`}
-          value={regionIndex}
+          value={region.id}
           onChange={(e) => {
-            const next = Number(e.target.value);
-            setRegionIndex(next);
+            const next = config.regions.find(
+              (entry) => entry.id === e.target.value,
+            )!;
+            setRegionId(next.id);
             onView({
               ...view,
-              longitude: realRegions[next].longitude,
-              latitude: realRegions[next].latitude,
+              longitude: next.longitude,
+              latitude: next.latitude,
             });
           }}
         >
-          {realRegions.map((r, i) => (
-            <option value={i} key={r.id}>
+          {config.regions.map((r) => (
+            <option value={r.id} key={r.id}>
               {r.name}
             </option>
           ))}
         </select>
       </label>
+      <details className="real-provenance">
+        <summary>Fonte, qualidade & limites</summary>
+        <p>{variable.description}</p>
+        <p>
+          Produto: {variable.product}
+          {variable.run ? ` · ${variable.run}` : ""} · unidade:{" "}
+          {realUnit(variable.unit)}
+        </p>
+        <p>
+          Recorte: {region.name} · bbox [{region.bbox}]
+        </p>
+        {variable.quality?.rule && (
+          <p>Critério de qualidade: {variable.quality.rule}</p>
+        )}
+        {variable.quality?.notes.map((note) => (
+          <p key={note}>{note}</p>
+        ))}
+      </details>
       {series.loading && (
         <p role="status" className="real-notice">
           Consultando série regional…
@@ -216,94 +354,12 @@ function RealPanel({
       )}
       {series.error && <Failure message={series.error} retry={series.retry} />}
       {series.data && (
-        <RealSeries data={series.data} month={month} onMonth={selectMonth} />
+        <RealSeries
+          data={series.data}
+          month={frame.data?.month ?? ""}
+          onMonth={selectMonth}
+        />
       )}
     </article>
-  );
-}
-
-export function RealDataView() {
-  const catalog = useEarthResource("catalog", loadCatalog);
-  const [compare, setCompare] = useState(false);
-  const [view, setView] = useState(initialGlobeView);
-  return (
-    <section
-      className="real-workspace"
-      id="panel-real"
-      role="tabpanel"
-      aria-labelledby="tab-real"
-    >
-      <div className="real-intro">
-        <div>
-          <span className="eyebrow">
-            <Database size={14} /> DATABRICKS · DADOS OBSERVADOS
-          </span>
-          <h1>
-            A Terra, <em>pelos dados.</em>
-          </h1>
-          <p>
-            Explore os campos mensais reais. Escolha um mês, gire o planeta e
-            acompanhe um recorte ao longo do tempo.
-          </p>
-        </div>
-        <div className="real-intro-actions">
-          <label>
-            <input
-              type="checkbox"
-              checked={compare}
-              onChange={(e) => setCompare(e.target.checked)}
-            />{" "}
-            Comparar dois globos
-          </label>
-          <button onClick={catalog.retry}>
-            <RefreshCw size={14} /> Atualizar catálogo
-          </button>
-        </div>
-      </div>
-      <div className="real-disclosure">
-        <i /> Dados reais derivados de produtos NASA · comparação visual, sem
-        previsão ou atribuição causal. As outras abas contêm a demonstração com
-        dados simulados.
-      </div>
-      {compare && (
-        <p className="real-comparison-note">
-          Câmeras sincronizadas; filtros e meses independentes. A mesma variável
-          usa a mesma escala nos dois lados. Ar a 10 m, superfície e produtos
-          Final/Late permanecem identificados.
-        </p>
-      )}
-      {catalog.loading && (
-        <p className="real-notice" role="status">
-          Conectando ao catálogo de dados reais…
-        </p>
-      )}
-      {catalog.error && (
-        <Failure message={catalog.error} retry={catalog.retry} />
-      )}
-      {catalog.data && (
-        <div className={`real-panels ${compare ? "is-comparing" : ""}`}>
-          <RealPanel
-            catalog={catalog.data}
-            side="A"
-            view={view}
-            onView={setView}
-          />
-          {compare && (
-            <RealPanel
-              catalog={catalog.data}
-              side="B"
-              view={view}
-              onView={setView}
-            />
-          )}
-        </div>
-      )}
-      <p className="real-method-note">
-        Globo: grade agregada para visualização, média ponderada por latitude e
-        cobertura. Série: amostras da grade de origem em bbox. A disponibilidade
-        segue o catálogo; novas variáveis entram após configuração e validação
-        na API.
-      </p>
-    </section>
   );
 }

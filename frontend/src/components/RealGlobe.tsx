@@ -6,15 +6,48 @@ import { GlobeSurface } from "./GlobeSurface";
 import { dragGlobe, globeProjection } from "../lib/globeProjection";
 import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
-import type { EarthFrame } from "../lib/earthApi";
+import type { EarthFrame, EarthRegion } from "../lib/earthApi";
 import { realMonth, realScale, realUnit } from "../lib/earthApi";
+
+function regionBoundary(bbox: string): GeoPermissibleObjects | null {
+  const bounds = bbox.split(",").map(Number);
+  if (bounds.length !== 4 || !bounds.every(Number.isFinite)) return null;
+  const [west, south, east, north] = bounds;
+  const width = east >= west ? east - west : east + 360 - west;
+  const longitude = (value: number) =>
+    ((((value + 180) % 360) + 360) % 360) - 180;
+  const edge = (x1: number, y1: number, x2: number, y2: number) => {
+    const steps = Math.max(
+      1,
+      Math.ceil(Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1))),
+    );
+    return Array.from({ length: steps + 1 }, (_, index) => {
+      const fraction = index / steps;
+      return [longitude(x1 + (x2 - x1) * fraction), y1 + (y2 - y1) * fraction];
+    });
+  };
+  const right = west + width;
+  const coordinates = [
+    edge(west, south, right, south),
+    edge(west, north, right, north),
+  ];
+  // A full-longitude polar recorte has no artificial meridian seam.
+  if (width < 360)
+    coordinates.push(
+      edge(west, south, west, north),
+      edge(right, south, right, north),
+    );
+  return { type: "MultiLineString", coordinates };
+}
 
 export function RealGlobe({
   frame,
   view,
   onView,
+  region,
 }: {
   frame?: EarthFrame;
+  region?: EarthRegion;
   view: GlobeView;
   onView: (view: GlobeView) => void;
 }) {
@@ -46,7 +79,13 @@ export function RealGlobe({
       grid: path(geoGraticule10()) ?? "",
     };
   }, [view.longitude, view.latitude, land]);
-  const scale = frame ? realScale(frame.variable) : null;
+  const outline = useMemo(() => {
+    const boundary = region ? regionBoundary(region.bbox) : null;
+    return boundary
+      ? (geoPath(globeProjection(view)).digits(1)(boundary) ?? "")
+      : "";
+  }, [view.longitude, view.latitude, region?.bbox]);
+  const scale = frame ? realScale(frame) : null;
   const cellIndex =
     frame && probe
       ? Math.min(
@@ -181,9 +220,32 @@ export function RealGlobe({
               strokeWidth=".5"
               opacity=".18"
             />
+            {region && (
+              <g aria-label={`Recorte da série: ${region.name}`}>
+                <path
+                  d={outline}
+                  fill="none"
+                  stroke="#12201a"
+                  strokeWidth="3.2"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <path
+                  d={outline}
+                  fill="none"
+                  stroke="#f3dea0"
+                  strokeWidth="1.4"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            )}
           </g>
         </g>
       </svg>
+      {region && (
+        <p className="real-region-outline-note">
+          Contorno: recorte da série; não área do evento · {region.name}
+        </p>
+      )}
       <div className="real-globe-actions">
         <small>Arraste para girar · setas no teclado</small>
         <div>
@@ -241,12 +303,33 @@ export function RealGlobe({
           </div>
           <i
             style={{
-              background: `linear-gradient(90deg,${scale.colors.join(",")})`,
+              background: `linear-gradient(90deg,${
+                scale.kind === "categorical"
+                  ? scale.colors
+                      .map(
+                        (color, index) =>
+                          `${color} ${(index * 100) / scale.colors.length}%, ${color} ${((index + 1) * 100) / scale.colors.length}%`,
+                      )
+                      .join(",")
+                  : scale.colors.join(",")
+              })`,
             }}
           />
           <small>
-            Escala fixa · cores saturam nos limites · transparente = sem dado
+            {scale.kind === "categorical"
+              ? "Classes discretas"
+              : "Escala fixa · cores saturam nos limites"}{" "}
+            · transparente = sem dado
           </small>
+          {scale.categories && (
+            <div className="real-category-labels">
+              {scale.categories.map((category) => (
+                <span key={category.value}>
+                  {category.value}: {category.label}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

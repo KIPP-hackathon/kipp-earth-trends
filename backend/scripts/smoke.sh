@@ -3,10 +3,15 @@ set -euo pipefail
 task_url="${1:?Usage: smoke.sh VERCEL_PROXY_URL}"
 task_tmp="$(mktemp -d)"
 trap 'rm -rf "$task_tmp"' EXIT
+task_query=""
+if [[ -n "${EXPECTED_REVISION:-}" ]]; then
+  [[ "$EXPECTED_REVISION" =~ ^[a-z0-9-]{1,100}$ ]]
+  task_query="?deployment=$EXPECTED_REVISION"
+fi
 for task_path in v1/catalog; do
   curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 \
     --header 'Cache-Control: no-cache' --header 'Pragma: no-cache' \
-    --connect-timeout 10 --max-time 60 "$task_url/$task_path" -o "$task_tmp/response.json"
+    --connect-timeout 10 --max-time 60 "$task_url/$task_path$task_query" -o "$task_tmp/response.json"
   node --input-type=module - "$task_path" "$task_tmp/response.json" <<'JS'
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
@@ -18,6 +23,8 @@ if (path === 'ready') {
 }
 if (path === 'v1/catalog') {
   assert.equal(data.simulated, false);
+  if (process.env.EXPECTED_REVISION) assert.equal(data.revision, process.env.EXPECTED_REVISION);
+  for (const variable of data.variables ?? []) assert.notEqual(variable.available, false, `Unavailable source ${variable.id}`);
   assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'hybrid');
   assert.ok(Array.isArray(data.variables) && data.variables.length >= 4, 'Expected the real data catalog');
   for (const id of ['temperature', 'surface_temperature', 'rainfall', 'rainfall_late']) {

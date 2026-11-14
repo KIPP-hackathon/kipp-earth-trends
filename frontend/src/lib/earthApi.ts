@@ -1,5 +1,51 @@
 export const earthApi = "/api/earth";
 
+export type EarthRender = {
+  kind: "continuous" | "categorical";
+  domain: [number, number];
+  colors: string[];
+  factor: number;
+  categories?: { value: number; label: string }[];
+};
+export type EarthAggregation = "area_weighted_mean" | "sum" | "weighted_mode";
+export type EarthQuality = { rule: string; notes: string[] };
+export type EarthRegion = {
+  id: string;
+  name: string;
+  bbox: string;
+  longitude: number;
+  latitude: number;
+};
+export type EarthConfig = {
+  regions: EarthRegion[];
+  playback: { cadenceMs: number; lookAhead: number; initialBuffer: number };
+  comparison: { maxGlobes: number; synchronizedCamera: boolean };
+  limitations: string[];
+};
+export type EarthEvent = {
+  id: string;
+  title: string;
+  category: string;
+  location: string;
+  window: [string, string];
+  region: string;
+  variable: string;
+  description: string;
+  limitation: string;
+  source: { name: string; url: string };
+  bbox: string;
+  longitude: number;
+  latitude: number;
+  available: boolean;
+  months: string[];
+  unavailableReason: string | null;
+};
+export type EarthEvents = {
+  curated: true;
+  detected: false;
+  events: EarthEvent[];
+  limitations?: string[];
+};
 export type EarthVariable = {
   id: string;
   name: string;
@@ -7,15 +53,26 @@ export type EarthVariable = {
   unit: string;
   product: string;
   run?: string;
+  category?: string;
+  description?: string;
+  render?: EarthRender;
+  aggregation?: EarthAggregation;
+  quality?: EarthQuality;
+  available?: boolean;
   months: { month: string; samples: number; validSamples: number }[];
 };
-export type EarthCatalog = { simulated: false; variables: EarthVariable[] };
+export type EarthCatalog = {
+  simulated: false;
+  variables: EarthVariable[];
+  limitations?: string[];
+};
 export type EarthFrame = {
   variable: string;
   quantity: string;
   unit: string;
   product: string;
   run?: string;
+  render?: EarthRender;
   month: string;
   simulated: false;
   validCells: number;
@@ -36,6 +93,9 @@ export type EarthSeries = {
   run?: string;
   simulated: false;
   method: string;
+  render?: EarthRender;
+  aggregation?: EarthAggregation;
+  quality?: EarthQuality;
   bbox: number[];
   observations: {
     month: string;
@@ -46,17 +106,40 @@ export type EarthSeries = {
 };
 
 async function checked(url: string, signal: AbortSignal) {
-  const response = await fetch(`${earthApi}${url}`, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(58_000)]),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-    throw new Error(
-      error?.error?.message ||
-        `A fonte respondeu HTTP ${response.status}. Tente novamente.`,
-    );
+  const budget = AbortSignal.any([signal, AbortSignal.timeout(58_000)]);
+  for (let attempt = 0; ; attempt++) {
+    const response = await fetch(`${earthApi}${url}`, { signal: budget });
+    if ([429, 503].includes(response.status) && attempt < 3) {
+      const seconds = Number(response.headers.get("retry-after") ?? 1);
+      const delay = Math.min(
+        3000,
+        Math.max(500, Number.isFinite(seconds) ? seconds * 1000 : 1000),
+      );
+      await response.body?.cancel();
+      // Saturated slots finish quickly; keep the visible field while retrying.
+      await new Promise<void>((resolve, reject) => {
+        if (budget.aborted) return reject(budget.reason);
+        const abort = () => {
+          clearTimeout(timer);
+          reject(budget.reason);
+        };
+        const timer = setTimeout(() => {
+          budget.removeEventListener("abort", abort);
+          resolve();
+        }, delay);
+        budget.addEventListener("abort", abort, { once: true });
+      });
+      continue;
+    }
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(
+        error?.error?.message ||
+          `A fonte respondeu HTTP ${response.status}. Tente novamente.`,
+      );
+    }
+    return response;
   }
-  return response;
 }
 export async function loadCatalog(signal: AbortSignal): Promise<EarthCatalog> {
   const data = await (await checked("/v1/catalog", signal)).json();
@@ -66,22 +149,50 @@ export async function loadCatalog(signal: AbortSignal): Promise<EarthCatalog> {
     !data.variables.length
   )
     throw new Error("O catálogo não contém variáveis reais disponíveis.");
-  data.variables = data.variables.filter(
-    (v: EarthVariable) => Array.isArray(v.months) && v.months.length > 0,
+  data.variables = data.variables.filter((v: EarthVariable) =>
+    Array.isArray(v.months),
   );
-  if (!data.variables.length)
+  if (
+    !data.variables.some(
+      (v: EarthVariable) => v.available !== false && v.months.length > 0,
+    )
+  )
     throw new Error(
       "Nenhum mês disponível no catálogo. Tente atualizar após a carga dos dados.",
     );
+  return data;
+}
+export async function loadConfig(signal: AbortSignal): Promise<EarthConfig> {
+  const data = await (await checked("/v1/config", signal)).json();
+  if (
+    !Array.isArray(data.regions) ||
+    !data.regions.length ||
+    !data.playback ||
+    !data.comparison
+  )
+    throw new Error("A configuração de regiões não está disponível.");
+  return data;
+}
+export async function loadEvents(signal: AbortSignal): Promise<EarthEvents> {
+  const data = await (await checked("/v1/events", signal)).json();
+  if (
+    data.curated !== true ||
+    data.detected !== false ||
+    !Array.isArray(data.events)
+  )
+    throw new Error("O catálogo de eventos históricos não está disponível.");
   return data;
 }
 export async function loadFrame(
   variable: string,
   month: string,
   signal: AbortSignal,
+  render?: EarthRender,
 ): Promise<EarthFrame> {
+  const factor =
+    render && [1, 2, 4, 8, 16, 32].includes(render.factor) ? render.factor : 1;
   const response = await checked(
-    `/v1/frames/${encodeURIComponent(variable)}/${month}?factor=1&format=f32`,
+    `/v1/frames/${encodeURIComponent(variable)}/${month}?factor=${factor}&format=f32`,
     signal,
   );
   const bytes = await response.arrayBuffer();
@@ -125,7 +236,7 @@ export async function loadFrame(
     values[i] = view.getFloat32(offset + i * 4, true);
     coverage[i] = view.getFloat32(offset + count * 4 + i * 4, true);
   }
-  return { ...metadata, values, coverage };
+  return { ...metadata, ...(render ? { render } : {}), values, coverage };
 }
 export async function loadSeries(
   variable: EarthVariable,
@@ -172,29 +283,13 @@ export async function loadSeries(
   );
   return data;
 }
-export const realRegions = [
-  {
-    id: "saofrancisco",
-    name: "São Francisco · recorte",
-    bbox: "-47,-21,-38,-8",
-    longitude: -43,
-    latitude: -14,
-  },
-  {
-    id: "amazonia",
-    name: "Amazônia central · recorte",
-    bbox: "-66,-9,-58,-1",
-    longitude: -62,
-    latitude: -5,
-  },
-  {
-    id: "pantanal",
-    name: "Pantanal · recorte",
-    bbox: "-59,-22,-54,-15",
-    longitude: -56,
-    latitude: -18,
-  },
-] as const;
+export function aggregationLabel(aggregation?: EarthAggregation) {
+  return aggregation === "sum"
+    ? "soma das células válidas, sem segunda ponderação por área"
+    : aggregation === "weighted_mode"
+      ? "classe predominante ponderada por área"
+      : "média espacial ponderada por latitude e cobertura válida";
+}
 export function realUnit(unit: string) {
   return unit === "degC" ? "°C" : unit === "mm/month" ? "mm/mês" : unit;
 }
@@ -205,19 +300,50 @@ export function realMonth(month: string) {
     timeZone: "UTC",
   }).format(new Date(`${month}-01T00:00:00Z`));
 }
-export function realScale(variable: string) {
-  return variable.startsWith("rainfall")
+export function realScale(
+  variable: string | EarthVariable | EarthFrame,
+): EarthRender {
+  const id =
+    typeof variable === "string"
+      ? variable
+      : "id" in variable
+        ? variable.id
+        : variable.variable;
+  const supplied = typeof variable === "string" ? undefined : variable.render;
+  if (
+    supplied &&
+    ["continuous", "categorical"].includes(supplied.kind) &&
+    supplied.domain?.length === 2 &&
+    supplied.domain.every(Number.isFinite) &&
+    supplied.domain[1] > supplied.domain[0] &&
+    supplied.colors?.length >= 2 &&
+    supplied.colors.every((color) => /^#[\da-f]{6}$/i.test(color))
+  )
+    return supplied;
+  // Compatibility while catalogs from the previous four-variable API are deployed.
+  return id === "rainfall" || id === "rainfall_late"
     ? {
-        domain: [0, 600] as const,
+        kind: "continuous",
+        factor: 1,
+        domain: [0, 600],
         colors: ["#e2f5df", "#75c8bd", "#3289b7", "#324b94"],
       }
-    : {
-        domain: [-60, 60] as const,
-        colors: ["#425cb1", "#84d4da", "#f2e8b6", "#ee9469", "#ae3c4e"],
-      };
+    : id === "temperature" || id === "surface_temperature"
+      ? {
+          kind: "continuous",
+          factor: 1,
+          domain: [-60, 60],
+          colors: ["#425cb1", "#84d4da", "#f2e8b6", "#ee9469", "#ae3c4e"],
+        }
+      : {
+          kind: "continuous",
+          factor: 1,
+          domain: [0, 1],
+          colors: ["#e2e6df", "#526b67"],
+        };
 }
 export function colorFrame(frame: EarthFrame): Uint8Array {
-  const scale = realScale(frame.variable);
+  const scale = realScale(frame);
   const palette = scale.colors.map((s) =>
     [1, 3, 5].map((i) => parseInt(s.slice(i, i + 2), 16)),
   );
@@ -234,6 +360,11 @@ export function colorFrame(frame: EarthFrame): Uint8Array {
         ),
       ) *
       (palette.length - 1);
+    if (scale.kind === "categorical") {
+      const color = palette[Math.round(t)];
+      pixels.set([...color, 220], i * 4);
+      continue;
+    }
     const a = Math.min(palette.length - 2, Math.floor(t)),
       f = t - a;
     for (let c = 0; c < 3; c++)

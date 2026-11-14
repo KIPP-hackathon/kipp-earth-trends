@@ -1,339 +1,258 @@
+import { useState } from "react";
 import {
-  useCallback,
-  useReducer,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  startTransition,
-} from "react";
-import {
-  ArrowDownToLine,
-  ArrowRight,
   ArrowUpRight,
   BookOpen,
-  Check,
-  CheckCheck,
-  ChevronDown,
-  Columns2,
-  CircleHelp,
-  Droplets,
+  Database,
   Earth,
   ExternalLink,
-  Fingerprint,
-  FlaskConical,
-  Leaf,
   MapPin,
-  Menu,
-  Orbit,
-  Play,
-  ScanLine,
+  RefreshCw,
   ShieldCheck,
-  Sparkles,
-  Thermometer,
-  Waves,
-  X,
 } from "lucide-react";
 import { LabTabs } from "./components/LabTabs";
-import { RealDataView } from "./components/RealDataView";
-import { earthApi } from "./lib/earthApi";
 import type { LabTab } from "./components/LabTabs";
-import { ComparisonView } from "./components/ComparisonView";
-import { EventCatalog } from "./components/EventCatalog";
-import {
-  comparisonReducer,
-  createComparison,
-  createScenario,
-  initialGlobeView,
-} from "./lib/comparison";
-import type { Scenario } from "./lib/comparison";
-import { referenceScenario } from "./lib/events";
-import { Globe } from "./components/Globe";
-import { TimeSeries } from "./components/TimeSeries";
+import { RealPanel } from "./components/RealDataView";
 import { Modal } from "./components/Modal";
-import {
-  annualMeans,
-  anomalies,
-  calculateTrend,
-  formatValue,
-  makeSeries,
-  regions,
-  toCsv,
-  variables,
-} from "./lib/analysis";
-import type { RegionId, Variable } from "./lib/analysis";
-import {
-  initialPlayback,
-  playbackReducer,
-  selectPeriod,
-  monthInputValue,
-  parseMonth,
-  formatMonth,
-} from "./lib/playback";
+import { initialGlobeView } from "./lib/comparison";
+import { loadCatalog, loadConfig, loadEvents, realMonth } from "./lib/earthApi";
+import type { EarthCatalog, EarthConfig, EarthEvent } from "./lib/earthApi";
+import { useEarthResource } from "./lib/useEarthResource";
+import { invalidateFrames } from "./lib/earthFrameCache";
 
-const variableKeys: Variable[] = ["temperature", "rainfall", "vegetation"];
-const variableIcons = {
-  temperature: Thermometer,
-  rainfall: Droplets,
-  vegetation: Leaf,
-};
-type ModalKind =
-  "sources" | "guide" | "reading" | "robustness" | "definition" | null;
-const guideSteps = [
+type Preset = { variable: string; month: string; region: string };
+function RequestFailure({
+  message,
+  retry,
+}: {
+  message: string;
+  retry: () => void;
+}) {
+  return (
+    <div className="real-error" role="alert">
+      <p>{message}</p>
+      <button onClick={retry}>
+        <RefreshCw size={14} /> Tentar novamente
+      </button>
+    </div>
+  );
+}
+const guide = [
   {
-    tag: "01 · OLHE PARA UM LUGAR",
-    title: "Toda boa descoberta começa com uma pergunta.",
-    description:
-      "Escolha uma região que tenha significado para você. Neste laboratório, três paisagens brasileiras ajudam a explorar a relação entre água, calor e vida.",
-    lesson:
-      "Experimente mudar a região no painel à esquerda. O mapa e os exemplos acompanham sua escolha.",
-    icon: MapPin,
+    title: "Escolha um sinal e um lugar",
+    text: "As variáveis e os meses vêm do catálogo da API. O produto, a unidade e os filtros de qualidade acompanham a seleção. Os recortes são retângulos de estudo.",
   },
   {
-    tag: "02 · SIGA UM SINAL",
-    title: "Uma variável é uma lente para enxergar a Terra.",
-    description:
-      "Temperatura, chuva e vegetação contam partes diferentes de uma mesma história. Comece por uma pergunta simples: está ficando mais quente?",
-    lesson:
-      "As séries deste protótipo são inventadas para ensinar. As missões e os produtos citados são reais.",
-    icon: Thermometer,
+    title: "Observe o mês que está na tela",
+    text: "Ao buscar outro mês, o globo mantém o último quadro compatível até o próximo estar pronto. A data sobre o globo identifica o campo exibido. A reprodução prepara os próximos meses e aguarda a fonte quando necessário.",
   },
   {
-    tag: "03 · DÊ TEMPO AO TEMPO",
-    title: "Um ano fora do comum não é uma tendência.",
-    description:
-      "Estações se repetem. Eventos extremos aparecem. Uma série longa ajuda a distinguir esses movimentos de uma mudança persistente.",
-    lesson:
-      "Escolha um período e dê play. Alterne valores e anomalias para separar as estações de mudanças em relação ao mesmo mês de referência.",
-    icon: Waves,
+    title: "Compare com contexto",
+    text: "Dois globos compartilham a câmera e mantêm filtros independentes. A mesma variável usa a mesma escala. Produtos, processamentos e grandezas diferentes exigem interpretação própria.",
   },
   {
-    tag: "04 · QUESTIONE A CONCLUSÃO",
-    title: "A direção da linha não conta tudo.",
-    description:
-      "O intervalo de confiança expressa a incerteza de uma estimativa. Se inclui zero, nossos dados ainda são compatíveis com ausência de mudança.",
-    lesson:
-      "Teste a precipitação para explorar um exemplo inconclusivo. Isso também é uma descoberta útil.",
-    icon: ShieldCheck,
+    title: "Leia o método antes da conclusão",
+    text: "Médias ponderadas, somas e classes predominantes respondem a perguntas diferentes. Ausência de dado não significa zero. Uma sequência curta de meses não sustenta, por si só, uma tendência climática.",
   },
   {
-    tag: "05 · DEIXE PISTAS",
-    title: "Uma descoberta boa pode ser refeita.",
-    description:
-      "Guarde a região, a variável, o período, o método e os dados utilizados. Outra pessoa deve conseguir seguir as mesmas pistas.",
-    lesson:
-      "“Exportar investigação” salva os valores simulados e um documento com suas escolhas e limitações.",
-    icon: Fingerprint,
+    title: "Leve as evidências",
+    text: "Exporte a série regional em CSV ou o registro completo em JSON, com produto, método, cobertura e qualidade. As fichas históricas oferecem contexto documental; o laboratório não detecta eventos nem atribui suas causas.",
   },
 ];
-
-function download(name: string, contents: string, type: string) {
-  const url = URL.createObjectURL(new Blob([contents], { type }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = name;
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+function Guide({ config }: { config?: EarthConfig }) {
+  return (
+    <div className="real-guide-grid">
+      {guide.map((step, index) => (
+        <article className="real-info-card" key={step.title}>
+          <span className="eyebrow">0{index + 1} · GUIA DE CAMPO</span>
+          <h2>{step.title}</h2>
+          <p>{step.text}</p>
+        </article>
+      ))}
+      <article className="real-info-card">
+        <ShieldCheck size={21} />
+        <h2>O alcance desta investigação</h2>
+        {config?.limitations.map((limitation) => (
+          <p key={limitation}>{limitation}</p>
+        ))}
+      </article>
+    </div>
+  );
 }
-
+function EventCards({
+  catalog,
+  onOpen,
+}: {
+  catalog: EarthCatalog;
+  onOpen: (event: EarthEvent, compare: boolean) => void;
+}) {
+  const resource = useEarthResource("historical-events", loadEvents);
+  return (
+    <>
+      <div className="real-disclosure">
+        <i /> Catálogo histórico curado pela API. As fichas não são eventos
+        detectados nestes campos. Disponibilidade significa sobreposição com os
+        meses válidos da variável sugerida.
+      </div>
+      {resource.loading && (
+        <p className="real-notice" role="status">
+          Consultando eventos e disponibilidade…
+        </p>
+      )}
+      {resource.error && (
+        <RequestFailure message={resource.error} retry={resource.retry} />
+      )}
+      <div className="real-event-grid">
+        {resource.data?.events.map((event) => {
+          const variable = catalog.variables.find(
+            (entry) => entry.id === event.variable,
+          );
+          const available = event.available && !!variable?.months.length;
+          return (
+            <article
+              className={`real-event-card ${available ? "" : "is-unavailable"}`}
+              key={event.id}
+            >
+              <span className="eyebrow">
+                {event.category} ·{" "}
+                {available ? "DADOS DISPONÍVEIS" : "FORA DA COBERTURA"}
+              </span>
+              <h2>{event.title}</h2>
+              <p className="real-event-place">
+                <MapPin size={13} /> {event.location}
+              </p>
+              <p>
+                {realMonth(event.window[0])} — {realMonth(event.window[1])}
+              </p>
+              <p>{event.description}</p>
+              <p className="real-event-limit">{event.limitation}</p>
+              {available ? (
+                <p className="real-grid-info">
+                  {event.months.length} meses válidos na janela ·{" "}
+                  {variable?.name} · {variable?.product}
+                </p>
+              ) : (
+                <p className="real-event-unavailable">
+                  {event.unavailableReason ??
+                    "Sem meses válidos neste período."}
+                </p>
+              )}
+              <a href={event.source.url} target="_blank" rel="noreferrer">
+                {event.source.name} <ExternalLink size={12} />
+              </a>
+              <div className="real-event-actions">
+                <button
+                  disabled={!available}
+                  onClick={() => onOpen(event, false)}
+                >
+                  Explorar contexto
+                </button>
+                <button
+                  disabled={!available || (variable?.months.length ?? 0) < 2}
+                  onClick={() => onOpen(event, true)}
+                >
+                  Comparar meses
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </>
+  );
+}
 function App() {
-  const [activeTab, setActiveTab] = useState<LabTab>("real");
-  const [comparison, dispatchComparison] = useReducer(
-    comparisonReducer,
-    undefined,
-    () => createComparison(),
-  );
-  const [globeView, setGlobeView] = useState(initialGlobeView);
-  const [investigationContext, setInvestigationContext] =
-    useState<Scenario | null>(null);
-  const isInvestigating = activeTab === "explore" || activeTab === "analysis";
-  const [region, setRegion] = useState<RegionId>("saofrancisco");
-  const [variable, setVariable] = useState<Variable>("temperature");
-  const [timeline, dispatchTimeline] = useReducer(
-    playbackReducer,
-    initialPlayback,
-  );
-  const startYear = 2001 + Math.floor(timeline.start / 12);
-  const endYear = 2001 + Math.floor(timeline.end / 12);
-  const [deseasonalized, setDeseasonalized] = useState(true);
-  const [modal, setModal] = useState<ModalKind>(null);
-  const [guideStep, setGuideStep] = useState(0);
-  const [toast, setToast] = useState("");
-  const [mobileControls, setMobileControls] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const currentRegion = regions.find((r) => r.id === region)!;
-  const config = variables[variable];
-  const allSeries = useMemo(
-    () => makeSeries(region, variable),
-    [region, variable],
-  );
-  const series = useMemo(
-    () => selectPeriod(allSeries, timeline),
-    [allSeries, timeline.start, timeline.end],
-  );
-  const annualSeries = useMemo(() => annualMeans(series), [series]);
-  const trend = useMemo(() => calculateTrend(annualSeries), [annualSeries]);
-  const displaySeries = useMemo(
-    () => (deseasonalized ? anomalies(allSeries, allSeries) : allSeries),
-    [allSeries, deseasonalized],
-  );
-  const currentObservation = displaySeries[timeline.frame];
-  const metrics = useMemo(
-    () =>
-      variableKeys.map((key) => ({
-        key,
-        result: calculateTrend(
-          annualMeans(selectPeriod(makeSeries(region, key), timeline)),
-        ),
-      })),
-    [region, timeline.start, timeline.end],
-  );
-  const isConsistent = trend?.significant ?? false;
-
-  useEffect(() => {
-    if (activeTab !== "explore") dispatchTimeline({ type: "pause" });
-  }, [activeTab]);
-  useEffect(() => {
-    if (!timeline.playing) return;
-    const timer = setInterval(
-      () => dispatchTimeline({ type: "tick" }),
-      500 / timeline.speed,
-    );
-    return () => clearInterval(timer);
-  }, [timeline.playing, timeline.speed]);
-  useEffect(() => {
-    const onVisibility = () => {
-      if (document.hidden) dispatchTimeline({ type: "pause" });
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
-  useEffect(() => {
-    if (modal) dispatchTimeline({ type: "pause" });
-  }, [modal]);
-  useEffect(
-    () => () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-    },
-    [],
-  );
-  const showToast = (message: string) => {
-    setToast(message);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(""), 4500);
-  };
-  const selectVariable = useCallback(
-    (value: Variable) => startTransition(() => setVariable(value)),
-    [],
-  );
-  const selectRegion = useCallback(
-    (value: RegionId) =>
-      startTransition(() => {
-        setRegion(value);
-        const selected = regions.find((r) => r.id === value)!;
-        setGlobeView((v) => ({
-          ...v,
-          longitude: selected.location[0],
-          latitude: selected.location[1],
-        }));
-      }),
-    [],
-  );
-  const seekFrame = useCallback(
-    (frame: number) => dispatchTimeline({ type: "seek", frame }),
-    [],
-  );
+  const [active, setActive] = useState<LabTab>("explore");
+  const [view, setView] = useState(initialGlobeView);
+  const [modal, setModal] = useState<"sources" | "guide" | null>(null);
+  const [presetA, setPresetA] = useState<Preset>();
+  const [presetB, setPresetB] = useState<Preset>();
+  const [eventContext, setEventContext] = useState<EarthEvent>();
+  const catalog = useEarthResource("catalog", loadCatalog);
+  const config = useEarthResource("configuration", loadConfig);
+  const isWorkspace =
+    active === "explore" || active === "compare" || active === "analysis";
   const showTab = (tab: LabTab) => {
-    setActiveTab(tab);
-    setMobileControls(false);
-    requestAnimationFrame(() => {
-      const button = document.getElementById(`tab-${tab}`);
-      button?.focus({ preventScroll: true });
-      button?.scrollIntoView({ block: "nearest", inline: "nearest" });
-    });
-  };
-  const currentScenario = () =>
-    createScenario({
-      region,
-      variable,
-      timeline,
-      view: globeView,
-      mode: deseasonalized ? "anomaly" : "absolute",
-    });
-  const compareScenario = (scenario: Scenario, useReference = false) => {
-    dispatchComparison({
-      type: "load",
-      scenarios: [
-        scenario,
-        useReference ? referenceScenario(scenario) : createScenario(scenario),
-      ],
-    });
-    if (useReference) dispatchComparison({ type: "sync", mode: "relative" });
-    showTab("compare");
-  };
-  const investigateScenario = (scenario: Scenario) => {
-    selectRegion(scenario.region);
-    selectVariable(scenario.variable);
-    setDeseasonalized(scenario.mode === "anomaly");
-    dispatchTimeline({
-      type: "preset",
-      start: scenario.timeline.start,
-      end: scenario.timeline.end,
-    });
-    setInvestigationContext(scenario);
-    showTab("explore");
-  };
-  const openGuide = () => {
-    setGuideStep(0);
-    setModal("guide");
-  };
-  const exportInvestigation = () => {
-    const evidence = {
-      title: "KIPP — investigação educacional",
-      synthetic: true,
-      disclosure:
-        "Todos os valores são simulados. Nenhuma observação NASA foi usada no cálculo. Isto não é uma conclusão ambiental real.",
-      region: currentRegion.name,
-      variable: config.name,
-      unit: config.unit,
-      schemaVersion: 2,
-      period: [monthInputValue(timeline.start), monthInputValue(timeline.end)],
-      yearPeriod: [startYear, endYear],
-      playback: {
-        currentMonth: monthInputValue(timeline.frame),
-        mode: deseasonalized ? "anomaly" : "absolute",
-        reference: "2001–2024, por mês do calendário",
-        currentValue: currentObservation.value,
-        speed: timeline.speed,
-        loop: timeline.loop,
-      },
-      monthlyObservations: series.length,
-      illustrativeSourceForFutureIntegration: {
-        name: config.source,
-        product: config.product,
-        url: config.url,
-      },
-      method:
-        "Regressão linear das médias anuais completas; IC 95% Student-t com erros anuais independentes, hipótese simplificadora da demonstração. Sem correção HAC/FDR nem inferência causal.",
-      result: trend
-        ? {
-            perDecade: trend.slope,
-            interval95: trend.interval,
-            includesZero: !trend.significant,
-          }
-        : null,
-      basemap:
-        "NASA Blue Marble January 2004, static; monthly overlay contains simulated spatial fields whose regional means match the synthetic series. Colors use a fixed scale and anomalies use a fixed 2001–2024 monthly climatology.",
-      observations: series,
-    };
-    download(
-      `kipp-${region}-${variable}-${monthInputValue(timeline.start)}-${monthInputValue(timeline.end)}.json`,
-      JSON.stringify(evidence, null, 2),
-      "application/json;charset=utf-8",
+    setActive(tab);
+    requestAnimationFrame(() =>
+      document.getElementById(`tab-${tab}`)?.focus({ preventScroll: true }),
     );
-    showToast("Investigação exportada com dados, método e limitações.");
   };
-
+  const applyEvent = (event: EarthEvent, compare: boolean) => {
+    const variable = catalog.data?.variables.find(
+      (entry) => entry.id === event.variable,
+    );
+    if (!event.available || !variable) return;
+    const available = variable.months
+      .filter((entry) => entry.validSamples > 0)
+      .map((entry) => entry.month);
+    const during = event.months.filter((month) => available.includes(month));
+    if (!during.length) return;
+    const before = available.filter((month) => month < event.window[0]).at(-1);
+    const after = available.find((month) => month > event.window[1]);
+    setPresetA({
+      variable: event.variable,
+      region: event.region,
+      month: compare ? (before ?? during[0]) : during.at(-1)!,
+    });
+    setPresetB({
+      variable: event.variable,
+      region: event.region,
+      month: compare
+        ? during.at(-1)! === (before ?? during[0])
+          ? (after ?? available.at(-1)!)
+          : during.at(-1)!
+        : (after ?? available.at(-1)!),
+    });
+    setEventContext(event);
+    setView((current) => ({
+      ...current,
+      longitude: event.longitude,
+      latitude: event.latitude,
+    }));
+    showTab(compare ? "compare" : "explore");
+  };
+  const contextVariable = catalog.data?.variables.find(
+    (entry) => entry.id === eventContext?.variable,
+  );
+  const contextMonths =
+    contextVariable?.months
+      .filter((entry) => entry.validSamples > 0)
+      .map((entry) => entry.month) ?? [];
+  const phases = eventContext
+    ? [
+        {
+          label: "Antes",
+          month: contextMonths
+            .filter((month) => month < eventContext.window[0])
+            .at(-1),
+        },
+        { label: "Durante", month: eventContext.months.at(-1) },
+        {
+          label: "Depois",
+          month: contextMonths.find((month) => month > eventContext.window[1]),
+        },
+        { label: "Mais recente", month: contextMonths.at(-1) },
+      ]
+    : [];
+  const titles: Record<LabTab, [string, string]> = {
+    explore: ["A Terra,", "pelos dados."],
+    compare: ["Duas perspectivas,", "o mesmo planeta."],
+    events: ["A história deixa", "pistas."],
+    analysis: ["Da observação", "à evidência."],
+    learn: ["Curiosidade com", "método."],
+  };
+  const descriptions: Record<LabTab, string> = {
+    explore:
+      "Explore campos mensais derivados de produtos NASA. Escolha uma variável, gire o planeta e acompanhe um recorte ao longo do tempo.",
+    compare:
+      "Câmeras sincronizadas, variáveis e meses independentes. Compare campos reais em uma escala fixa por variável.",
+    events:
+      "Parta de um registro histórico e investigue seu contexto ambiental nos meses que o catálogo realmente oferece.",
+    analysis:
+      "Leia a série mensal regional, consulte produto, agregação e qualidade e exporte as observações com suas limitações.",
+    learn:
+      "Um guia para olhar, comparar e documentar observações da Terra sem extrapolar o que os dados permitem.",
+  };
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -342,12 +261,12 @@ function App() {
       <header className="site-header">
         <a
           href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            showTab("real");
-          }}
           className="brand"
           aria-label="KIPP, início"
+          onClick={(event) => {
+            event.preventDefault();
+            showTab("explore");
+          }}
         >
           <span className="brand-mark">
             <Earth size={29} strokeWidth={1.25} />
@@ -366,618 +285,205 @@ function App() {
         </nav>
         <div className="header-right">
           <span className="prototype-badge">
-            <i /> PROTÓTIPO
+            <i /> DADOS REAIS
           </span>
-          <button className="field-guide-button" onClick={openGuide}>
-            <BookOpen size={15} /> Guia da simulação <ArrowUpRight size={14} />
+          <button
+            className="field-guide-button"
+            onClick={() => setModal("guide")}
+          >
+            <BookOpen size={15} /> Guia de campo <ArrowUpRight size={14} />
           </button>
         </div>
       </header>
-
       <main id="main-content" tabIndex={-1}>
-        <section className="intro" hidden={activeTab !== "explore"}>
+        <div className="real-intro unified-intro">
           <div>
-            <div className="intro-kicker">
-              <span className="kicker-line" /> UM PLANETA. INFINITAS PISTAS.
-            </div>
+            <span className="eyebrow">
+              <Database size={14} /> OBSERVAR · COMPARAR · COMPREENDER
+            </span>
             <h1>
-              Cada mudança conta <em>uma história.</em>
+              {titles[active][0]} <em>{titles[active][1]}</em>
             </h1>
-            <p>
-              Investigue os sinais da Terra. Descubra o que muda, onde muda e o
-              que os dados realmente dizem.
-            </p>
+            <p>{descriptions[active]}</p>
           </div>
-          <button className="guided-button" onClick={openGuide}>
-            <span className="guided-play">
-              <Play size={15} fill="currentColor" />
-            </span>
-            <span>
-              Sua primeira investigação
-              <small>Uma jornada guiada em 5 passos</small>
-            </span>
-            <ArrowRight size={17} />
-          </button>
-        </section>
-
-        <LabTabs active={activeTab} onChange={showTab} />
-        {activeTab === "real" && <RealDataView />}
-        <div
-          className="workbench-top"
-          id="investigation"
-          hidden={!isInvestigating}
-        >
-          <div>
-            <span className="workspace-icon">
-              <ScanLine size={14} />
-            </span>
-            <span>SEU OBSERVATÓRIO</span>
-            <span className="workbench-separator">/</span>
-            <span className="workspace-name">Água, calor & vida</span>
-          </div>
-          <div className="workbench-disclosure">
-            <FlaskConical size={13} /> Experiência com dados simulados{" "}
-            <button
-              aria-label="Sobre os dados simulados"
-              onClick={() => setModal("sources")}
-            >
-              <CircleHelp size={13} />
-            </button>
-          </div>
-          <button
-            className="mobile-filter-button"
-            aria-expanded={mobileControls}
-            aria-controls="investigation-filters"
-            onClick={() => setMobileControls((v) => !v)}
-          >
-            <Menu size={16} /> {mobileControls ? "Fechar filtros" : "Filtros"}
-          </button>
-        </div>
-
-        <div
-          className="workspace-grid tabbed-workspace"
-          hidden={!isInvestigating}
-          style={{ "--variable-color": config.color } as React.CSSProperties}
-        >
-          <aside
-            id="investigation-filters"
-            className={`controls-panel ${mobileControls ? "mobile-open" : ""}`}
-            aria-label="Configurar investigação"
-          >
-            <div className="panel-heading">
-              <span className="eyebrow">
-                <span className="tiny-number">01</span> ESCOLHA SUA PERGUNTA
-              </span>
-              <button
-                className="mobile-close icon-button"
-                aria-label="Fechar controles"
-                onClick={() => setMobileControls(false)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="control-block">
-              <label className="field-label" htmlFor="region">
-                <MapPin size={14} /> Onde vamos olhar?
-              </label>
-              <div className="select-wrap">
-                <select
-                  id="region"
-                  value={region}
-                  onChange={(e) => selectRegion(e.target.value as RegionId)}
-                >
-                  {regions.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} />
-              </div>
-              <div className="biome-label">
-                <span />
-                {currentRegion.biome}
-              </div>
-            </div>
-            <div className="control-block variable-block">
-              <span className="field-label">
-                <Orbit size={14} /> Qual sinal investigar?
-              </span>
-              <div className="variable-options">
-                {variableKeys.map((key) => {
-                  const Icon = variableIcons[key];
-                  const v = variables[key];
-                  return (
-                    <button
-                      key={key}
-                      className={`variable-option ${variable === key ? "selected" : ""}`}
-                      style={
-                        { "--option-color": v.color } as React.CSSProperties
-                      }
-                      onClick={() => selectVariable(key)}
-                      aria-pressed={variable === key}
-                    >
-                      <span className="variable-icon">
-                        <Icon size={18} strokeWidth={1.5} />
-                      </span>
-                      <span>
-                        <strong>{v.short}</strong>
-                        <small>{v.question}</small>
-                      </span>
-                      <span className="radio-dot">
-                        {variable === key ? <span /> : null}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="control-block time-block">
-              <span className="field-label">
-                <Waves size={14} /> Qual período vamos explorar?
-              </span>
-              <div className="month-fields">
-                <label>
-                  De
-                  <input
-                    type="month"
-                    min="2001-01"
-                    max="2024-12"
-                    value={monthInputValue(timeline.start)}
-                    onInput={(e) => {
-                      const index = parseMonth(e.currentTarget.value);
-                      if (index !== null)
-                        dispatchTimeline({
-                          type: "range",
-                          bound: "start",
-                          index,
-                        });
-                    }}
-                    aria-label="Mês inicial da investigação"
-                  />
-                </label>
-                <label>
-                  Até
-                  <input
-                    type="month"
-                    min="2001-01"
-                    max="2024-12"
-                    value={monthInputValue(timeline.end)}
-                    onInput={(e) => {
-                      const index = parseMonth(e.currentTarget.value);
-                      if (index !== null)
-                        dispatchTimeline({
-                          type: "range",
-                          bound: "end",
-                          index,
-                        });
-                    }}
-                    aria-label="Mês final da investigação"
-                  />
-                </label>
-              </div>
-              <div className="period-presets">
-                <button
-                  onClick={() =>
-                    dispatchTimeline({ type: "preset", start: 276, end: 287 })
-                  }
-                >
-                  1 ano
-                </button>
-                <button
-                  onClick={() =>
-                    dispatchTimeline({ type: "preset", start: 228, end: 287 })
-                  }
-                >
-                  5 anos
-                </button>
-                <button
-                  onClick={() =>
-                    dispatchTimeline({ type: "preset", start: 0, end: 287 })
-                  }
-                >
-                  Histórico
-                </button>
-              </div>
-              <div className="period-note">
-                <span>{series.length} meses selecionados</span>
-                <span>mensal</span>
-              </div>
-              {!trend && (
-                <p className="short-period-note">
-                  Um recorte para observar os ciclos. Amplie o período para
-                  estimar uma tendência anual.
-                </p>
-              )}
-            </div>
-            <div className="field-note">
-              <Sparkles size={16} />
-              <div>
-                <strong>Olhar além do óbvio</strong>
-                <p>
-                  Um verão muito quente é um evento. Uma mudança persistente ao
-                  longo dos anos pode ser uma tendência.
-                </p>
-                <button onClick={() => setModal("definition")}>
-                  Entenda a diferença <ArrowUpRight size={12} />
-                </button>
-              </div>
-            </div>
-            <div className="source-mini">
-              <span>FONTE PREVISTA</span>
-              <button onClick={() => setModal("sources")}>
-                <span className="source-orbit">
-                  <Orbit size={18} />
-                </span>
-                <span>
-                  <strong>{config.source}</strong>
-                  <small>Conheça o produto científico</small>
-                </span>
-                <ArrowUpRight size={14} />
-              </button>
-              <small className="source-disclosure">
-                Os valores deste protótipo são fictícios.
-              </small>
-            </div>
-          </aside>
-
-          <div className="investigation-content">
-            <section
-              id="panel-explore"
-              role="tabpanel"
-              aria-labelledby="tab-explore"
-              tabIndex={0}
-              hidden={activeTab !== "explore"}
-            >
-              {investigationContext &&
-                investigationContext.region === region &&
-                investigationContext.timeline.start === timeline.start &&
-                investigationContext.timeline.end === timeline.end && (
-                  <div className="preset-context">
-                    <FlaskConical size={15} />
-                    <span>
-                      {investigationContext.context}
-                      <small>
-                        Recorte de uma série inventada; não representa
-                        observações do evento.
-                      </small>
-                    </span>
-                  </div>
-                )}
-              <Globe
-                view={globeView}
-                onViewChange={setGlobeView}
-                region={region}
-                variable={variable}
-                onRegion={selectRegion}
-                timeline={timeline}
-                onAction={dispatchTimeline}
-                mode={deseasonalized ? "anomaly" : "absolute"}
-                onModeChange={(mode) => setDeseasonalized(mode === "anomaly")}
-              />
-              <div className="explore-next">
-                <div>
-                  <span className="eyebrow">A OBSERVAÇÃO É SÓ O COMEÇO</span>
-                  <p>O que muda quando você olha de outro jeito?</p>
-                </div>
-                <button
-                  className="secondary-button"
-                  onClick={() => compareScenario(currentScenario())}
-                >
-                  <Columns2 size={15} />
-                  Comparar cenário
-                </button>
-                <button
-                  className="primary-button"
-                  onClick={() => showTab("analysis")}
-                >
-                  Ver análise
-                  <ArrowRight size={15} />
-                </button>
-              </div>
-            </section>
-            <section
-              id="panel-analysis"
-              role="tabpanel"
-              aria-labelledby="tab-analysis"
-              tabIndex={0}
-              className="analysis-layout"
-              hidden={activeTab !== "analysis"}
-            >
-              <div className="analysis-chart-column">
-                <div className="analysis-context">
-                  <span className="eyebrow">SUA INVESTIGAÇÃO</span>
-                  <h2>{currentRegion.name}</h2>
-                  <p>
-                    {config.name} · {formatMonth(timeline.start)} —{" "}
-                    {formatMonth(timeline.end)}
-                  </p>
-                  <button
-                    className="text-button"
-                    onClick={() => showTab("explore")}
-                  >
-                    Voltar ao globo
-                    <ArrowUpRight size={13} />
-                  </button>
-                </div>
-                <TimeSeries
-                  series={series}
-                  reference={allSeries}
-                  frame={timeline.frame}
-                  onFrame={seekFrame}
-                  variable={variable}
-                  deseasonalized={deseasonalized}
-                  onDeseasonalize={() => setDeseasonalized((v) => !v)}
-                  onExplain={() => setModal("reading")}
-                />{" "}
-              </div>
-              <aside
-                className="insights-panel"
-                aria-label="Resultados da investigação"
-              >
-                <span className="eyebrow">
-                  <span className="tiny-number">03</span> CONECTE AS PISTAS
-                </span>
-                <div className="insights-title">
-                  <h2>O que encontramos?</h2>
-                  <span>EXEMPLO SIMULADO</span>
-                </div>
-                <div className="frame-readout">
-                  <span>
-                    MÊS EM EXIBIÇÃO<small>{formatMonth(timeline.frame)}</small>
-                  </span>
-                  <strong style={{ color: config.color }}>
-                    {formatValue(
-                      currentObservation.value,
-                      variable,
-                      deseasonalized,
-                    )}
-                    <small>
-                      {config.unit} ·{" "}
-                      {deseasonalized ? "anomalia" : "valor médio"}
-                    </small>
-                  </strong>
-                </div>
-                <p className="period-analysis-label">
-                  TENDÊNCIA · {formatMonth(timeline.start)} —{" "}
-                  {formatMonth(timeline.end)}
-                </p>
-                <div
-                  className={`finding-card ${isConsistent ? "consistent" : "uncertain"}`}
-                >
-                  <div className="finding-status">
-                    {isConsistent ? (
-                      <ShieldCheck size={15} />
-                    ) : (
-                      <CircleHelp size={15} />
-                    )}{" "}
-                    {!trend
-                      ? "Período insuficiente para estimar"
-                      : isConsistent
-                        ? "Sinal consistente no exemplo"
-                        : "Resultado inconclusivo"}
-                  </div>
-                  <span className="finding-label">{config.name}</span>
-                  <div className="finding-value">
-                    {trend ? formatValue(trend.slope, variable, true) : "—"}
-                    <span>{config.decadeUnit}</span>
-                  </div>
-                  <p>
-                    {!trend
-                      ? "Este recorte mostra a dinâmica mensal. São necessários pelo menos três anos completos para executar esta regressão simplificada; estudos climáticos exigem mais contexto e uma série adequada."
-                      : isConsistent
-                        ? `A série simulada indica ${trend.slope > 0 ? "aumento" : "redução"} ao longo do período escolhido.`
-                        : "A variação deste exemplo ainda é compatível com ausência de tendência."}
-                  </p>
-                  <div className="confidence">
-                    <div>
-                      <span>Intervalo de confiança · 95%</span>
-                      <button
-                        aria-label="Entender o intervalo de confiança"
-                        onClick={() => setModal("reading")}
-                      >
-                        <CircleHelp size={12} />
-                      </button>
-                    </div>
-                    <strong>
-                      {trend
-                        ? formatValue(trend.interval[0], variable, true)
-                        : "—"}{" "}
-                      <span>a</span>{" "}
-                      {trend
-                        ? formatValue(trend.interval[1], variable, true)
-                        : "—"}
-                    </strong>
-                  </div>
-                </div>
-                <div className="translation">
-                  <span className="translation-icon">
-                    <BookOpen size={16} />
-                  </span>
-                  <div>
-                    <span className="eyebrow">EM OUTRAS PALAVRAS</span>
-                    <p>
-                      {!trend
-                        ? "Observar um ciclo é diferente de medir uma tendência. Você pode reproduzir este recorte e depois ampliar a janela da investigação."
-                        : isConsistent
-                          ? "O sinal aparece além das oscilações deste exemplo. Isso não explica, por si só, o que causou a mudança."
-                          : "Não encontrar um sinal claro também ensina. Mais tempo ou dados melhores podem mudar a conclusão."}
-                    </p>
-                  </div>
-                </div>
-                <div className="other-signals">
-                  <div className="section-label">
-                    UMA REGIÃO, TRÊS SINAIS
-                    <button
-                      aria-label="Entender as variáveis"
-                      onClick={() => setModal("definition")}
-                    >
-                      <CircleHelp size={12} />
-                    </button>
-                  </div>
-                  {metrics.map(({ key, result }) => {
-                    const Icon = variableIcons[key];
-                    return (
-                      <button
-                        key={key}
-                        className={`signal-row ${key === variable ? "selected" : ""}`}
-                        onClick={() => selectVariable(key)}
-                      >
-                        <span style={{ color: variables[key].color }}>
-                          <Icon size={15} />
-                        </span>
-                        <span>
-                          {variables[key].short}
-                          <small>
-                            {!result
-                              ? "Período curto"
-                              : result.significant
-                                ? "Sinal no exemplo"
-                                : "Inconclusivo"}
-                          </small>
-                        </span>
-                        <strong style={{ color: variables[key].color }}>
-                          {result ? formatValue(result.slope, key, true) : "—"}
-                          <small>{variables[key].unit}/déc.</small>
-                        </strong>
-                        <ChevronDown size={12} />
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  className="robustness-button"
-                  onClick={() => setModal("robustness")}
-                >
-                  <ShieldCheck size={17} />
-                  <span>
-                    A conclusão resiste?<small>Teste outros períodos</small>
-                  </span>
-                  <ArrowUpRight size={15} />
-                </button>
-                <div className="evidence-footer">
-                  <span>
-                    <Fingerprint size={13} /> {series.length} pontos simulados ·{" "}
-                    {annualSeries.length} anos completos
-                  </span>
-                  <button
-                    className="export-button"
-                    onClick={exportInvestigation}
-                  >
-                    <ArrowDownToLine size={15} /> Exportar investigação
-                  </button>
-                  <small>Dados + escolhas + método. Ciência rastreável.</small>
-                </div>
-              </aside>
-            </section>
-          </div>
-        </div>
-
-        <section
-          id="panel-compare"
-          role="tabpanel"
-          aria-labelledby="tab-compare"
-          tabIndex={0}
-          hidden={activeTab !== "compare"}
-        >
-          <ComparisonView
-            state={comparison}
-            dispatch={dispatchComparison}
-            active={activeTab === "compare" && !modal}
-            onExplain={() => setModal("reading")}
-          />
-        </section>
-        <section
-          id="panel-events"
-          role="tabpanel"
-          aria-labelledby="tab-events"
-          tabIndex={0}
-          hidden={activeTab !== "events"}
-        >
-          <EventCatalog
-            onInvestigate={investigateScenario}
-            onCompare={(scenario) => compareScenario(scenario, true)}
-          />
-        </section>
-        <section
-          className="learning-section"
-          id="panel-learn"
-          role="tabpanel"
-          aria-labelledby="tab-learn"
-          tabIndex={0}
-          hidden={activeTab !== "learn"}
-        >
-          <div className="learning-intro">
-            <span className="eyebrow">MENOS MISTÉRIO. MAIS ENTENDIMENTO.</span>
-            <h2>
-              Você não precisa ser cientista
-              <br />
-              para fazer <em>boas perguntas.</em>
-            </h2>
-            <p>Três ideias para transformar observação em conhecimento.</p>
-            <button className="text-button" onClick={openGuide}>
-              Abra seu guia de campo <ArrowRight size={15} />
-            </button>
-          </div>
-          <div className="learning-cards">
+          <div className="real-intro-actions">
             <button
               onClick={() => {
-                setGuideStep(2);
-                setModal("guide");
+                invalidateFrames();
+                catalog.retry();
+                config.retry();
               }}
             >
-              <span className="lesson-number">01</span>
-              <Waves size={24} strokeWidth={1.2} />
-              <h3>Ciclo ou mudança?</h3>
-              <p>
-                As estações se repetem. Uma tendência aponta uma direção ao
-                longo do tempo.
-              </p>
-              <span className="lesson-link">
-                Aprenda a separar <ArrowUpRight size={15} />
-              </span>
+              <RefreshCw size={14} /> Atualizar catálogo
             </button>
-            <button onClick={() => setModal("reading")}>
-              <span className="lesson-number">02</span>
-              <ShieldCheck size={24} strokeWidth={1.2} />
-              <h3>Quanto podemos confiar?</h3>
-              <p>
-                Uma linha no gráfico é só o começo. A incerteza também faz parte
-                da história.
-              </p>
-              <span className="lesson-link">
-                Entenda a evidência <ArrowUpRight size={15} />
+            {catalog.data && (
+              <span>
+                {
+                  catalog.data.variables.filter(
+                    (entry) => entry.available !== false && entry.months.length,
+                  ).length
+                }{" "}
+                variáveis com meses disponíveis
               </span>
-            </button>
-            <button onClick={() => setModal("sources")}>
-              <span className="lesson-number">03</span>
-              <Fingerprint size={24} strokeWidth={1.2} />
-              <h3>De onde vem esse sinal?</h3>
-              <p>
-                Cada dado tem uma origem, uma escala e limites. Conhecê-los muda
-                seu olhar.
-              </p>
-              <span className="lesson-link">
-                Siga a origem <ArrowUpRight size={15} />
-              </span>
-            </button>
+            )}
           </div>
-        </section>
-
+        </div>
+        <LabTabs active={active} onChange={showTab} />
+        <div className="real-disclosure">
+          <i /> Dados reais derivados de produtos NASA · observação e comparação
+          visual, sem previsão, detecção automática ou atribuição causal. A
+          imagem de base do planeta é estática; a camada representa o mês
+          indicado.
+        </div>
+        {(catalog.loading || config.loading) && (
+          <p className="real-notice" role="status">
+            Conectando ao catálogo e às regiões de estudo…
+          </p>
+        )}
+        {catalog.error && (
+          <RequestFailure message={catalog.error} retry={catalog.retry} />
+        )}
+        {config.error && (
+          <RequestFailure message={config.error} retry={config.retry} />
+        )}
+        {catalog.data && config.data && (
+          <>
+            <section
+              hidden={!isWorkspace}
+              role="tabpanel"
+              id={`panel-${isWorkspace ? active : "explore"}`}
+              aria-labelledby={`tab-${isWorkspace ? active : "explore"}`}
+              className={`real-workspace ${active === "analysis" ? "is-analysis" : ""}`}
+            >
+              {active === "compare" && (
+                <p className="real-comparison-note">
+                  Dois globos, câmera compartilhada. Filtros independentes. A
+                  mesma variável mantém a mesma escala nos dois lados; produtos
+                  e unidades diferentes devem ser interpretados separadamente.
+                </p>
+              )}
+              {eventContext && (
+                <aside className="real-event-context">
+                  <div>
+                    <span className="eyebrow">CONTEXTO HISTÓRICO</span>
+                    <h2>{eventContext.title}</h2>
+                    <p>{eventContext.limitation}</p>
+                    <a
+                      href={eventContext.source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Fonte: {eventContext.source.name}{" "}
+                      <ExternalLink size={11} />
+                    </a>
+                  </div>
+                  <div className="real-phase-controls">
+                    {(
+                      ["A", ...(active === "compare" ? ["B"] : [])] as (
+                        "A" | "B"
+                      )[]
+                    ).map((side) => (
+                      <label key={side}>
+                        Mês do painel {side}
+                        <select
+                          aria-label={`Período do evento no painel ${side}`}
+                          value=""
+                          onChange={(event) => {
+                            if (!event.target.value) return;
+                            const preset = {
+                              variable: eventContext.variable,
+                              region: eventContext.region,
+                              month: event.target.value,
+                            };
+                            (side === "A" ? setPresetA : setPresetB)(preset);
+                          }}
+                        >
+                          <option value="">
+                            Escolha um contexto disponível
+                          </option>
+                          {phases.map((phase) => (
+                            <option
+                              key={phase.label}
+                              value={phase.month ?? ""}
+                              disabled={!phase.month}
+                            >
+                              {phase.label}
+                              {phase.month
+                                ? ` · ${realMonth(phase.month)}`
+                                : " · sem mês disponível"}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ))}
+                    <button onClick={() => setEventContext(undefined)}>
+                      Limpar contexto
+                    </button>
+                  </div>
+                </aside>
+              )}
+              <div
+                className={`real-panels ${active === "compare" ? "is-comparing" : ""}`}
+              >
+                <RealPanel
+                  catalog={catalog.data}
+                  config={config.data}
+                  side="A"
+                  view={view}
+                  onView={setView}
+                  preset={presetA}
+                  active={isWorkspace}
+                />
+                {active === "compare" && (
+                  <RealPanel
+                    catalog={catalog.data}
+                    config={config.data}
+                    side="B"
+                    view={view}
+                    onView={setView}
+                    preset={presetB}
+                    active
+                  />
+                )}
+              </div>
+              <p className="real-method-note">
+                A grade do globo é agregada para visualização. A série regional
+                usa os pontos da grade de origem dentro do bbox. Consulte o
+                método e a qualidade específicos de cada variável. Não
+                calculamos tendências ou significância a partir deste histórico
+                curto.
+              </p>
+            </section>
+            {active === "events" && (
+              <section
+                role="tabpanel"
+                id="panel-events"
+                aria-labelledby="tab-events"
+              >
+                <EventCards catalog={catalog.data} onOpen={applyEvent} />
+              </section>
+            )}
+          </>
+        )}
+        {active === "learn" && (
+          <section role="tabpanel" id="panel-learn" aria-labelledby="tab-learn">
+            <Guide config={config.data} />
+          </section>
+        )}
         <footer className="site-footer">
           <a
             href="#"
-            onClick={(e) => {
-              e.preventDefault();
+            className="footer-brand"
+            onClick={(event) => {
+              event.preventDefault();
               showTab("explore");
             }}
-            className="footer-brand"
           >
             <Earth size={19} /> KIPP.
           </a>
           <span>Feito para cultivar curiosidade sobre o nosso planeta.</span>
           <div>
-            <span>PROTÓTIPO INDEPENDENTE</span>
+            <span>LABORATÓRIO INDEPENDENTE</span>
             <span className="footer-dot" />
             NASA SPACE APPS · 2026
             <button onClick={() => setModal("sources")}>
@@ -986,419 +492,48 @@ function App() {
           </div>
         </footer>
       </main>
-
-      {toast && (
-        <div className="toast" role="status">
-          <CheckCheck size={17} />
-          <span>{toast}</span>
-          <button aria-label="Fechar notificação" onClick={() => setToast("")}>
-            <X size={16} />
-          </button>
-        </div>
-      )}
       {modal && (
         <Modal
           title={
-            modal === "sources"
-              ? "Toda evidência tem uma origem."
-              : modal === "guide"
-                ? "Seu guia de campo"
-                : modal === "robustness"
-                  ? "A conclusão resiste?"
-                  : modal === "definition"
-                    ? "Uma lente para cada pergunta."
-                    : "Aprenda a ler os sinais."
+            modal === "guide" ? "Seu guia de campo" : "Fontes, método & limites"
           }
           onClose={() => setModal(null)}
-          wide={modal === "sources" || modal === "robustness"}
+          wide
         >
-          {modal === "guide" && (
-            <div className="guide-content">
-              <div className="guide-progress">
-                {guideSteps.map((_, i) => (
-                  <button
-                    key={i}
-                    className={i <= guideStep ? "done" : ""}
-                    onClick={() => setGuideStep(i)}
-                    aria-label={`Ir para etapa ${i + 1}`}
-                    aria-current={i === guideStep ? "step" : undefined}
-                  />
-                ))}
-              </div>
-              <div className="guide-illustration">
-                {(() => {
-                  const Icon = guideSteps[guideStep].icon;
-                  return <Icon size={64} strokeWidth={0.9} />;
-                })()}
-                <span className="orbit-decoration" />
-                <span className="orbit-decoration second" />
-              </div>
-              <span className="eyebrow">{guideSteps[guideStep].tag}</span>
-              <h3>{guideSteps[guideStep].title}</h3>
-              <p>{guideSteps[guideStep].description}</p>
-              <div className="guide-tip">
-                <Sparkles size={18} />
-                <p>{guideSteps[guideStep].lesson}</p>
-              </div>
-              <div className="guide-actions">
-                <span>{guideStep + 1} de 5</span>
-                <div>
-                  {guideStep > 0 && (
-                    <button
-                      className="text-button"
-                      onClick={() => setGuideStep((s) => s - 1)}
-                    >
-                      Voltar
-                    </button>
-                  )}
-                  <button
-                    className="primary-button"
-                    onClick={() => {
-                      if (guideStep < 4) setGuideStep((s) => s + 1);
-                      else {
-                        setModal(null);
-                        showTab("explore");
-                        requestAnimationFrame(() =>
-                          document
-                            .getElementById("investigation")
-                            ?.scrollIntoView({ behavior: "smooth" }),
-                        );
-                      }
-                    }}
-                  >
-                    {guideStep < 4 ? "Próxima pista" : "Começar a investigar"}
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-          {modal === "sources" && (
-            <div className="source-content">
-              <div className="demo-notice">
-                <FlaskConical size={21} />
-                <div>
-                  <strong>Dados observados e demonstração educacional.</strong>
-                  <p>
-                    A aba Dados reais consulta observações derivadas de produtos
-                    NASA via API: temperatura do ar a 10 m e da superfície
-                    MERRA-2 e precipitação IMERG Final/Late. Os meses
-                    disponíveis vêm do catálogo. Nas demais abas, séries,
-                    tendências e campos são simulados para ensino. A imagem de
-                    base é a composição estática Blue Marble de janeiro de 2004.
-                  </p>
-                </div>
-              </div>
-              <p className="modal-intro">
-                Os dados observados usam uma grade de exibição agregada; as
-                séries regionais usam recortes retangulares, sem máscara exata
-                de bacias. Vegetação ainda não está configurada nesta
-                integração. As referências abaixo também acompanham o material
-                educativo.
+          {modal === "guide" ? (
+            <Guide config={config.data} />
+          ) : (
+            <div className="real-source-modal">
+              <p>
+                Os campos mensais são derivados de produtos NASA e servidos pelo
+                catálogo de dados do laboratório. Cada variável identifica o
+                produto, a unidade, a agregação e os filtros de qualidade. A
+                imagem de base é NASA Blue Marble, estática.
+              </p>
+              <p>
+                As fichas de eventos são curadas e citam suas fontes históricas.
+                Uma coincidência entre campos e eventos não demonstra
+                causalidade.
+              </p>
+              {[
+                ...new Set([
+                  ...(catalog.data?.limitations ?? []),
+                  ...(config.data?.limitations ?? []),
+                ]),
+              ].map((item) => (
+                <p key={item}>{item}</p>
+              ))}
+              <p>
+                Explore a proveniência em “Fonte, qualidade & limites” e exporte
+                o JSON da série para preservar os metadados da consulta.
               </p>
               <a
-                className="text-button"
-                href={`${earthApi}/v1/catalog`}
+                href="https://earthdata.nasa.gov/"
                 target="_blank"
                 rel="noreferrer"
               >
-                Consultar catálogo dos dados observados{" "}
-                <ExternalLink size={14} />
+                NASA Earthdata <ExternalLink size={12} />
               </a>
-              <div className="source-list">
-                {variableKeys.map((key) => {
-                  const v = variables[key];
-                  const Icon = variableIcons[key];
-                  return (
-                    <a key={key} href={v.url} target="_blank" rel="noreferrer">
-                      <span
-                        className="source-list-icon"
-                        style={{ color: v.color }}
-                      >
-                        <Icon size={23} />
-                      </span>
-                      <div>
-                        <h3>{v.source}</h3>
-                        <p>{v.name}</p>
-                        <code>{v.product}</code>
-                      </div>
-                      <span>
-                        {v.resolution}
-                        <ExternalLink size={15} />
-                      </span>
-                    </a>
-                  );
-                })}
-              </div>
-              <div className="method-note">
-                <h3>Método da demonstração simulada</h3>
-                <p>
-                  Regressão linear das médias anuais completas dos dados
-                  simulados. O intervalo de 95% usa Student-t e pressupõe erros
-                  anuais independentes. Esse modelo simplificado não implementa
-                  correções de autocorrelação, testes múltiplos ou atribuição
-                  causal.
-                </p>
-                <p>
-                  Na demonstração, o mapa e o gráfico exibem valores mensais
-                  simulados ou anomalias em relação à referência fixa 2001–2024,
-                  por mês do calendário. As cores têm escala fixa durante o
-                  playback. A inferência continua usando apenas médias anuais
-                  completas do período selecionado. O mapa usa regiões e
-                  hexágonos esquemáticos, sem representar fronteiras de bacias
-                  ou medições reais.
-                </p>
-              </div>
-              <div className="source-credits">
-                <a
-                  href="https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Imagem: NASA Blue Marble <ArrowUpRight size={12} />
-                </a>
-                <span>Limites: Natural Earth / world-atlas</span>
-                <span>
-                  Projeto independente, sem afiliação institucional à NASA.
-                </span>
-              </div>
-              {activeTab !== "real" && (
-                <button
-                  className="primary-button"
-                  onClick={() => {
-                    download(
-                      `kipp-${region}-${variable}.csv`,
-                      toCsv(series, variable, region),
-                      "text/csv;charset=utf-8",
-                    );
-                    showToast("CSV dos dados simulados exportado.");
-                  }}
-                >
-                  <ArrowDownToLine size={15} /> Baixar série de demonstração
-                </button>
-              )}
-            </div>
-          )}
-          {modal === "reading" && (
-            <div className="reading-content">
-              <p className="modal-intro">
-                Um gráfico conta duas histórias ao mesmo tempo: o que observamos
-                e o quanto ainda não sabemos.
-              </p>
-              <div className="reading-visual">
-                <svg viewBox="0 0 500 130" aria-hidden="true">
-                  <path
-                    d="M20 115 L480 12 L480 76 L20 92Z"
-                    fill="#c4dfa1"
-                    opacity=".12"
-                  />
-                  <path
-                    d="M20 103L480 44"
-                    stroke="#c4dfa1"
-                    strokeWidth="2"
-                    strokeDasharray="6 5"
-                  />
-                  <path
-                    d="M20 115 L45 87 70 106 95 76 120 95 145 72 170 93 195 63 220 77 245 52 270 74 295 46 320 70 345 34 370 52 395 24 420 45 445 23 480 35"
-                    fill="none"
-                    stroke="#f4b080"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </div>
-              <div className="reading-item">
-                <span>01</span>
-                <div>
-                  <h3>Valores: o que muda a cada mês</h3>
-                  <p>
-                    Oscilações podem vir das estações e da variabilidade.
-                    “Remover ciclo das estações” subtrai a média do mesmo mês na
-                    referência fixa de 2001–2024. O mapa e o gráfico usam a
-                    mesma referência, mesmo quando o período selecionado muda.
-                  </p>
-                </div>
-              </div>
-              <div className="reading-item">
-                <span>02</span>
-                <div>
-                  <h3>Tendência: a direção ao longo dos anos</h3>
-                  <p>
-                    A linha tracejada resume a regressão das médias anuais. Sua
-                    inclinação é expressa por década, para facilitar a
-                    interpretação.
-                  </p>
-                </div>
-              </div>
-              <div className="reading-item">
-                <span>03</span>
-                <div>
-                  <h3>Incerteza: quanto a estimativa pode variar</h3>
-                  <p>
-                    O intervalo de confiança depende do método e de suas
-                    hipóteses. Se o intervalo da inclinação inclui zero, o
-                    exemplo é compatível com ausência de tendência.
-                  </p>
-                </div>
-              </div>
-              <div className="guide-tip">
-                <CircleHelp size={19} />
-                <p>
-                  95% não é a probabilidade de a tendência ser verdadeira. E um
-                  sinal estatístico não prova sua causa nem mede sozinho sua
-                  importância.
-                </p>
-              </div>
-              <button
-                className="primary-button"
-                onClick={() => {
-                  setVariable("rainfall");
-                  setModal(null);
-                }}
-              >
-                Explorar um exemplo inconclusivo <ArrowRight size={16} />
-              </button>
-            </div>
-          )}
-          {modal === "robustness" && (
-            <div className="robustness-content">
-              <span className="eyebrow">
-                DADOS SIMULADOS · {config.short.toUpperCase()}
-              </span>
-              <p className="modal-intro">
-                Se mudarmos o começo da história, a direção continua? Compare as
-                estimativas calculadas com três janelas do mesmo exemplo.
-              </p>
-              <div className="robustness-table">
-                <div className="robustness-table-head">
-                  <span>Período</span>
-                  <span>Mudança / década</span>
-                  <span>Intervalo de 95%</span>
-                  <span>Leitura</span>
-                </div>
-                {[
-                  ...new Set([
-                    0,
-                    Math.floor(timeline.end / 36) * 12,
-                    Math.floor(timeline.end / 18) * 12,
-                  ]),
-                ].map((start) => {
-                  const result = calculateTrend(
-                    annualMeans(
-                      selectPeriod(allSeries, { start, end: timeline.end }),
-                    ),
-                  );
-                  return (
-                    <button
-                      key={start}
-                      onClick={() => {
-                        dispatchTimeline({
-                          type: "preset",
-                          start,
-                          end: timeline.end,
-                        });
-                        setModal(null);
-                        showToast(
-                          `Período alterado: ${formatMonth(start)} — ${formatMonth(timeline.end)}.`,
-                        );
-                      }}
-                    >
-                      <strong>
-                        {formatMonth(start)}
-                        <small>até {formatMonth(timeline.end)}</small>
-                      </strong>
-                      <span style={{ color: config.color }}>
-                        {result
-                          ? formatValue(result.slope, variable, true)
-                          : "—"}
-                      </span>
-                      <span>
-                        {result
-                          ? `${formatValue(result.interval[0], variable)} a ${formatValue(result.interval[1], variable)}`
-                          : "Sem estimativa"}
-                      </span>
-                      <span
-                        className={
-                          result?.significant ? "positive-text" : "muted-text"
-                        }
-                      >
-                        {result?.significant ? (
-                          <Check size={14} />
-                        ) : (
-                          <CircleHelp size={14} />
-                        )}
-                        {!result
-                          ? "Período curto"
-                          : result.significant
-                            ? "Sinal no exemplo"
-                            : "Inconclusivo"}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="method-note">
-                <h3>Resistir a uma escolha não resolve todas as outras.</h3>
-                <p>
-                  Num estudo real, também verificaríamos qualidade, cobertura,
-                  mudanças de sensor, autocorrelação e testes múltiplos. Regiões
-                  e períodos devem ser justificados antes de procurar um
-                  resultado atraente.
-                </p>
-              </div>
-              <div className="guide-tip">
-                <ShieldCheck size={20} />
-                <p>
-                  Uma série curta pode ter um resultado significativo e ainda
-                  não representar uma mudança climática de longo prazo. Contexto
-                  físico e período sempre importam.
-                </p>
-              </div>
-            </div>
-          )}
-          {modal === "definition" && (
-            <div className="definition-content">
-              <div
-                className="definition-feature"
-                style={{ color: config.color }}
-              >
-                {(() => {
-                  const Icon = variableIcons[variable];
-                  return <Icon size={45} strokeWidth={1.2} />;
-                })()}
-                <span>
-                  <span className="eyebrow">A LENTE ATUAL</span>
-                  <h3>{config.name}</h3>
-                </span>
-              </div>
-              <p className="modal-intro">{config.definition}</p>
-              <div className="method-note">
-                <h3>Como interpretar?</h3>
-                <p>{config.explanation}</p>
-              </div>
-              <div className="concept-contrast">
-                <div>
-                  <span className="eyebrow">EVENTO</span>
-                  <h3>Um mês excepcional.</h3>
-                  <p>Uma observação que se afasta do comportamento habitual.</p>
-                </div>
-                <ArrowRight size={18} />
-                <div>
-                  <span className="eyebrow">TENDÊNCIA</span>
-                  <h3>Uma direção persistente.</h3>
-                  <p>
-                    Uma mudança avaliada ao longo de um período, com incerteza.
-                  </p>
-                </div>
-              </div>
-              <button
-                className="primary-button"
-                onClick={() => {
-                  setModal("guide");
-                  setGuideStep(2);
-                }}
-              >
-                Continue aprendendo <ArrowRight size={16} />
-              </button>
             </div>
           )}
         </Modal>
@@ -1406,5 +541,4 @@ function App() {
     </div>
   );
 }
-
 export default App;

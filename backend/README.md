@@ -17,8 +17,10 @@ Tabelas permitidas no schema PostgreSQL `default` do Lakebase `rt-demo`
 | rainfall | tb_gpm_imerg_precipitation | precipitation_mm_month | mm/mês, Final |
 | rainfall_late | tb_gpm_imerg_late_precipitation | precipitation_mm_month | mm/mês, Late |
 
-Não expõe vento com unidade inconsistente ou vegetação sem tabela disponível.
-Não mistura Final/Late. Não produz anomalias, tendências ou previsões.
+SPEED com conversão inválida permanece bloqueado; componentes U/V são
+seleções distintas. NDVI/EVI aplica QA conservador. GRACE preserva sua referência
+2004–2009 e soma massa em Gt; classes de gelo usam moda ponderada. Final/Late
+continuam separados. Não há detecção de eventos, inferência causal ou previsão.
 
 As tabelas atuais têm 576 × 361 amostras espaciais por mês, totalizando
 20.793.600 registros conferidos no Lakebase. A grade HTTP agrupa amostras em
@@ -73,8 +75,8 @@ const values = new Float32Array(bytes, offset, count);
 const coverage = new Float32Array(bytes, offset + count * 4, count);
 ```
 
-Futuros campos reais devem ser enviados a uma textura/camada GPU, não a um
-elemento SVG para cada posição. A integração visual permanece uma etapa separada.
+O frontend desenha os campos como textura GPU, sem um elemento SVG por ponto.
+Somas e classes usam os métodos publicados nos metadados de cada variável.
 
 ## Performance e operação
 

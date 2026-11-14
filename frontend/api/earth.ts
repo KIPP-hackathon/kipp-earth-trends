@@ -118,6 +118,17 @@ export default async function handler(
       )
     )
       return fail(404, "ROUTE_NOT_FOUND");
+    // CI verifies a newly promoted revision without reusing a previous CDN entry.
+    // This identifier never changes the fixed upstream destination.
+    if (query.has("deployment")) {
+      if (
+        path !== "/v1/catalog" ||
+        query.getAll("deployment").length !== 1 ||
+        !/^[a-z0-9-]{1,100}$/.test(query.get("deployment")!)
+      )
+        return fail(400, "INVALID_PARAMETERS");
+      query.delete("deployment");
+    }
     const allowed = new Set(["bbox", "factor", "format", "start", "end"]);
     for (const [key, value] of query)
       if (

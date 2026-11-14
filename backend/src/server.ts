@@ -221,6 +221,7 @@ api.get("/v1/catalog", async (request, reply) =>
     json({
       provider: mode,
       simulated: false,
+      revision: process.env.K_REVISION ?? "local",
       variables: await catalogData(),
       unavailable: excludedSources,
       limitations,

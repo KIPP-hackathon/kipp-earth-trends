@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { EarthSeries } from "../lib/earthApi";
-import { realMonth, realUnit } from "../lib/earthApi";
+import { aggregationLabel, realMonth, realUnit } from "../lib/earthApi";
 
 const number = (v: number) =>
   v.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -24,12 +24,36 @@ export function RealSeries({
         Sem valores válidos neste recorte. Escolha outra região.
       </p>
     );
-  const low = Math.min(...finite),
-    high = Math.max(...finite),
+  const categorical = data.aggregation === "weighted_mode";
+  const categories = data.render?.categories ?? [
+    { value: 0, label: "Oceano" },
+    { value: 1, label: "Gelo" },
+  ];
+  const low = categorical
+      ? Math.min(...categories.map((category) => category.value))
+      : Math.min(...finite),
+    high = categorical
+      ? Math.max(...categories.map((category) => category.value))
+      : Math.max(...finite),
     pad = Math.max(0.1, (high - low) * 0.15);
+  const chartLeft = categorical ? 125 : 48;
   const y = (value: number) =>
     170 - ((value - low + pad) / (high - low + 2 * pad)) * 140;
-  const x = (i: number) => 48 + (i / Math.max(1, rows.length - 1)) * 540;
+  const x = (i: number) =>
+    chartLeft + (i / Math.max(1, rows.length - 1)) * (588 - chartLeft);
+  const formatObservation = (value: number) =>
+    categorical
+      ? `${number(value)} · ${categories.find((category) => category.value === value)?.label ?? "classe"}`
+      : `${number(value)} ${realUnit(data.unit)}`;
+  const ticks = categorical
+    ? categories.map((category) => ({
+        value: category.value,
+        label: `${category.value} · ${category.label}`,
+      }))
+    : [0, 0.5, 1].map((fraction) => {
+        const value = low - pad + fraction * (high - low + 2 * pad);
+        return { value, label: number(value) };
+      });
   let path = "",
     connected = false;
   rows.forEach((row, i) => {
@@ -43,18 +67,22 @@ export function RealSeries({
   const active = rows.find((p) => p.month === month);
   const exportCsv = () => {
     const csv = [
-      "month,value,unit,coverage,bbox,product,run,simulated",
+      "month,value,unit,coverage,bbox,product,run,aggregation,method,simulated",
       ...rows.map((p) =>
         [
           p.month,
           p.value ?? "",
           data.unit,
           p.coverage ?? "",
-          `"${data.bbox.join(",")}"`,
+          data.bbox.join(","),
           data.product,
           data.run ?? "",
+          data.aggregation ?? "area_weighted_mean",
+          data.method,
           "false",
-        ].join(","),
+        ]
+          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+          .join(","),
       ),
     ].join("\n");
     const url = URL.createObjectURL(
@@ -66,26 +94,42 @@ export function RealSeries({
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const exportJson = () => {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json;charset=utf-8",
+      }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `kipp-real-${data.variable}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   return (
     <section className="real-series" aria-labelledby={id}>
       <div className="real-series-heading">
         <div>
           <h3 id={id}>Série mensal do recorte</h3>
-          <small>{realUnit(data.unit)} · média espacial ponderada</small>
+          <small>
+            {realUnit(data.unit)} · {aggregationLabel(data.aggregation)}
+          </small>
         </div>
-        <button onClick={exportCsv}>Baixar CSV</button>
+        <div className="real-export-actions">
+          <button onClick={exportCsv}>Baixar CSV</button>
+          <button onClick={exportJson}>Baixar JSON</button>
+        </div>
       </div>
       <svg
         viewBox="0 0 620 210"
         role="group"
         aria-label={`Série real de ${realMonth(rows[0].month)} a ${realMonth(rows.at(-1)!.month)}. Selecione um ponto para mudar o mês.`}
       >
-        {[0, 0.5, 1].map((f) => {
-          const value = low - pad + f * (high - low + 2 * pad);
+        {ticks.map(({ value, label }) => {
           return (
-            <g key={f}>
+            <g key={value}>
               <line
-                x1="48"
+                x1={chartLeft}
                 x2="588"
                 y1={y(value)}
                 y2={y(value)}
@@ -93,25 +137,27 @@ export function RealSeries({
                 strokeDasharray="3 5"
               />
               <text
-                x="40"
+                x={chartLeft - 8}
                 y={y(value) + 4}
                 textAnchor="end"
                 fill="#9eaf9b"
                 fontSize="10"
               >
-                {number(value)}
+                {label}
               </text>
             </g>
           );
         })}
-        <path d={path} fill="none" stroke="#c7dfa7" strokeWidth="2" />
+        {!categorical && (
+          <path d={path} fill="none" stroke="#c7dfa7" strokeWidth="2" />
+        )}
         {rows.map((p, i) =>
           p.value === null || !Number.isFinite(p.value) ? null : (
             <g
               key={p.month}
               role="button"
               tabIndex={0}
-              aria-label={`${realMonth(p.month)}: ${number(p.value)} ${realUnit(data.unit)}`}
+              aria-label={`${realMonth(p.month)}: ${formatObservation(p.value)}`}
               onClick={() => onMonth(p.month)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -124,16 +170,16 @@ export function RealSeries({
               <circle
                 cx={x(i)}
                 cy={y(p.value)}
-                r={p.month === month ? 5 : 2.5}
+                r={p.month === month ? 5 : categorical ? 4 : 2.5}
                 fill={p.month === month ? "#fff2c5" : "#c7dfa7"}
               />
               <title>
-                {realMonth(p.month)} · {number(p.value)} {realUnit(data.unit)}
+                {realMonth(p.month)} · {formatObservation(p.value)}
               </title>
             </g>
           ),
         )}
-        <text x="48" y="200" fill="#9eaf9b" fontSize="11">
+        <text x={chartLeft} y="200" fill="#9eaf9b" fontSize="11">
           {realMonth(rows[0].month)}
         </text>
         <text x="588" y="200" textAnchor="end" fill="#9eaf9b" fontSize="11">
@@ -141,11 +187,13 @@ export function RealSeries({
         </text>
       </svg>
       <p className="real-observation">
-        {realMonth(month)}:{" "}
+        {month ? realMonth(month) : "Nenhum mês exibido"}:{" "}
         <strong>
-          {active?.value != null
-            ? `${number(active.value)} ${realUnit(data.unit)}`
-            : "sem dado"}
+          {!month
+            ? "aguardando quadro"
+            : active?.value != null
+              ? formatObservation(active.value)
+              : "sem dado"}
         </strong>
         {active?.coverage != null && (
           <span>
@@ -155,9 +203,26 @@ export function RealSeries({
         )}
       </p>
       <small>
+        {categorical &&
+          "Pontos representam classes mensais discretas; não há interpolação entre classes. "}
         Recorte retangular (bbox), sem máscara exata de bacia. Valores mensais
         observados; sem inferência de tendência ou previsão.
       </small>
+      <details className="real-series-method">
+        <summary>Método e proveniência da consulta</summary>
+        <p>
+          Produto: {data.product}
+          {data.run ? ` · ${data.run}` : ""}
+        </p>
+        <p>
+          Variável: {data.variable} · bbox [{data.bbox.join(", ")}]
+        </p>
+        <p>{aggregationLabel(data.aggregation)}</p>
+        <p>{data.method}</p>
+        {data.quality?.notes.map((note) => (
+          <p key={note}>{note}</p>
+        ))}
+      </details>
     </section>
   );
 }

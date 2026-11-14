@@ -29,3 +29,16 @@ HTTP binário com cache e buffer de próximos quadros é a primeira abordagem.
 Streaming não elimina consulta lenta nem corrige descartar a textura anterior.
 O mês mostrado deve sempre corresponder ao quadro visível; espera pelo buffer não
 apaga o mapa. Troca de variável/dataset não pode reaproveitar quadro incompatível.
+
+## Integração concluída
+
+- 72 variáveis revisadas; catálogo em lotes e QA/agregação por fonte.
+- O time carregou posteriormente as quatro fontes principais no RT. Roteamento
+  híbrido explícito preserva essas quatro no Lakebase e as demais no Warehouse.
+- Configuração e oito fichas históricas na API, com três presets dentro da cobertura.
+- Cinco abas reais, buffer/prefetch, contorno do bbox e exportações com proveniência.
+- Revisões independentes: cache com TTL/invalidação; classes discretas sem
+  interpolação; catálogo não cacheia saturação como ausência. Correções aplicadas.
+- Builds Node 24 e consultas reais às duas origens passaram; 72/72 fontes disponíveis
+  em produção no catálogo híbrido. Verificação de segurança: endpoints diretos403,
+  proxy200. Publicação final do frontend e sua conferência seguem abaixo na entrega.
