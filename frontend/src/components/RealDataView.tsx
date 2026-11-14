@@ -6,7 +6,12 @@ import {
   Play,
   RefreshCw,
 } from "lucide-react";
-import { loadSeries, realMonth, realUnit } from "../lib/earthApi";
+import {
+  loadSeries,
+  realMonth,
+  realUnit,
+  variableDataKey,
+} from "../lib/earthApi";
 import type {
   EarthCatalog,
   EarthColorRange,
@@ -213,7 +218,7 @@ export function RealPanel({
   );
   const series = useEarthResource(
     seriesEnabled
-      ? `${variable.id}/${region.bbox}/${months[0].month}/${months.at(-1)!.month}`
+      ? `${variableDataKey(variable)}/${region.bbox}/${months[0].month}/${months.at(-1)!.month}`
       : null,
     (signal) => loadSeries({ ...variable, months }, region.bbox, signal),
   );

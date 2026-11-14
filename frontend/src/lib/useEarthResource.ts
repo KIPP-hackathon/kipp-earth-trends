@@ -20,14 +20,15 @@ export function useEarthResource<T>(
       },
       (error) => {
         if (!controller.signal.aborted)
-          setState({
+          setState((previous) => ({
             key,
             attempt,
+            data: previous.key === key ? previous.data : undefined,
             error:
               error instanceof Error
                 ? error.message
                 : "Falha ao consultar dados.",
-          });
+          }));
       },
     );
     return () => controller.abort();
@@ -37,7 +38,7 @@ export function useEarthResource<T>(
   const current =
     key !== null && state.key === key && state.attempt === attempt;
   return {
-    data: current ? state.data : undefined,
+    data: key !== null && state.key === key ? state.data : undefined,
     error: current ? state.error : undefined,
     loading: key !== null && !current,
     retry: () => setAttempt((value) => value + 1),

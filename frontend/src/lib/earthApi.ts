@@ -1,4 +1,6 @@
 import { validFrameBounds } from "./globeSelection";
+import { earthReadCache } from "./earthReadCache";
+
 export const earthApi = "/api/earth";
 
 export type EarthRender = {
@@ -59,6 +61,7 @@ export type EarthEvents = {
   limitations?: string[];
 };
 export type EarthVariable = {
+  sourceRevision?: string;
   id: string;
   name: string;
   quantity: string;
@@ -74,6 +77,7 @@ export type EarthVariable = {
   months: { month: string; samples: number; validSamples: number }[];
 };
 export type EarthCatalog = {
+  revision?: string;
   simulated: false;
   variables: EarthVariable[];
   limitations?: string[];
@@ -117,10 +121,40 @@ export type EarthSeries = {
   }[];
 };
 
+function retryDelay(delay: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason);
+    const abort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", abort);
+      resolve();
+    }, delay);
+    signal.addEventListener("abort", abort, { once: true });
+  });
+}
+
 async function checked(url: string, signal: AbortSignal) {
   const budget = AbortSignal.any([signal, AbortSignal.timeout(58_000)]);
   for (let attempt = 0; ; attempt++) {
-    const response = await fetch(`${earthApi}${url}`, { signal: budget });
+    budget.throwIfAborted();
+    let response: Response;
+    try {
+      response = await fetch(`${earthApi}${url}`, { signal: budget });
+    } catch (error) {
+      budget.throwIfAborted();
+      if (!(error instanceof TypeError)) throw error;
+      // Browser network failures reject fetch without an HTTP response.
+      // Only these read-only requests are repeated, within one shared deadline.
+      if (attempt >= 3)
+        throw new Error(
+          "Não foi possível conectar à fonte de dados. Verifique sua conexão e tente novamente.",
+        );
+      await retryDelay(500 * 2 ** attempt, budget);
+      continue;
+    }
     if ([429, 503].includes(response.status) && attempt < 3) {
       const seconds = Number(response.headers.get("retry-after") ?? 1);
       const delay = Math.min(
@@ -129,18 +163,7 @@ async function checked(url: string, signal: AbortSignal) {
       );
       await response.body?.cancel();
       // Saturated slots finish quickly; keep the visible field while retrying.
-      await new Promise<void>((resolve, reject) => {
-        if (budget.aborted) return reject(budget.reason);
-        const abort = () => {
-          clearTimeout(timer);
-          reject(budget.reason);
-        };
-        const timer = setTimeout(() => {
-          budget.removeEventListener("abort", abort);
-          resolve();
-        }, delay);
-        budget.addEventListener("abort", abort, { once: true });
-      });
+      await retryDelay(delay, budget);
       continue;
     }
     if (!response.ok) {
@@ -153,7 +176,10 @@ async function checked(url: string, signal: AbortSignal) {
     return response;
   }
 }
-export async function loadCatalog(signal: AbortSignal): Promise<EarthCatalog> {
+export function loadCatalog(signal: AbortSignal): Promise<EarthCatalog> {
+  return earthReadCache.read("catalog", signal, 60_000, readCatalog);
+}
+async function readCatalog(signal: AbortSignal): Promise<EarthCatalog> {
   const data = await (await checked("/v1/catalog", signal)).json();
   if (
     data.simulated !== false ||
@@ -172,9 +198,17 @@ export async function loadCatalog(signal: AbortSignal): Promise<EarthCatalog> {
     throw new Error(
       "Nenhum mês disponível no catálogo. Tente atualizar após a carga dos dados.",
     );
+  if (typeof data.revision === "string")
+    data.variables = data.variables.map((variable: EarthVariable) => ({
+      ...variable,
+      sourceRevision: data.revision,
+    }));
   return data;
 }
-export async function loadConfig(signal: AbortSignal): Promise<EarthConfig> {
+export function loadConfig(signal: AbortSignal): Promise<EarthConfig> {
+  return earthReadCache.read("config", signal, 300_000, readConfig);
+}
+async function readConfig(signal: AbortSignal): Promise<EarthConfig> {
   const data = await (await checked("/v1/config", signal)).json();
   if (
     !Array.isArray(data.regions) ||
@@ -185,7 +219,10 @@ export async function loadConfig(signal: AbortSignal): Promise<EarthConfig> {
     throw new Error("A configuração de regiões não está disponível.");
   return data;
 }
-export async function loadEvents(signal: AbortSignal): Promise<EarthEvents> {
+export function loadEvents(signal: AbortSignal): Promise<EarthEvents> {
+  return earthReadCache.read("events", signal, 60_000, readEvents);
+}
+async function readEvents(signal: AbortSignal): Promise<EarthEvents> {
   const data = await (await checked("/v1/events", signal)).json();
   if (
     data.curated !== true ||
@@ -262,7 +299,36 @@ export async function loadFrame(
   }
   return { ...metadata, ...(render ? { render } : {}), values, coverage };
 }
-export async function loadSeries(
+export function variableDataKey(variable: EarthVariable) {
+  return JSON.stringify([
+    variable.id,
+    variable.sourceRevision,
+    variable.product,
+    variable.run,
+    variable.quantity,
+    variable.unit,
+    variable.aggregation,
+    variable.quality,
+    variable.render,
+  ]);
+}
+export function loadSeries(
+  variable: EarthVariable,
+  bbox: string,
+  signal: AbortSignal,
+): Promise<EarthSeries> {
+  const key = JSON.stringify([
+    "series",
+    variableDataKey(variable),
+    bbox,
+    variable.months[0].month,
+    variable.months.at(-1)!.month,
+  ]);
+  return earthReadCache.read(key, signal, 60_000, (requestSignal) =>
+    readSeries(variable, bbox, requestSignal),
+  );
+}
+async function readSeries(
   variable: EarthVariable,
   bbox: string,
   signal: AbortSignal,

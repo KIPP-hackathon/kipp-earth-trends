@@ -1,4 +1,4 @@
-import { loadFrame } from "./earthApi";
+import { loadFrame, variableDataKey } from "./earthApi";
 import type { EarthFrame, EarthVariable } from "./earthApi";
 
 // Shared by both comparison panels. Cached arrays stay below 32 MiB; only two
@@ -30,8 +30,7 @@ export const frameKey = (
   variable: EarthVariable,
   month: string,
   bbox?: string,
-) =>
-  `${generation}/${variable.id}/${month}/${bbox ?? "global"}/${JSON.stringify(variable.render ?? null)}`;
+) => `${generation}/${variableDataKey(variable)}/${month}/${bbox ?? "global"}`;
 const foreground = (job: Job) =>
   [...job.consumers.values()].some(
     (consumer) => consumer.priority === "foreground",

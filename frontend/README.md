@@ -29,15 +29,31 @@ variáveis `VITE_*`. O build verifica frontend e função TypeScript da Vercel.
 ## Visualização
 
 Frames Float32 são texturas WebGL, com ausências transparentes e escala fixa
-por variável. Dois globos no máximo, câmera sincronizada e filtros independentes.
+por variável. Explorar e Comparar preservam estados separados: filtros, períodos,
+região, câmera, escalas, contexto histórico e comandos do assistente. Comparar
+mantém câmera e escala da mesma variável sincronizadas apenas entre A/B. A aba
+Análise usa a investigação de Explorar. Painéis ocultos pausam reprodução,
+animações e consultas; as escolhas permanecem ao retornar.
 Contorno regional identifica o bbox da série, sem representar área atingida
 por evento. Arraste, use as setas ou os controles de zoom para navegar.
 
 Cache de frames de 32 MiB e cinco minutos, até dois downloads, deduplicação e
 prefetch. O quadro compatível permanece até o próximo estar pronto; a data sobre
-o globo identifica o mês visível. Atualizar o catálogo invalida o cache.
+o globo identifica o mês visível. Catálogo, eventos e séries têm cache em memória
+de um minuto; configuração, cinco minutos. O cache JSON limita o conteúdo
+serializado a 4 MiB/80 entradas, deduplica requisições e entrega cópias separadas
+aos consumidores. Não guarda erros, credenciais ou conversas e não persiste em
+localStorage ou service worker. Cancelar uma aba não cancela outra consumidora
+da mesma consulta. Chaves de dados incluem produto, unidade, política e revisão
+publicada pelo catálogo; a expiração limita a reutilização quando a revisão não
+muda. Atualizar o catálogo invalida ambos os caches e refaz as consultas sem
+apagar os filtros.
 Séries preservam lacunas; classes discretas não são interpoladas. CSV e JSON
 incluem produto, unidade, método e proveniência.
+
+O céu decorativo usa estrelas SVG com deslocamento em três camadas e variação
+suave de brilho. Respeita `prefers-reduced-motion`; não representa observações
+astronômicas nem interfere na camada científica.
 
 Módulos antigos de simulação e suas verificações foram preservados como material
 histórico, mas não são usados pelo fluxo operacional do App.

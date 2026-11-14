@@ -180,3 +180,48 @@ exigir área/período explícitos para evitar analisar um bbox e mostrar outro.
 Builds Node.js 24 e 29 verificações preexistentes passaram; consulta real também
 conferiu um recorte cruzando o antimeridiano. Esses controles não demonstram
 significância, previsão ou causalidade, nem encerram a investigação/submissão.
+
+## Evidência incremental — recuperação de conexão (14/11/2026)
+
+Após relato de `ERR_NETWORK_CHANGED`, consultas públicas a `/api/earth/v1/catalog`
+e `/api/earth/v1/config` responderam HTTP 200; o catálogo continha 72 variáveis.
+Essas consultas pontuais não reproduzem a falha no navegador do usuário nem
+comprovam disponibilidade contínua. A leitura no frontend agora repete falhas
+de rede de `fetch` até três vezes, com esperas de 0,5/1/2 segundos, respeitando
+cancelamento e um único orçamento de 58 segundos. Mantém o tratamento de
+429/503 e não repete erros HTTP de validação.
+
+Validação local com Node.js 24: 37 testes aprovados e build do frontend aprovado,
+incluindo checagem TypeScript da API Vercel. Correção ainda não publicada;
+comportamento em produção permanece pendente de verificação após deploy.
+OpenAI Codex assistiu a implementação, os testes em `earthApi.test.ts` e este
+registro; revisão humana da equipe pendente. Não altera resultados científicos.
+
+## Evidência incremental — abas, estrelas e caches (14/11/2026)
+
+Explorar e Comparar mantêm seleções, câmera, escala, regiões personalizadas,
+contexto histórico e comandos/snapshots do assistente separados. Os painéis
+permanecem montados ao alternar abas; painéis ocultos pausam reprodução,
+animações e leituras. Comparar preserva sincronização da câmera e da escala da
+mesma variável entre A/B. Análise continua vinculada à investigação de Explorar.
+O fundo decorativo tem estrelas SVG em três camadas, respeitando movimento
+reduzido. Não altera dados, agregações ou resultados científicos.
+
+Cache JSON apenas em memória: um minuto para catálogo/eventos/séries e cinco
+para configuração; até 4 MiB de conteúdo serializado e 80 entradas. Deduplicação
+com cancelamento por consumidor, cópias independentes e exclusão de erros.
+Chaves de séries/frames incluem revisão e política da variável. Atualizar
+catálogo invalida os caches, impede reaproveitamento de resultados antigos em
+voo e preserva filtros. Detalhes em [frontend/README.md](../frontend/README.md).
+
+Validação local: 46 testes aprovados e build com Node.js 24 aprovado. Chromium
+com respostas sintéticas identificadas no roteiro de teste confirmou isolamento
+e persistência entre abas, câmera/escala A/B sincronizadas, movimento das estrelas,
+preferência de movimento reduzido, reutilização de consultas e atualização
+explícita preservando filtros. Um comando sintético do assistente para abrir e
+alterar Explorar preservou o estado de Comparar; viewport mobile de 390 px ficou
+sem overflow horizontal. Não é validação científica dos valores nem
+comprovação do deploy. Alterações ainda locais; publicação pendente.
+
+OpenAI Codex assistiu a implementação, os testes e este registro; revisão humana
+da equipe pendente. Não encerra os bloqueadores de investigação ou submissão.
