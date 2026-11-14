@@ -108,6 +108,11 @@ usando uma SA dedicada ao deploy. Também existe execução manual na `main`.
 A imagem usa SHA do commit e é implantada pelo digest imutável. A revisão
 `candidate` passa por smoke checks antes de receber tráfego de produção.
 
+O filtro `backend/**` inclui este README: uma alteração nele também permite
+verificar o trigger completo após integrar a branch à `main`. Alterações somente
+em `docs/` não publicam o backend. O resultado aparece em GitHub Actions,
+workflow **Backend CI/CD**, nos jobs `check` e `deploy`.
+
 O script manual constrói e envia a imagem linux/amd64 usando Docker local e
 reutiliza o mesmo deploy com smoke checks. Seleciona explicitamente
 `GCP_ACCOUNT=admin@kipptrend.space` (ou `lucas.henrique.tai@gmail.com`), sem
