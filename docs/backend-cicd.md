@@ -101,7 +101,9 @@ A revisão não contém `DATABRICKS_CREDENTIALS` e usa `google-id` com a SA runt
 As concessões temporárias de administração IAM/WIF/Artifact Registry e de
 impersonação usadas na configuração e verificação foram removidas.
 
-A ativação da automação GitHub ainda depende de enviar este workflow à `main`:
-o primeiro push foi recusado porque o token OAuth de c0ffex não possui escopo
-`workflow`. A renovação via `gh auth refresh --scopes workflow` aguarda o login
-do usuário. O fluxo OIDC será verificado pelo primeiro run após essa autorização.
+A autorização GitHub de `c0ffex` foi renovada com escopo `workflow` e o
+[PR #2](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/2) foi integrado
+à `main`. A
+[execução 43629093341](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43629093341)
+concluiu com sucesso: autenticação OIDC, build, envio da imagem, deploy e
+smoke checks. A revisão `kipp-earth-api-00006-huh` recebeu 100% do tráfego.

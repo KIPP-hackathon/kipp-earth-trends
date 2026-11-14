@@ -16,7 +16,7 @@
 - [x] Criar `.github/workflows/backend.yml`: PR compila/testa backend sem OIDC; push main/manual compila imagem SHA, autentica google-github-actions/auth, faz push, deploy sem tráfego, verifica /ready e disponibilidade na URL da revisão, promove tráfego após sucesso e verifica URL estável. Serializar produção.
 - [x] Criar `backend/scripts/deploy-image.sh` para deploy reproduzível da imagem com SA runtime, google-id, limites existentes e remoção da variável de segredo apenas na nova revisão. Atualizar script manual e documentação.
 - [x] Validar scripts, YAML, testes e build API com Node 24; rodar testes/build frontend exigidos pelo AGENTS.md. Revisar diff por credenciais e permissões excessivas.
-- [ ] Commitar e enviar branch com c0ffex; integrar main, acompanhar GitHub Actions e conferir revisão pronta, consulta real e IAM. Registrar resultados em docs/backend-cloud-run-access.md.
+- [x] Commitar e enviar branch com c0ffex; integrar main, acompanhar GitHub Actions e conferir revisão pronta, consulta real e IAM. Registrar resultados em docs/backend-cicd.md, vinculado de docs/backend-cloud-run-access.md.
 
 ## Decisões
 
@@ -26,4 +26,4 @@ Não usar conta ou projeto corporativo. Todas as chamadas gcloud selecionam
 `--account=admin@kipptrend.space --project=nasa-earth-trends-lab` explicitamente.
 Não remover segredo ou principal M2M antigos, permitindo rollback de revisões.
 
-Runtime publicado e verificado: kipp-earth-api-00004-say. Push da pipeline pendente do escopo workflow no token c0ffex; renovação interativa iniciada. Permissões administrativas temporárias removidas.
+Autorização GitHub renovada com escopo workflow e PR #2 integrado à main. Primeiro deploy automático concluído com sucesso: https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43629093341. Revisão kipp-earth-api-00006-huh com 100% do tráfego, smoke checks de saúde e leitura das quatro tabelas aprovados. Permissões administrativas temporárias removidas.
