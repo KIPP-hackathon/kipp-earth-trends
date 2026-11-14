@@ -1,0 +1,21 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_t10m'
+target_table: '`earth-trend-data`.trusted.tb_merra2_t10m'
+source_description: ../../data-extraction/tb_merra2_t10m/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  T10M_K: air_temperature_at_10_meters_kelvin
+  T10M_C: air_temperature_at_10_meters_celsius

@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_t2mdew'
+  name: '`earth-trend-data`.transient.tb_merra2_t2mdew'
   description: Diagnóstico mensal T2MDEW do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Média mensal de T2MDEW (dew point temperature at 2 m), na unidade K indicada pelo atributo units
     do arquivo MERRA-2.

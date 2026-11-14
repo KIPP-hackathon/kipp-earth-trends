@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_var_cldprs'
+  name: '`earth-trend-data`.transient.tb_merra2_var_cldprs'
   description: Diagnóstico mensal Var_CLDPRS do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Variável mensal Var_CLDPRS (Variance of CLDPRS), na unidade Pa Pa indicada pelo atributo units
     do arquivo MERRA-2.

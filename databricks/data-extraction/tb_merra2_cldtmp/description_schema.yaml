@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_cldtmp'
+  name: '`earth-trend-data`.transient.tb_merra2_cldtmp'
   description: Diagnóstico mensal CLDTMP do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV por ano. Temperatura
     no topo das nuvens, em kelvin.
   theme: atmosfera

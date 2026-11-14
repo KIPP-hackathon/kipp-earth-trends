@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_gpm_imerg_late_precipitation'
+  name: '`earth-trend-data`.transient.tb_gpm_imerg_late_precipitation'
   description: Precipitação IMERG Late versão 07 agregada de arquivos diários em totais mensais pelo pipeline
     KIPP e reamostrada para grade de 0,5 grau por 0,625 grau. O controle de cobertura exige todos os dias e
     amostragem completa. A comparação com IMERG Final requer avaliação das diferenças de processamento.

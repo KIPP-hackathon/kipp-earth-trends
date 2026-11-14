@@ -1,0 +1,26 @@
+source_table: '`earth-trend-data`.transient.tb_modis_mod13c2_vegetation'
+target_table: '`earth-trend-data`.trusted.tb_modis_mod13c2_vegetation'
+source_description: ../../data-extraction/tb_modis_mod13c2_vegetation/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  ndvi_raw: normalized_difference_vegetation_index_raw
+  evi_raw: enhanced_vegetation_index_raw
+  ndvi: normalized_difference_vegetation_index
+  evi: enhanced_vegetation_index
+  vi_quality: vegetation_index_quality_bits
+  pixel_reliability: pixel_reliability_rank
+  source_file: source_file

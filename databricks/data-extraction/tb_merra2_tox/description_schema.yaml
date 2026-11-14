@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_tox'
+  name: '`earth-trend-data`.transient.tb_merra2_tox'
   description: Diagnóstico mensal TOX do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas anuais.
     Média mensal de TOX (total column odd oxygen), na unidade kg m-2 indicada pelo atributo units do arquivo
     MERRA-2.

@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_v850'
+  name: '`earth-trend-data`.transient.tb_merra2_v850'
   description: Diagnóstico mensal V850 do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Variável mensal V850 (northward wind at 850 hPa), na unidade m s-1 indicada pelo atributo units
     do arquivo MERRA-2.

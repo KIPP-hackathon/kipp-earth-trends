@@ -3,8 +3,7 @@
 ## Identidade e Git
 
 - Este repositório pertence ao projeto pessoal do time KIPP.
-- Nas operações Git/GitHub do agente, use a conta `Luckstai`, o nome `Lucas Henrique` e o e-mail `lucas.henrique.tai@gmail.com`, tanto para autor quanto para committer.
-- Antes de autenticar, criar commits ou enviar código, confira a conta efetiva com `gh api user` e a identidade Git local. Não use outras identidades.
+- Antes de autenticar, criar commits ou enviar código, confira a conta efetiva com `gh api user` e a identidade Git local. Use a conta autorizada pelo usuário para a sessão.
 - Configure identidade e credenciais no escopo deste repositório. Não copie configurações, credenciais, dados ou documentos de projetos de trabalho.
 - Use nomes de branches descritivos com prefixos `feat/`, `fix/` ou `docs/` quando uma nova branch for necessária.
 

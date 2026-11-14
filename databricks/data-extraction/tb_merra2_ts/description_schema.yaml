@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_ts'
+  name: '`earth-trend-data`.transient.tb_merra2_ts'
   description: Temperatura mensal da pele da superfície (TS) da reanálise MERRA-2 M2TMNXSLV, versão 5.12.4,
     em grade global. Contém os campos Kelvin e Celsius exportados pelo pipeline KIPP.
   theme: calor

@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_omega500'
+target_table: '`earth-trend-data`.trusted.tb_merra2_omega500'
+source_description: ../../data-extraction/tb_merra2_omega500/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  OMEGA500: vertical_pressure_velocity_at_500_hpa_pascals_per_second
