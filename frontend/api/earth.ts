@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import {
   cloudRunOrigin as origin,
   cloudRunIdentityToken as identityToken,
-} from "../server/cloudRunAuth";
+} from "../server/cloudRunAuth.js";
 
 export default async function handler(
   request: IncomingMessage,

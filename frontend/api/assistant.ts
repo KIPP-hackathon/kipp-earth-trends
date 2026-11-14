@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
-import { cloudRunOrigin, cloudRunIdentityToken } from "../server/cloudRunAuth";
+import { cloudRunOrigin, cloudRunIdentityToken } from "../server/cloudRunAuth.js";
 
 export default async function handler(
   request: IncomingMessage,
