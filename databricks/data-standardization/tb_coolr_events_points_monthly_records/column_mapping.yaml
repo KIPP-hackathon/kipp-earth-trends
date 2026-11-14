@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_coolr_events_points_monthly_records'
+target_table: '`earth-trend-data`.trusted.tb_coolr_events_points_monthly_records'
+source_description: ../../data-extraction/tb_coolr_events_points_monthly_records/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  reported_record_count: reported_landslide_catalog_record_count

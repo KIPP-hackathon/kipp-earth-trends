@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_csp_mdscldfrchi'
+target_table: '`earth-trend-data`.trusted.tb_merra2_csp_mdscldfrchi'
+source_description: ../../data-extraction/tb_merra2_csp_mdscldfrchi/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  MDSCLDFRCHI: simulated_modis_cloud_fraction_high_mean

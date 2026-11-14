@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_flx_var_prectot'
+target_table: '`earth-trend-data`.trusted.tb_merra2_flx_var_prectot'
+source_description: ../../data-extraction/tb_merra2_flx_var_prectot/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  Var_PRECTOT: total_precipitation_from_atm_model_physics_variance

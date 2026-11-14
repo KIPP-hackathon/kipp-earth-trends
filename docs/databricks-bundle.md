@@ -4,7 +4,7 @@ O bundle em `databricks/databricks.yml` publica os notebooks e os jobs de ingest
 
 Cada job executa o notebook de extração na tarefa `extract`, seguido da padronização na tarefa `standardize`, que depende do sucesso da primeira. Execute `CREATE SCHEMA.py` manualmente uma única vez na preparação do ambiente. O compute escolhido é serverless, definido pela ausência de configuração de cluster nas tarefas de notebook. O workspace precisa disponibilizar serverless para jobs e acesso ao bucket GCS por esse compute.
 
-Os 69 jobs usam o prefixo `kipp-raw2trusted-`. A extração grava em `earth-trend-data.transient`; a padronização usa notebooks em `data-standardization/` e grava em `earth-trend-data.trusted`.
+Os 218 jobs usam o prefixo `kipp-raw2trusted-`. A extração grava em `earth-trend-data.transient`; a padronização usa notebooks em `data-standardization/` e grava em `earth-trend-data.trusted`.
 
 Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler as pastas de origem em `gs://nasa-earth-trends-lab-raw/`, incluindo `transient/` e `kipp/raw/nasa/MOD13C2/`. O catálogo e os schemas devem existir previamente.
 
@@ -84,7 +84,7 @@ Nas tabelas trusted, `constraints` no YAML declara a PK composta `(latitude, lon
 
 ## Fluxo completo para todas as fontes
 
-Os 69 jobs executam `extract` → `standardize`, com nomes `kipp-raw2trusted-*` e IDs preservados. Não existem jobs exclusivos de raw → transient. A primeira tarefa continua usando os notebooks em `data-extraction/`; a segunda usa o YAML e o notebook de cada tabela em `data-standardization/`. Os recursos ficam em `resources/data-standardization.jobs.yml`.
+Os 218 jobs executam `extract` → `standardize`, com nomes `kipp-raw2trusted-*` e IDs preservados. Não existem jobs exclusivos de raw → transient. A primeira tarefa continua usando os notebooks em `data-extraction/`; a segunda usa o YAML e o notebook de cada tabela em `data-standardization/`. Os recursos ficam em `resources/data-standardization.jobs.yml`.
 
 Todos os mapeamentos definem latitude/longitude, `time: date`, PK composta e NOT NULL em latitude/longitude/time. A sessão usa UTC no cast. A validação das chaves ocorre após o cast e antes do overwrite; medidas ausentes continuam permitidas. Descrições são herdadas do contrato da fonte. O CSV continua sendo o catálogo das fontes.
 
