@@ -33,15 +33,7 @@ O deploy cria ou atualiza os jobs e publica os notebooks. A execução é manual
 
 ## Execução dos produtos
 
-A lista completa de jobs, links, formatos e pendências está no [acompanhamento das fontes](acompanhamento-fontes.md). A tabela abaixo mostra os cinco jobs iniciais.
-
-| Chave do job | Produto |
-| --- | --- |
-| `merra2_surface_temperature` | Temperatura de superfície TS |
-| `merra2_temperature_t10m` | Temperatura a 10 m T10M |
-| `merra2_wind_speed` | Vento SPEED |
-| `gpm_imerg_precipitation` | Precipitação IMERG Final |
-| `gpm_imerg_late_precipitation` | Precipitação IMERG Late |
+O [catálogo CSV](fontes-transient-dados.csv) reúne as definições e o inventário das fontes. Consulte `databricks bundle summary --target kipp --profile kipp-gcp` para os jobs publicados e seus links.
 
 Por exemplo, para carregar a temperatura a 10 m, execute a partir de `databricks/`.
 

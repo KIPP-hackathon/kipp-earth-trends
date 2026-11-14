@@ -1,42 +1,6 @@
-# Inventário de fontes no GCP
+# Referências do catálogo GCP
 
-Este documento preserva o inventário inicial e as 62 referências do catálogo. Consulte o [acompanhamento das fontes](acompanhamento-fontes.md) para o inventário atualizado dos arquivos, jobs, tabelas e pendências do projeto.
-
-Consulta realizada em 14/11/2026 no bucket `gs://nasa-earth-trends-lab-raw/`, por listagem recursiva dos objetos e leitura do catálogo JSON. Comparação com os notebooks e o mapeamento de `databricks/data-extraction/CONTEXT.md`.
-
-## Resultado da comparação
-
-- O catálogo contém 62 entradas, todas com status `catalogued`. Inclui produtos, portais, serviços e referências metodológicas. A presença de arquivos foi verificada separadamente pela listagem do bucket.
-- Foi encontrado um único snapshot, `kipp/catalog/snapshots/20261114T142814Z/sources.json`, com `version: 1` e `as_of: 2026-11-14`. O repositório não tinha uma cópia anterior das 62 entradas para comparação. A data de inclusão individual das fontes permanece sem confirmação.
-- `MOD13C2` consta do catálogo e possui três arquivos HDF4, de janeiro a março de 2024, em `kipp/raw/nasa/MOD13C2/version=061/`. O bundle atual ainda não possui notebook ou job para esse produto. Sua disponibilidade anterior já era indicada pelos derivados de vegetação descritos no contexto.
-- `GPM_3IMERGDL` passou de um para seis CSVs em relação ao inventário anterior. Foram acrescentados os meses 2025-11, 2025-12, 2026-01, 2026-02 e 2026-03. O filtro do job existente cobre esses nomes. A disponibilidade da carga nas tabelas Databricks exige uma verificação própria.
-- Os demais quatro conjuntos CSV mantêm as contagens do mapeamento anterior. A consulta foi limitada ao inventário de fontes e objetos, sem leitura integral dos datasets.
-
-## Conjuntos CSV e cobertura dos jobs
-
-Os caminhos são relativos a `gs://nasa-earth-trends-lab-raw/`. A cobertura dos jobs foi conferida no YAML local do bundle.
-
-| Conjunto | Pasta | CSVs | Período observado | Chave do job | Diferença frente ao contexto anterior |
-| --- | --- | --- | --- | --- | --- |
-| MERRA-2 TS | `transient/M2TMNXSLV/` | 33 | 2024-01 a 2026-09 | `merra2_surface_temperature` | Mesma contagem |
-| MERRA-2 T10M | `transient/M2TMNXSLV_T10M/` | 33 | 2024-01 a 2026-09 | `merra2_temperature_t10m` | Mesma contagem |
-| MERRA-2 SPEED | `transient/M2TMNXFLX_SPEED/` | 33 | 2024-01 a 2026-09 | `merra2_wind_speed` | Mesma contagem |
-| IMERG Final | `transient/GPM_3IMERGM/` | 21 | 2024-01 a 2025-09 | `gpm_imerg_precipitation` | Mesma contagem |
-| IMERG Late | `transient/GPM_3IMERGDL/` | 6 | 2025-10 a 2026-03 | `gpm_imerg_late_precipitation` | Cinco novos meses |
-
-## Produtos com arquivos originais em kipp/raw
-
-| Produto | Pasta relativa | Arquivos | Período | Formato | Situação no bundle |
-| --- | --- | --- | --- | --- | --- |
-| MERRA-2 M2TMNXSLV | `kipp/raw/nasa/M2TMNXSLV/version=5.12.4/` | 3 | 2024-01 a 2024-03 | NetCDF-4 `.nc4` | Os jobs existentes leem os CSVs TS e T10M de `transient/` |
-| IMERG Final GPM_3IMERGM | `kipp/raw/nasa/GPM_3IMERGM/version=07/` | 3 | 2024-01 a 2024-03 | HDF5 `.HDF5` | O job existente lê CSVs de `transient/` |
-| MODIS MOD13C2 | `kipp/raw/nasa/MOD13C2/version=061/` | 3 | 2024-01 a 2024-03 | HDF-EOS2/HDF4 `.hdf`, conforme catálogo | Fonte pendente de notebook e job |
-
-O catálogo descreve MOD13C2 como vegetação NDVI mensal. A implementação deve inspecionar SDS, escala, valores ausentes e qualidade e usar um leitor com suporte HDF4. Os derivados `kipp/processed/vegetation/` contêm GeoTIFFs, que também precisam de contrato de leitura próprio.
-
-## Artefatos derivados observados
-
-`kipp/processed/` contém rasters de temperatura, precipitação e vegetação e três versões de resumos Parquet. `kipp/serving/` contém manifests e frames binários com cobertura. `kipp/manifests/` e `kipp/reports/` registram processamento. Esses artefatos complementam os produtos inventariados.
+O inventário de dados do projeto é mantido em [fontes-transient-dados.csv](fontes-transient-dados.csv). As referências históricas do catálogo científico consultado ficam listadas abaixo.
 
 ## Entradas do catálogo
 
