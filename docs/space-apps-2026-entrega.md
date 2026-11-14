@@ -157,3 +157,9 @@ permanece nas fontes/proveniência e em nota abaixo do conteúdo. Em 390 px,
 o header manteve as cinco tabs em barra rolável sem overflow horizontal da página.
 Build Node.js 24 verificado; revisão humana da equipe pendente.
 Revisão visual em 14/11/2026: tema claro solicitado pela equipe, com superfícies brancas, fundo cinza-azulado, azul NASA #0B3D91 e vermelho #FC3D21. Implementação assistida por OpenAI Codex; escalas dos dados preservadas.
+
+Publicação conferida em `62c17eb`: cinco tabs no header, sem hero, conteúdo a
+20 px do header. Um comando real de câmera ao Japão produziu posições
+intermediárias sincronizadas A/B durante aproximadamente 900 ms. Os ajustes
+de tema claro que chegaram pela `main` foram preservados. Isso registra UX,
+sem modificar as observações ou encerrar os itens científicos pendentes.

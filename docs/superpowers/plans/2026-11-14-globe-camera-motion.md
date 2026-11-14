@@ -11,10 +11,12 @@
 - [x] Add shared cancellable camera hook with shortest-arc interpolation, exact destination, reduced motion and unmount cleanup.
 - [x] Animate agent camera/area commands and event navigation; manual camera edits cancel; unrelated assistant actions preserve any flight.
 - [x] Node24 build, focused interpolation/scheduler smoke and browser verification with a real agent request, interruption and synchronized A/B.
-- [ ] Review change, update AI/evidence register, publish frontend and verify production.
+- [x] Review change, update AI/evidence register, publish frontend and verify production.
 
 ## Additional user request: compact header
 
 Move the existing accessible tabs directly next to the logo in the site header. Remove the visible hero title/subtitle and duplicate global introduction so the selected tab's content starts below the header. Preserve an invisible semantic heading; retain sources, guide and catalog refresh in the footer and scientific distinctions next to the footer/per-variable provenance. Horizontal tab scrolling on narrow screens must avoid whole-page overflow. No API changes.
 
 - [x] Refactor App header/main and responsive CSS; verify all five tabs and mobile width.
+
+Production verified at source `62c17ebdf99c952759f4528ecb2ccbcab5201497`: header has five tabs, no hero, 20 px content gap. A real agent camera request produced nine sampled intermediate views across about 903 ms with A/B synchronized. Vercel reported success; existing light-theme work was preserved when integrating main.
