@@ -1,5 +1,10 @@
 # Dados reais e arquitetura de consumo
 
+Este é o levantamento inicial das quatro variáveis da API v1. Após a expansão
+da base, consultar a [análise das 70 tabelas e contrato de consumo](contrato-dados-api-frontend.md)
+e o [contrato de entrega dos pipelines](contrato-pipelines-api.md). Os períodos,
+contagens e limitações de disponibilidade abaixo preservam o recorte inicial.
+
 Consulta SQL realizada em 14/11/2026 no workspace GCP 8259554586019913,
 warehouse 74a8d94611137690, catálogo `earth-trend-data.refined`.
 Nenhum arquivo kipp/serving foi usado como fonte desta análise.
