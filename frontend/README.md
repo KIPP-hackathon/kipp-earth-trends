@@ -56,14 +56,6 @@ As credenciais e conexões de login são gerenciadas nas contas pessoais das pla
 - Exportação da investigação em JSON e da série mensal em CSV, com declaração de dados simulados.
 - Layout responsivo, navegação por teclado, diálogos nativos e preferência por movimento reduzido.
 
-## Honestidade dos dados
-
-**Nenhum resultado exibido é uma descoberta ambiental real.** Os valores são inventados e não foram obtidos de uma API NASA. Missões e produtos de referência são reais e aparecem como fontes previstas para futura integração.
-
-O cálculo demonstra regressão linear sobre médias anuais completas. O intervalo de 95% usa Student-t, pressupondo erros anuais independentes. A faixa do gráfico representa o intervalo da média ajustada; não é um intervalo de previsão de cada observação mensal. Não há correção HAC, FDR ou atribuição causal. As anomalias usam a referência mensal fixa de 2001–2024, independentemente do recorte selecionado. A inferência mantém apenas as médias anuais completas do recorte. Menos de três anos completos não produz uma regressão; esse limiar é apenas o mínimo matemático desta demonstração, não uma recomendação de duração para estudos climáticos.
-
-O mapa não representa limites reais das bacias nem tendências satelitais. Hexágonos e seleção regional são esquemáticos. Cada quadro tem valores espaciais sintéticos que variam mês a mês, com média regional consistente com a série do gráfico. A climatologia de cada célula é calculada sobre os mesmos 24 anos. A escala de cores permanece fixa por variável e modo, permitindo comparações entre quadros. A imagem Blue Marble é estática, de janeiro de 2004: a animação pertence aos campos simulados sobrepostos, sem substituir a textura por imagens reais de cada data. O JSON exportado registra período mensal, quadro atual, modo, referência, velocidade e repetição.
-
 ## Stack e desempenho
 
 React **19.3.1**, React DOM **19.3.1**, TypeScript, Vite 8 e Lucide. Sem backend, credenciais ou serviços pagos. Fontes são servidas localmente, o globo é uma imagem WebP de aproximadamente 91 kB, limites são pré-projetados em SVG e as análises são calculadas localmente com memoização. Não há motor WebGL ou biblioteca de gráficos pesada. d3-geo e topojson são utilizados apenas para gerar os assets, não são carregados no frontend. O gráfico usa ResizeObserver para manter texto legível em telas pequenas.
