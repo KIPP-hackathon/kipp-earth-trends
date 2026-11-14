@@ -5,9 +5,14 @@ bundle:
 include:
   - resources/*.yml
 
+variables:
+  workspace_root:
+    description: Diretório do deploy KIPP existente; compartilhado pelo time para preservar os IDs dos jobs.
+    default: /Workspace/Users/nodamarcelokenjinoda@gmail.com/.bundle/kipp-earth-trends/kipp
+
 targets:
   kipp:
     default: true
     workspace:
       host: https://8259554586019913.3.gcp.databricks.com
-      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+      root_path: ${var.workspace_root}
