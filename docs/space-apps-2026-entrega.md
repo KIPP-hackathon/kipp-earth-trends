@@ -69,12 +69,21 @@ Para cada dado real entregue, preencher: **produtor; produto/versão; URL/DOI; v
 
 ## Registro de IA
 
+Evidência técnica adicional de 14/11/2026: a migração do backend para Lakebase
+conferiu as quatro tabelas de MERRA-2 e IMERG, nomes/tipos de colunas,
+20.793.600 registros e coberturas de 33/33/21/13 meses. O adaptador real retornou
+catálogo, frames e séries para as quatro variáveis; detalhes em
+[backend-lakebase.md](backend-lakebase.md). Isso comprova leitura técnica dos
+dados e não encerra os itens de investigação científica, significância ou
+submissão oficial acima.
+
 Não confundir IA usada no desenvolvimento com IA executada dentro do produto. A declaração deve abranger ambas quando existirem. Não declarar o histórico completo como revisado a partir desta única sessão.
 
 | Ferramenta/modelo | Data e finalidade | Conteúdo gerado/assistido | Revisão humana |
 | --- | --- | --- | --- |
 | OpenAI Codex; identificador exato do modelo não verificado | 14/11/2026 — leitura do repositório, consulta de páginas e organização de requisitos. | Documentos `docs/space-apps-2026-requisitos.md`, `docs/space-apps-2026-entrega.md` e seção de regras no `AGENTS.md`. | Pendente de revisão da equipe. |
 | Outras ferramentas ou usos anteriores | A completar pela equipe. | Código, textos, traduções, imagens, dados sintéticos, slides ou vídeo, se aplicável. | Pendente. |
+| OpenAI Codex; identificador exato do modelo não verificado | 14/11/2026 — migração da leitura backend para Lakebase e verificação das tabelas. | Configuração de deploy/smoke em `backend/scripts/`, exemplo de ambiente, README e documentação `docs/backend-lakebase.md` e plano/spec associados. | Validação automatizada e consultas reais executadas; revisão da equipe pendente. |
 
 Rascunho **parcial** em inglês, para completar antes de publicar:
 

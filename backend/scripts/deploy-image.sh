@@ -11,6 +11,18 @@ if [[ "$task_image" != "$task_repository:"* && "$task_image" != "$task_repositor
   exit 1
 fi
 
+task_provider="${DATA_PROVIDER:-lakebase-postgres}"
+case "$task_provider" in
+  lakebase-postgres)
+    task_data_env="DATA_PROVIDER=lakebase-postgres,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259552519150212.2.gcp.databricks.com,PGHOST=ep-gentle-glade-g3123wa8.database.us-east4.gcp.databricks.com,PGDATABASE=databricks_postgres,PGUSER=kipp-earth-api@$task_project.iam.gserviceaccount.com,DATA_SCHEMA=default,LAKEBASE_ENDPOINT=projects/rt-demo/branches/production/endpoints/primary"
+    ;;
+  databricks-sql)
+    task_data_env="DATA_PROVIDER=databricks-sql,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259554586019913.3.gcp.databricks.com,DATABRICKS_WAREHOUSE_ID=74a8d94611137690,DATA_SCHEMA=refined"
+    ;;
+  *) echo 'Unsupported DATA_PROVIDER' >&2; exit 1 ;;
+esac
+export EXPECTED_DATA_PROVIDER="$task_provider"
+
 # Deployment identities must not invoke the API or change its access policy.
 # Fail closed if the one-time private-access setup has not completed.
 task_previous="$(gcloud run services describe "$task_service" --project "$task_project" --region "$task_region" --format=json | node --input-type=module -e '
@@ -26,7 +38,7 @@ task_previous="$(gcloud run services describe "$task_service" --project "$task_p
 ')"
 [[ -n "$task_previous" ]]
 
-# Cloud Run's own HTTP startup probe checks the private candidate against Databricks.
+# Cloud Run's own HTTP startup probe checks the private candidate against its database.
 # The CI identity does not receive run.invoker; external checks use the Vercel app.
 gcloud run deploy "$task_service" \
   --project "$task_project" --region "$task_region" --image "$task_image" \
@@ -34,7 +46,7 @@ gcloud run deploy "$task_service" \
   --cpu 1 --memory 512Mi --concurrency 32 --min-instances 0 --max-instances 3 \
   --timeout 60s --cpu-boost --no-traffic --tag candidate \
   --startup-probe "httpGet.path=/ready,httpGet.port=8080,periodSeconds=15,timeoutSeconds=15,failureThreshold=8" \
-  --update-env-vars "DATA_PROVIDER=databricks-sql,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259554586019913.3.gcp.databricks.com,DATABRICKS_WAREHOUSE_ID=74a8d94611137690" \
+  --update-env-vars "$task_data_env" \
   --remove-secrets DATABRICKS_CREDENTIALS --quiet
 
 mapfile -t task_deployment < <(gcloud run services describe "$task_service" --project "$task_project" --region "$task_region" --format=json | node --input-type=module -e '
