@@ -17,10 +17,11 @@ import {
   limitations,
   metadataOf,
   variableFor,
-  variables,
+  excludedSources,
 } from "./data.ts";
 import { DatabricksProvider } from "./providers/databricks.ts";
 import { PostgresProvider } from "./providers/postgres.ts";
+import { configuration, historicalEvents, regions } from "./config.ts";
 
 const mode = process.env.DATA_PROVIDER ?? "databricks-sql";
 if (!["databricks-sql", "lakebase-postgres"].includes(mode))
@@ -182,31 +183,72 @@ api.get("/v1", async () => ({
   cache: { ttlSeconds: 300, scope: "per-instance bounded LRU plus HTTP cache" },
   limitations,
 }));
-api.get("/v1/catalog", async (request, reply) =>
-  serve(request, reply, "catalog", 300, async () => {
-    const available = [];
-    // Sequential to keep cold catalog requests from consuming every warehouse slot.
-    for (const variable of variables) {
-      const months = await data.availability(variable);
-      available.push({
-        ...metadataOf(variable),
-        months,
-        firstMonth: months[0]?.month ?? null,
-        lastMonth: months.at(-1)?.month ?? null,
+// Share the catalog between the dataset and event endpoints during cold starts.
+let catalogMemo:
+  | { expires: number; data: Awaited<ReturnType<DataService["catalog"]>> }
+  | undefined;
+let catalogPending: ReturnType<DataService["catalog"]> | undefined;
+async function catalogData() {
+  if (catalogMemo && catalogMemo.expires > Date.now()) return catalogMemo.data;
+  if (!catalogPending)
+    catalogPending = data
+      .catalog()
+      .then((result) => {
+        catalogMemo = { expires: Date.now() + 300_000, data: result };
+        return result;
+      })
+      .finally(() => {
+        catalogPending = undefined;
       });
-    }
-    return json({
+  return catalogPending;
+}
+api.get("/v1/catalog", async (request, reply) =>
+  serve(request, reply, "catalog", 300, async () =>
+    json({
       provider: mode,
       simulated: false,
-      variables: available,
-      unavailable: [
-        {
-          id: "vegetation",
-          reason: "Sem tabela de vegetação configurada neste adaptador.",
-        },
-        { id: "wind", reason: "Unidades do exportador precisam de revisão." },
-      ],
+      variables: await catalogData(),
+      unavailable: excludedSources,
       limitations,
+    }),
+  ),
+);
+api.get("/v1/config", async (request, reply) =>
+  serve(request, reply, "config", 300, async () => json(configuration)),
+);
+api.get("/v1/events", async (request, reply) =>
+  serve(request, reply, "events", 300, async () => {
+    const catalog = await catalogData();
+    return json({
+      curated: true,
+      detected: false,
+      events: historicalEvents.map((event) => {
+        const region = regions.find((r) => r.id === event.region)!;
+        const variable = catalog.find((v) => v.id === event.variable);
+        const months = (variable?.months ?? [])
+          .filter(
+            (m) =>
+              m.month >= event.window[0] &&
+              m.month <= event.window[1] &&
+              (m.validSamples ?? 0) > 0,
+          )
+          .map((m) => m.month);
+        const available = months.length > 0 && event.category !== "Tsunamis";
+        return {
+          ...event,
+          bbox: region.bbox,
+          longitude: region.longitude,
+          latitude: region.latitude,
+          available,
+          months: available ? months : [],
+          unavailableReason: available
+            ? null
+            : event.category === "Tsunamis"
+              ? "Sem fonte de nível do mar ou dados sísmicos para este fenômeno."
+              : "Sem sobreposição entre o período histórico do evento e os meses válidos da variável sugerida.",
+        };
+      }),
+      limitations: configuration.limitations,
     });
   }),
 );

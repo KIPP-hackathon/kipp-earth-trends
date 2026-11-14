@@ -105,8 +105,12 @@ export default async function handler(
     );
     query.delete("__path");
     // Vercel also exposes a rewrite capture as a query parameter.
-    if (routedPath !== null && query.getAll("path").length === 1 &&
-        query.get("path") === routedPath) query.delete("path");
+    if (
+      routedPath !== null &&
+      query.getAll("path").length === 1 &&
+      query.get("path") === routedPath
+    )
+      query.delete("path");
     // No arbitrary upstream URLs, SQL, methods, paths or browser authorization headers.
     if (
       !/^\/v1\/(catalog|config|events|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|series\/[a-z0-9_]{1,60})$/.test(
@@ -120,9 +124,16 @@ export default async function handler(
         !allowed.has(key) ||
         value.length > 200 ||
         query.getAll(key).length !== 1
-      )
-        {
-        console.warn(JSON.stringify({ source: "earth-proxy", code: "INVALID_PARAMETERS", parameterNames: [...query.keys()].slice(0, 10).map(key => key.slice(0, 40)) }));
+      ) {
+        console.warn(
+          JSON.stringify({
+            source: "earth-proxy",
+            code: "INVALID_PARAMETERS",
+            parameterNames: [...query.keys()]
+              .slice(0, 10)
+              .map((key) => key.slice(0, 40)),
+          }),
+        );
         return fail(400, "INVALID_PARAMETERS");
       }
   } catch {

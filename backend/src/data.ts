@@ -1,70 +1,23 @@
-import { ApiError, quoteIdentifier } from "./core.ts";
+import {
+  ApiError,
+  quoteIdentifier,
+  queryBudget,
+  withQueryBudget,
+} from "./core.ts";
 import type { Parameters, Provider } from "./core.ts";
 
-type Variable = {
-  id: string;
-  name: string;
-  quantity: string;
-  unit: string;
-  product: string;
-  run?: string;
-  table: string;
-  column: string;
-  coverage?: string;
-  nativeGrid: [number, number];
-};
-export const variables: Variable[] = [
-  {
-    id: "temperature",
-    name: "Temperatura do ar a 10 m",
-    quantity: "air_temperature_10m",
-    unit: "degC",
-    product: "MERRA-2 M2TMNXSLV",
-    table: "tb_merra2_t10m",
-    column: "T10M_C",
-    nativeGrid: [0.625, 0.5],
-  },
-  {
-    id: "surface_temperature",
-    name: "Temperatura de superfície",
-    quantity: "surface_temperature",
-    unit: "degC",
-    product: "MERRA-2 M2TMNXSLV",
-    table: "tb_merra2_ts",
-    column: "TS_C",
-    nativeGrid: [0.625, 0.5],
-  },
-  {
-    id: "rainfall",
-    name: "Precipitação mensal · Final",
-    quantity: "monthly_precipitation",
-    unit: "mm/month",
-    product: "GPM IMERG V07",
-    run: "Final",
-    table: "tb_gpm_imerg_precipitation",
-    column: "precipitation_mm_month",
-    coverage: "valid_area_fraction",
-    nativeGrid: [0.625, 0.5],
-  },
-  {
-    id: "rainfall_late",
-    name: "Precipitação mensal · Late",
-    quantity: "monthly_precipitation",
-    unit: "mm/month",
-    product: "GPM IMERG V07",
-    run: "Late",
-    table: "tb_gpm_imerg_late_precipitation",
-    column: "precipitation_mm_month",
-    coverage: "valid_area_fraction",
-    nativeGrid: [0.625, 0.5],
-  },
-];
+import { variables } from "./registry.ts";
+import type { Variable } from "./registry.ts";
+export { variables, excludedSources } from "./registry.ts";
+export type { Variable, RenderMetadata } from "./registry.ts";
+
 export const limitations = [
   "Dados reais derivados de produtos NASA, sem classificação automática de eventos ou atribuição causal.",
   "A grade retornada é agregada para visualização; não adiciona resolução à fonte.",
   "Temperatura do ar a 10 m é distinta da temperatura a 2 m e da temperatura de superfície.",
   "IMERG Final e Late permanecem separados por terem processamento e cobertura diferentes.",
-  "Sem anomalias ou inferência de tendências climáticas nesta API.",
+  "Anomalias GRACE usam referência 2004–2009 e não isolam água subterrânea; não há inferência causal ou previsão climática.",
+  "Escalas de cores são faixas de visualização fixas, não limites científicos ou observações globais mínimas/máximas.",
 ];
 export function variableFor(id: string): Variable {
   const variable = variables.find((v) => v.id === id);
@@ -135,6 +88,18 @@ function numeric(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+export type MonthAvailability = {
+  month: string;
+  samples: number | null;
+  validSamples: number | null;
+};
+export type CatalogVariable = ReturnType<typeof metadataOf> & {
+  months: MonthAvailability[];
+  available: boolean;
+  firstMonth: string | null;
+  lastMonth: string | null;
+  unavailableReason: { code: string; message: string } | null;
+};
 export class DataService {
   provider: Provider;
   constructor(provider: Provider) {
@@ -160,22 +125,199 @@ export class DataService {
   private finite(expr: string) {
     return this.provider.dialect === "databricks"
       ? `${expr} IS NOT NULL AND NOT isnan(${expr}) AND ABS(${expr}) < 1e30`
-      : `${expr} IS NOT NULL AND ${expr} > '-Infinity'::float8 AND ${expr} < 'Infinity'::float8`;
+      : `${expr} IS NOT NULL AND ${expr} > '-Infinity'::float8 AND ${expr} < 'Infinity'::float8 AND ABS(${expr}) < 1e30`;
+  }
+  private valid(variable: Variable) {
+    const value = this.q(variable.column);
+    const clauses = [this.finite(value)];
+    const [min, max] = variable.validRange ?? [null, null];
+    if (min !== null) clauses.push(`${value} >= ${min}`);
+    if (max !== null) clauses.push(`${value} <= ${max}`);
+    if (variable.qa === "modis_good")
+      clauses.push(
+        `${this.q("pixel_reliability")} = 0`,
+        `${this.q("vi_quality")} <> 65535`,
+      );
+    if (variable.qa === "ice_valid")
+      clauses.push(`${this.q("valid_sample")} = 1`, `${value} IN (0,1)`);
+    if (variable.coverage) {
+      const coverage = this.q(variable.coverage);
+      clauses.push(
+        this.finite(coverage),
+        `${coverage} > 0 AND ${coverage} <= 1`,
+      );
+    }
+    return clauses.join(" AND ");
+  }
+  private converted(variable: Variable) {
+    return `(${this.q(variable.column)} * ${variable.conversion.scale} + (${variable.conversion.offset}))`;
+  }
+  private aggregate(variable: Variable) {
+    if (variable.aggregation === "sum") return "SUM(value)";
+    if (variable.aggregation === "weighted_mode") {
+      const weight = (category: number) =>
+        `SUM(CASE WHEN value = ${category} THEN coverage*area_weight ELSE 0.0 END)`;
+      return `CASE WHEN ${weight(0)} + ${weight(1)} <= 0 THEN NULL WHEN ${weight(1)} > ${weight(0)} THEN 1 ELSE 0 END`;
+    }
+    return "SUM(value*coverage*area_weight)/NULLIF(SUM(coverage*area_weight),0)";
+  }
+  private aggregationDescription(variable: Variable) {
+    return variable.aggregation === "sum"
+      ? "sum of valid source cell mass in each geographic bin / selected bbox; no extra area weighting; bbox is not a basin polygon"
+      : variable.aggregation === "weighted_mode"
+        ? "mode weighted by cos(latitude); ties choose class 0; no valid weight yields null; not regional ice extent in km²"
+        : "mean weighted by cos(latitude) and valid area coverage over source grid points; display aggregation; bbox is not a basin polygon";
+  }
+  private async availabilityGroup(group: Variable[], source: number) {
+    const validCounts = group.map(
+      (v, i) => `SUM(CASE WHEN ${this.valid(v)} THEN 1 ELSE 0 END) AS v${i}`,
+    );
+    // All layers of a table share one scan. Two valid-count columns cover every
+    // currently reviewed table; unused slots make UNION branches compatible.
+    while (validCounts.length < 2)
+      validCounts.push(`CAST(NULL AS BIGINT) AS v${validCounts.length}`);
+    return `SELECT ${source} AS source, ${this.month()} AS month, COUNT(*) AS samples,
+      ${validCounts.join(", ")} FROM ${this.table(group[0])}
+      WHERE ${this.q("time")} IS NOT NULL GROUP BY ${this.month()}`;
   }
   async availability(variable: Variable) {
-    const value = this.q(variable.column);
+    const sql = await this.availabilityGroup([variable], 0);
     const rows = await this.provider.query(
-      `SELECT ${this.month()} AS month, COUNT(*) AS samples,
-      SUM(CASE WHEN ${this.finite(value)} THEN 1 ELSE 0 END) AS valid_samples
-      FROM ${this.table(variable)} GROUP BY ${this.month()} ORDER BY month LIMIT 2400`,
+      `${sql} ORDER BY month LIMIT 2400`,
       {},
       2400,
     );
     return rows.map((r) => ({
       month: String(r.month),
       samples: numeric(r.samples),
-      validSamples: numeric(r.valid_samples),
+      validSamples: numeric(r.v0),
     }));
+  }
+  async catalog(): Promise<CatalogVariable[]> {
+    if (!queryBudget.getStore()) return withQueryBudget(() => this.catalog());
+    const groups: Variable[][] = [];
+    for (const variable of variables) {
+      const existing = groups.find(
+        (g) => this.table(g[0]) === this.table(variable),
+      );
+      if (existing) existing.push(variable);
+      else groups.push([variable]);
+    }
+    const months = new Map<string, MonthAvailability[]>();
+    const errors = new Map<string, { code: string; message: string }>();
+    const load = async (indices: number[]): Promise<void> => {
+      const budget = queryBudget.getStore()!;
+      try {
+        if (Date.now() >= budget.deadline || budget.signal.aborted)
+          throw new ApiError(
+            504,
+            "QUERY_TIMEOUT",
+            "Orçamento de consulta do catálogo excedido.",
+          );
+        const branches = await Promise.all(
+          indices.map((i) => this.availabilityGroup(groups[i], i)),
+        );
+        const rows = await this.provider.query(
+          branches.join(" UNION ALL "),
+          {},
+          indices.length * 2400,
+        );
+        for (const i of indices)
+          for (const v of groups[i]) months.set(v.id, []);
+        for (const row of rows) {
+          const index = numeric(row.source);
+          if (index === null || !indices.includes(index)) continue;
+          groups[index].forEach((v, i) =>
+            months.get(v.id)!.push({
+              month: String(row.month),
+              samples: numeric(row.samples),
+              validSamples: numeric(row[`v${i}`]),
+            }),
+          );
+        }
+      } catch (error) {
+        // Isolate missing/denied source tables without silently dropping them.
+        // Splitting only failed chunks keeps a healthy catalog to nine scans/requests.
+        if (
+          indices.length > 1 &&
+          Date.now() < budget.deadline - 1000 &&
+          !budget.signal.aborted &&
+          !(
+            error instanceof ApiError &&
+            ["QUERY_TIMEOUT", "UPSTREAM_BUSY"].includes(error.code)
+          )
+        ) {
+          const middle = Math.ceil(indices.length / 2);
+          await load(indices.slice(0, middle));
+          await load(indices.slice(middle));
+          return;
+        }
+        const code =
+          error instanceof ApiError ? error.code : "SOURCE_UNAVAILABLE";
+        for (const i of indices)
+          for (const v of groups[i])
+            errors.set(v.id, {
+              code,
+              message:
+                "A fonte não pôde ser consultada nesta atualização do catálogo; nenhuma observação foi substituída.",
+            });
+      }
+    };
+    const chunks = Array.from(
+      { length: Math.ceil(groups.length / 8) },
+      (_, i) => groups.slice(i * 8, i * 8 + 8).map((_, j) => i * 8 + j),
+    );
+    let next = 0;
+    const worker = async () => {
+      while (next < chunks.length) await load(chunks[next++]);
+    };
+    // Keep slots for frames/series during a cold catalog load.
+    const concurrency = Math.max(
+      1,
+      Math.min(2, Number(process.env.UPSTREAM_CONCURRENCY ?? 4)),
+    );
+    await Promise.all(Array.from({ length: concurrency }, worker));
+    // Do not cache a brief timeout/saturation as missing scientific sources.
+    if (
+      [...errors.values()].some((error) =>
+        ["QUERY_TIMEOUT", "UPSTREAM_BUSY"].includes(error.code),
+      )
+    )
+      throw new ApiError(
+        503,
+        "CATALOG_BUSY",
+        "O catálogo está temporariamente ocupado. Tente novamente.",
+      );
+    if (errors.size === variables.length)
+      throw new ApiError(
+        502,
+        "CATALOG_UNAVAILABLE",
+        "Não foi possível consultar o catálogo de dados reais.",
+      );
+    return variables.map((v) => {
+      const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
+        a.month.localeCompare(b.month),
+      );
+      const validMonths = availableMonths.filter(
+        (m) => (m.validSamples ?? 0) > 0,
+      );
+      return {
+        ...metadataOf(v),
+        months: availableMonths,
+        available: validMonths.length > 0,
+        firstMonth: validMonths[0]?.month ?? null,
+        lastMonth: validMonths.at(-1)?.month ?? null,
+        unavailableReason:
+          errors.get(v.id) ??
+          (validMonths.length
+            ? null
+            : {
+                code: "NO_VALID_OBSERVATIONS",
+                message:
+                  "Sem observações válidas após os filtros de qualidade nesta fonte.",
+              }),
+      };
+    });
   }
   private selected(
     variable: Variable,
@@ -183,11 +325,10 @@ export class DataService {
     start: string,
     endExclusive: string,
   ) {
-    const value = this.q(variable.column),
-      latitude = this.q("lat"),
+    const latitude = this.q("lat"),
       longitude = this.q("lon");
     const coverage = variable.coverage ? this.q(variable.coverage) : "1.0";
-    const valid = `${this.finite(value)}${variable.quantity === "monthly_precipitation" ? ` AND ${value} >= 0` : ""}`;
+    const valid = this.valid(variable);
     const goodCoverage = variable.coverage
       ? `CASE WHEN ${this.finite(coverage)} AND ${coverage} BETWEEN 0 AND 1 THEN ${coverage} ELSE 0.0 END`
       : "1.0";
@@ -201,11 +342,12 @@ export class DataService {
     };
     const sql = `SELECT ${this.q("time")} AS observed_time, ${latitude} AS lat,
       ${bounds.wrap ? `CASE WHEN ${longitude} < :west THEN ${longitude}+360 ELSE ${longitude} END` : longitude} AS lon,
-      CASE WHEN ${valid} THEN ${value} ELSE NULL END AS value,
+      CASE WHEN ${valid} THEN ${this.converted(variable)} ELSE NULL END AS value,
       CASE WHEN ${valid} THEN ${goodCoverage} ELSE 0.0 END AS coverage,
       GREATEST(0.0, COS(RADIANS(${latitude}))) AS area_weight
       FROM ${this.table(variable)} WHERE ${this.q("time")} >= CAST(:start AS TIMESTAMP)
       AND ${this.q("time")} < CAST(:end AS TIMESTAMP)
+      AND ${this.finite(latitude)} AND ${this.finite(longitude)}
       AND ${latitude} BETWEEN :south AND :north
       AND ${bounds.wrap ? `(${longitude} >= :west OR ${longitude} <= :east)` : `${longitude} BETWEEN :west AND :east`}`;
     return { sql, parameters };
@@ -254,7 +396,7 @@ export class DataService {
       SELECT LEAST(CAST(:width AS INT)-1, GREATEST(0, FLOOR((lon - (:west)) / (:dx) + 1e-9))) AS x,
       LEAST(CAST(:height AS INT)-1, GREATEST(0, FLOOR(((:north) - lat) / (:dy) + 1e-9))) AS y,
       value, coverage, area_weight FROM selected)
-      SELECT x, y, SUM(value*coverage*area_weight)/NULLIF(SUM(coverage*area_weight),0) AS value,
+      SELECT x, y, ${this.aggregate(variable)} AS value,
       SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage, COUNT(*) AS samples
       FROM binned GROUP BY x,y ORDER BY y,x`,
       { ...parameters, width, height, dx, dy },
@@ -325,8 +467,11 @@ export class DataService {
       byteOrder: "little",
       components: ["value", "valid_area_fraction"],
       layout: "planar",
-      aggregation:
-        "geographic bins; mean weighted by cos(latitude) and available area coverage; display only",
+      aggregation: variable.aggregation,
+      method: this.aggregationDescription(variable),
+      render: variable.render,
+      quality: variable.quality,
+      conversion: variable.conversion,
       simulated: false,
       limitations,
     };
@@ -355,7 +500,7 @@ export class DataService {
     );
     const rows = await this.provider.query(
       `WITH selected AS (${sql}) SELECT ${this.month("observed_time")} AS month,
-      SUM(value*coverage*area_weight)/NULLIF(SUM(coverage*area_weight),0) AS value,
+      ${this.aggregate(variable)} AS value,
       SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage,
       COUNT(*) AS samples FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,
       parameters,
@@ -377,8 +522,10 @@ export class DataService {
       start,
       end,
       simulated: false,
-      method:
-        "mean weighted by cos(latitude) and valid_area_fraction over selected source grid points; bbox, not a basin polygon",
+      aggregation: variable.aggregation,
+      method: this.aggregationDescription(variable),
+      render: variable.render,
+      quality: variable.quality,
       observations: rows.map((r) => ({
         month: String(r.month),
         value: numeric(r.value),
@@ -426,6 +573,8 @@ export function metadataOf(variable: Variable) {
     table: _table,
     column: _column,
     coverage: _coverage,
+    validRange: _validRange,
+    qa: _qa,
     ...publicMetadata
   } = variable;
   return publicMetadata;

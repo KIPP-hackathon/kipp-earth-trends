@@ -38,3 +38,13 @@ público não esconde seus dados dos próprios visitantes.
 
 Referências: https://vercel.com/docs/oidc/gcp e
 https://docs.cloud.google.com/iam/docs/workload-identity-federation.
+
+## Validação em produção · 14/11/2026
+
+Verificação IAM ativa; sem vínculos allUsers/allAuthenticatedUsers. As URLs
+canônica, numérica e de revisão candidata retornaram 403 sem autenticação.
+O proxy de produção retornou 200 para catálogo, frame binário KIPP e série
+regional reais. O frontend abriu o campo global e a série no navegador.
+O CI/CD voltou a publicar com a API privada (execução 43630916254), preservando
+a política. A identidade de deploy não recebeu run.invoker. Os papéis temporários
+workloadIdentityPoolAdmin e serviceAccountAdmin foram removidos do administrador.
