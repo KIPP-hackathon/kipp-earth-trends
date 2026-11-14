@@ -140,3 +140,19 @@ O navegador configurou A/B em março/junho de 2024 e escala compartilhada
 retornou 403; varredura do bundle público não encontrou tokens, chaves privadas
 ou implementação de autenticação servidora. Chat público com limites persistentes,
 sem afirmar que Origin autentica cada visitante ou que IA comprova resultados científicos.
+
+## Evidência incremental — câmera e header compacto (14/11/2026)
+
+OpenAI Codex assistiu a transição de câmera (900 ms, arco curto de longitude,
+zoom gradual e estado compartilhado A/B) e a navegação compacta. O navegador
+confirmou posições intermediárias sincronizadas em um pedido real ao agente
+e interrupção do voo por interação manual, sem interpolar observações.
+Preferência de movimento reduzido é respeitada pelo frontend; a API e seus
+controles de acesso não foram alterados.
+
+As cinco tabs passaram para o header, ao lado do logo; título/subtítulo grandes
+foram removidos. Fontes, guia e atualização de catálogo permanecem no rodapé.
+A distinção entre dados derivados, imagem base estática e limites científicos
+permanece nas fontes/proveniência e em nota abaixo do conteúdo. Em 390 px,
+o header manteve as cinco tabs em barra rolável sem overflow horizontal da página.
+Build Node.js 24 verificado; revisão humana da equipe pendente.

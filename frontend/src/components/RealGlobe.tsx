@@ -131,6 +131,8 @@ export function RealGlobe({
         aria-label="Globo de dados reais. Arraste para girar. Use as setas ou Home."
         onPointerDown={(e) => {
           if (e.button !== 0 || drag.current) return;
+          // Taking the pointer cancels a programmatic flight at the displayed camera.
+          onView(view);
           drag.current = {
             pointerId: e.pointerId,
             x: e.clientX,

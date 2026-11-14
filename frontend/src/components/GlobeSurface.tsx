@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { colorFrame } from "../lib/earthApi";
 import type { EarthColorRange, EarthFrame } from "../lib/earthApi";
 
@@ -185,7 +185,7 @@ export function GlobeSurface({
       gl.deleteProgram(program);
     };
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     center.current = [longitude, latitude];
     draw.current?.();
   }, [longitude, latitude]);

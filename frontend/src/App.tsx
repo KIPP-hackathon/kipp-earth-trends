@@ -2,18 +2,18 @@ import { useCallback, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BookOpen,
-  Database,
   Earth,
   ExternalLink,
   MapPin,
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
-import { LabTabs } from "./components/LabTabs";
+import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
 import { RealPanel } from "./components/RealDataView";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
+import { useGlobeCamera } from "./lib/useGlobeCamera";
 import { loadCatalog, loadConfig, loadEvents, realMonth } from "./lib/earthApi";
 import type {
   EarthCatalog,
@@ -194,7 +194,7 @@ function App() {
     }
   }, []);
   const [active, setActive] = useState<LabTab>("explore");
-  const [view, setView] = useState(initialGlobeView);
+  const { view, setView, flyTo } = useGlobeCamera(initialGlobeView);
   const changeView = (next: GlobeView) => {
     markChanged();
     setView(next);
@@ -285,11 +285,11 @@ function App() {
         : (after ?? available.at(-1)!),
     });
     setEventContext(event);
-    setView((current) => ({
-      ...current,
+    flyTo({
+      ...view,
       longitude: event.longitude,
       latitude: event.latitude,
-    }));
+    });
     showTab(compare ? "compare" : "explore");
   };
   const applyAssistantResponse = (
@@ -415,7 +415,12 @@ function App() {
     if (presets.B) setPresetB(presets.B);
     if (Object.keys(playback).length)
       setPlaybackCommands((previous) => ({ ...previous, ...playback }));
-    setView(nextView);
+    if (
+      actions.some(
+        (action) => action.type === "set_camera" || action.type === "set_area",
+      )
+    )
+      flyTo(nextView);
     setColorRanges(ranges);
     setActive(finalTab);
     return [
@@ -448,25 +453,6 @@ function App() {
         { label: "Mais recente", month: contextMonths.at(-1) },
       ]
     : [];
-  const titles: Record<LabTab, [string, string]> = {
-    explore: ["A Terra,", "pelos dados."],
-    compare: ["Duas perspectivas,", "o mesmo planeta."],
-    events: ["A história deixa", "pistas."],
-    analysis: ["Da observação", "à evidência."],
-    learn: ["Curiosidade com", "método."],
-  };
-  const descriptions: Record<LabTab, string> = {
-    explore:
-      "Explore campos mensais derivados de produtos NASA. Escolha uma variável, gire o planeta e acompanhe um recorte ao longo do tempo.",
-    compare:
-      "Câmeras sincronizadas, variáveis e meses independentes. Compare campos reais em uma escala fixa por variável.",
-    events:
-      "Parta de um registro histórico e investigue seu contexto ambiental nos meses que o catálogo realmente oferece.",
-    analysis:
-      "Leia a série mensal regional, consulte produto, agregação e qualidade e exporte as observações com suas limitações.",
-    learn:
-      "Um guia para olhar, comparar e documentar observações da Terra sem extrapolar o que os dados permitem.",
-  };
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -489,67 +475,13 @@ function App() {
           <span>
             KIPP<span className="brand-dot">.</span>
           </span>
-          <span className="brand-divider" />
-          <small>EARTH SYSTEMS LAB</small>
         </a>
-        <nav className="desktop-nav" aria-label="Recursos do laboratório">
-          <button onClick={() => setModal("sources")}>
-            Fontes & ciência <ArrowUpRight size={12} />
-          </button>
-        </nav>
-        <div className="header-right">
-          <span className="prototype-badge">
-            <i /> DADOS REAIS
-          </span>
-          <button
-            className="field-guide-button"
-            onClick={() => setModal("guide")}
-          >
-            <BookOpen size={15} /> Guia de campo <ArrowUpRight size={14} />
-          </button>
-        </div>
-      </header>
-      <main id="main-content" tabIndex={-1}>
-        <div className="real-intro unified-intro">
-          <div>
-            <span className="eyebrow">
-              <Database size={14} /> OBSERVAR · COMPARAR · COMPREENDER
-            </span>
-            <h1>
-              {titles[active][0]} <em>{titles[active][1]}</em>
-            </h1>
-            <p>{descriptions[active]}</p>
-          </div>
-          <div className="real-intro-actions">
-            <button
-              onClick={() => {
-                markChanged();
-                invalidateFrames();
-                catalog.retry();
-                config.retry();
-              }}
-            >
-              <RefreshCw size={14} /> Atualizar catálogo
-            </button>
-            {catalog.data && (
-              <span>
-                {
-                  catalog.data.variables.filter(
-                    (entry) => entry.available !== false && entry.months.length,
-                  ).length
-                }{" "}
-                variáveis com meses disponíveis
-              </span>
-            )}
-          </div>
-        </div>
         <LabTabs active={active} onChange={showTab} />
-        <div className="real-disclosure">
-          <i /> Dados reais derivados de produtos NASA · observação e comparação
-          visual, sem previsão, detecção automática ou atribuição causal. A
-          imagem de base do planeta é estática; a camada representa o mês
-          indicado.
-        </div>
+      </header>
+      <main id="main-content" className="workspace-main" tabIndex={-1}>
+        <h1 className="sr-only">
+          KIPP · {labTabs.find((tab) => tab.id === active)?.label}
+        </h1>
         {(catalog.loading || config.loading) && (
           <p className="real-notice" role="status">
             Conectando ao catálogo e às regiões de estudo…
@@ -698,6 +630,11 @@ function App() {
             <Guide config={config.data} />
           </section>
         )}
+        <p className="workspace-data-note">
+          Dados reais derivados de produtos NASA. A imagem de base é estática; a
+          camada representa o mês indicado. Comparações descritivas não
+          estabelecem previsão, detecção automática ou atribuição causal.
+        </p>
         <footer className="site-footer">
           <a
             href="#"
@@ -716,6 +653,19 @@ function App() {
             NASA SPACE APPS · 2026
             <button onClick={() => setModal("sources")}>
               Créditos & dados <ArrowUpRight size={12} />
+            </button>
+            <button onClick={() => setModal("guide")}>
+              <BookOpen size={12} /> Guia de campo
+            </button>
+            <button
+              onClick={() => {
+                markChanged();
+                invalidateFrames();
+                catalog.retry();
+                config.retry();
+              }}
+            >
+              <RefreshCw size={12} /> Atualizar catálogo
             </button>
           </div>
         </footer>

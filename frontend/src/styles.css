@@ -4734,3 +4734,63 @@ main:focus,
   background: var(--nasa-blue);
 }
 input[type="checkbox"] { accent-color: var(--nasa-blue); }
+
+/* Compact lab navigation: the workspace starts directly below the header. */
+.site-header {
+  height: 68px;
+  justify-content: flex-start;
+  gap: 28px;
+}
+.site-header .brand {
+  flex: 0 0 auto;
+}
+.site-header .lab-tabs {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+  gap: 4px;
+}
+.site-header .lab-tabs > button {
+  flex: 0 0 auto;
+  padding: 0 18px;
+  border-radius: 0;
+}
+.workspace-main {
+  padding-top: 20px;
+}
+.workspace-main .real-workspace {
+  padding-top: 0;
+}
+.workspace-data-note {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.site-footer > div {
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  .site-header {
+    height: 64px;
+    margin: 0 16px;
+    gap: 12px;
+  }
+  .site-header .brand {
+    font-size: 26px;
+    gap: 7px;
+  }
+  .site-header .lab-tabs > button {
+    padding: 0 10px;
+    gap: 5px;
+    font-size: 10px;
+  }
+  .workspace-main {
+    padding-top: 16px;
+  }
+}
