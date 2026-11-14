@@ -43,12 +43,18 @@ databricks bundle run --target kipp --profile kipp-gcp merra2_temperature_t10m
 
 Os notebooks usam `mode("overwrite")` por padrão e substituem os dados da tabela a cada execução, reaplicando as descrições do YAML. A tabela é criada quando ainda não existe. O limite de uma execução simultânea se aplica a cada job.
 
-O mapeamento de arquivos, tabelas e limitações dos dados está em [CONTEXT.md](../databricks/data-extraction/CONTEXT.md).
+O [catálogo CSV](fontes-transient-dados.csv) é a fonte da verdade para origem, dados, unidades, arquivos, períodos e proveniência.
+
+## Estrutura dos notebooks
+
+Cada tabela possui uma pasta em `databricks/data-extraction/<nome-da-tabela>/`, com seu notebook e `description_schema.yaml`. O YAML fornece as descrições publicadas no Databricks e deve acompanhar as definições do catálogo CSV.
+
+O módulo `table_metadata.py` valida as colunas e publica os comentários da tabela e de todas as colunas após a gravação. Os notebooks usam `mode("overwrite")` para reprocessar os dados.
+
+O leitor HDF4 normaliza `OPENSSL_FORCE_FIPS_MODE=0` antes de importar PyHDF nos workers, devido à compatibilidade da biblioteca nativa com o ambiente Databricks.
 
 ## Referências
 
 - [Configuração de bundles](https://docs.databricks.com/gcp/en/dev-tools/bundles/settings)
 - [Exemplos e jobs serverless](https://docs.databricks.com/gcp/en/dev-tools/bundles/examples)
 - [Instalação da CLI](https://docs.databricks.com/gcp/en/dev-tools/cli/install)
-
-Os notebooks e `description_schema.yaml` ficam em `data-extraction/<nome-da-tabela>/`. A etapa final publica os comentários da tabela e das colunas. As descrições são aplicadas em toda execução após a gravação da tabela. Consulte [o guia de descrições](descricao-tabelas-fontes.md).

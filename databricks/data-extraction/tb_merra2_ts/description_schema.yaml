@@ -10,8 +10,7 @@ provenance:
   references:
   - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
   local_evidence:
-  - databricks/data-extraction/CONTEXT.md
-  - docs/catalogo-fontes-gcp.md
+  - docs/fontes-transient-dados.csv
   metadata_uri: null
 columns:
   lat:
