@@ -1,0 +1,34 @@
+table:
+  name: '`earth-trend-data`.refined.tb_sea_ice_concentration_arctic'
+  description: Concentração mensal de gelo marinho NSIDC G02135 v4 para o Ártico, em percentual, reamostrada
+    por quadratura de área para a grade KIPP. O produtor usa 256 amostras por célula e cobertura integral.
+    Preserva nulos e concentrações médias abaixo de 15% resultantes da mistura com oceano aberto. Há mudança
+    dos sensores de entrada em janeiro de 2025.
+  product: SEA_ICE_CONCENTRATION_G02135_V4_N
+  source_path: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/
+provenance:
+  reviewed_on: '2026-11-14'
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.metadata.json
+  references:
+  - https://nsidc.org/sites/default/files/documents/user-guide/g02135-v004-userguide.pdf
+  recovery_note: Recurso recriado após remoção incidental no deploy de correção do leitor MOD13C2.
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+  lon:
+    description: Longitude do ponto da grade, em graus leste.
+    unit: degrees_east
+  time:
+    description: Início do mês de referência em UTC, conforme o exportador.
+    unit: null
+  sea_ice_concentration_pct:
+    description: Concentração média de gelo marinho, em percentual entre 0 e 100. Quadratura de área aproximada
+      do campo mensal. A extensão categórica e a área total regional têm definições próprias.
+    unit: percent
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.metadata.json
+  valid_area_fraction:
+    description: Fração válida da área da célula, entre 0 e 1. O exportador exige cobertura integral para disponibilizar
+      a estimativa.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/SEA_ICE_CONCENTRATION_G02135_V4_N/SEA_ICE_CONCENTRATION_G02135_V4_N_2024_01.metadata.json

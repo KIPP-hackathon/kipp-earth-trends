@@ -528,3 +528,27 @@ resources:
           notebook_task:
             notebook_path: ../data-extraction/tb_merra2_var_q850/raw2refined-tb-merra2-var-q850.py
             source: WORKSPACE
+    gpm_imerg_liquid_probability:
+      name: kipp-gpm-imerg-liquid-probability
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_gpm_imerg_liquid_probability/raw2refined-tb-gpm-imerg-liquid-probability.py
+            source: WORKSPACE
+    sea_ice_concentration_arctic:
+      name: kipp-sea-ice-concentration-arctic
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_sea_ice_concentration_arctic/raw2refined-tb-sea-ice-concentration-arctic.py
+            source: WORKSPACE
+    sea_ice_concentration_antarctic:
+      name: kipp-sea-ice-concentration-antarctic
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_sea_ice_concentration_antarctic/raw2refined-tb-sea-ice-concentration-antarctic.py
+            source: WORKSPACE
