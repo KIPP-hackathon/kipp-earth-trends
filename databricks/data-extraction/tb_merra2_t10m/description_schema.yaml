@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_t10m'
+  name: '`earth-trend-data`.transient.tb_merra2_t10m'
   description: Temperatura mensal do ar a 10 m acima da altura de deslocamento (T10M) da reanálise MERRA-2
     M2TMNXSLV, versão 5.12.4. Preserva os valores Kelvin e Celsius recebidos nos CSVs.
   theme: calor

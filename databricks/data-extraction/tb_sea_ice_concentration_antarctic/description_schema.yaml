@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_sea_ice_concentration_antarctic'
+  name: '`earth-trend-data`.transient.tb_sea_ice_concentration_antarctic'
   description: Concentração mensal de gelo marinho na Antártida, NSIDC Sea Ice Index G02135 v4, em porcentagem
     na grade 0,5 grau de latitude por 0,625 grau de longitude. Remapeamento aproximado por quadratura
     de área esférica com 16 por 16 amostras por célula. Não é a máscara categórica de extensão de gelo,

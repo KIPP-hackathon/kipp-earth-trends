@@ -1,0 +1,23 @@
+source_table: '`earth-trend-data`.transient.tb_grace_jpl_mass_anomaly'
+target_table: '`earth-trend-data`.trusted.tb_grace_jpl_mass_anomaly'
+source_description: ../../data-extraction/tb_grace_jpl_mass_anomaly/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  mass_anomaly_mm_we: surface_mass_anomaly_millimeters_water_equivalent
+  valid_area_fraction: valid_area_fraction
+  cell_mass_anomaly_gt: cell_mass_anomaly_gigatonnes
+  native_uncertainty_mean_mm_we: native_mass_uncertainty_mean_millimeters_water_equivalent

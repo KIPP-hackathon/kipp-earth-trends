@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_q250'
+target_table: '`earth-trend-data`.trusted.tb_merra2_q250'
+source_description: ../../data-extraction/tb_merra2_q250/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  Q250: specific_humidity_at_250_hpa_kilograms_per_kilogram

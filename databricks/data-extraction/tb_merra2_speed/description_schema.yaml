@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_speed'
+  name: '`earth-trend-data`.transient.tb_merra2_speed'
   description: Campos mensais exportados da velocidade do vento SPEED da reanálise MERRA-2 M2TMNXFLX. O exportador
     gerou os nomes SPEED_K e SPEED_C e aplicou conversão de temperatura. A interpretação das unidades desses
     campos está pendente de correção e validação na origem.

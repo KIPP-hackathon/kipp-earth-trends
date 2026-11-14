@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_cldprs'
+  name: '`earth-trend-data`.transient.tb_merra2_cldprs'
   description: Diagnóstico mensal CLDPRS do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV por ano. Pressão
     no topo das nuvens, em Pa.
   theme: atmosfera

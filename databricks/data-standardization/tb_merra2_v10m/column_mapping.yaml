@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_v10m'
+target_table: '`earth-trend-data`.trusted.tb_merra2_v10m'
+source_description: ../../data-extraction/tb_merra2_v10m/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  V10M: northward_wind_at_10_meters_meters_per_second

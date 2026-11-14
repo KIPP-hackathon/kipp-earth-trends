@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_tropq'
+  name: '`earth-trend-data`.transient.tb_merra2_tropq'
   description: Diagnóstico mensal TROPQ do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Média mensal de TROPQ (tropopause specific humidity using blended TROPP estimate), na unidade kg
     kg-1 indicada pelo atributo units do arquivo MERRA-2.

@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_disph'
+  name: '`earth-trend-data`.transient.tb_merra2_disph'
   description: Diagnóstico mensal DISPH do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV por ano. Altura
     de deslocamento do plano zero, em metros.
   theme: atmosfera

@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_troppt'
+  name: '`earth-trend-data`.transient.tb_merra2_troppt'
   description: Diagnóstico mensal TROPPT do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Média mensal de TROPPT (tropopause pressure based on thermal estimate), na unidade Pa indicada
     pelo atributo units do arquivo MERRA-2.

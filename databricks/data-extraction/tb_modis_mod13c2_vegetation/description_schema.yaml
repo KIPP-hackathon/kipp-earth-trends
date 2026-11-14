@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_modis_mod13c2_vegetation'
+  name: '`earth-trend-data`.transient.tb_modis_mod13c2_vegetation'
   description: Índices mensais NDVI e EVI do MODIS Terra MOD13C2 coleção 061, lidos diretamente do HDF4 na
     grade geográfica global de 0,05 grau. Retém valores inteiros originais, índices calibrados, bitfield de
     qualidade e confiabilidade. Fill e valores fora da faixa válida viram nulos apenas nos índices calibrados.

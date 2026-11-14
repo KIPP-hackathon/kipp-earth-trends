@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_var_h850'
+  name: '`earth-trend-data`.transient.tb_merra2_var_h850'
   description: Diagnóstico mensal Var_H850 do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Variável mensal Var_H850 (Variance of H850), na unidade m m indicada pelo atributo units do arquivo
     MERRA-2.

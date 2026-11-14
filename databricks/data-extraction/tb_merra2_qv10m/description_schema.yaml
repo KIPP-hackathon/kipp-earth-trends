@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_merra2_qv10m'
+  name: '`earth-trend-data`.transient.tb_merra2_qv10m'
   description: Diagnóstico mensal QV10M do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
     anuais. Média mensal de QV10M (10-meter specific humidity), na unidade kg kg-1 indicada pelo atributo units
     do arquivo MERRA-2.

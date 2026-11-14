@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_u50m'
+target_table: '`earth-trend-data`.trusted.tb_merra2_u50m'
+source_description: ../../data-extraction/tb_merra2_u50m/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  U50M: eastward_wind_at_50_meters_meters_per_second

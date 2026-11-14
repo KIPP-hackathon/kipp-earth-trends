@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_gpm_imerg_liquid_probability'
+  name: '`earth-trend-data`.transient.tb_gpm_imerg_liquid_probability'
   description: Probabilidade mensal da fase líquida da precipitação, IMERG Final V07, em porcentagem.
     Campo mensal nativo reamostrado para 0,5 grau de latitude por 0,625 grau de longitude por média de
     área esférica. Não é probabilidade de chover nem fração de volume líquido recalculada na célula de

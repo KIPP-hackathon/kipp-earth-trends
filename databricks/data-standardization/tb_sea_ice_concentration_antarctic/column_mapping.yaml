@@ -1,0 +1,21 @@
+source_table: '`earth-trend-data`.transient.tb_sea_ice_concentration_antarctic'
+target_table: '`earth-trend-data`.trusted.tb_sea_ice_concentration_antarctic'
+source_description: ../../data-extraction/tb_sea_ice_concentration_antarctic/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  sea_ice_concentration_pct: sea_ice_concentration_percent
+  valid_area_fraction: valid_area_fraction

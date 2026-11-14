@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_var_h850'
+target_table: '`earth-trend-data`.trusted.tb_merra2_var_h850'
+source_description: ../../data-extraction/tb_merra2_var_h850/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  Var_H850: geopotential_height_at_850_hpa_meters_variance

@@ -1,5 +1,5 @@
 table:
-  name: '`earth-trend-data`.refined.tb_grace_jpl_mass_anomaly'
+  name: '`earth-trend-data`.transient.tb_grace_jpl_mass_anomaly'
   description: Anomalia mensal de massa superficial total GRACE/GRACE-FO JPL CRI RL06.3Mv04, relativa à média
     2004–2009, exportada na grade 0,5 × 0,625 grau. Inclui contribuições de água continental, gelo e oceano.
     A estimativa isolada de água subterrânea exige separação de componentes. Ganhos hidrológicos não foram
