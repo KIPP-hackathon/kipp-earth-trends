@@ -62,8 +62,11 @@ Portuguese region aliases, exact filter validation, numeric/boolean conversion,
 null confidence bounds, exact dates and stored Amazon method disagreement.
 Synthetic 501-record and failed-provider cases checked explicit truncation and
 error redaction. No test suite, DB mutation, grant or cloud configuration was
-added by this work. Production service-account access requires deployment
-verification; M2M success alone does not establish production access.
+added by this work. Production service-account access was subsequently verified through the Vercel
+assistant at source `dcfe85a1b847c4d2300bd3fe1f679b94f6000f0f`: HTTP 200, five
+Amazon-box method records in the evidence, correct fixed period/variable and an
+explanation of the OLS/AR(1) disagreement. No new grant was required. M2M success
+alone was not treated as proof of production access.
 
 OpenAI Codex assisted this service and documentation. Exact model identifier was
 not verified; team review remains pending. Access to stored results alone does

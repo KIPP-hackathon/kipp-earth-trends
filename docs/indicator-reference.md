@@ -41,9 +41,11 @@ raw NDVI remained metadata-only. Invalid arguments/filters, a 501-record referen
 and provider failures were checked for rejection, explicit truncation and error
 redaction. These checks did not modify Databricks permissions or data.
 
-Production Google service-account access remains a deployment verification item:
-local impersonation was denied, so a successful M2M query alone does not establish
-production access. The table is not synced into Lakebase. Lakebase extension
+Production Google service-account access was verified after deployment at source
+`dcfe85a1b847c4d2300bd3fe1f679b94f6000f0f`: a real same-origin Vercel assistant
+request returned indicator matches from this table, together with stored trends.
+No additional grants or credentials were needed. Earlier local impersonation
+was denied; M2M success alone was not used as production evidence. The table is not synced into Lakebase. Lakebase extension
 inspection found no PostGIS or ST_Contains/ST_Covers functions; this reference
 does not establish exact country-polygon statistics.
 

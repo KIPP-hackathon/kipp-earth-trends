@@ -41,3 +41,16 @@ the map retained its 288×180 global field and 100% valid display cells, the new
 regional series loaded, and global September 2026 stayed at 16.3 °C. Both charts
 had matching vertical ticks. Brazil fallback, country outline and the viewport
 backdrop were observed without accepting real device-location permission.
+
+
+Production update verified at source `dcfe85a1b847c4d2300bd3fe1f679b94f6000f0f`.
+[Vercel publication](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/9yBK2ecN8NQgfjM6Qz9cNEci5b7D)
+and [backend CI/CD](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43651694504)
+succeeded. Cloud Run `kipp-earth-api-00031-lom` served the 72-variable catalog.
+The browser showed the Brazil fallback, country outline, two series and one
+viewport-wide starfield with three animated layers. Drawing bbox
+`-67.80854,-25.82293,-46.64161,1.10575` preserved the 288×180 global field;
+clearing restored Brazil. The agent read both new Databricks tables through the
+production identity. Direct anonymous Cloud Run POST remained HTTP 403; the live
+bundle contained neither credential patterns nor server-authentication helpers.
+Ignored screenshot: `artifacts/country-global-production.png`.

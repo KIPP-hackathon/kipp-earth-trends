@@ -13,6 +13,8 @@ Global frames and playback are keyed only by variable/month/render policy; regio
 - [x] Global map retained, paired country/ROI and global series, full-viewport space.
 - [x] Bounded indicator and precomputed-trend tools, safe mapping and graceful unavailable handling.
 - [x] Builds and focused real-data/browser/privacy checks; review and secret scan.
-- [ ] Publish and verify production, runtime read permission and source/AI register.
+- [x] Publish and verify production, runtime read permission and source/AI register.
 
 The team confirmed both new tables should be available to the agent. `tb_trend_merra2_ts` holds 35 method-specific results (seven fixed regions × five methods) for 33 monthly surface-skin-temperature values, January 2024–September 2026. A separate bounded tool must retain stored method, region, dates, units, uncertainty and notes; estimates are not transferable to a drawn ROI. Seasonal and autocorrelation-aware estimates must be considered together rather than cherry-picking an unadjusted p-value.
+
+Published and verified at `dcfe85a`, Vercel and backend workflow 43651694504 successful; Cloud Run revision `kipp-earth-api-00031-lom`. Runtime read of both reference tables succeeded through the Vercel assistant without new grants. Existing frontend checks increased to 46 after merging the team's cache changes; builds and six existing backend auth checks passed. Production bundle scan and direct Cloud Run 403 passed.
