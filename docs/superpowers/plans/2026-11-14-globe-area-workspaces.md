@@ -14,4 +14,4 @@ Explore starts at global view, without a region dropdown or automatic regional q
 - [x] Accessible month calendar, ROI integration, overview without preset region selector, inactive query gating.
 - [x] Separate persistent workspaces and correct assistant/event destination routing.
 - [x] Node24 builds, focused bbox/cache/geometry smoke, real API and browser checks for drawing, calendar, isolation and agent compatibility.
-- [ ] Independent review, source/bundle secret check, publish frontend and verify production; update Space Apps AI/evidence register.
+- [x] Independent review, source/bundle secret check, publish frontend and verify production; update Space Apps AI/evidence register.
