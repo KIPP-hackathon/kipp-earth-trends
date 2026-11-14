@@ -1,0 +1,32 @@
+table:
+  name: '`earth-trend-data`.refined.tb_merra2_var_pbltop'
+  description: Diagnóstico mensal Var_PBLTOP do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
+    anuais. Variável mensal Var_PBLTOP (Variance of PBLTOP), na unidade Pa Pa indicada pelo atributo units
+    do arquivo MERRA-2.
+  theme: atmosfera
+  product: M2TMNXSLV_Var_PBLTOP
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_Var_PBLTOP/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_Var_PBLTOP/2024/M2TMNXSLV_Var_PBLTOP_2024_01.csv
+  original_sample: MERRA2_400.tavgM_2d_slv_Nx.202401.nc4
+  original_long_name: Variance_of_PBLTOP
+  original_units: Pa Pa
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+  lon:
+    description: Longitude do ponto da grade, em graus leste.
+    unit: degrees_east
+  time:
+    description: Timestamp mensal preservado do CSV MERRA-2. Cruzamentos com outras fontes devem considerar
+      ano e mês.
+    unit: null
+  Var_PBLTOP:
+    description: Variável mensal Var_PBLTOP (Variance of PBLTOP), na unidade Pa Pa indicada pelo atributo units
+      do arquivo MERRA-2.
+    unit: Pa Pa
+    source: Atributos long_name e units do NetCDF original, cabeçalho CSV e especificação MERRA-2.

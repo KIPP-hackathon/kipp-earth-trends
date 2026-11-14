@@ -26,6 +26,6 @@ validate_columns(description, df.columns)
 
 # COMMAND ----------
 
-df.write.format("delta").saveAsTable(TABLE)
+df.write.format("delta").mode("overwrite").saveAsTable(TABLE)
 
 apply_comments(spark, TABLE, description)

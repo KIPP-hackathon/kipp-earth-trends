@@ -2,18 +2,21 @@
 
 ## Objetivo
 
-Carregar os CSVs publicados em `gs://nasa-earth-trends-lab-raw/transient/` como tabelas Delta no schema `earth-trend-data.refined`, seguindo o notebook `tb_merra2_ts/raw2refined-tb-merra2-surface-temperature-ts.py`.
+Carregar os conjuntos publicados em `gs://nasa-earth-trends-lab-raw/` como tabelas Delta no schema `earth-trend-data.refined`, seguindo o padrão de pastas por tabela, notebook e YAML de descrições.
+
+O [acompanhamento das fontes](../../docs/acompanhamento-fontes.md) registra o inventário atualizado, períodos, arquivos, jobs e tabelas observadas. O mapeamento de cinco fontes abaixo preserva o levantamento inicial.
 
 ## Formato dos notebooks
 
 - Arquivos Python exportáveis para o Databricks, iniciados por `# Databricks notebook source`.
 - Células separadas por `# COMMAND ----------`, com instalação de PyYAML, configuração, leitura e gravação com comentários.
 - `TABLE` define a tabela de destino e `STORAGE_PATH` define a pasta de origem.
-- Leitura com `spark.read`, `pathGlobFilter`, cabeçalho e inferência de schema.
-- Gravação com `df.write.format("delta").saveAsTable(TABLE)`.
+- Leitura CSV com `spark.read`, `pathGlobFilter` e cabeçalho. Os novos conjuntos usam schema explícito e leitura recursiva para subpastas anuais. Os cinco notebooks iniciais preservam sua leitura original.
+- MOD13C2 usa `binaryFile` e `mapInPandas` com PyHDF para ler HDF4 por blocos, calibrar NDVI/EVI e preservar os campos de qualidade da grade nativa.
+- Gravação com `df.write.format("delta").mode("overwrite").saveAsTable(TABLE)`.
 - Cada notebook preserva as colunas recebidas do CSV e seleciona apenas seu produto pelo nome do arquivo.
 - Cada tabela possui uma pasta `<nome-da-tabela>/` com o notebook e `description_schema.yaml`. O módulo `table_metadata.py` valida as descrições e publica comentários da tabela e de todas as colunas.
-- Cada execução realiza a carga inicial e aplica as descrições da tabela e das colunas definidas no YAML.
+- Cada execução substitui os dados da tabela e aplica as descrições da tabela e das colunas definidas no YAML.
 - Consulte [o guia de descrições](../../docs/descricao-tabelas-fontes.md) para proveniência e critérios de documentação.
 
 ## Mapeamento verificado em 14/11/2026
@@ -56,7 +59,7 @@ O inventário representa a consulta nessa data. Novos CSVs compatíveis serão i
 3. Importar e executar o notebook correspondente ao produto.
 4. Conferir o schema inferido, os meses carregados, a cobertura e a contagem de registros no Databricks.
 
-A gravação segue o comportamento padrão do notebook original e falha quando a tabela já existe. Para atualizar uma tabela existente, definir a estratégia de recarga ou ingestão incremental antes de executar novamente. Os notebooks fazem uma carga inicial de todos os arquivos correspondentes na pasta.
+A gravação usa `mode("overwrite")` por padrão. Cada execução substitui o conteúdo da tabela pelos dados dos arquivos correspondentes na origem e reaplica os comentários do YAML. Quando a tabela ainda não existe, ela é criada.
 
 ## Outros objetos encontrados no bucket
 

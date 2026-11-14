@@ -40,3 +40,491 @@ resources:
           notebook_task:
             notebook_path: ../data-extraction/tb_gpm_imerg_late_precipitation/raw2refined-tb-gpm-imerg-late-precipitation.py
             source: WORKSPACE
+    grace_jpl_mass_anomaly:
+      name: kipp-grace-jpl-mass-anomaly
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_grace_jpl_mass_anomaly/raw2refined-tb-grace-jpl-mass-anomaly.py
+            source: WORKSPACE
+    merra2_cldprs:
+      name: kipp-merra2-cldprs
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_cldprs/raw2refined-tb-merra2-cldprs.py
+            source: WORKSPACE
+    merra2_cldtmp:
+      name: kipp-merra2-cldtmp
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_cldtmp/raw2refined-tb-merra2-cldtmp.py
+            source: WORKSPACE
+    merra2_disph:
+      name: kipp-merra2-disph
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_disph/raw2refined-tb-merra2-disph.py
+            source: WORKSPACE
+    merra2_h1000:
+      name: kipp-merra2-h1000
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_h1000/raw2refined-tb-merra2-h1000.py
+            source: WORKSPACE
+    merra2_h250:
+      name: kipp-merra2-h250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_h250/raw2refined-tb-merra2-h250.py
+            source: WORKSPACE
+    merra2_h500:
+      name: kipp-merra2-h500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_h500/raw2refined-tb-merra2-h500.py
+            source: WORKSPACE
+    merra2_h850:
+      name: kipp-merra2-h850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_h850/raw2refined-tb-merra2-h850.py
+            source: WORKSPACE
+    merra2_omega500:
+      name: kipp-merra2-omega500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_omega500/raw2refined-tb-merra2-omega500.py
+            source: WORKSPACE
+    merra2_pbltop:
+      name: kipp-merra2-pbltop
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_pbltop/raw2refined-tb-merra2-pbltop.py
+            source: WORKSPACE
+    merra2_ps:
+      name: kipp-merra2-ps
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_ps/raw2refined-tb-merra2-ps.py
+            source: WORKSPACE
+    merra2_q250:
+      name: kipp-merra2-q250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_q250/raw2refined-tb-merra2-q250.py
+            source: WORKSPACE
+    merra2_q500:
+      name: kipp-merra2-q500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_q500/raw2refined-tb-merra2-q500.py
+            source: WORKSPACE
+    merra2_q850:
+      name: kipp-merra2-q850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_q850/raw2refined-tb-merra2-q850.py
+            source: WORKSPACE
+    sea_ice_arctic:
+      name: kipp-sea-ice-arctic
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_sea_ice_arctic/raw2refined-tb-sea-ice-arctic.py
+            source: WORKSPACE
+    sea_ice_antarctic:
+      name: kipp-sea-ice-antarctic
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_sea_ice_antarctic/raw2refined-tb-sea-ice-antarctic.py
+            source: WORKSPACE
+    modis_mod13c2_vegetation:
+      name: kipp-modis-mod13c2-vegetation
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_modis_mod13c2_vegetation/raw2refined-tb-modis-mod13c2-vegetation.py
+            source: WORKSPACE
+    merra2_qv10m:
+      name: kipp-merra2-qv10m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_qv10m/raw2refined-tb-merra2-qv10m.py
+            source: WORKSPACE
+    merra2_qv2m:
+      name: kipp-merra2-qv2m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_qv2m/raw2refined-tb-merra2-qv2m.py
+            source: WORKSPACE
+    merra2_slp:
+      name: kipp-merra2-slp
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_slp/raw2refined-tb-merra2-slp.py
+            source: WORKSPACE
+    merra2_t250:
+      name: kipp-merra2-t250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_t250/raw2refined-tb-merra2-t250.py
+            source: WORKSPACE
+    merra2_t2m:
+      name: kipp-merra2-t2m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_t2m/raw2refined-tb-merra2-t2m.py
+            source: WORKSPACE
+    merra2_t2mdew:
+      name: kipp-merra2-t2mdew
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_t2mdew/raw2refined-tb-merra2-t2mdew.py
+            source: WORKSPACE
+    merra2_t2mwet:
+      name: kipp-merra2-t2mwet
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_t2mwet/raw2refined-tb-merra2-t2mwet.py
+            source: WORKSPACE
+    merra2_t500:
+      name: kipp-merra2-t500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_t500/raw2refined-tb-merra2-t500.py
+            source: WORKSPACE
+    merra2_t850:
+      name: kipp-merra2-t850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_t850/raw2refined-tb-merra2-t850.py
+            source: WORKSPACE
+    merra2_to3:
+      name: kipp-merra2-to3
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_to3/raw2refined-tb-merra2-to3.py
+            source: WORKSPACE
+    merra2_tox:
+      name: kipp-merra2-tox
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_tox/raw2refined-tb-merra2-tox.py
+            source: WORKSPACE
+    merra2_tqi:
+      name: kipp-merra2-tqi
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_tqi/raw2refined-tb-merra2-tqi.py
+            source: WORKSPACE
+    merra2_tql:
+      name: kipp-merra2-tql
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_tql/raw2refined-tb-merra2-tql.py
+            source: WORKSPACE
+    merra2_tqv:
+      name: kipp-merra2-tqv
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_tqv/raw2refined-tb-merra2-tqv.py
+            source: WORKSPACE
+    merra2_troppb:
+      name: kipp-merra2-troppb
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_troppb/raw2refined-tb-merra2-troppb.py
+            source: WORKSPACE
+    merra2_troppt:
+      name: kipp-merra2-troppt
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_troppt/raw2refined-tb-merra2-troppt.py
+            source: WORKSPACE
+    merra2_troppv:
+      name: kipp-merra2-troppv
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_troppv/raw2refined-tb-merra2-troppv.py
+            source: WORKSPACE
+    merra2_tropq:
+      name: kipp-merra2-tropq
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_tropq/raw2refined-tb-merra2-tropq.py
+            source: WORKSPACE
+    merra2_tropt:
+      name: kipp-merra2-tropt
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_tropt/raw2refined-tb-merra2-tropt.py
+            source: WORKSPACE
+    merra2_u10m:
+      name: kipp-merra2-u10m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_u10m/raw2refined-tb-merra2-u10m.py
+            source: WORKSPACE
+    merra2_u250:
+      name: kipp-merra2-u250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_u250/raw2refined-tb-merra2-u250.py
+            source: WORKSPACE
+    merra2_u2m:
+      name: kipp-merra2-u2m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_u2m/raw2refined-tb-merra2-u2m.py
+            source: WORKSPACE
+    merra2_u500:
+      name: kipp-merra2-u500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_u500/raw2refined-tb-merra2-u500.py
+            source: WORKSPACE
+    merra2_u50m:
+      name: kipp-merra2-u50m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_u50m/raw2refined-tb-merra2-u50m.py
+            source: WORKSPACE
+    merra2_u850:
+      name: kipp-merra2-u850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_u850/raw2refined-tb-merra2-u850.py
+            source: WORKSPACE
+    merra2_v10m:
+      name: kipp-merra2-v10m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_v10m/raw2refined-tb-merra2-v10m.py
+            source: WORKSPACE
+    merra2_v250:
+      name: kipp-merra2-v250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_v250/raw2refined-tb-merra2-v250.py
+            source: WORKSPACE
+    merra2_v2m:
+      name: kipp-merra2-v2m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_v2m/raw2refined-tb-merra2-v2m.py
+            source: WORKSPACE
+    merra2_v500:
+      name: kipp-merra2-v500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_v500/raw2refined-tb-merra2-v500.py
+            source: WORKSPACE
+    merra2_v50m:
+      name: kipp-merra2-v50m
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_v50m/raw2refined-tb-merra2-v50m.py
+            source: WORKSPACE
+    merra2_v850:
+      name: kipp-merra2-v850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_v850/raw2refined-tb-merra2-v850.py
+            source: WORKSPACE
+    merra2_var_cldprs:
+      name: kipp-merra2-var-cldprs
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_cldprs/raw2refined-tb-merra2-var-cldprs.py
+            source: WORKSPACE
+    merra2_var_cldtmp:
+      name: kipp-merra2-var-cldtmp
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_cldtmp/raw2refined-tb-merra2-var-cldtmp.py
+            source: WORKSPACE
+    merra2_var_disph:
+      name: kipp-merra2-var-disph
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_disph/raw2refined-tb-merra2-var-disph.py
+            source: WORKSPACE
+    merra2_var_h1000:
+      name: kipp-merra2-var-h1000
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_h1000/raw2refined-tb-merra2-var-h1000.py
+            source: WORKSPACE
+    merra2_var_h250:
+      name: kipp-merra2-var-h250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_h250/raw2refined-tb-merra2-var-h250.py
+            source: WORKSPACE
+    merra2_var_h500:
+      name: kipp-merra2-var-h500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_h500/raw2refined-tb-merra2-var-h500.py
+            source: WORKSPACE
+    merra2_var_h850:
+      name: kipp-merra2-var-h850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_h850/raw2refined-tb-merra2-var-h850.py
+            source: WORKSPACE
+    merra2_var_omega500:
+      name: kipp-merra2-var-omega500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_omega500/raw2refined-tb-merra2-var-omega500.py
+            source: WORKSPACE
+    merra2_var_pbltop:
+      name: kipp-merra2-var-pbltop
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_pbltop/raw2refined-tb-merra2-var-pbltop.py
+            source: WORKSPACE
+    merra2_var_ps:
+      name: kipp-merra2-var-ps
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_ps/raw2refined-tb-merra2-var-ps.py
+            source: WORKSPACE
+    merra2_var_q250:
+      name: kipp-merra2-var-q250
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_q250/raw2refined-tb-merra2-var-q250.py
+            source: WORKSPACE
+    merra2_var_q500:
+      name: kipp-merra2-var-q500
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_q500/raw2refined-tb-merra2-var-q500.py
+            source: WORKSPACE
+    merra2_var_q850:
+      name: kipp-merra2-var-q850
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: extract
+          notebook_task:
+            notebook_path: ../data-extraction/tb_merra2_var_q850/raw2refined-tb-merra2-var-q850.py
+            source: WORKSPACE

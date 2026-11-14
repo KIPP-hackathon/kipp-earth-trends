@@ -1,0 +1,30 @@
+table:
+  name: '`earth-trend-data`.refined.tb_merra2_q850'
+  description: Diagnóstico mensal Q850 do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV por ano. Umidade
+    específica a 850 hPa, em kg/kg.
+  theme: atmosfera
+  product: M2TMNXSLV_Q850
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_Q850/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_Q850/2024/M2TMNXSLV_Q850_2024_01.csv
+  metadata_uri: null
+columns:
+  lat:
+    description: Latitude do ponto da grade em graus norte.
+    unit: degrees_north
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  lon:
+    description: Longitude do ponto da grade em graus leste.
+    unit: degrees_east
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  time:
+    description: Timestamp do mês preservado da fonte. Cruzamentos entre produtos devem usar ano e mês.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
+  Q850:
+    description: Umidade específica a 850 hPa, em kg/kg.
+    unit: kg kg-1
+    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf

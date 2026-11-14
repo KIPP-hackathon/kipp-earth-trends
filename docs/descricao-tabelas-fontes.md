@@ -1,6 +1,6 @@
 # Descrições das tabelas e colunas
 
-Cada tabela tem uma pasta em `databricks/data-extraction/`, com seu notebook e `description_schema.yaml`. O YAML reúne a descrição da tabela, as descrições das colunas, unidades, referências e pendências de validação. Os cinco conjuntos já mapeados têm esses arquivos.
+Cada tabela tem uma pasta em `databricks/data-extraction/`, com seu notebook e `description_schema.yaml`. O YAML reúne a descrição da tabela, as descrições das colunas, unidades, referências e pendências de validação. Todos os conjuntos integrados ao bundle têm esses arquivos. O [acompanhamento das fontes](acompanhamento-fontes.md) registra os jobs e as cargas pendentes.
 
 ```text
 data-extraction/
@@ -18,7 +18,7 @@ Cada execução lê os arquivos de origem, valida as descrições, grava a tabel
 
 Os arquivos YAML são publicados junto dos notebooks pelo bundle. O notebook usa o diretório atual para localizar seu YAML e o módulo compartilhado. Essa resolução depende do comportamento padrão dos notebooks em runtimes modernos, nos quais o diretório atual corresponde à pasta do notebook. [Diretório de trabalho no Databricks](https://docs.databricks.com/gcp/en/files/cwd-dbr-14)
 
-A gravação mantém o comportamento de carga inicial e falha quando a tabela existe. Para reprocessar, prepare a tabela de destino conforme sua estratégia de recarga. Os jobs continuam com uma única tarefa `extract`, com criação de schemas feita na preparação do ambiente.
+A gravação usa `mode("overwrite")` por padrão para substituir os dados da tabela em cada reprocessamento. As descrições do YAML são reaplicadas após a gravação. Os jobs continuam com uma única tarefa `extract`, com criação de schemas feita na preparação do ambiente.
 
 ## De onde obter as descrições
 
@@ -56,13 +56,13 @@ Os temas abaixo orientam a seleção das próximas fontes. Os contrastes regiona
 
 | Tema | Produto ou variável a documentar | Situação da integração atual |
 | --- | --- | --- |
-| Calor | MERRA-2 para temperatura do ar, identificando altura. MODIS LST para temperatura da superfície, identificando dia/noite e QA | Há tabelas MERRA-2 TS e T10M. A temperatura da superfície MODIS exige um produto LST, como MOD11, e sua ingestão própria |
+| Calor | MERRA-2 para temperatura do ar, identificando altura. MODIS LST para temperatura da superfície, identificando dia/noite e QA | Há tabelas MERRA-2 TS e T10M e job de T2M. A temperatura da superfície MODIS exige um produto LST, como MOD11, e sua ingestão própria |
 | Ciclo da água | GPM IMERG, diferenciando execução Final/Late, taxa e acumulado | Há tabelas Final e Late com descrições e campos de cobertura |
-| Água subterrânea | GRACE/GRACE-FO e produto de armazenamento ou assimilação escolhido | Integração pendente. A descrição deve explicitar os componentes e o método usados para estimar água subterrânea |
-| Gelo e nível do mar | Extensão/concentração de gelo marinho, massa das calotas e altimetria | Integração pendente. Cada medida exige produto, unidade, região e referência próprios |
+| Água subterrânea | GRACE/GRACE-FO e produto de armazenamento ou assimilação escolhido | Job GRACE de anomalia de massa total publicado. A estimativa isolada de água subterrânea exige explicitar componentes e método |
+| Gelo e nível do mar | Extensão/concentração de gelo marinho, massa das calotas e altimetria | Jobs de máscaras de gelo marinho publicados. Séries de extensão regional, massa de calotas e altimetria exigem tratamento próprio |
 | Poluição do ar | NO₂ OMI, identificando coluna total/troposférica e flags | Integração pendente. Escolher coleção, versão, variável e unidade antes de definir o schema |
 | Fogo | Detecções FIRMS e produto MODIS de área queimada | Integração pendente. As medidas de detecção e área queimada têm contratos próprios |
-| Vegetação | MODIS NDVI/EVI e produto LAI | MOD13C2 foi observado no bucket. Sua ingestão está pendente. LAI exige um produto próprio, como a família MOD15 |
+| Vegetação | MODIS NDVI/EVI e produto LAI | Job MOD13C2 com NDVI, EVI e QA publicado, com execução de carga pendente. LAI exige um produto próprio, como a família MOD15 |
 | CO₂ atmosférico | OCO-2, XCO₂ e qualidade da recuperação | Integração pendente. Selecionar versão, flags e forma de agregação |
 
 MERRA-2 distingue T2M, T10M e TS em sua especificação. A descrição deve manter essa identificação da variável. [Especificação MERRA-2](https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf)

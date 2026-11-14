@@ -1,10 +1,10 @@
 # Deploy manual dos jobs Databricks
 
-O bundle em `databricks/databricks.yml` publica os notebooks e cinco jobs no workspace `https://8259554586019913.3.gcp.databricks.com`, usando o target `kipp`.
+O bundle em `databricks/databricks.yml` publica os notebooks e os jobs de ingestão no workspace `https://8259554586019913.3.gcp.databricks.com`, usando o target `kipp`.
 
 Cada job executa o notebook de extração do produto em uma única tarefa `extract`. Execute `CREATE SCHEMA.py` manualmente uma única vez na preparação do ambiente. O compute escolhido é serverless, definido pela ausência de configuração de cluster nas tarefas de notebook. O workspace precisa disponibilizar serverless para jobs e acesso ao bucket GCS por esse compute.
 
-Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler `gs://nasa-earth-trends-lab-raw/transient/`. O catálogo e os schemas devem existir previamente.
+Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler as pastas de origem em `gs://nasa-earth-trends-lab-raw/`, incluindo `transient/` e `kipp/raw/nasa/MOD13C2/`. O catálogo e os schemas devem existir previamente.
 
 ## Preparação
 
@@ -33,6 +33,8 @@ O deploy cria ou atualiza os jobs e publica os notebooks. A execução é manual
 
 ## Execução dos produtos
 
+A lista completa de jobs, links, formatos e pendências está no [acompanhamento das fontes](acompanhamento-fontes.md). A tabela abaixo mostra os cinco jobs iniciais.
+
 | Chave do job | Produto |
 | --- | --- |
 | `merra2_surface_temperature` | Temperatura de superfície TS |
@@ -47,7 +49,7 @@ Por exemplo, para carregar a temperatura a 10 m, execute a partir de `databricks
 databricks bundle run --target kipp --profile kipp-gcp merra2_temperature_t10m
 ```
 
-Os notebooks fazem uma carga inicial e usam o modo padrão de `saveAsTable`. Uma execução com a tabela já existente falha. A estratégia de atualização dos dados precisa ser definida para recargas. O limite de uma execução simultânea se aplica a cada job.
+Os notebooks usam `mode("overwrite")` por padrão e substituem os dados da tabela a cada execução, reaplicando as descrições do YAML. A tabela é criada quando ainda não existe. O limite de uma execução simultânea se aplica a cada job.
 
 O mapeamento de arquivos, tabelas e limitações dos dados está em [CONTEXT.md](../databricks/data-extraction/CONTEXT.md).
 
