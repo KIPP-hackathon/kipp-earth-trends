@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_csp_var_mdscldszh20'
+target_table: '`earth-trend-data`.trusted.tb_merra2_csp_var_mdscldszh20'
+source_description: ../../data-extraction/tb_merra2_csp_var_mdscldszh20/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  Var_MDSCLDSZH20: simulated_modis_cloud_particle_size_water_mean_variance

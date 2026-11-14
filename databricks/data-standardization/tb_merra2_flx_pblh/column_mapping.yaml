@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_flx_pblh'
+target_table: '`earth-trend-data`.trusted.tb_merra2_flx_pblh'
+source_description: ../../data-extraction/tb_merra2_flx_pblh/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  PBLH: planetary_boundary_layer_height

@@ -1,0 +1,38 @@
+table:
+  name: '`earth-trend-data`.transient.tb_merra2_flx_var_frcls'
+  description: Variância mensal Var_FRCLS da coleção MERRA-2 M2TMNXFLX, versão 5.12.4,
+    em grade global. areal fraction of nonanvil large scale showers. CSV exportado
+    para a grade de 0,5 por 0,625 grau.
+  theme: fluxos_superficie
+  product: M2TMNXFLX
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXFLX_Var_FRCLS/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  local_evidence:
+  - docs/fontes-transient-dados.csv
+  metadata_uri: null
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador
+      para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Referência temporal mensal preservada do CSV; comparar produtos por
+      ano e mês.
+    unit: null
+    source: Cabeçalho e amostra CSV da origem.
+  Var_FRCLS:
+    description: 'Variância mensal de FRCLS (areal fraction of nonanvil large scale
+      showers), coleção MERRA-2 M2TMNXFLX. Unidade: (1)^2. Valores preservados do
+      CSV.'
+    unit: (1)^2
+    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+    unit_derivation: Unidade ao quadrado da variável base na especificação MERRA-2;
+      campo Var_ preservado do exportador, sem conversão numérica.

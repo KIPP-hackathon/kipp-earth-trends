@@ -1,0 +1,20 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_slv_var_t2mwet'
+target_table: '`earth-trend-data`.trusted.tb_merra2_slv_var_t2mwet'
+source_description: ../../data-extraction/tb_merra2_slv_var_t2mwet/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  Var_T2MWET: wet_bulb_temperature_at_2_meters_kelvin_variance

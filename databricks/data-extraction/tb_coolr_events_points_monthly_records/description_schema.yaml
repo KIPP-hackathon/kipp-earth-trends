@@ -1,0 +1,37 @@
+table:
+  name: '`earth-trend-data`.transient.tb_coolr_events_points_monthly_records'
+  description: 'COOLR Events: contagem mensal de registros do catálogo, atribuídos
+    ao centro mais próximo da grade KIPP. Não representa taxa de ocorrência nem área
+    afetada. Camadas mantidas separadas para evitar dupla contagem.'
+  theme: deslizamentos
+  product: COOLR_EVENTS_POINTS_MONTHLY_RECORDS
+  source_path: gs://nasa-earth-trends-lab-raw/transient/COOLR_EVENTS_POINTS_MONTHLY_RECORDS/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gis.earthdata.nasa.gov/portal/rest/services/Landslides/COOLR_Events_Points/FeatureServer/0
+  local_evidence:
+  - docs/fontes-transient-dados.csv
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/COOLR_EVENTS_POINTS_MONTHLY_RECORDS/2024/COOLR_EVENTS_POINTS_MONTHLY_RECORDS_2024_01.metadata.json
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador
+      para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Referência temporal mensal preservada do CSV; comparar produtos por
+      ano e mês.
+    unit: null
+    source: Cabeçalho e amostra CSV da origem.
+  reported_record_count:
+    description: Contagem de registros do catálogo COOLR por mês da data informada
+      do evento e célula mais próxima da grade KIPP. Zero significa nenhum registro
+      neste recorte do catálogo, não ausência de deslizamentos. As camadas Events
+      e Reports podem conter o mesmo evento e não devem ser somadas.
+    unit: records
+    source: https://gis.earthdata.nasa.gov/portal/rest/services/Landslides/COOLR_Events_Points/FeatureServer/0

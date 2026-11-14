@@ -1,0 +1,37 @@
+table:
+  name: '`earth-trend-data`.transient.tb_merra2_slv_var_t2mwet'
+  description: Variância mensal Var_T2MWET da coleção MERRA-2 M2TMNXSLV, versão 5.12.4,
+    em grade global. wet bulb temperature at 2 m. CSV exportado para a grade de 0,5
+    por 0,625 grau.
+  theme: atmosfera
+  product: M2TMNXSLV
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_Var_T2MWET/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  local_evidence:
+  - docs/fontes-transient-dados.csv
+  metadata_uri: null
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador
+      para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Referência temporal mensal preservada do CSV; comparar produtos por
+      ano e mês.
+    unit: null
+    source: Cabeçalho e amostra CSV da origem.
+  Var_T2MWET:
+    description: 'Variância mensal de T2MWET (wet bulb temperature at 2 m), coleção
+      MERRA-2 M2TMNXSLV. Unidade: (K)^2. Valores preservados do CSV.'
+    unit: (K)^2
+    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+    unit_derivation: Unidade ao quadrado da variável base na especificação MERRA-2;
+      campo Var_ preservado do exportador, sem conversão numérica.
