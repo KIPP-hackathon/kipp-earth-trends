@@ -225,3 +225,12 @@ comprovação do deploy. Alterações ainda locais; publicação pendente.
 
 OpenAI Codex assistiu a implementação, os testes e este registro; revisão humana
 da equipe pendente. Não encerra os bloqueadores de investigação ou submissão.
+
+Publicação verificada em 14/11/2026: commit `929841b`, integrado à seleção de
+áreas, seletor de meses e câmera animada já presentes na `main`.
+[Deploy Vercel concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/8ekDL9B6KZV3Fqh62h7EEK1ZUWyG).
+O site público entregou o bundle `index-yQgOKq1e.js` e catálogo HTTP 200 com
+72 variáveis. Chromium em produção carregou dados reais, confirmou estrelas em
+movimento e escala de Explorar preservada sem alterar Comparar, sem exceções
+JavaScript. Isso comprova a integração publicada, sem concluir a investigação
+científica ou a submissão oficial.
