@@ -1,0 +1,43 @@
+table:
+  name: '`earth-trend-data`.refined.tb_merra2_speed'
+  description: Campos mensais exportados da velocidade do vento SPEED da reanálise MERRA-2 M2TMNXFLX. O exportador
+    gerou os nomes SPEED_K e SPEED_C e aplicou conversão de temperatura. A interpretação das unidades desses
+    campos está pendente de correção e validação na origem.
+  theme: vento
+  product: M2TMNXFLX
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXFLX_SPEED/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  local_evidence:
+  - databricks/data-extraction/CONTEXT.md
+  - docs/catalogo-fontes-gcp.md
+  metadata_uri: null
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Referência temporal do registro mensal preservada do CSV. O timestamp identifica o período
+      do produto.
+    unit: null
+    source: Cabeçalho CSV e convenção temporal do produtor.
+  SPEED_K:
+    description: Valor da variável de velocidade do vento SPEED preservado do CSV sob o nome SPEED_K. O sufixo
+      K foi introduzido pelo exportador de temperatura. A especificação MERRA-2 define SPEED em m/s. Conferir
+      atributos da fonte antes do uso científico.
+    unit: null
+    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+    status: pending_source_validation
+  SPEED_C:
+    description: Campo derivado indevidamente pelo exportador ao subtrair 273,15 de SPEED_K. Valor preservado
+      para rastreabilidade, com interpretação física pendente de correção na origem.
+    unit: null
+    source: Amostra CSV e lógica de data/main.py.
+    status: invalid_temperature_conversion

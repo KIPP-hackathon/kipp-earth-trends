@@ -6,7 +6,7 @@ resources:
       tasks:
         - task_key: extract
           notebook_task:
-            notebook_path: ../data-extraction/raw2refined-tb-merra2-surface-temperature-ts.py
+            notebook_path: ../data-extraction/tb_merra2_ts/raw2refined-tb-merra2-surface-temperature-ts.py
             source: WORKSPACE
     merra2_temperature_t10m:
       name: kipp-merra2-temperature-t10m
@@ -14,7 +14,7 @@ resources:
       tasks:
         - task_key: extract
           notebook_task:
-            notebook_path: ../data-extraction/raw2refined-tb-merra2-temperature-t10m.py
+            notebook_path: ../data-extraction/tb_merra2_t10m/raw2refined-tb-merra2-temperature-t10m.py
             source: WORKSPACE
     merra2_wind_speed:
       name: kipp-merra2-wind-speed
@@ -22,7 +22,7 @@ resources:
       tasks:
         - task_key: extract
           notebook_task:
-            notebook_path: ../data-extraction/raw2refined-tb-merra2-wind-speed.py
+            notebook_path: ../data-extraction/tb_merra2_speed/raw2refined-tb-merra2-wind-speed.py
             source: WORKSPACE
     gpm_imerg_precipitation:
       name: kipp-gpm-imerg-precipitation
@@ -30,7 +30,7 @@ resources:
       tasks:
         - task_key: extract
           notebook_task:
-            notebook_path: ../data-extraction/raw2refined-tb-gpm-imerg-precipitation.py
+            notebook_path: ../data-extraction/tb_gpm_imerg_precipitation/raw2refined-tb-gpm-imerg-precipitation.py
             source: WORKSPACE
     gpm_imerg_late_precipitation:
       name: kipp-gpm-imerg-late-precipitation
@@ -38,5 +38,5 @@ resources:
       tasks:
         - task_key: extract
           notebook_task:
-            notebook_path: ../data-extraction/raw2refined-tb-gpm-imerg-late-precipitation.py
+            notebook_path: ../data-extraction/tb_gpm_imerg_late_precipitation/raw2refined-tb-gpm-imerg-late-precipitation.py
             source: WORKSPACE

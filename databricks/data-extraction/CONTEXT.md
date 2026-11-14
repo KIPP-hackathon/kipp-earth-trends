@@ -2,16 +2,19 @@
 
 ## Objetivo
 
-Carregar os CSVs publicados em `gs://nasa-earth-trends-lab-raw/transient/` como tabelas Delta no schema `earth-trend-data.refined`, seguindo o notebook `raw2refined-tb-merra2-surface-temperature-ts.py`.
+Carregar os CSVs publicados em `gs://nasa-earth-trends-lab-raw/transient/` como tabelas Delta no schema `earth-trend-data.refined`, seguindo o notebook `tb_merra2_ts/raw2refined-tb-merra2-surface-temperature-ts.py`.
 
 ## Formato dos notebooks
 
 - Arquivos Python exportáveis para o Databricks, iniciados por `# Databricks notebook source`.
-- Três células separadas por `# COMMAND ----------`, com configuração, leitura e gravação.
+- Células separadas por `# COMMAND ----------`, com instalação de PyYAML, configuração, leitura e gravação com comentários.
 - `TABLE` define a tabela de destino e `STORAGE_PATH` define a pasta de origem.
 - Leitura com `spark.read`, `pathGlobFilter`, cabeçalho e inferência de schema.
 - Gravação com `df.write.format("delta").saveAsTable(TABLE)`.
 - Cada notebook preserva as colunas recebidas do CSV e seleciona apenas seu produto pelo nome do arquivo.
+- Cada tabela possui uma pasta `<nome-da-tabela>/` com o notebook e `description_schema.yaml`. O módulo `table_metadata.py` valida as descrições e publica comentários da tabela e de todas as colunas.
+- Cada execução realiza a carga inicial e aplica as descrições da tabela e das colunas definidas no YAML.
+- Consulte [o guia de descrições](../../docs/descricao-tabelas-fontes.md) para proveniência e critérios de documentação.
 
 ## Mapeamento verificado em 14/11/2026
 

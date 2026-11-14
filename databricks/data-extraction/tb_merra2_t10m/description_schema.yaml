@@ -1,0 +1,38 @@
+table:
+  name: '`earth-trend-data`.refined.tb_merra2_t10m'
+  description: Temperatura mensal do ar a 10 m acima da altura de deslocamento (T10M) da reanálise MERRA-2
+    M2TMNXSLV, versão 5.12.4. Preserva os valores Kelvin e Celsius recebidos nos CSVs.
+  theme: calor
+  product: M2TMNXSLV
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_T10M/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  local_evidence:
+  - databricks/data-extraction/CONTEXT.md
+  - docs/catalogo-fontes-gcp.md
+  metadata_uri: null
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Referência temporal do registro mensal preservada do CSV. O timestamp identifica o período
+      do produto.
+    unit: null
+    source: Cabeçalho CSV e convenção temporal do produtor.
+  T10M_K:
+    description: Temperatura do ar a 10 m acima da altura de deslocamento, em kelvin.
+    unit: K
+    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  T10M_C:
+    description: Temperatura do ar a 10 m em graus Celsius, com conversão de Kelvin por subtração de 273,15
+      no exportador.
+    unit: degree_Celsius
+    source: Cabeçalho CSV e conversão do exportador.

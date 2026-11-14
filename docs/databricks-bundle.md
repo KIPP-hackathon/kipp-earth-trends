@@ -2,9 +2,9 @@
 
 O bundle em `databricks/databricks.yml` publica os notebooks e cinco jobs no workspace `https://8259554586019913.3.gcp.databricks.com`, usando o target `kipp`.
 
-Cada job executa `CREATE SCHEMA.py` e, em seguida, o notebook de extração do produto. O compute escolhido é serverless, definido pela ausência de configuração de cluster nas tarefas de notebook. O workspace precisa disponibilizar serverless para jobs e acesso ao bucket GCS por esse compute.
+Cada job executa o notebook de extração do produto em uma única tarefa `extract`. Execute `CREATE SCHEMA.py` manualmente uma única vez na preparação do ambiente. O compute escolhido é serverless, definido pela ausência de configuração de cluster nas tarefas de notebook. O workspace precisa disponibilizar serverless para jobs e acesso ao bucket GCS por esse compute.
 
-Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler `gs://nasa-earth-trends-lab-raw/transient/`. O catálogo deve existir previamente.
+Os jobs são executados sob a identidade de quem faz o deploy. Essa identidade precisa acessar o catálogo `earth-trend-data`, criar tabelas nos schemas existentes e ler `gs://nasa-earth-trends-lab-raw/transient/`. O catálogo e os schemas devem existir previamente.
 
 ## Preparação
 
@@ -56,3 +56,5 @@ O mapeamento de arquivos, tabelas e limitações dos dados está em [CONTEXT.md]
 - [Configuração de bundles](https://docs.databricks.com/gcp/en/dev-tools/bundles/settings)
 - [Exemplos e jobs serverless](https://docs.databricks.com/gcp/en/dev-tools/bundles/examples)
 - [Instalação da CLI](https://docs.databricks.com/gcp/en/dev-tools/cli/install)
+
+Os notebooks e `description_schema.yaml` ficam em `data-extraction/<nome-da-tabela>/`. A etapa final publica os comentários da tabela e das colunas. As descrições são aplicadas em toda execução após a gravação da tabela. Consulte [o guia de descrições](descricao-tabelas-fontes.md).

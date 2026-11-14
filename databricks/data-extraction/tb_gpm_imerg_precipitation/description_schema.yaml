@@ -1,0 +1,49 @@
+table:
+  name: '`earth-trend-data`.refined.tb_gpm_imerg_precipitation'
+  description: Precipitação mensal IMERG Final versão 07, reamostrada pelo pipeline KIPP para grade de 0,5
+    grau de latitude por 0,625 grau de longitude por ponderação da área de sobreposição. Preserva taxa, total
+    mensal, indicador de cobertura e média descritiva do erro nativo.
+  theme: ciclo_da_agua
+  product: GPM_3IMERGM
+  source_path: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gpm.nasa.gov/data/imerg
+  local_evidence:
+  - databricks/data-extraction/CONTEXT.md
+  - docs/catalogo-fontes-gcp.md
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/*.metadata.json
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Início do mês de referência em UTC, conforme convenção documentada no arquivo metadata.json.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/*.metadata.json
+  precipitation_mm_h:
+    description: Taxa média mensal de precipitação, em mm/h, reamostrada por ponderação da área de sobreposição.
+    unit: mm h-1
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/*.metadata.json
+  precipitation_mm_month:
+    description: Acumulado mensal de precipitação, em mm, calculado a partir da taxa média e das horas reais
+      do mês.
+    unit: mm month-1
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/*.metadata.json
+  native_random_error_mean_mm_h:
+    description: Média ponderada por área do erro aleatório nativo randomError, em mm/h. Medida descritiva
+      com covariância espacial indisponível. A incerteza propagada da célula e o intervalo de confiança exigem
+      cálculo próprio.
+    unit: mm h-1
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/*.metadata.json
+  valid_area_fraction:
+    description: Fração da área contribuinte válida usada no controle de cobertura da célula, entre 0 e 1.
+      O produtor exige cobertura integral para disponibilizar a estimativa de precipitação.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGM/*.metadata.json

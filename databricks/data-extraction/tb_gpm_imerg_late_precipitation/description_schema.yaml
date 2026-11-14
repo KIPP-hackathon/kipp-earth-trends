@@ -1,0 +1,74 @@
+table:
+  name: '`earth-trend-data`.refined.tb_gpm_imerg_late_precipitation'
+  description: Precipitação IMERG Late versão 07 agregada de arquivos diários em totais mensais pelo pipeline
+    KIPP e reamostrada para grade de 0,5 grau por 0,625 grau. O controle de cobertura exige todos os dias e
+    amostragem completa. A comparação com IMERG Final requer avaliação das diferenças de processamento.
+  theme: ciclo_da_agua
+  product: GPM_3IMERGDL
+  source_path: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/
+provenance:
+  reviewed_on: '2026-11-14'
+  references:
+  - https://gpm.nasa.gov/data/imerg
+  local_evidence:
+  - databricks/data-extraction/CONTEXT.md
+  - docs/catalogo-fontes-gcp.md
+  metadata_uri: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+    source: Cabeçalho CSV e coordenadas da fonte.
+  lon:
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador para [-180, 180).
+    unit: degrees_east
+    source: Cabeçalho CSV e processamento do exportador.
+  time:
+    description: Início do mês de referência em UTC, conforme convenção documentada no arquivo metadata.json.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  precipitation_mm_month:
+    description: Total mensal, em mm, obtido pela soma das estimativas diárias. Valores ausentes preservam
+      as restrições de cobertura do produtor.
+    unit: mm month-1
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  precipitation_mm_h:
+    description: Taxa média em mm/h, calculada dividindo o total mensal pelas horas do calendário do mês.
+    unit: mm h-1
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  native_daily_random_error_mean_mm_day:
+    description: Média espacial e temporal descritiva dos erros aleatórios diários nativos, em mm/dia. A incerteza
+      mensal propagada exige tratamento próprio. A comparação direta com o erro do produto Final requer revisão
+      metodológica.
+    unit: mm day-1
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  valid_day_count:
+    description: Contagem de dias considerados válidos pelo exportador na célula. A regra exata de validade
+      deste contador deve ser conferida no código produtor.
+    unit: day
+    status: pending_producer_validation
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  valid_area_fraction:
+    description: Mínimo, ao longo dos dias do mês, da fração da área nativa que satisfaz a política de amostragem
+      completa, entre 0 e 1.
+    unit: '1'
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  mean_halfhourly_sample_fraction:
+    description: Fração média de amostras de meia hora registrada pelo exportador, entre 0 e 1. Pesos e denominadores
+      devem ser conferidos no produtor.
+    unit: '1'
+    status: pending_producer_validation
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  source_product:
+    description: Identificador do produto de origem registrado no CSV, por exemplo GPM_3IMERGDL.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  source_run:
+    description: Execução do processamento de origem registrada no CSV, por exemplo Late.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
+  source_processing_versions:
+    description: Versões de processamento presentes nos arquivos de origem do mês, conforme registro do exportador,
+      por exemplo V07B.
+    unit: null
+    source: gs://nasa-earth-trends-lab-raw/transient/GPM_3IMERGDL/*.metadata.json
