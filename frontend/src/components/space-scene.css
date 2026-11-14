@@ -170,3 +170,47 @@
   --lime: #0b3d91;
   --line: #cbd7e6;
 }
+
+.space-star-layer {
+  transform-origin: 500px 500px;
+  animation: space-star-drift 24s ease-in-out infinite alternate;
+}
+.space-star-layer-1 {
+  animation-duration: 32s;
+  animation-delay: -11s;
+  animation-direction: alternate-reverse;
+}
+.space-star-layer-2 {
+  animation-duration: 19s;
+  animation-delay: -7s;
+}
+.space-star-layer circle {
+  animation: space-star-twinkle var(--twinkle-duration) ease-in-out
+    var(--twinkle-delay) infinite alternate;
+}
+.real-workspace[hidden] .space-star-layer,
+.real-workspace[hidden] .space-star-layer circle {
+  animation-play-state: paused;
+}
+@keyframes space-star-drift {
+  from {
+    transform: translate(-14px, 10px) rotate(-1deg);
+  }
+  to {
+    transform: translate(18px, -15px) rotate(2deg);
+  }
+}
+@keyframes space-star-twinkle {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .space-backdrop .space-star-layer,
+  .space-star-layer circle {
+    animation: none;
+  }
+}

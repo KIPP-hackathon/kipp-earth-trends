@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import "./space-scene.css";
 
 // Decorative, deterministic star field. It is not a catalog of stellar positions.
@@ -26,15 +27,27 @@ export function SpaceBackdrop({
       aria-hidden="true"
       focusable="false"
     >
-      {stars.map((star, index) => (
-        <circle
-          key={index}
-          cx={star.x}
-          cy={star.y}
-          r={star.radius}
-          fill={index % 8 === 0 ? "#a7cfff" : "#ffffff"}
-          opacity={star.opacity}
-        />
+      {[0, 1, 2].map((layer) => (
+        <g key={layer} className={`space-star-layer space-star-layer-${layer}`}>
+          {stars
+            .filter((_, index) => index % 3 === layer)
+            .map((star, index) => (
+              <circle
+                key={index}
+                cx={star.x}
+                cy={star.y}
+                r={star.radius}
+                fill={index % 8 === 0 ? "#a7cfff" : "#ffffff"}
+                opacity={star.opacity}
+                style={
+                  {
+                    "--twinkle-duration": `${3 + (index % 7)}s`,
+                    "--twinkle-delay": `${-index * 0.73}s`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+        </g>
       ))}
       <g stroke="#e7f2ff" strokeWidth=".6" opacity=".7">
         {[stars[6], stars[39], stars[124]].map((star, index) => (

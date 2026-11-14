@@ -28,6 +28,7 @@ import type {
 } from "./lib/earthApi";
 import { useEarthResource } from "./lib/useEarthResource";
 import { invalidateFrames } from "./lib/earthFrameCache";
+import { earthReadCache } from "./lib/earthReadCache";
 import { Assistant } from "./components/Assistant";
 import { parseStudyBbox, validateAssistantActions } from "./lib/assistant";
 import type {
@@ -898,6 +899,7 @@ function App() {
               onClick={() => {
                 markChanged();
                 invalidateFrames();
+                earthReadCache.clear();
                 catalog.retry();
                 config.retry();
               }}

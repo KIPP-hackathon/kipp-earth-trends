@@ -8,7 +8,12 @@ import {
   Play,
   RefreshCw,
 } from "lucide-react";
-import { loadSeries, realMonth, realUnit } from "../lib/earthApi";
+import {
+  loadSeries,
+  realMonth,
+  realUnit,
+  variableDataKey,
+} from "../lib/earthApi";
 import type {
   EarthCatalog,
   EarthColorRange,
@@ -224,12 +229,14 @@ export function RealPanel({
     active,
   );
   const globalSeries = useEarthResource(
-    active ? `${variable.id}/${globalBbox}/${start}/${end}` : null,
+    active
+      ? `${variableDataKey(variable)}/${globalBbox}/${start}/${end}`
+      : null,
     (signal) => loadSeries({ ...variable, months }, globalBbox, signal),
   );
   const regionalSeries = useEarthResource(
     active && spatialBbox
-      ? `${variable.id}/${region.bbox}/${start}/${end}`
+      ? `${variableDataKey(variable)}/${region.bbox}/${start}/${end}`
       : null,
     (signal) => loadSeries({ ...variable, months }, region.bbox, signal),
   );
@@ -237,7 +244,7 @@ export function RealPanel({
   const previousDomain = useRef<
     { key: string; domain: [number, number] } | undefined
   >(undefined);
-  const domainKey = `${variable.id}/${start}/${end}`;
+  const domainKey = `${variableDataKey(variable)}/${start}/${end}`;
   const sharedDomain = useMemo<[number, number] | undefined>(() => {
     if (variable.render?.kind === "categorical") return undefined;
     if (
