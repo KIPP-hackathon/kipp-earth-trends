@@ -1,13 +1,14 @@
 # KIPP Earth Data API
 
 Backend de leitura para o globo e séries regionais. Node.js 24, TypeScript,
-Fastify e Cloud Run em `us-east4`. Lê tabelas pelo Databricks SQL Statement API;
-o adaptador Lakebase/PostgreSQL mantém o contrato HTTP na migração.
+Fastify e Cloud Run em `us-east4`. A produção lê as quatro tabelas pelo
+Lakebase/PostgreSQL; Databricks SQL permanece como modo explícito de rollback.
 Não usa `kipp/serving`, GCS ou credenciais no navegador.
 
 ## Dados e comportamento
 
-Tabelas permitidas em `earth-trend-data.refined`:
+Tabelas permitidas no schema PostgreSQL `default` do Lakebase `rt-demo`
+(origem: `earth-trend-data.refined`):
 
 | ID HTTP | Tabela | Campo | Unidade |
 |---|---|---|---|
@@ -19,8 +20,8 @@ Tabelas permitidas em `earth-trend-data.refined`:
 Não expõe vento com unidade inconsistente ou vegetação sem tabela disponível.
 Não mistura Final/Late. Não produz anomalias, tendências ou previsões.
 
-As tabelas atuais têm 576 × 361 amostras espaciais por mês, totalizando 18,9
-milhões de registros no inventário consultado. A grade HTTP agrupa amostras em
+As tabelas atuais têm 576 × 361 amostras espaciais por mês, totalizando
+20.793.600 registros conferidos no Lakebase. A grade HTTP agrupa amostras em
 bins de visualização, com passos nominais de 0,625° × 0,5° multiplicados por `factor`. Os passos efetivos são ajustados à extensão e ao número inteiro de células para manter a grade uniforme; ambos constam nos metadados.
 Os limites polares são agrupados nos bins de borda. Resoluções mais finas que a
 fonte não são criadas. Médias usam cos(latitude) e cobertura válida como pesos.
@@ -122,7 +123,7 @@ trocar a conta padrão do gcloud. Projeto `nasa-earth-trends-lab`.
 O Dockerfile compila TypeScript; a imagem final executa Node 24 sem privilégios.
 Detalhes de IAM, operação e rollback em `docs/backend-cicd.md`.
 
-## Migração para Lakebase/PostgreSQL
+## Leitura Lakebase/PostgreSQL
 
 Configure `DATA_PROVIDER=lakebase-postgres`, `PGHOST`, `PGDATABASE`, `PGUSER` e
 `DATA_SCHEMA`. Mantenha as tabelas/colunas do contrato ou ajuste os mapeamentos
@@ -130,15 +131,22 @@ configurados. PostgreSQL exige nomes de colunas com caixa compatível com a orig
 `TABLE_TEMPERATURE`, `TABLE_SURFACE_TEMPERATURE`, `TABLE_RAINFALL` e
 `TABLE_RAINFALL_LATE` podem mudar os nomes de tabela sem mudar endpoints.
 
-Para OAuth, mantenha DATABRICKS_HOST e DATABRICKS_CREDENTIALS e configure
-LAKEBASE_ENDPOINT. A credencial Postgres é solicitada a cada nova conexão, com
+Em produção, `DATABRICKS_AUTH_TYPE=google-id` usa a SA do Cloud Run, audience
+do workspace Lakebase `https://8259552519150212.2.gcp.databricks.com` e
+`LAKEBASE_ENDPOINT=projects/rt-demo/branches/production/endpoints/primary`.
+O CI configura `PGHOST`, `PGDATABASE=databricks_postgres`, `PGUSER` da SA e
+`DATA_SCHEMA=default`. Não há segredo M2M na revisão.
+A credencial Postgres é solicitada a cada nova conexão, com
 pool limitado e rotação das conexões antes de expirar. Alternativamente use
 PGPASSWORD via Secret Manager para um papel Postgres somente leitura.
 O pool usa TLS com verificação de certificado; não desabilite a validação.
 
-O adaptador está preparado para essa configuração. Uma instância Lakebase,
-migração das tabelas e concessões de acesso ainda precisam existir antes de
-trocar o modo. Não foi criado um banco paralelo ou uma cópia dos dados.
+As quatro tabelas foram conferidas online, com schemas e cobertura temporal
+compatíveis. Catálogo, frames e séries foram exercitados contra o banco real.
+Veja [a validação e as permissões](../docs/backend-lakebase.md).
+Para publicar explicitamente com SQL Warehouse, use
+`DATA_PROVIDER=databricks-sql bash scripts/deploy.sh`; para rollback imediato,
+direcione tráfego para uma revisão saudável anterior conforme o runbook CI/CD.
 
 ## Publicação atual
 

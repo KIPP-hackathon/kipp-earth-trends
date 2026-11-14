@@ -1,5 +1,10 @@
 # Backend: CI/CD e identidade Google
 
+Atualização Lakebase: o provider padrão de deploy agora é `lakebase-postgres`.
+As quatro tabelas foram conferidas no Lakebase; veja
+[backend-lakebase.md](backend-lakebase.md) para destino, identidade e validação.
+As execuções anteriores descritas abaixo registram a etapa com SQL Warehouse.
+
 Projeto `nasa-earth-trends-lab` (583662795760), região `us-east4`.
 API: https://kipp-earth-api-583662795760.us-east4.run.app
 Workflow: https://github.com/KIPP-hackathon/kipp-earth-trends/actions/workflows/backend.yml
