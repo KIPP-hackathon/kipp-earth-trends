@@ -12,4 +12,4 @@ Preview AI: retain all same-origin, body-size, JSON and request limits. Only Pre
 - [x] Implement continuous sections/header guidance and contextual agent entry; preserve independent studies, shares and manual edits.
 - [x] Enable real AI in Preview through bounded existing service; test both environment paths and reject unauthorized origins.
 - [x] Verify full tests/build, browser desktop/mobile, real or explicitly labelled fixture paths and genuine AI response. Review; fix material findings.
-- [ ] Update evidence/AI register, commit/push only preview branch, verify shared URL and unchanged production.
+- [x] Update evidence/AI register and commit/push only preview branch. Hosted deploy blocked by Vercel daily quota; user approved local fallback. Verified live local chat, origin guard, local URL and unchanged production.

@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { localPreviewAssistant } from "./server/localPreview.ts";
 
 // Opt-in local design preview: use the existing public API without local credentials.
 const previewOrigin =
@@ -8,7 +9,7 @@ const previewOrigin =
     : undefined;
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), ...(previewOrigin ? [localPreviewAssistant()] : [])],
   define: {
     "import.meta.env.KIPP_PREVIEW": JSON.stringify(
       process.env.VERCEL_ENV === "preview",

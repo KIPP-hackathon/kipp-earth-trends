@@ -1143,3 +1143,15 @@ ou exceções; teste local do chat usou fixture declarada para conferir isolamen
 Revisão independente gerou correções de foco e de escopo da explicação do agente.
 Validação/publicação final ficam registradas após os respectivos resultados.
 Sem submissão ou mudança dos materiais avaliados por promoção de produção.
+
+
+Fechamento local da segunda rodada:103testes frontend e builds frontend/backend
+aprovados com Node24. Git/Vercel e tentativa explícita bloquearam publicação por
+`api-deployments-free-per-day` (>100; tentar em24h). O usuário autorizou entrega
+local em`http://127.0.0.1:5187/`; o preview hospedado anterior não foi atualizado.
+O chat local recebeu uma resposta **real** da IA no navegador, sem fixture ou
+exceções, e o guia local respondeu separadamente sobre Holm. Origin externo
+foi rejeitado com403. API e IAM produtivos não mudaram; antes/depois mantiveram
+`dpl_5JMh9udoWVkSAM4M3DQvKdUTA5wt`. Nenhuma mudança de plano/cobrança.
+Isso registra UX e verificação técnica; não é nova validação científica ou
+submissão Space Apps. Branch separada preservada para revisão do time.

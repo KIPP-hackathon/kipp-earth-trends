@@ -118,3 +118,21 @@ layers in one cached WebGL texture; camera movement remains one render pass.
 Country-only choices use bundled Natural Earth metadata and local flag-icons7.6.0
 SVGs ([MIT license](public/flags/LICENSE.txt)); no flag CDN or geocoder is called.
 The team's translucent space theme is preserved.
+
+
+### Guided journey: local review branch
+
+`feat/guided-user-journey` provides the continuous header-guided page and KIPP
+investigation guide. For its opt-in local review with the existing public read
+API and assistant, run Node.js24 and:
+
+```sh
+KIPP_PREVIEW_PRODUCTION_API=1 npm --prefix frontend run dev -- --port 5187
+```
+
+Open `http://127.0.0.1:5187/`. The assistant middleware is loopback/same-origin
+only and reuses the bounded Preview handler; no browser credentials or new IAM
+permission is required. Built-in interface help is labelled separately from
+AI source-data answers. The AI does not receive Trend Lab results automatically.
+This local review does not change production. See
+[scope, validation and current publication status](../docs/guided-user-journey.md).

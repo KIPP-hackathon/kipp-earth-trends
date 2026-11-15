@@ -65,3 +65,20 @@ Validação antes da publicação da segunda rodada:103testes frontend sob `VERC
 Conferência fria adicional detectou deslocamento do explorador quando os cards anteriores terminavam de carregar. A navegação explícita agora mantém foco/âncora por ResizeObserver até a próxima interação manual (roda, toque, ponteiro ou teclado); scroll normal continua livre. O teste completo passou novamente com API real e sem exceções.
 
 O push `f5f19de` recebeu status GitHub/Vercel failure: “Deployment rate limited — retry in 24 hours.” O código foi enviado à branch, mas esse status não comprova publicação. Tentativa explícita de preview e teste real do agente ficam pendentes até sua evidência; nenhum plano pago, quota ou produção foi alterado.
+
+
+## Entrega local autorizada — segunda rodada
+
+A publicação explícita no mesmo projeto foi bloqueada por `api-deployments-free-per-day` (mais de100deploys; tentar em24h). O usuário autorizou rodar localmente. O link hospedado da primeira rodada **não contém estas alterações**; não foi apresentado como se estivesse atualizado.
+
+Servidor disponível em **http://127.0.0.1:5187/**. Para iniciar novamente, com Node24:
+
+```sh
+KIPP_PREVIEW_PRODUCTION_API=1 npm --prefix frontend run dev -- --port 5187
+```
+
+O plugin opt-in de desenvolvimento aceita somente Origin do loopback na porta do servidor e reutiliza o handler limitado de Preview. O teste real de Origin externo retornou403. Ele não instala credenciais, não muda IAM e não altera o serviço produtivo. Perguntas de interface usam o guia local; perguntas gerais/dados seguem para o serviço público existente, com o mesmo escopo e limites.
+
+Chromium recebeu uma resposta real à pergunta sobre tendência climática e uma limitação: o modelo explicou padrão de longo prazo e limitações de registros curtos, sazonalidade, autocorrelação e causalidade. A mensagem apareceu como “KIPP AI · source-data assistant”, sem exceções JavaScript e sem fixture nessa chamada. O guia sobre Holm retornouHTTP200 com `interfaceGuide=true`, separadamente. As conferências funcionais anteriores usaram dados reais; a única fixture de chat local foi identificada no teste de isolamento de contexto.
+
+Produção antes/depois desta rodada: mesmo deployment `dpl_5JMh9udoWVkSAM4M3DQvKdUTA5wt`. Sem merge emmain, troca de domínio, alteração de plano/cobrança ou deploy de backend. A branch permanece `feat/guided-user-journey`.
