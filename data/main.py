@@ -358,31 +358,50 @@ def save_monthly_csv(result):
 
     client = storage.Client()
     bucket = client.bucket(bucket_name)
+    existing_blob_names = {
+        blob.name
+        for blob in bucket.list_blobs(prefix=f"{gcs_prefix}/{SHORT_NAME}_")
+    }
 
     uploaded_paths = []
 
     for variable_name in (name for name in VARIABLES if name):
-        variable = result[variable_name]
+        try:
+            variable = result[variable_name]
+        except KeyError:
+            logger.warning(
+                "Variável configurada não encontrada no resultado: %s. "
+                "Variáveis disponíveis: %s",
+                variable_name,
+                list(result.data_vars)
+            )
+            continue
+
         variable_folder = str(variable_name)
 
         for i in range(result.sizes[time_name]):
-            monthly = variable.isel({time_name: i})
             date = pd.Timestamp(result[time_name].values[i])
 
             year_month = date.strftime("%Y_%m")
             year = date.strftime("%Y")
-
-            df = monthly.to_dataframe(name=variable_folder).reset_index()
 
             filename = f"{SHORT_NAME}_{variable_folder}_{year_month}.csv"
             blob_name = (
                 f"{gcs_prefix}/{SHORT_NAME}_{variable_folder}/{year}/{filename}"
             )
 
+            if blob_name in existing_blob_names:
+                logger.info("CSV mensal já existe no GCS; ignorando: %s", blob_name)
+                continue
+
+            monthly = variable.isel({time_name: i})
+            df = monthly.to_dataframe(name=variable_folder).reset_index()
+
             bucket.blob(blob_name).upload_from_string(
                 df.to_csv(index=False),
                 content_type="text/csv"
             )
+            existing_blob_names.add(blob_name)
 
             gcs_path = f"gs://{bucket_name}/{blob_name}"
             uploaded_paths.append(gcs_path)

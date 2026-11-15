@@ -3,10 +3,14 @@ from pathlib import Path
 
 # Produto NASA
 # PEGAR ESSAS VARIÁVEIS DO ARQUIVO variables.txt
-SHORT_NAME = "M2TMNXSLV"
+SHORT_NAME = "M2TMNXCHM"
 VARIABLES = [
-    'T2M', 'T10M', 'TS', 'T850', 'T500', 'CLDTMP', 'TQV', 'QV2M', 'TQL', 'TQI', 'SLP', 'U10M', 'V10M', 'U850', 'V850', 'CLDTOT', 'CLDPRS', 'SWGDN', 'LWGNET', 'TO3'
+    'COEM', 'COEMAN', 'COEMBB', 'COEMBF',
+    'COEMBG', 'COEMCL', 'COEMSU',
+    'CO', 'TO3', 'TOX',
+    'TROPPB', 'TROPPT', 'TROPPV'
 ]
+
 
 # Período de interesse
 START_DATE = "2000-01-01"
