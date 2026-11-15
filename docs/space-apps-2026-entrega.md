@@ -1960,3 +1960,180 @@ permissões, dados, backend ou materiais da página Project. Conta GitHub pessoa
 Luckstai verificada conforme política do diretório. Resultado da publicação
 e smoke público serão registrados após a conclusão; não estão comprovados
 por esta preparação.
+
+## Evidência incremental — Catalog, revisão local (15/11/2026)
+
+OpenAI Codex assistiu a aba Catalog em inglês: 12 fichas didáticas, inventário
+completo dinâmico, busca com aliases PT/EN, temas, disponibilidade, relações
+explicadas e fontes. Quatro entradas por ecossistema (Amazônia, Saara, Atlântico
+tropical e Ártico) usam retângulos editáveis e ilustrações vetoriais conceituais,
+sem representar limites exatos, imagens de satélite ou observações. O catálogo
+público consultado continha224entradas; nenhum perfil inventa uma camada ausente.
+Ver [método, fontes e limites](variable-catalog.md).
+
+Seleção de até6variáveis calcula interseção de meses válidos e abre o Explore
+com camadas, região e período explícitos. Não cria novo indicador científico ou
+fórmula validada. Mantém distinção entre estimativa de satélite, reanálise,
+diagnóstico de simulador e variância; relações didáticas não são resultados
+calculados nem prova de causalidade. Revisão científica/editorial humana pendente.
+
+Node.js24.18.0:77testes frontend e builds frontend/backend aprovados. Módulo
+Catalog carregado sob demanda:13,29kB gzip de JS e5,10kB gzip de CSS, sem novas
+dependências. Inventário usa índice de busca memoizado e24cartões por lote.
+O aviso de chunk principal acima de500kB permanece no build da aplicação.
+Navegador com API pública real conferiu busca, estado vazio, filtros, entradas
+indisponíveis, aviso de simulador, relações, Escape e seleção preservada entre
+abas. Chuva e temperatura abriram o Explore no retângulo da Amazônia com
+jan/2000–set/2026,321meses comuns e os gráficos carregados. Não demonstra
+investigação científica final ou significância.
+
+Layouts1440/390/360px sem overflow horizontal; seleção compacta e ações fixas
+no celular. Navegar para ficha relacionada retorna ao topo com cabeçalho visível.
+Sem erros/avisos no console nos caminhos exercitados. Revisão independente de
+código não identificou problemas críticos/importantes; correção menor permite
+remover IDs selecionados que desapareçam após atualizar o catálogo.
+
+Preview local em http://127.0.0.1:5191/#catalog, com proxy público existente,
+sem credenciais locais. Captura de revisão fora do Git. Sem commit, push,
+publicação ou alteração da página Project. Preservadas edições locais de outros
+trabalhos; não encerra bloqueadores científicos ou de submissão Space Apps.
+
+
+### Catalog sincronizado à main — revisão local (15/11/2026)
+
+A pedido do usuário, base avançada por fast-forward de266408f para46a13b2,
+164commits da main. Identidade pessoal Luckstai verificada; trabalho original
+preservado em backup e stash recuperável. Arquivos locais únicos restaurados;
+funcionalidades já publicadas usam suas versões atuais. Catalog reaplicado sobre
+SiteHeader e contratos atuais, sem recuperar o Explore antigo ou sua antiga
+aba Evidence. Assistente do Trend Lab atualizado preservado.
+
+149testes frontend e builds frontend/API aprovados com Node24. No navegador,
+duas variáveis do Catalog abriram o novo Explore na Amazônia com321meses
+comuns, painel Map filters, configuração por variável, velocidades de playback
+e controles de gráficos/tendência atuais. Evidência de integração local, sem
+push, publicação ou mudança da página Project. Novas áreas sugeridas pelo
+usuário estão em discussão, sem alegar cobertura nova.
+
+
+### Novas áreas do Catalog incluídas — revisão local (15/11/2026)
+
+Incluídas seis fichas: Antártida/Oceano Austral, floresta boreal (Taiga),
+Triângulo de Coral, Himalaia/Platô Tibetano, Pantanal e Bacia do Congo.
+São dez entradas, mantendo Ártico separado de Antártida e Pantanal separado
+do Congo. Cada uma tem ilustração vetorial conceitual, papel ecológico com
+fonte primária, pergunta apoiada em variáveis existentes, bbox/câmera e limites.
+Os campos de contexto não representam novas medições de carbono, corais,
+neve, geleiras ou níveis de rios. Detalhes/fontes em [Catalog](variable-catalog.md).
+
+Codex assistiu conteúdo, metadados, SVG/CSS e verificações. Revisão independente
+identificou pergunta do gelo restrita ao Ártico; ajustada para janela polar.
+Revisão científica/editorial humana permanece pendente. 156testes frontend e
+builds frontend/API aprovados com Node24; sete verificações adicionais cobrem
+filtros das novas áreas e ausência de medições inventadas. Browser com catálogo
+real conferiu os seis filtros, dez cartões, layouts1440/390px sem overflow e
+abertura do Congo no novo Explore com chuva/temperatura e321meses comuns.
+Sem erros no console dos caminhos exercitados; captura fora do Git.
+Preview local na porta5191, sem publicação ou alteração da página Project.
+
+
+### Tags por ecossistema e Study area — revisão local (15/11/2026)
+
+A pedido do usuário, cada área do Catalog ganhou tags dos processos que
+sustentam o sistema, todas as variáveis contextuais revisadas para aquela
+área, disponibilidade do catálogo e acesso às fichas explicativas. Medições
+importantes ainda sem dataset vinculado ao guia aparecem separadas, com
+explicação expansível; não são observações nem um checklist exaustivo de saúde.
+Ver [comportamento e limites](variable-catalog.md).
+
+View area in Explore abre só o recorte, mesmo com0variáveis. Se houver
+investigação aberta, mantém variáveis e período. O seletor Country passou
+a Study area em Explore/Compare vazios e preenchidos: países, dez ecossistemas,
+Global e retângulo personalizado atual, com busca e tipos explícitos. Presets
+continuam retângulos; não são limites poligonais dos ecossistemas.
+
+Node24:161testes frontend e builds frontend/API aprovados. Cinco verificações
+adicionais cobrem opções, geometria exata, deduplicação e países selecionáveis.
+Browser real conferiu Congo sem variáveis; busca Himalaia; retorno ao Catalog
+e aplicação de variável preservando Current Explore area; busca Brasil; troca
+de área com temperatura/período2000–2026 preservados; escolha manual mantida
+ao alternar abas; ficha pela tag e explicação Soil carbon não vinculada.
+Layouts390/1440px sem overflow; oito tags contextuais do Congo visíveis no
+desktop. Sem erros JS nos caminhos exercitados. Captura fora do Git.
+
+Revisão independente identificou que o recorte do Explore vazio precisava
+ser lembrado no handoff; corrigido e revalidado no navegador. Codex assistiu
+design, TypeScript/CSS, conteúdo, testes e documentação; revisão editorial/
+científica humana permanece pendente. Sem nova dependência, publicação,
+alteração matemática ou mudança da página Project.
+
+
+### Study context em três grupos — revisão local (15/11/2026)
+
+Atualização da main até23bc440 preservando o trabalho local. Countries, Places e
+Events agora são grupos internos recolhíveis no mesmo padrão de Variables, com
+busca compartilhada, contagem e seleção atual; sem abas de categoria ou All.
+Explore, ambos os painéis Compare e Trend Lab usam o mesmo componente. El Niño
+é evento; sua região de estudo continua sendo o Pacífico Equatorial. Eventos
+indisponíveis têm explicação, fonte/limitações e não podem fabricar cobertura.
+Compare informa que aplica antes/durante aos dois painéis. Trend Lab prepara
+rascunho e aguarda Generate. Ver detalhes em [variable-catalog.md](variable-catalog.md).
+
+Node24:178testes frontend e builds frontend/API aprovados. Navegador verificou
+busca Brasil/Congo/El Niño, seleção nos três fluxos, reset ao escolher país,
+controles compartilhados da main, grupos expansíveis e layouts390/1440px sem
+overflow horizontal. Corrigido corte vertical dos grupos no celular. Sem erros
+ou avisos no console dos caminhos exercitados. Captura fora do Git. Codex
+assistiu implementação, revisão, testes e documentação. Sem publicação, mudança
+da página Project, nova ingestão ou alegação de investigação científica concluída.
+
+
+Ajuste local solicitado em15/11: círculo de seleção alinhado ao nome/flag em
+Countries, Places e Events; removido o parágrafo introdutório do seletor em todos
+os fluxos. Fontes/limitações do preset seguem nos detalhes existentes. Browser
+conferiu Brasil, Congo e El Niño, inclusive390px. Node24:178testes e builds
+frontend/API aprovados. Codex assistiu correção/verificação; sem publicação.
+
+Ajuste visual local15/11: hover/foco do Study context cobre todo o cabeçalho
+dos grupos, até as bordas arredondadas; verificado no navegador e builds
+frontend/API aprovados. Codex assistiu CSS/verificação; sem publicação.
+
+Ajuste visual local15/11: foco da busca envolve lupa e texto no mesmo contorno
+arredondado, com Tab/Shift+Tab verificados. Builds frontend/API aprovados.
+Codex assistiu CSS/verificação; sem publicação ou mudança científica.
+
+Ajuste visual local15/11: opções de Countries exibem nome, bandeira e seleção, sem
+descrição (bandeiras restauradas conforme esclarecimento do usuário). Busca/lista conferidas no navegador;178testes e builds
+frontend/API aprovados. Codex assistiu UI/verificação; sem publicação.
+
+
+### Tours Compare/Catalog e player compacto — revisão local15/11
+
+Removido o bloco de rodapé Saara–Amazônia solicitado. Compare ganhou player
+com largura ajustada aos controles, com quebra no celular; lógica de reprodução
+conjunta, datas, velocidade e sincronização preservada. Tours manuais/repetíveis
+de6etapas usam o GuidedTour existente, explicam dados/limites e não selecionam
+variáveis automaticamente. Fecham ao trocar de aba. Catalog expande o construtor
+no início para tornar as etapas acessíveis no celular.
+
+178testes frontend e builds frontend/API aprovados no Node24. Navegador: todos
+os passos, Next/Back, teclado, Finish, Escape, reinício, troca de tela, construtor
+móvel, reprodução/pausa e ausência do bloco removido conferidos. Player610px no
+workspace1360px e350px na tela390px; sem overflow horizontal ou erros/avisos de
+console nos caminhos exercitados. Revisão focada sem riscos importantes. Codex
+assistiu implementação, textos, revisão e verificações. Sem publicação, alteração
+matemática/dos dados ou mudança da página Project.
+
+
+### Preparação da publicação Catalog/Study context/tours —15/11/2026
+
+Publicação solicitada explicitamente pelo usuário. Cópia isolada baseada na
+main d5e2337, incluindo README e materiais de submissão recentes; somente o
+escopo desta conversa foi importado. Arquivos locais de marca/vídeo de outros
+trabalhos foram preservados no checkout original. Identidade pessoal Luckstai
+conferida.178testes frontend,49backend, builds frontend/API e dry-run Cloudflare
+aprovados no Node24.18.0. Revisão independente sem problemas importantes.
+Bundles equivalentes aos verificados localmente; aviso de chunk principal
+acima de500kB permanece. Deploy seguirá o workflow existente da main, com
+congelamento automático no prazo; conclusão e smoke público ainda pendentes.
+OpenAI Codex assistiu integração, revisão, testes e preparação da publicação.

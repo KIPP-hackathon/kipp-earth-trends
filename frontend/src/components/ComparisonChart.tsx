@@ -216,7 +216,7 @@ function ComparisonChartComponent({
       </div>
       {noArea ? (
         <p className="comparison-empty">
-          Choose a country or draw an area on the globe to see its variables and
+          Choose a country, place or event, or draw an area on the globe to see its variables and
           trends.
         </p>
       ) : (

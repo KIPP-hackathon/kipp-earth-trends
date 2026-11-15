@@ -1,8 +1,8 @@
 # KIPP - Earth Trend
 
 Laboratório de exploração de campos mensais derivados de produtos NASA.
-Frontend React/TypeScript/Vite, Node.js 24. As cinco abas operacionais usam
-os dados reais da API: Explore, Compare, Trend Lab, Events e Guide.
+Frontend React/TypeScript/Vite, Node.js 24. As seis abas operacionais usam
+os dados reais da API: Explore, Compare, Trend Lab, Events, Catalog e Guide.
 
 O catálogo publica variáveis, unidades, disponibilidade, QA e escalas de cores.
 Regiões e presets históricos vêm de `/v1/config` e `/v1/events` no backend.
@@ -133,3 +133,15 @@ layers in one cached WebGL texture; camera movement remains one render pass.
 Country-only choices use bundled Natural Earth metadata and local flag-icons7.6.0
 SVGs ([MIT license](public/flags/LICENSE.txt)); no flag CDN or geocoder is called.
 The team's translucent space theme is preserved.
+
+
+## Catalog
+
+Guia didático em inglês com12fichas, relações explicadas e dez percursos por
+ecossistema. O inventário completo e a disponibilidade vêm do catálogo real.
+Até6variáveis podem abrir uma investigação no Explore atual, com região e
+interseção de meses válidos. Perfil educativo não cria camada ou indicador novo.
+Carregamento sob demanda, sem novas dependências.
+Ver [fontes, experiência e validação](../docs/variable-catalog.md).
+
+Study context reúne três grupos recolhíveis no padrão de Variables — Countries, Places e Events — em Explore, Compare e Trend Lab. Places inclui dez ecossistemas e recortes personalizados; Events aplica presets históricos com área, período, variável e limites explícitos. No Trend Lab, prepara um rascunho antes de Generate. As fichas do Catalog exibem tags dos processos e variáveis revisadas, medições importantes ainda não vinculadas e atalho para abrir só a região, preservando dados/período quando já selecionados. Presets seguem retângulos, não máscaras de biomas.

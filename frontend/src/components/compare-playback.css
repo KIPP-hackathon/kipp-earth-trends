@@ -1,13 +1,14 @@
 .compare-playback {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, auto);
+  width: fit-content;
+  max-width: 100%;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  padding: 14px 18px;
+  gap: 10px 22px;
+  padding: 12px 16px;
   margin: 0 0 18px;
-  border: 1px solid #87dbe53b;
-  border-radius: 12px;
+  border: 1px solid #a2bfe53b;
+  border-radius: 10px;
   background: #0c1929c9;
   color: #dfeafa;
 }
@@ -15,8 +16,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
+  justify-content: flex-start;
+  gap: 12px;
 }
 .compare-playback-toggle {
   display: inline-flex;
@@ -24,8 +25,7 @@
   justify-content: center;
   gap: 8px;
   min-height: 40px;
-  min-width: 134px;
-  padding: 9px 16px;
+  padding: 8px 12px;
   border: 1px solid #87dbe5;
   border-radius: 8px;
   background: #87dbe5;
@@ -66,7 +66,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   font-size: 12px;
 }
@@ -74,6 +74,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-width: 0;
 }
 .compare-playback-dates b {
   display: inline-grid;
@@ -84,28 +85,27 @@
   border: 1px solid #a2bfe53b;
   color: #87dbe5;
 }
-.compare-playback-status {
-  flex-basis: 100%;
+#root .compare-playback-status {
+  grid-column: 1 / -1;
   margin: 0;
-  text-align: center;
+  text-align: left;
   color: #b4c4da;
-  font-size: 11px;
+  font-size: var(--text-caption, 13px);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
-.compare-playback-status[role="alert"] {
+#root .compare-playback-status[role="alert"] {
   color: #f0bc98;
 }
-@media (max-width: 480px) {
+@media (max-width: 760px) {
   .compare-playback {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
     padding: 12px;
     gap: 12px;
   }
   .compare-playback-controls {
     gap: 10px;
-  }
-  .compare-playback-toggle {
-    flex-basis: 100%;
-    min-height: 42px;
   }
   .compare-playback-dates {
     gap: 8px 16px;
