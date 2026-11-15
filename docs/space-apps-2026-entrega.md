@@ -1031,7 +1031,12 @@ ao trocar a mensagem, abrir modal ou desmontar o componente.
 90 testes frontend e builds frontend/API aprovados. Chrome isolado com fixture
 do componente conferiu expiração real após seis segundos, fechamento manual
 e persistência de erro, sem dados observados ou salvamentos alterados.
-Publicação em verificação; não altera investigação científica ou submissão.
+Correção na main em `2f61fcc`. A Vercel recusou a publicação com
+`build-rate-limit` (status GitHub/Vercel failure); o domínio público ainda não
+entregou `index-DSbXRVIr.js`. Correção disponível no preview local; publicação
+em produção pendente da liberação do limite. Sem alteração de plano/cobrança,
+API, dados ou submissão. Este registro permanece local para não disparar outra
+tentativa de build enquanto o limite está ativo.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
