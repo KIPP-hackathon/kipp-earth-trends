@@ -54,6 +54,19 @@ The requested browser-save caption and Use country button were removed.
 Node24 builds and existing checks, plus focused ephemeral GL/state/series/save
 smokes. Synthetic verification fixtures are software checks, not observations.
 Live local UI review uses the actual72-variable Warehouse trusted catalog and
-read-only real frames/series; temperature covers321months. Production evidence
-will be added after deployment. This work does not establish causal attribution,
+read-only real frames/series; temperature covers321months.
+
+Production release `2dd5bee` was verified at
+https://kipp-earth-trends-lab.vercel.app/ with bundle `index-CXRSmVb2.js`.
+Browser review restored three visible layers with100/55/65percent opacity,
+loaded regional/global charts, and applied0–50°C to air temperature without
+changing the other layers' default scales. Local browser review also covered
+Apply/Cancel, saving/reopening, and selecting all72variables with lazy charts.
+The production catalog reports all72variables available from trusted through
+`databricks-sql`, with321temperature months. Backend CI run43668280708 succeeded;
+Cloud Run revision `kipp-earth-api-00037-rul` received100percent of traffic.
+Anonymous access to Cloud Run returned403. Lakebase configuration remains
+preserved and inactive; there is no active hybrid read path.
+
+This work does not establish causal attribution,
 new scientific findings, significance tests or challenge submission completion.

@@ -22,7 +22,7 @@ reviewed metadata/trend references stay explicitly in Warehouse refined.
       until the next visible-layer batch is ready during playback.
 - [x] Persist layer selection/visibility/opacity and scales in local save/share;
       old single-variable records remain valid. Strict bounds and catalog checks.
-- [ ] Existing frontend checks/build, focused synthetic/captured-data UI review,
+- [x] Existing frontend checks/build, focused synthetic/captured-data UI review,
       independent review, then publish integration and verify Vercel/private Cloud Run artifacts.
 
 Visual choices: compact multiselect above the globe, explicit Apply/Cancel;

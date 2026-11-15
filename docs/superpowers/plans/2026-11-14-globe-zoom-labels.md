@@ -11,6 +11,6 @@ Country labels use bundled Natural Earth geometry, not a network geocoder. Place
 - [x] Implement bounded zoom, input handling and compatible contracts.
 - [x] Add country labeling geometry/placement and viewport WebGL rendering.
 - [x] Existing checks/builds, focused math/input/save smoke and independent review.
-- [ ] Browser-check zoom, labels, drawing and saved comparison; publish and verify public flow/private API.
+- [x] Browser-check zoom, labels, drawing and saved comparison; publish and verify public flow/private API.
 
 Sources: existing Natural Earth 4.1.0 via world-atlas2.0.2 (docs/country-location.md), D3 projection and spherical-math API documentation. OpenAI Codex assists implementation; no new source data or scientific resolution claims.
