@@ -476,3 +476,16 @@ texto da explicação fora da tela. Sem exceções JavaScript. Builds frontend e
 backend com Node.js 24 aprovados; 47 testes do frontend aprovados. A conferência é local; não comprova publicação,
 submissão nem conclusão da investigação científica.
 
+
+
+Publicação conferida em 15/11/2026: implementação `714a25f`, fallback do proxy
+`8b6568c`. [Vercel concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/HT6mCCiWZoXFSApzNkdCaHimutEK)
+e [Backend CI/CD aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43675707925).
+O site público entregou `lang="en"` e bundle `index-8ykPuuGZ.js`; configuração,
+eventos e catálogo responderam HTTP 200, com nomes em inglês e 72 variáveis.
+Chromium em produção confirmou ocultação/restauração pela legenda, mensagem
+quando todas as séries estão ocultas, explicação pelo ícone e viewport de
+390 px sem overflow ou texto cortado. Nenhuma exceção JavaScript nessa sessão.
+47 testes frontend, seis testes de autenticação e builds frontend/backend
+aprovados com Node.js 24. O pipeline também executou seus testes e smoke checks.
+Isso comprova a publicação técnica; não comprova submissão ao Space Apps.
