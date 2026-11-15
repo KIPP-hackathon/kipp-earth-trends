@@ -2,13 +2,9 @@ import { memo, useId, useMemo, useState } from "react";
 import type { ComparisonMode } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
-
-export function comparisonColor(id: string) {
-  let hash = 0;
-  for (const character of id)
-    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-  return `hsl(${hash % 360} 78% 72%)`;
-}
+import { TrendResults } from "./TrendResults";
+import { comparisonColor } from "../lib/comparisonColors";
+import type { TrendFamilyTest } from "../lib/runtimeTrends";
 function calendar(start: string, end: string) {
   const index = (value: string) =>
     Number(value.slice(0, 4)) * 12 + Number(value.slice(5)) - 1;
@@ -49,6 +45,10 @@ function ComparisonChartComponent({
   onMonth,
   eventWindow,
   noArea = false,
+  adjustedP,
+  familySize,
+  loading,
+  familyTests,
 }: {
   title: string;
   scope: "global" | "regional";
@@ -62,6 +62,10 @@ function ComparisonChartComponent({
   onMonth: (month: string) => void;
   eventWindow?: [string, string];
   noArea?: boolean;
+  adjustedP: Record<string, number>;
+  familySize: number;
+  loading: boolean;
+  familyTests: TrendFamilyTest[];
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
@@ -130,12 +134,26 @@ function ComparisonChartComponent({
       "method",
       "status",
       "simulated",
+      "trend_method",
+      "trend_n",
+      "trend_first_month",
+      "trend_last_month",
+      "trend_slope_per_year",
+      "trend_standard_error_per_year",
+      "trend_p",
+      "trend_p_holm",
+      "trend_family_size",
+      "trend_inference_status",
+      "trend_reason",
+      "trend_ci95_low_per_year",
+      "trend_ci95_high_per_year",
     ];
     const rows = entries.flatMap(({ variable, data }) =>
       data
         ? data[scope].observations.map((row) => {
             const reference =
               data[scope].reference[Number(row.month.slice(5)) - 1];
+            const trend = data[scope].trends?.[mode];
             return [
               variable.id,
               row.month,
@@ -165,6 +183,19 @@ function ComparisonChartComponent({
                     ? "constant_series"
                     : "available",
               false,
+              trend?.method,
+              trend?.n,
+              trend?.firstMonth,
+              trend?.lastMonth,
+              trend?.slopePerYear,
+              trend?.standardErrorPerYear,
+              trend?.pValue,
+              adjustedP[`${scope}:${variable.id}`],
+              familySize,
+              trend?.inferenceStatus,
+              trend?.reason,
+              trend?.slopeCi95PerYear?.[0],
+              trend?.slopeCi95PerYear?.[1],
             ];
           })
         : [],
@@ -213,6 +244,17 @@ function ComparisonChartComponent({
                 JSON.stringify(
                   {
                     mode,
+                    inference: {
+                      method: "OLS calendar-month effects + HAC12",
+                      adjustment: "Holm",
+                      familySize,
+                      familyTests,
+                      familyScope:
+                        "All applied variables in available global/regional charts in this mode, including hidden curves; unavailable p-values conservatively treated as1",
+                      adjustedP,
+                      loading,
+                      alpha: 0.05,
+                    },
                     scope,
                     start,
                     end,
@@ -297,6 +339,11 @@ function ComparisonChartComponent({
             }}
             onClick={() => onMonth(activeMonth)}
           >
+            <defs>
+              <clipPath id={`${id}-plot`}>
+                <rect x="48" y="22" width="530" height="134" />
+              </clipPath>
+            </defs>
             <title>
               {title} ·{" "}
               {mode === "standardized" ? "Historical deviation" : "Scale 0–100"}
@@ -358,6 +405,39 @@ function ComparisonChartComponent({
                 )),
               )}
             {hasValues && (
+              <g
+                clipPath={`url(#${id}-plot)`}
+                aria-label="Season-adjusted trend lines"
+              >
+                {entries.map(({ variable, data }) => {
+                  const trend = data?.[scope].trends?.[mode];
+                  if (trend?.status !== "available" || trend.line.length !== 2)
+                    return null;
+                  const [first, last] = trend.line,
+                    a = months.indexOf(first.month),
+                    b = months.indexOf(last.month);
+                  if (a < 0 || b < 0) return null;
+                  return (
+                    <path
+                      key={variable.id}
+                      className="runtime-trend-line"
+                      d={`M${chart.x(a)},${chart.y(first.value)} L${chart.x(b)},${chart.y(last.value)}`}
+                      stroke={comparisonColor(variable.id)}
+                      strokeWidth="2"
+                      strokeDasharray="5 4"
+                      fill="none"
+                      vectorEffect="non-scaling-stroke"
+                    >
+                      <title>
+                        {variable.name} · season-adjusted trend · {trend.n}
+                        months
+                      </title>
+                    </path>
+                  );
+                })}
+              </g>
+            )}
+            {hasValues && (
               <line
                 x1={chart.x(index)}
                 x2={chart.x(index)}
@@ -379,8 +459,8 @@ function ComparisonChartComponent({
                 {entries.length === 0
                   ? "Select a variable above to show it in the charts"
                   : entries.some((entry) => entry.data)
-                  ? "No comparable values for this mode"
-                  : "Loading selected variables…"}
+                    ? "No comparable values for this mode"
+                    : "Loading selected variables…"}
               </text>
             )}
           </svg>
@@ -417,6 +497,15 @@ function ComparisonChartComponent({
               )}
             </div>
           )}
+          <TrendResults
+            entries={entries}
+            mode={mode}
+            scope={scope}
+            adjustedP={adjustedP}
+            familySize={familySize}
+            loading={loading}
+            familyTests={familyTests}
+          />
           <details className="comparison-values">
             <summary>
               {monthLabel(activeMonth)} · original values & coverage

@@ -1,4 +1,5 @@
-// Descriptive transformations, not a trend model or a significance test.
+import { fitRuntimeTrend } from "./runtime-trend.ts";
+// Source values and comparison transformations are retained alongside inference.
 export const comparisonReference = {
   start: "2001-01",
   end: "2020-12",
@@ -107,5 +108,23 @@ export function transformComparison(
           : null,
     };
   });
-  return { reference, range: { min, max, constant }, observations };
+  return {
+    reference,
+    range: { min, max, constant },
+    observations,
+    trends: {
+      raw: fitRuntimeTrend(
+        observations.map((row) => ({ month: row.month, value: row.value })),
+      ),
+      standardized: fitRuntimeTrend(
+        observations.map((row) => ({
+          month: row.month,
+          value: row.standardized,
+        })),
+      ),
+      minmax: fitRuntimeTrend(
+        observations.map((row) => ({ month: row.month, value: row.minmax })),
+      ),
+    },
+  };
 }

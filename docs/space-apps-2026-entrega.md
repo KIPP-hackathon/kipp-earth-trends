@@ -512,3 +512,22 @@ Validação: 47 testes e build frontend com Node.js 24 aprovados. Chromium local
 com API pública confirmou Map layers a 12 px do playback na coluna esquerda,
 proveniência abaixo, controles Show all/Hide all e viewport de 390 px sem
 overflow horizontal ou exceções JavaScript. Capturas locais inspecionadas.
+
+
+### Evidência incremental — tendências e significância em execução (15/11/2026)
+
+OpenAI Codex implementou retas pontilhadas por variável nos dois gráficos e
+valores-p de regressão com efeitos mensais e covariância robusta Newey–West
+HAC12. A UI expõe taxa, p original e p ajustado por Holm para toda a família
+selecionada, incluindo curvas ocultas. Referência independente statsmodels/SciPy
+conferiu matemática e uma série real de temperatura com321meses em dois recortes.
+[Metodologia, exemplo real reproduzível e limitações](runtime-trends.md).
+Séries curtas/lacunas/variância degenerada não recebem significância inventada;
+33meses de temperatura de superfície são apenas descritivos. Exportação CSV de
+tendências contém bbox, datas, unidades, fontes e todos os testes selecionados.
+47checks existentes de frontend,6de autenticação e builds Node24 aprovados.
+Revisão independente e navegador conferiram clipping SVG, ajuste Holm,
+exportação e layout móvel. Publicação em produção será registrada após o deploy.
+Esta análise condicional não estabelece causalidade, previsão ou normalidade
+climática nem comprova submissão/aderência completa ao desafio. Revisão
+científica humana do caso, recursos NASA e submissão permanecem separados.

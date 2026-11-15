@@ -1,6 +1,7 @@
 import { validFrameBounds } from "./globeSelection";
 import { earthReadCache } from "./earthReadCache";
 import { queuedSeries } from "./seriesQueue";
+import type {RuntimeTrend} from "./runtimeTrends";
 
 export const earthApi = "/api/earth";
 
@@ -85,7 +86,7 @@ export type EarthVariable = {
   months: { month: string; samples: number; validSamples: number }[];
 };
 export type EarthCatalog = {
-  capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean};
+  capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean;runtimeTrends?:boolean};
   revision?: string;
   simulated: false;
   variables: EarthVariable[];
@@ -138,6 +139,7 @@ export type ComparisonObservation = EarthSeries["observations"][number] & {
   standardizedStatus:"available"|"no_data"|"insufficient_reference"|"constant_reference";
 };
 export type ComparisonScope = {
+  trends?:{raw:RuntimeTrend;standardized:RuntimeTrend;minmax:RuntimeTrend};
   reference:{month:number;count:number;mean:number|null;standardDeviation:number|null}[];
   range:{min:number|null;max:number|null;constant:boolean};
   observations:ComparisonObservation[];
@@ -150,10 +152,11 @@ export type EarthComparison = {
   reference:{start:string;end:string;minimumYearsPerMonth:number;method:string};
   global:ComparisonScope;regional:ComparisonScope;
 };
-export function loadComparison(variable:EarthVariable,start:string,end:string,bbox:string,signal:AbortSignal):Promise<EarthComparison> {
-  const key=JSON.stringify(["comparison:v1",variableDataKey(variable),start,end,bbox]);
+export function loadComparison(variable:EarthVariable,start:string,end:string,bbox:string,signal:AbortSignal,includeTrends=false):Promise<EarthComparison> {
+  const key=JSON.stringify(["comparison:v2",variableDataKey(variable),start,end,bbox,includeTrends]);
   return earthReadCache.read(key,signal,60_000,async(requestSignal)=> {
     const query=new URLSearchParams({start,end,bbox});
+    if(includeTrends)query.set("analysis","trend-v1");
     const data:EarthComparison=await queuedSeries(requestSignal,async()=>
       (await checked(`/v1/comparison/${encodeURIComponent(variable.id)}?${query}`,requestSignal)).json());
     if (data.simulated!==false || data.variable!==variable.id || data.start!==start || data.end!==end ||
