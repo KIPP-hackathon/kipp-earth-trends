@@ -61,7 +61,7 @@ export const regions = [
 export const configuration = {
   version: 1,
   regions,
-  playback: { cadenceMs: 1200, lookAhead: 3, initialBuffer: 2 },
+  playback: { cadenceMs: 1200, lookAhead: 6, initialBuffer: 6 },
   comparison: { maxGlobes: 2, synchronizedCamera: true },
   limitations: [
     "Study areas are rectangles, not exact basin boundaries or affected areas.",

@@ -36,6 +36,19 @@ it("forwards only the allowed investigation route to the fixed private API", asy
     "https://fixed-api.example/v1/investigation?",
   );
 });
+it("forwards the batched comparison route with a long variable list and nothing else", async () => {
+  const fetch = vi.fn().mockResolvedValue(Response.json({ version: 1 }));
+  vi.stubGlobal("fetch", fetch);
+  const variables = Array.from({ length: 6 }, (_, i) => `merra2_flx_variable_${i}_name`).join(",");
+  const ok = await request(
+    `/api/earth/v1/comparisons?variables=${variables}&start=2024-01&end=2024-12&bbox=-60,-22,-54,-16&analysis=trend-v1`,
+  );
+  expect(ok.status).toBe(200);
+  expect(fetch.mock.calls[0][0]).toContain("https://fixed-api.example/v1/comparisons?variables=");
+  const rejected = await request("/api/earth/v1/comparisons?variables=a&sql=drop&start=2024-01&end=2024-12&bbox=0,0,1,1");
+  expect(rejected.status).toBe(400);
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
 it("rejects unreviewed methods, arbitrary SQL, duplicate parameters and routes before fetching", async () => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);

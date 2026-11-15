@@ -54,59 +54,144 @@ export class Gate {
   }
 }
 
-type Cached = {
+export type CachedResponse = {
   body: Buffer;
   type: string;
   etag: string;
   headers: Record<string, string>;
 };
+// A second, shared cache tier that survives scale-to-zero. Implementations must
+// fail open: a store problem is always a miss, never an error for the caller.
+export type PersistentEntry = {
+  response: CachedResponse;
+  softExpires: number;
+  hardExpires: number;
+};
+export type PersistentStore = {
+  read(key: string): Promise<PersistentEntry | undefined>;
+  write(key: string, entry: PersistentEntry): Promise<void>;
+};
+// Fresh until softMs; served stale (and refreshed in the background) until hardMs.
+export type PersistPolicy = { softMs: number; hardMs: number };
+export type CacheLayer = "memory" | "store" | "origin";
 export class ResponseCache {
-  private entries = new Map<string, { expires: number; response: Cached }>();
-  private pending = new Map<string, Promise<Cached>>();
+  private entries = new Map<
+    string,
+    { expires: number; response: CachedResponse }
+  >();
+  private pending = new Map<
+    string,
+    Promise<{ response: CachedResponse; layer: CacheLayer }>
+  >();
+  private refreshing = new Set<string>();
   private bytes = 0;
   private maxBytes: number;
   private maxEntries: number;
-  constructor(maxBytes = 64 * 1024 * 1024, maxEntries = 256) {
+  private store?: PersistentStore;
+  constructor(
+    maxBytes = 64 * 1024 * 1024,
+    maxEntries = 256,
+    store?: PersistentStore,
+  ) {
     this.maxBytes = maxBytes;
     this.maxEntries = maxEntries;
+    this.store = store;
+  }
+  private remember(key: string, response: CachedResponse, ttlMs: number) {
+    if (response.body.length > this.maxBytes) return;
+    const previous = this.entries.get(key);
+    if (previous) {
+      this.bytes -= previous.response.body.length;
+      this.entries.delete(key);
+    }
+    while (
+      this.bytes + response.body.length > this.maxBytes ||
+      this.entries.size >= this.maxEntries
+    ) {
+      const oldest = this.entries.keys().next().value;
+      if (oldest === undefined) break;
+      this.bytes -= this.entries.get(oldest)!.response.body.length;
+      this.entries.delete(oldest);
+    }
+    this.entries.set(key, { expires: Date.now() + ttlMs, response });
+    this.bytes += response.body.length;
+  }
+  private persistResponse(
+    key: string,
+    response: CachedResponse,
+    policy: PersistPolicy,
+  ) {
+    const now = Date.now();
+    void this.store
+      ?.write(key, {
+        response,
+        softExpires: now + policy.softMs,
+        hardExpires: now + policy.hardMs,
+      })
+      .catch(() => {});
+  }
+  // Best effort: Cloud Run may throttle CPU after the response, in which case
+  // the refresh simply completes during the next request.
+  private refresh(
+    key: string,
+    ttlMs: number,
+    load: () => Promise<CachedResponse>,
+    policy: PersistPolicy,
+  ) {
+    if (this.refreshing.has(key)) return;
+    this.refreshing.add(key);
+    void load()
+      .then((response) => {
+        this.remember(key, response, ttlMs);
+        this.persistResponse(key, response, policy);
+      })
+      .catch(() => {})
+      .finally(() => this.refreshing.delete(key));
   }
   async get(
     key: string,
     ttlMs: number,
-    load: () => Promise<Cached>,
-  ): Promise<{ response: Cached; hit: boolean }> {
+    load: () => Promise<CachedResponse>,
+    persist?: PersistPolicy,
+  ): Promise<{ response: CachedResponse; hit: boolean; layer: CacheLayer }> {
     const existing = this.entries.get(key);
     if (existing && existing.expires > Date.now()) {
       this.entries.delete(key);
       this.entries.set(key, existing);
-      return { response: existing.response, hit: true };
+      return { response: existing.response, hit: true, layer: "memory" };
     }
     if (existing) {
       this.entries.delete(key);
       this.bytes -= existing.response.body.length;
     }
     const inflight = this.pending.get(key);
-    if (inflight) return { response: await inflight, hit: true };
+    if (inflight) {
+      const shared = await inflight;
+      return { response: shared.response, hit: true, layer: shared.layer };
+    }
     const promise = (async () => {
-      const response = await load();
-      if (response.body.length <= this.maxBytes) {
-        while (
-          this.bytes + response.body.length > this.maxBytes ||
-          this.entries.size >= this.maxEntries
-        ) {
-          const oldest = this.entries.keys().next().value;
-          if (oldest === undefined) break;
-          this.bytes -= this.entries.get(oldest)!.response.body.length;
-          this.entries.delete(oldest);
+      if (persist && this.store) {
+        const stored = await this.store.read(key).catch(() => undefined);
+        if (stored && stored.hardExpires > Date.now()) {
+          this.remember(key, stored.response, ttlMs);
+          if (stored.softExpires <= Date.now())
+            this.refresh(key, ttlMs, load, persist);
+          return { response: stored.response, layer: "store" as CacheLayer };
         }
-        this.entries.set(key, { expires: Date.now() + ttlMs, response });
-        this.bytes += response.body.length;
       }
-      return response;
+      const response = await load();
+      this.remember(key, response, ttlMs);
+      if (persist) this.persistResponse(key, response, persist);
+      return { response, layer: "origin" as CacheLayer };
     })();
     this.pending.set(key, promise);
     try {
-      return { response: await promise, hit: false };
+      const result = await promise;
+      return {
+        response: result.response,
+        hit: result.layer !== "origin",
+        layer: result.layer,
+      };
     } finally {
       this.pending.delete(key);
     }

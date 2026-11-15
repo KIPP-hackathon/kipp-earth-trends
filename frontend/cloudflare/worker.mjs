@@ -4,6 +4,7 @@ import { env } from "cloudflare:workers";
 import { createEarthHandler } from "../server/earthProxy.ts";
 import { createAssistantHandler } from "../server/assistantProxy.ts";
 import { googleIdentityToken } from "./googleIdentity.mjs";
+import { withEdgeCache } from "./edgeCache.mjs";
 
 const identity = () => googleIdentityToken(env.GOOGLE_SERVICE_ACCOUNT_JSON);
 const earth = createEarthHandler(identity);
@@ -32,7 +33,7 @@ const server = createServer((request, response) => {
 server.listen(8080);
 
 export default {
-  async fetch(request, bindings) {
+  async fetch(request, bindings, context) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/"))
       return bindings.ASSETS.fetch(request);
@@ -53,6 +54,9 @@ export default {
     headers.set("x-real-ip", request.headers.get("cf-connecting-ip") ?? "");
     headers.delete("authorization");
     headers.delete("cookie");
-    return handleAsNodeRequest(8080, new Request(request, { headers }));
+    // Public read routes are cached at the edge; the node adapter below sees only misses.
+    return withEdgeCache(request, context, globalThis.caches?.default, () =>
+      handleAsNodeRequest(8080, new Request(request, { headers })),
+    );
   },
 };
