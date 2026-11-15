@@ -1,5 +1,16 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Respostas curtas do assistente — 15/11/2026
+
+Uma resposta real em produção (Pacífico Equatorial, T2M × precipitação) listou
+os sete lags com beta, EP, IC e p, e usou linguagem causal ("drive"). O prompt
+agora limita a resposta padrão a até 4 frases curtas, sem listas, com 1–2
+números arredondados e uma limitação; o detalhamento completo só quando pedido.
+Verbos causais ficam proibidos para associações. A regra que exigia relatar toda
+a família de Holm passou a resumi-la em uma frase. Prompt ajustado com
+assistência de IA (Claude Code, Opus 5.5); 49 testes backend e build com Node.js
+24.22.3. Efeito no modelo real ainda não verificado.
+
 ## Tour de Explore e play conjunto publicados — 15/11/2026
 
 Publicação autorizada pelo usuário e integrada pelo [PR #44](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/44),
