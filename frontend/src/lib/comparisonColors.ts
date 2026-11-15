@@ -7,7 +7,7 @@ function hue(id: string) {
 export function comparisonColor(id: string) {
   return `hsl(${hue(id)} 78% 72%)`;
 }
-// Same hue as the chart line, one tone darker for the dashed trend line.
+// Same hue as the chart line, a darker tone for the dashed trend line.
 export function comparisonTrendColor(id: string) {
-  return `hsl(${hue(id)} 78% 58%)`;
+  return `hsl(${hue(id)} 78% 48%)`;
 }

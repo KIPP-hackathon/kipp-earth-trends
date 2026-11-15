@@ -118,6 +118,24 @@ calmaria e projeção. A orientação é comparada numericamente à projeção d
 câmeras inclinadas, no antimeridiano e em zooms de 0,8× a 8×.
 
 Preview local em `http://localhost:5186`, usando a API pública existente e dados
-reais. Chromium confirmou carregamento automático de U10/V10 e 203 setas na
-câmera inicial de desktop, com leitura de direção/resultante pelo probe.
-Verificações adicionais dos controles e mobile são registradas no checklist.
+reais. Após integração de alterações paralelas no checkout, o QA final usou
+uma cópia estável do build em `http://localhost:5187`, com proxy local para a
+mesma API pública. Chromium confirmou:
+
+- U10/V10 carregados automaticamente; 203 setas na câmera inicial e probe
+  com direção, U/V e intensidade resultante.
+- Rotação, 216 setas a 8×, ocultação global e playback ago→set/2026 com os dois
+  frames de cada mês; preparo do mês seguinte também carregou ambas as componentes.
+- U/V selecionados juntos produzem um campo; opacidade zero transfere o estilo
+  à outra componente visível, e restaurar opacidade restaura o estilo correspondente.
+- Grade real de 850 hPa com 198 setas na câmera inicial; leitura real a 50 m
+  após Retry.
+- Falha HTTP 502 da componente V50 injetada somente no navegador de QA:
+  mensagem explícita, nenhuma seta inventada e recuperação após remover a falha
+  e acionar Retry. As respostas bem-sucedidas vieram da API real.
+- Viewport 390×844 sem overflow horizontal e sem exceções JavaScript.
+
+Capturas de desktop, zoom, mobile e ausência do par foram inspecionadas
+localmente. Scripts, resultados e capturas de QA ficam em `/tmp`, fora do Git.
+Os 57 testes e builds frontend/backend Node.js 24 foram conferidos novamente
+após a integração. Esta validação não comprova publicação ou submissão.

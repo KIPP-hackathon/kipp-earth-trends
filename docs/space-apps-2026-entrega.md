@@ -648,3 +648,29 @@ Validação local com Node.js 24: 47 testes do frontend e builds do frontend e d
 API aprovados. Publicação e conferência em navegador não realizadas nesta
 alteração. Revisão humana e investigação científica reproduzível continuam
 pendentes; esta remoção não conclui os requisitos científicos ou a submissão.
+
+
+### Evidência incremental — setas de vento mensal no globo (15/11/2026)
+
+Consultas reais de leitura ao SQL Warehouse ativo confirmaram os 12 componentes
+trusted U/V do MERRA-2, nos níveis 2/10/50 m e 250/500/850 hPa. Os pares a 10 m
+e 850 hPa têm 321 meses (jan/2000–set/2026); os demais, 33 meses
+(jan/2024–set/2026). Proveniência, SQL reproduzível, identificadores das consultas,
+fontes primárias, método e limites estão em [vento no globo](wind-arrows.md).
+
+OpenAI Codex assistiu código, testes e documentação da visualização vetorial.
+Selecionar uma componente carrega automaticamente a outra do mesmo nível.
+Setas apontam para onde sopra a resultante das componentes médias mensais;
+comprimento fixo e cor da componente selecionada, em m/s. Não se usa a tabela
+SPEED com conversão incorreta. Faltas de par/cobertura são omitidas explicitamente;
+reanálise mensal não é tempo instantâneo, rajada ou média mensal de velocidades.
+Não houve geração de imagens ou dados científicos por IA nesta funcionalidade.
+
+Node.js 24: 57 testes frontend e builds frontend/backend aprovados, inclusive
+após integração de alterações paralelas. Chromium com dados reais conferiu
+carregamento automático, probe, rotação, zoom8×, playback com meses coerentes,
+deduplicação U/V do mesmo nível, opacidade/visibilidade e nível850hPa. Falha
+de V50 injetada apenas no navegador de QA omitiu setas e recuperou com Retry.
+390px sem overflow horizontal ou exceções JavaScript; capturas inspecionadas.
+Preview5186 e cópia estável de QA5187. Esta evidência não comprova publicação,
+submissão nem conclusão da investigação científica ou conformidade completa.

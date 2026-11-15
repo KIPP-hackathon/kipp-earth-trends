@@ -120,7 +120,7 @@ function TrendResultsComponent({
     <div className="runtime-trend-results">
       <p className="runtime-trend-caption">
         <span className="runtime-trend-key" />
-        Dashed: season-adjusted trend · {unit}
+        season-adjusted trend · {unit}
         <button
           type="button"
           disabled={loading || !familyTests.some((test) => test.trend)}

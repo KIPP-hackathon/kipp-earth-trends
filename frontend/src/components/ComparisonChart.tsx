@@ -52,6 +52,7 @@ function ComparisonChartComponent({
   familySize,
   loading,
   familyTests,
+  trendsOnly = false,
 }: {
   title: string;
   scope: "global" | "regional";
@@ -69,6 +70,7 @@ function ComparisonChartComponent({
   familySize: number;
   loading: boolean;
   familyTests: TrendFamilyTest[];
+  trendsOnly?: boolean;
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
@@ -109,6 +111,13 @@ function ComparisonChartComponent({
   const activeMonth = activeIndex >= 0 ? month : months.at(-1)!;
   const index = activeIndex >= 0 ? activeIndex : Math.max(0, months.length - 1);
   const hasValues = !noArea && chart.series.some((series) => series.path);
+  const hasTrends =
+    !noArea &&
+    entries.some(({ data }) => {
+      const trend = data?.[scope].trends?.[mode];
+      return trend?.status === "available" && trend.line.length === 2;
+    });
+  const hasPlot = hasValues && (!trendsOnly || hasTrends);
   const exportRows = () =>
     entries.flatMap((entry) =>
       entry.data ? [{ ...entry.data, [scope]: entry.data[scope] }] : [],
@@ -382,7 +391,8 @@ function ComparisonChartComponent({
                   </text>
                 </g>
               ))}
-            {hasValues &&
+            {!trendsOnly &&
+              hasValues &&
               chart.series.map(({ entry, path }) =>
                 path ? (
                   <path
@@ -395,7 +405,8 @@ function ComparisonChartComponent({
                   />
                 ) : null,
               )}
-            {hasValues &&
+            {!trendsOnly &&
+              hasValues &&
               chart.series.flatMap(({ entry, points }) =>
                 points.map((point, index) => (
                   <circle
@@ -407,7 +418,7 @@ function ComparisonChartComponent({
                   />
                 )),
               )}
-            {hasValues && (
+            {hasTrends && (
               <g
                 clipPath={`url(#${id}-plot)`}
                 aria-label="Season-adjusted trend lines"
@@ -440,7 +451,7 @@ function ComparisonChartComponent({
                 })}
               </g>
             )}
-            {hasValues && (
+            {hasPlot && (
               <line
                 x1={chart.x(index)}
                 x2={chart.x(index)}
@@ -457,17 +468,19 @@ function ComparisonChartComponent({
             <text x="578" y="174" textAnchor="end">
               {monthLabel(end)}
             </text>
-            {!hasValues && (
+            {!hasPlot && (
               <text x="313" y="94" textAnchor="middle">
                 {entries.length === 0
                   ? "Select a variable above to show it in the charts"
                   : entries.some((entry) => entry.data)
-                    ? "No comparable values for this mode"
+                    ? trendsOnly
+                      ? "No trend lines for this mode"
+                      : "No comparable values for this mode"
                     : "Loading selected variables…"}
               </text>
             )}
           </svg>
-          {preview && hasValues && (
+          {preview && hasPlot && (
             <div className="comparison-hover" role="tooltip">
               <strong>{monthLabel(activeMonth)}</strong>
               {chart.series.slice(0, 8).map(({ entry, byMonth }) => {
