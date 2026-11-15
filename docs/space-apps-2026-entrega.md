@@ -12,8 +12,12 @@ Validação local com Node.js 24: 102 testes frontend e build aprovados.
 WebKit com emulação de iPhone e Chromium com emulação Android confirmaram
 busca manual e mudança de início/fim, inclusive ano. Gesto nativo via protocolo
 Chromium girou o globo sem mudar `scrollY`; evento de toque fora do globo
-permanece livre. Sem teste em iPhone físico. Publicação em acompanhamento;
-sem alteração de dados ou métodos científicos.
+permanece livre. Sem teste em iPhone físico.
+Publicado em `492ccf9`: Vercel confirmou sucesso e bundle `index-B8Uw-U5H.js`;
+[workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43743769007)
+concluído com sucesso. WebKit repetiu busca manual, datas inicial/final e
+contenção de toque no site público da Cloudflare, sem erros de página.
+Sem alteração de dados ou métodos científicos.
 
 ## Publicação do catálogo ampliado e IMERG — 15/11/2026
 
