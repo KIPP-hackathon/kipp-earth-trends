@@ -837,6 +837,16 @@ confirmada pela [Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-t
 e pelo bundle público `index-DUP677eb.js`, idêntico ao build validado.
 Sem alteração da investigação científica ou submissão formal.
 
+### Remoção do bloco de proveniência expandido — 15/11/2026
+
+OpenAI Codex assistiu a remoção de Source, quality & coordinates dos painéis e
+do parágrafo sobre agregação que aparecia abaixo na exploração, conforme
+solicitação do usuário. Produto, unidade, cobertura, método e fonte continuam
+nos detalhes por hover/foco/toque do nome da variável; regras e notas de
+qualidade também foram reunidas ali. Sem alteração dos dados ou cálculos.
+85 testes frontend e build aprovados; fonte e bundle conferidos quanto à
+ausência dos textos removidos. Publicação em verificação.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

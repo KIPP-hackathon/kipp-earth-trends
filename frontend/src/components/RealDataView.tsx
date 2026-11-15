@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import {
   realMonth,
-  realUnit,
   variableDataKey,
 } from "../lib/earthApi";
 import type {
@@ -550,47 +549,6 @@ export function RealPanel({
               !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : windStatus}/>
         })}
       </div>
-      </details>
-      <details className="real-provenance">
-        <summary>{selectedVariables.length > 1 ? "Primary source, quality & coordinates" : "Source, quality & coordinates"}</summary>
-        <p>{variable.description}</p>
-        {selectedVariables.some(entry => windComponents(entry.id)) && <p>
-          Wind arrows combine the eastward (U) and northward (V) components at the same level,
-          month and display cell from NASA MERRA-2 reanalysis. The complementary component is
-          loaded automatically from the same trusted Databricks source. Missing pairs are omitted.
-          Direction describes the resultant of monthly component means, not instantaneous weather.
-          The monthly resultant magnitude √(U² + V²) is not monthly mean wind speed or gust speed.
-          Display aggregation and thinning do not increase source resolution.
-        </p>}
-        {primaryFrame && (
-          <p>
-            {primaryFrame.grid.width} × {primaryFrame.grid.height} display cells ·{" "}
-            {((primaryFrame.validCells / primaryFrame.totalCells) * 100).toFixed(1)}
-            % with values · global frame
-          </p>
-        )}
-        <p>
-          Product: {variable.product}
-          {variable.run ? ` · ${variable.run}` : ""} · unit:{" "}
-          {realUnit(variable.unit)}
-        </p>
-        <p>
-          Series area: {region.name} · bbox [{region.bbox}]
-        </p>
-        <p>
-          The map always displays the global field. Area selection affects the
-          regional series only.
-        </p>
-        {countryOutline && (
-          <p>
-            The country outline is a visual reference; series values use its
-            rectangular extent, including cells outside the border.
-          </p>
-        )}
-        {variable.quality?.rule && <p>Quality rule: {variable.quality.rule}</p>}
-        {variable.quality?.notes.map((note) => (
-          <p key={note}>{note}</p>
-        ))}
       </details>
       <section className="real-series-comparison multivariable-analysis" aria-label="Selected variable charts">
         <ComparisonAnalysis variables={selectedVariables} region={region} start={start} end={end}

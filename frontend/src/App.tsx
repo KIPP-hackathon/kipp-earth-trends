@@ -1032,11 +1032,6 @@ function App() {
                   eventWindow={exploration.eventContext?.window}
                 />
               </div>
-              <p className="real-method-note">
-                The globe grid is aggregated for display. Regional series use
-                source-grid points within the study rectangle; the global map
-                stays visible. Check each variable’s method and quality.
-              </p>
             </section>
             <section
               hidden={active !== "compare"}

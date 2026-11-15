@@ -58,6 +58,7 @@ function TrendResultsComponent({
               const trend = data?.[scope].trends?.[mode],
                 adjusted = adjustedP[trendKey(scope, variable.id)];
               const source = data?.[scope];
+              const quality = data?.quality ?? variable.quality;
               const row = source?.observations.find(
                 (row) => row.month === month,
               );
@@ -151,6 +152,8 @@ function TrendResultsComponent({
                           {data.method} · {data.sourceUC}
                         </p>
                       )}
+                      {quality?.rule && <p>Quality rule: {quality.rule}</p>}
+                      {quality?.notes.map((note, index) => <p key={index}>{note}</p>)}
                     </VariableExplanation>
                   </th>
                   <td>
