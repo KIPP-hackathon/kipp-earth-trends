@@ -768,7 +768,11 @@ substituindo os botões superiores; as linhas da tabela e a família Holm comple
 permanecem ao ocultar variáveis. Sem alteração dos dados ou do método estatístico.
 80 testes existentes e build frontend aprovados; verificação de renderização
 confirmou controles, checkbox, curvas ocultas e estatísticas preservadas.
-Publicação ainda em verificação; sem declaração de navegação visual automatizada.
+Publicação verificada no commit `e66a525`, com
+[deploy Vercel concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/3dK6N3nHBD4RhtUBRskfBJ8dJsd7).
+O domínio público entregou `index-D6rw6RTJ.js`, idêntico ao build validado,
+com controles, checkboxes e grupos, sem os antigos botões de ocultação.
+Sem declaração de navegação visual automatizada.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
