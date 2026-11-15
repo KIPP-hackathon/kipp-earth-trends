@@ -1,5 +1,26 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Publicação do catálogo ampliado e IMERG — 15/11/2026
+
+Alterações publicadas na `main` em `25802bb`, com verificação de deploy
+atualizada em `7b5616e`. [Frontend Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43742042235)
+e [API](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43742145646)
+concluídos com sucesso. Vercel publicou o frontend de `25802bb`; o commit
+seguinte altera apenas a verificação da API e encontrou limite de builds da Vercel.
+
+Conferidos em [Vercel](https://kipp-earth-trends-lab.vercel.app/)
+e [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/):
+mesmo bundle frontend, catálogo real `databricks-sql`, revisão
+`kipp-earth-api-00029-puv`, 224 definições e 106 disponíveis nas 11 tabelas.
+Sem `tb_sea_ice_global` e sem opções Late duplicadas; catálogo mantém
+setembro/2025 Final e outubro/2025 Late. Navegador na Cloudflare confirmou
+as duas grandezas IMERG, aplicação da seleção e indicação de processamento Late.
+Smoke de produção também aprovou frame, série, comparação e inferência existentes.
+
+Validação com Node.js 24: 102 testes frontend, 24 backend, 4 testes Python,
+builds frontend/API e dry run do Worker aprovados. Assistência OpenAI Codex.
+Publicação técnica não substitui revisão científica humana nem submissão Project.
+
 ## Legibilidade dos grupos de variáveis — 15/11/2026
 
 OpenAI Codex assistiu o ajuste CSS do seletor: ícone do grupo centralizado
@@ -42,7 +63,7 @@ o app identifica a mudança de processamento, sem afirmar homogeneização.
 Prévia local atualizada em localhost:5173; 101 testes frontend, 24 backend e
 builds aprovados com Node.js 24. Seleções ativas dos antigos IDs Late migram
 para as variáveis combinadas, sem duplicar camadas. Assistência OpenAI Codex;
-publicação e revisão científica humana continuam pendentes.
+publicação conferida conforme registro acima; revisão científica humana pendente.
 
 
 ## Metadados e fontes ampliadas do app — 15/11/2026
