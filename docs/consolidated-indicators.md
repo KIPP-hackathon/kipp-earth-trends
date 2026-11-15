@@ -1,5 +1,25 @@
 # Consolidated trusted indicators
 
+Production verified November 15, 2026, after
+[PR #29](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/29), merge
+`d81e66890cfbf33ef18921476411bf38a157735a`.
+[Backend CI/CD](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43728947821)
+and [Vercel production](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/GJm3eNtsvi1KAUpYn4vMHyWMmPA4)
+completed successfully. The public catalog serves revision `kipp-earth-api-00024-gav`,
+205 explicit physical fields, 87 enabled and 118 hidden. All 87 enabled physical
+table/column pairs match the independently read warehouse inventory exactly.
+
+Production Chromium verification at 1440×1000 and 390×844 showed seven available
+event cases (eight when unavailable cases are included), three Pantanal variables,
+no NDVI/EVI choices and disabled Tōhoku actions. Opening Pantanal loaded the
+September 2024 `merra2_flx_prectotcorr` binary globe frame with
+`sourceTable=earth-trend-data.trusted.tb_merra2_fluxos` and `unit=kg m-2 s-1`.
+No JavaScript exceptions or mobile horizontal overflow. Screenshots and machine
+results were retained in temporary local files; no synthetic data were used in
+this production check. The pipeline also passed actual temperature frames,
+regional series, stored trend reference, comparisons and seasonal/HAC inference.
+This verifies deployment and source integration, not formal Space Apps submission.
+
 On November 15, 2026 the user confirmed that the seven consolidated MERRA-2
 tables are the intended observation sources. Individual MERRA-2 tables and the
 previous GPM/GRACE/MODIS/ice sources are outside this active observation registry.

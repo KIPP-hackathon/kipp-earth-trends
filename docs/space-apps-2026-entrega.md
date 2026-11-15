@@ -15,8 +15,14 @@ Validação real conferiu os 87 pares tabela/coluna, 321 meses por indicador, se
 casos de contexto e duas séries regionais. Node.js 24: 87 testes frontend,
 suíte backend (incluindo regressões de mapeamento, largura das tabelas e
 ausência de scans de indicadores ocultos) e ambos os builds aprovados.
-Assistência OpenAI Codex; publicação em preparação, revisão humana e submissão
-formal pendentes.
+Publicação concluída pelo [PR #29](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/29),
+merge `d81e6689`: [backend CI/CD](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43728947821)
+e Vercel aprovados. API pública confirmou revisão `kipp-earth-api-00024-gav`,
+87 indicadores habilitados e 118 ocultos; todos os pares físicos conferem com o
+inventário. Chromium em produção conferiu sete casos, Tōhoku desabilitado e
+abertura de Pantanal com frame real da tabela consolidada de fluxos; 1440/390 px
+sem exceções JavaScript ou overflow. Evidências em [indicadores consolidados](consolidated-indicators.md).
+Assistência OpenAI Codex; revisão humana e submissão formal pendentes.
 
 ### Auditoria das fontes de Events — 15/11/2026
 
