@@ -327,3 +327,11 @@ ações de salvar e painel de evidências também receberam superfícies escuras
 API real, controles escuros, estrelas locais animadas, movimento reduzido e
 layout de 390 px sem exceções JavaScript ou overflow horizontal. Edições locais
 de outros trabalhos foram preservadas fora desta publicação.
+
+Publicação confirmada: commit `bf8308a`,
+[deploy Vercel aprovado](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/8JVB3rKaq2i2eYtKUH3d7R1pk3u6).
+Site e catálogo públicos responderam HTTP 200, com 72 variáveis. Chromium em
+produção confirmou fonte Manrope carregada, menus escuros, céu local quase preto,
+movimento das estrelas, preferência de movimento reduzido e layout mobile sem
+overflow ou exceções JavaScript. Bundle publicado: `index-ByxD8o4r.js`, CSS
+`index-CSXaHGP5.css`. A publicação é visual; não altera observações científicas.
