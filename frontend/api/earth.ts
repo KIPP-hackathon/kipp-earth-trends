@@ -53,7 +53,7 @@ export default async function handler(
       query.delete("path");
     // No arbitrary upstream URLs, SQL, methods, paths or browser authorization headers.
     if (
-      !/^\/v1\/(catalog|config|events|trends|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|(?:series|comparison)\/[a-z0-9_]{1,60})$/.test(
+      !/^\/v1\/(catalog|config|events|trends|investigation|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|(?:series|comparison)\/[a-z0-9_]{1,60})$/.test(
         path,
       )
     )
@@ -69,7 +69,9 @@ export default async function handler(
       query.delete("deployment");
     }
     const allowed = new Set(
-      path === "/v1/trends"
+      path === "/v1/investigation"
+        ? ['x','y','bbox','start','end','baselineStart','baselineEnd','method']
+        : path === "/v1/trends"
         ? ["variable", "bbox", "start", "end"]
         : path.startsWith("/v1/comparison/") ? ["bbox","start","end","analysis"]
         : ["bbox", "factor", "format", "start", "end"],
@@ -78,6 +80,7 @@ export default async function handler(
       if (
         !allowed.has(key) ||
         (key==="analysis" && value!=="trend-v1") ||
+        (key==="method" && value!=="relationships-v1") ||
         value.length > 200 ||
         query.getAll(key).length !== 1
       ) {

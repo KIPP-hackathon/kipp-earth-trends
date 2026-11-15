@@ -67,11 +67,11 @@ const guide = [
   },
   {
     title: "Read the statistical report",
-    text: "Trend Lab uses OLS on raw monthly values with a two-sided Student-t 95% slope interval and n−2 degrees of freedom. An interval excluding zero corresponds to significance at α = 0.05. An interval including zero leaves the direction uncertain. Degenerate residual variation makes inference unavailable. R² summarizes the fraction of sample variation explained by the line. Missing months are excluded while calendar gaps are preserved.",
+    text: "Trend Lab fits calendar-month effects and linear time, with Newey–West HAC12 uncertainty. Trend slopes use 13 model parameters; lagged relationships use 14. Inference requires 60 consecutive valid months and nondegenerate variation. Holm adjustment covers every applied trend and lag test. Missing months remain gaps; short or gapped results can be descriptive without inference.",
   },
   {
     title: "Interpret the evidence carefully",
-    text: "Trend Lab assumes linearity and independent, normally distributed, constant-variance residuals. Seasonality, autocorrelation and multiple testing are uncorrected and can distort inference. Repeated selections are exploratory. Significance alone establishes neither practical importance nor causality. Short records offer limited evidence about long-term climate change. Country areas use bounding rectangles. Inspect product type, units, coverage and provenance alongside the result.",
+    text: "Trend Lab assumes a linear time component, fixed calendar-month effects and short-memory residual dependence. HAC12 and Holm adjustment do not correct all model violations or repeated exploratory choices. Baseline and native product uncertainty are not propagated. Significance alone establishes neither practical importance nor causality. Short records offer limited evidence about long-term climate change. Country areas use bounding rectangles. Inspect product type, units, coverage and provenance alongside the result.",
   },
   {
     title: "Start with a question",

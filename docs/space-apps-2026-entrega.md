@@ -810,3 +810,61 @@ Validacao local com Node.js 24.22.1, 80 testes frontend e builds frontend/API
 aprovados. Build mantem aviso de bundle acima de 500 kB. Conferencia visual
 em navegador pendente nesta revisao. Revisao humana e submissao permanecem
 pendentes. Alteracoes locais registradas neste checkout.
+
+## Exploração de relações e anomalias — 15/11/2026
+
+Consultas somente de leitura via Databricks CLI conferiram cobertura de sete
+tabelas trusted e extraíram 2.667 médias mensais em três retângulos. O estudo
+[Trend Lab: relações e anomalias](trend-lab-exploration.md) registra SQL,
+análise reproduzível, correlações com remoção de sazonalidade/tendência,
+intervalos exploratórios por bootstrap em blocos e limitações. Não comprova
+causalidade, previsão de ENSO, ingestão de índice NOAA nem funcionalidade nova.
+MODIS apresentou apenas três meses; NOAA RONI é uma fonte candidata futura.
+
+OpenAI Codex assistiu consultas, script Python e documentação; análise executada
+e ortogonalidade dos resíduos conferida, com revisão científica humana pendente.
+Arquivos de resposta ficam em artifacts ignorados. Nenhum deploy, escrita no
+warehouse ou submissão foi realizado; os itens formais seguem pendentes.
+
+
+## Planejamento de evolução do Trend Lab — 15/11/2026
+
+Plano assistido por OpenAI Codex em
+[relações, anomalias e previsão](superpowers/plans/2026-11-15-trend-lab-relationships.md).
+Primeira versão proposta: método sazonal unificado, anomalias com referência
+explícita e relações entre duas variáveis com defasagens. GRACE com lacunas
+permanece descritivo até validação de inferência compatível. ENSO, ampliação
+MODIS e previsão são etapas futuras; nenhuma foi implementada nesta tarefa.
+Plano inclui validação independente, proveniência, registro de IA e respeito
+ao congelamento de materiais avaliados. Não altera o estado da submissão.
+
+
+## Trend Lab: primeira versão de relações — implementação local (15/11/2026)
+
+Implementadas as etapas 1–3 do plano: tendências sazonais pela API, anomalias
+com referência explícita, seleção de dois indicadores, relações com defasagens
+0–6 em suporte comum, ajuste Holm da família completa, presets, configuração
+salva e exportação CSV/JSON. Lacunas de GRACE mantêm a relação descritiva e
+suprimem inferência. Ver [métodos e evidências](trend-lab-relationships.md).
+
+Node.js 24: 85 testes frontend, 14 backend e ambos os builds aprovados. Quatro
+consultas somente de leitura ao Databricks produziram duas investigações reais;
+comparação independente com statsmodels conferiu 14 relações, quatro tendências,
+referências e ajustes Holm. Chromium com replay dos dados medidos confirmou o
+fluxo em 1440/390/360 px, sem overflow/exceções, exportação, persistência e retry.
+Não constitui teste da nova API publicada; deploy permanece não realizado.
+
+OpenAI Codex assistiu código, testes, análise e documentação; revisão científica
+humana pendente. ENSO, anomalias compostas, ampliação MODIS e previsão seguem
+futuras. Não houve treinamento, escrita no warehouse, publicação ou submissão.
+
+
+Preparação de publicação: integração isolada na branch
+`feat/trend-lab-relationships`, sobre main `cefe451`, preservando configuração
+horizontal, globo expansível, Guide e controles recentes. Controles de mudança
+histórica/projetada usam a inclinação sazonal e IC robusto, sem alegar previsão.
+85 testes frontend, 14 backend e ambos os builds novamente aprovados.
+Após o bloqueio inicial por autenticação, o usuário autorizou explicitamente
+usar a conta disponível `c0ffex` para esta publicação e solicitou rebase e
+conferência de preservação da main. Autoria Git pessoal do projeto mantida.
+Publicação e verificação em produção serão registradas após conclusão.
