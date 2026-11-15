@@ -14,6 +14,13 @@ all seven lag summaries, the complete Holm family and scientific limitations.
 Raw observations and pair arrays are excluded from the model payload. No new
 statistical estimator or inference threshold is introduced.
 
+Each series also carries a compact `anomalies` summary built from the engine's
+existing calendar-month anomalies: status counts, mean anomaly, the last 12
+months and the five largest absolute standardized departures. The reference
+equals the study period, as in the UI, so a calendar month needs at least 10
+valid years; shorter periods report `insufficient_reference`, never zero. This
+reuses existing values; it adds no estimator, threshold or event detection.
+
 Trend Lab sends its draft selection and last submitted selection separately,
 with loading state and result timestamp when available. It sends no purported
 p-values as authoritative evidence. For explanations the assistant recomputes

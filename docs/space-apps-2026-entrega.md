@@ -1,5 +1,17 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Resumo de anomalias no assistente — 15/11/2026
+
+`run_investigation` passa a devolver, por série, um resumo compacto das
+anomalias por mês do calendário já calculadas pelo motor do Trend Lab
+(contagens por status, anomalia média, últimos 12 meses e 5 maiores desvios
+padronizados). Referência = período de estudo, como na interface; períodos com
+menos de 10 anos não têm anomalias. Nenhum estimador, limiar ou detecção de
+evento novo. Código e documentação gerados com assistência de IA (Claude Code,
+Opus 5.5). Validação local com Node.js 24.22.3: testes backend (fixtures
+sintéticas, não achados científicos) e builds. Avaliação com modelo real e
+revisão humana pendentes.
+
 ## Tabelas compactas com poucas variáveis — 15/11/2026
 
 OpenAI Codex removeu a reserva mínima de altura nas tabelas do Explore quando

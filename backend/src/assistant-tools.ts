@@ -226,6 +226,50 @@ function definition(variable: CatalogVariable) {
     unavailableReason: variable.unavailableReason,
   };
 }
+type AnomalyRow = {
+  month: string;
+  anomaly: number | null;
+  standardized: number | null;
+  anomalyStatus: string;
+};
+const rounded = (value: number | null, digits = 4) =>
+  value !== null && Number.isFinite(value)
+    ? Number(value.toPrecision(digits))
+    : null;
+// Compact calendar-month anomalies (observations are omitted from chat output):
+// counts by status, mean departure, last 12 months and 5 largest |z|.
+export function anomalySummary(rows: AnomalyRow[]) {
+  const available = rows.filter(
+    (r): r is AnomalyRow & { anomaly: number } =>
+      r.anomaly !== null && Number.isFinite(r.anomaly),
+  );
+  const statusCounts: Record<string, number> = {};
+  for (const r of rows)
+    statusCounts[r.anomalyStatus] = (statusCounts[r.anomalyStatus] ?? 0) + 1;
+  return {
+    availableMonths: available.length,
+    statusCounts,
+    meanAnomaly: available.length
+      ? rounded(available.reduce((a, r) => a + r.anomaly, 0) / available.length)
+      : null,
+    lastTwelve: rows.slice(-12).map((r) => ({
+      month: r.month,
+      anomaly: rounded(r.anomaly),
+      standardized: rounded(r.standardized, 3),
+      status: r.anomalyStatus,
+    })),
+    largestStandardized: available
+      .filter((r) => r.standardized !== null && Number.isFinite(r.standardized))
+      .sort((a, b) => Math.abs(b.standardized!) - Math.abs(a.standardized!))
+      .slice(0, 5)
+      .map((r) => ({
+        month: r.month,
+        anomaly: rounded(r.anomaly),
+        standardized: rounded(r.standardized, 3),
+      })),
+    note: "Anomaly = value minus that calendar month's mean over the reference period, which equals the study period; standardized divides by that month's standard deviation. A month needs at least 10 valid reference years, so periods shorter than 10 years yield insufficient_reference, not zero anomalies.",
+  };
+}
 const scientificLimitations = [
   "Descriptive analysis of the selected period only. Short records do not establish a long-term climate trend.",
   "Seasonality and serial autocorrelation are not removed or modeled. No p-value, confidence interval, significance or causal attribution is calculated.",
@@ -659,6 +703,7 @@ export function createAssistantTools({
                     ),
                   ),
                 ],
+                anomalies: anomalySummary(observations),
               }),
             ),
             lags: result.lags.map(({ pairs: _pairs, ...lag }) => lag),
