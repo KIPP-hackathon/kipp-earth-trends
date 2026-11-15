@@ -69,8 +69,8 @@ export function MultiVariablePicker({
       className="multi-variable-picker"
       ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          close();
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) close();
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
