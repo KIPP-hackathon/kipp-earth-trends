@@ -489,3 +489,12 @@ quando todas as séries estão ocultas, explicação pelo ícone e viewport de
 47 testes frontend, seis testes de autenticação e builds frontend/backend
 aprovados com Node.js 24. O pipeline também executou seus testes e smoke checks.
 Isso comprova a publicação técnica; não comprova submissão ao Space Apps.
+
+
+### Ajuste solicitado — remover faixa de ações (15/11/2026)
+
+OpenAI Codex assistiu a remoção da faixa de preset, Save/Saved/Share e seus
+avisos, junto à mensagem de país inicial e botão Use my location em `App.tsx`.
+O guia deixou de anunciar o salvamento removido. Eventos continuam acessíveis
+pela aba existente; seleção de país e desenho de área continuam nos filtros.
+Alteração de interface, sem mudança nos dados ou cálculos científicos.

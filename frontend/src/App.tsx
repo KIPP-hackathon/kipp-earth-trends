@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
-import { InvestigationControls } from "./components/InvestigationControls";
 import type { InvestigationView } from "./lib/investigations";
 import { EventExplorer } from "./components/EventExplorer";
 import { TrendEvidence } from "./components/TrendEvidence";
@@ -79,10 +78,6 @@ const guide = [
   {
     title: "Assess change and uncertainty",
     text: "Evidence shows stored trend estimates only when the variable, region and period match exactly. Inspect methods, coverage and uncertainty. This short record does not establish a long-term climate trend; a non-significant result does not establish no change.",
-  },
-  {
-    title: "Save a discovery",
-    text: "Save the current view in this browser, optionally name it and add notes. Reopen it from Saved, share its filters with a link, or export/import a JSON configuration. These are current-data views, not frozen observations or offline datasets.",
   },
 ];
 function Guide({ config }: { config?: EarthConfig }) {
@@ -415,39 +410,6 @@ function App() {
       latitude: event.latitude,
     });
     showTab(compare ? "compare" : "explore");
-  };
-  const getInvestigationView = (): InvestigationView | null => {
-    const tab = activeTab.current;
-    if (tab !== "explore" && tab !== "compare" && tab !== "analysis")
-      return null;
-    const workspace = tab === "compare" ? comparison : exploration;
-    const context = workspace.getContext(tab, version.current, true);
-    const expected = tab === "compare" ? 2 : 1;
-    if (
-      context.panels.length !== expected ||
-      context.panels.some((panel) => !panel.selectedMonth)
-    )
-      return null;
-    const ids = new Set(context.panels.flatMap(panel =>
-      panel.layers?.map(layer => layer.variable) ?? [panel.variable]));
-    return {
-      tab,
-      panels: context.panels.map((panel) => ({
-        side: panel.side,
-        variable: panel.variable,
-        month: panel.selectedMonth,
-        ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
-        comparisonMode:panel.comparisonMode,
-        start: panel.start,
-        end: panel.end,
-        region: structuredClone(panel.region),
-      })),
-      camera: context.camera,
-      colorRanges: Object.fromEntries(
-        Object.entries(context.colorRanges).filter(([id]) => ids.has(id)),
-      ),
-      ...(workspace.eventContext ? { eventId: workspace.eventContext.id } : {}),
-    };
   };
   const restoreInvestigation = async (
     view: InvestigationView,
@@ -1113,55 +1075,6 @@ function App() {
           <section role="tabpanel" id="panel-learn" aria-labelledby="tab-learn">
             <Guide config={config.data} />
           </section>
-        )}
-        <div className="workspace-actions">
-          {(active === "explore" || active === "analysis") && (
-            <button
-              className="preset-shortcut"
-              onClick={() => showTab("events")}
-            >
-              Try an event preset →
-            </button>
-          )}
-          <InvestigationControls
-            getView={getInvestigationView}
-            onRestore={restoreInvestigation}
-            ready={
-              !!catalog.data &&
-              !!config.data &&
-              (active === "explore" ||
-                active === "analysis" ||
-                active === "compare")
-            }
-          />
-        </div>
-        {active === "explore" && (
-          <div className="country-location-note">
-            <p role="status" aria-live="polite">
-              {location.status === "locating"
-                ? `Starting with ${startingCountry.name}. Location is optional; choose any area below.`
-                : location.status === "detected"
-                  ? location.country.countryCode === startingCountry.countryCode
-                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
-                    : `Country found: ${location.country.name}. Your current selection was preserved.`
-                  : location.status === "denied"
-                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
-                    : `Started with ${startingCountry.name}. Choose any country or draw an area below.`}
-            </p>
-            <div>
-              {location.status !== "locating" && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    locationVersion.current = version.current;
-                    location.requestLocation();
-                  }}
-                >
-                  Use my location
-                </button>
-              )}
-            </div>
-          </div>
         )}
         <p className="workspace-data-note">
           Real data derived from NASA products. The base image is static; the
