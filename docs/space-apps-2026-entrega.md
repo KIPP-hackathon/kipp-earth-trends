@@ -10,7 +10,16 @@ silenciosamente. Chat disponível após catálogo/configuração mesmo sem camad
 selecionada. Trend Lab continua sem ferramenta/contexto próprios. Implementação
 assistida por OpenAI Codex; publicação autorizada com a conta c0ffex. Validação
 local: 139 testes frontend, 46 testes backend e builds frontend/API aprovados
-com Node.js 24. Publicação será registrada após conferência.
+com Node.js 24. Publicado em `94e1519` com c0ffex autorizado pelo usuário.
+[Backend](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43755811463)
+e [Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43755811472)
+concluídos com sucesso. Vercel recusou novo build por limite de publicações.
+Conferência no site Cloudflare iniciou sem variável selecionada: pedido de análise
+de chuva na Amazônia em 2024 selecionou IMERG, retângulo central amazônico e
+Jan–Dez 2024; a UI confirmou comandos aceitos e apresentou a explicação com
+cobertura de 12/12 meses e limites descritivos. Renderização do globo indisponível
+no navegador de verificação; controles, gráficos e resposta foram conferidos.
+Este smoke com modelo real não substitui a avaliação completa de qualidade.
 
 ## Prompt e conhecimento do assistente — 15/11/2026
 
