@@ -7,6 +7,7 @@ import { LoadingStatus } from "./Loading";
 import type { CountrySelection } from "../lib/countries";
 import { PeriodPicker, SearchPicker } from "./ExplorationControls";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Pause,
@@ -41,6 +42,7 @@ import { combinedImergLayers } from "../lib/layers";
 import { useLayerFrames } from "../lib/useLayerFrames";
 import { pairWindFrames, windComponents, windFrameVariables } from "../lib/wind";
 import "./multivariable-layers.css";
+import { DomainIcon } from "../lib/domains";
 import { groupVariables } from "../lib/variableGroups";
 import { MonthPicker } from "./MonthPicker";
 import type {
@@ -600,17 +602,21 @@ function SelectedRealPanel({
         </div>
       </div>
       {selectedVariables.length > 1 && <div className="layer-cascade">
-        <label>Variable group
-          <select aria-label="Configure variable group" value={configuredGroup.key}
-            onChange={event => setFilterVariable(filterGroups.find(group => group.key === event.target.value)!.variables[0].id)}>
-            {filterGroups.map(group => <option key={group.key} value={group.key}>{group.label}</option>)}
-          </select>
-        </label>
         <label>Configure variable
-          <select aria-label="Configure variable" value={configuredVariable.id}
-            onChange={event => setFilterVariable(event.target.value)}>
-            {configuredGroup.variables.map(variable => <option key={variable.id} value={variable.id}>{variable.name}</option>)}
-          </select>
+          <div className="layer-variable-select">
+            <div className="layer-variable-selection" aria-hidden="true">
+              <DomainIcon domain={configuredGroup.key} size={13} />
+              <span>{configuredGroup.label} · {configuredVariable.name}</span>
+              <ChevronDown size={14} />
+            </div>
+            <select aria-label="Configure variable" value={configuredVariable.id}
+              title={`${configuredGroup.label} · ${configuredVariable.name}`}
+              onChange={event => setFilterVariable(event.target.value)}>
+              {filterGroups.map(group => <optgroup key={group.key} label={group.label}>
+                {group.variables.map(variable => <option key={variable.id} value={variable.id}>{variable.name}</option>)}
+              </optgroup>)}
+            </select>
+          </div>
         </label>
       </div>}
       <div className="layer-stack" role="region" aria-label="Scrollable map layer controls" tabIndex={0}>
@@ -629,8 +635,10 @@ function SelectedRealPanel({
           return <LayerCard key={entry.id} variable={entry} setting={setting}
             colorRange={colorRanges[entry.id]} onChange={changeLayer}
             mapEnabled={view.showLayer}
+            soloActive={setting.visible && view.showLayer && effectiveSettings.filter(layer => layer.visible).length === 1}
             onSolo={() => {
               onManualChange();
+              if (!view.showLayer) onView({...view,showLayer:true});
               setLayerSettings(effectiveSettings.map(layer => ({...layer,visible:layer.variable === entry.id})));
               if (!view.showLayer) onView({...view,showLayer:true});
             }}

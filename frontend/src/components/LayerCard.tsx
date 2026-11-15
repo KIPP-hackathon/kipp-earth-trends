@@ -18,7 +18,7 @@ export function LayerCard({
   onChange,
   onColorRange,
   onSolo,
-  mapEnabled = true,
+  soloActive = false,
   loading = false,
   error,
   status,
@@ -32,6 +32,7 @@ export function LayerCard({
   onColorRange: (value?: EarthColorRange) => void;
   onSolo?: () => void;
   mapEnabled?: boolean;
+  soloActive?: boolean;
   loading?: boolean;
   error?: string;
   status?: string;
@@ -74,13 +75,11 @@ export function LayerCard({
           <p className="layer-group-label"><DomainIcon domain={group.key} size={13} />{group.label}</p>
         </div>
         <div className="layer-card-actions">
-        {scale.kind === "continuous" && <button type="button" className="layer-visibility layer-range-visibility"
-          aria-label={`Hide values outside color range for ${variable.name}`}
-          aria-pressed={!!colorRange?.hideOutside}
-          title={colorRange?.hideOutside
-            ? "Values outside the scale are hidden. Click to show them; original data and charts stay unchanged."
-            : "Hide values outside the scale on the map; original data and charts stay unchanged."}
-          onClick={() => onColorRange({ domain: colorRange?.domain ?? scale.domain, hideOutside: !colorRange?.hideOutside })}>
+        {onSolo && <button type="button" className="layer-visibility layer-solo-visibility"
+          aria-label={`Show only ${variable.name} on map`}
+          aria-pressed={soloActive}
+          title="Show only this layer on the map; keep all selected variables in the charts."
+          onClick={onSolo}>
           <ScanEye size={17} aria-hidden="true" />
         </button>}
         <button
@@ -103,37 +102,7 @@ export function LayerCard({
         </button>
         </div>
       </div>
-      <div className="layer-opacity">
-        <label htmlFor={`${id}-opacity`}>Map opacity</label>
-        <input
-          id={`${id}-opacity`}
-          type="range"
-          min={0}
-          max={100}
-          step={1}
-          value={percentage}
-          aria-valuetext={`${percentage} percent`}
-          onChange={(event) =>
-            onChange({
-              ...setting,
-              opacity:
-                Math.max(0, Math.min(100, Number(event.target.value))) / 100,
-            })
-          }
-        />
-        <output htmlFor={`${id}-opacity`}>{percentage}%</output>
-      </div>
-      <p className="layer-map-state">
-        {setting.visible && !mapEnabled ? "Layer enabled · map data hidden" : setting.visible
-          ? opacity === 0
-            ? "Visible layer · fully transparent"
-            : "Shown on map"
-          : "Charts only · hidden on map"}
-      </p>
       {loading && <LoadingStatus className="layer-map-loading">Loading observations…</LoadingStatus>}
-      {onSolo && <button type="button" className="layer-solo" onClick={onSolo}>
-        Show only this layer
-      </button>}
       {status && <p className="layer-status">{status}</p>}
       {wind && <p className="layer-status">
         Wind arrows at {wind.level} use paired U + V (complement loaded automatically).
@@ -181,16 +150,28 @@ export function LayerCard({
         )}
       </div>
       )}
-      <details className="layer-source-details">
-        <summary>Source &amp; scale limits</summary>
-        <p>Display only. Original values, series and exports stay unchanged. Shared by globes showing the same variable.</p>
-        {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
-        {processingRun && <p>Displayed month processing: {processingRun}</p>}
-        {variable.processingNote && <p>{variable.processingNote}</p>}
-        <p>{variable.colorRangeSource === "indicator_coverage_p5_p95"
-          ? "Default: inventory p5–p95, converted to display units; not necessarily the selected region or period."
-          : "Default: configured display range; matching percentiles unavailable."}</p>
-      </details>
+      <div className="layer-opacity">
+        <label htmlFor={`${id}-opacity`}>Opacity</label>
+        <input
+          id={`${id}-opacity`}
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={percentage}
+          aria-valuetext={`${percentage} percent`}
+          onChange={(event) =>
+            onChange({
+              ...setting,
+              opacity:
+                Math.max(0, Math.min(100, Number(event.target.value))) / 100,
+            })
+          }
+        />
+        <output htmlFor={`${id}-opacity`}>{percentage}%</output>
+      </div>
+      {processingRun && <p className="layer-status">Displayed month processing: {processingRun}</p>}
+      {variable.processingNote && <p className="layer-status">{variable.processingNote}</p>}
       {children && <div className="layer-analysis-content">{children}</div>}
     </article>
   );

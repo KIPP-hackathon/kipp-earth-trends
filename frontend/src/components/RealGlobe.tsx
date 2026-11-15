@@ -593,6 +593,24 @@ export function RealGlobe({
             ))}
           </g>
         </svg>
+      {probe && probeFrame && view.showLayer && (
+        <p className="real-grid-info globe-probe-overlay">
+          Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
+          <strong>
+            {hiddenSample
+              ? "Outside selected range (hidden)"
+              : Number.isFinite(sampled)
+                ? `${sampled.toLocaleString("en", { maximumFractionDigits: 2 })} ${realUnit(probeFrame.unit)}`
+                : "no data"}
+          </strong>
+          {!hiddenSample && windPair && (probedWind ? <>
+            {" · "}{probedWind.bearing === null ? "Calm monthly resultant; direction undefined" :
+              `Flow toward ${Math.round(probedWind.bearing) % 360}° clockwise from north`}
+            {" · "}monthly resultant {probedWind.resultant.toFixed(2)} m/s
+            {" · "}U {probedWind.u.toFixed(2)}, V {probedWind.v.toFixed(2)} m/s
+          </> : " · no paired wind direction for this cell")}
+        </p>
+      )}
         </div>
       </div>
       <div className="real-globe-actions">
@@ -682,24 +700,6 @@ export function RealGlobe({
         <span aria-hidden="true">↗</span> Wind flow · {windLevels.join(" / ")} · arrows point toward flow.
         {" "}Monthly MERRA-2 reanalysis; fixed arrow length, color = selected component (m/s).
       </p>}
-      {probe && probeFrame && view.showLayer && (
-        <p className="real-grid-info">
-          Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
-          <strong>
-            {hiddenSample
-              ? "Outside selected range (hidden)"
-              : Number.isFinite(sampled)
-                ? `${sampled.toLocaleString("en", { maximumFractionDigits: 2 })} ${realUnit(probeFrame.unit)}`
-                : "no data"}
-          </strong>
-          {!hiddenSample && windPair && (probedWind ? <>
-            {" · "}{probedWind.bearing === null ? "Calm monthly resultant; direction undefined" :
-              `Flow toward ${Math.round(probedWind.bearing) % 360}° clockwise from north`}
-            {" · "}monthly resultant {probedWind.resultant.toFixed(2)} m/s
-            {" · "}U {probedWind.u.toFixed(2)}, V {probedWind.v.toFixed(2)} m/s
-          </> : " · no paired wind direction for this cell")}
-        </p>
-      )}
       {!unavailable && (!surfaceReady || landLoading) && (
         <LoadingStatus className="globe-assets-loading">Preparing Earth basemap…</LoadingStatus>
       )}
