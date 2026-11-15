@@ -20,7 +20,11 @@ período. Com três quadros reais em cache, mudança 0.5× → 4× reduziu a tra
 medida de 3494 para 1368 ms no WebKit e de 2866 para 1114 ms no Chromium desktop.
 As medidas incluem renderização e automação; não constituem SLA. Ambos
 confirmaram início e reinício na posição zero. Sem teste em iPhone físico.
-Publicação em acompanhamento; nenhum dado ou método científico alterado.
+Publicado em `a4d2169` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/):
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43744869579)
+concluído e bundle público `index-DCw1A9kR.js` conferido. Vercel bloqueou este
+build por limite de publicações (retry in 24 hours); seu endereço mantém a
+versão anterior. Nenhum dado ou método científico alterado.
 
 ## Toque e seletores no iPhone — 15/11/2026
 
