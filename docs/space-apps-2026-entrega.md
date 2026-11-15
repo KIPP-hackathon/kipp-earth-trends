@@ -1,5 +1,29 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Viewport retangular e configuração por cascata — 15/11/2026
+
+OpenAI Codex assistiu os ajustes solicitados pelo usuário: globo ocupa toda a
+largura central, em viewport retangular. Removido o limite CSS de 440px de
+largura; canvas WebGL e viewBox SVG acompanham a mesma proporção para manter
+relevo, campos, contornos e interação alinhados. Zoom continua ampliando o
+planeta dentro desse viewport. Data layer, Draw area e Clear area ficam abaixo
+do mapa, à esquerda dos controles de zoom.
+
+O painel configura uma camada por vez, com cascata grupo → variável entre as
+variáveis já selecionadas. As outras camadas, gráficos e configurações são
+preservados. Cabeçalho do cartão mostra grupo e ícone; proveniência completa
+continua nos detalhes da fonte. Opacidade ocupa uma linha inteira sob o rótulo.
+O controle de ocultar valores fora da escala virou botão ScanEye, distinto da
+visibilidade da camada, com tooltip e estado acessível. Alterná-lo não apaga
+limites ainda em edição; Apply e Reset permanecem. Recorte é apenas visual.
+
+Validação após integrar a main com cache: 125 testes frontend, 43 backend e
+builds frontend/API aprovados com Node.js 24. Chromium desktop e WebKit emulando
+iPhone confirmaram proporções canvas/SVG, controles inferiores, cascata,
+recorte/Reset, preservação de rascunho e slider de opacidade em largura total.
+Sem erros de página ou overflow horizontal nessas verificações; sem teste
+em iPhone físico. Publicação em acompanhamento; sem alteração científica.
+
 ## Explore em três colunas e datas nativas — 15/11/2026
 
 Por solicitação do usuário, OpenAI Codex assistiu a reorganização desktop do
