@@ -162,6 +162,7 @@ function sourceFor(product: string): string {
   );
 }
 function dataType(product: string) {
+  if (product.includes("COSP")) return "model-simulated satellite diagnostic";
   return product.startsWith("MERRA-2")
     ? "reanalysis"
     : "satellite-derived estimate";

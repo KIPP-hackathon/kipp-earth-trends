@@ -20,25 +20,28 @@ assert.equal(data.simulated, false);
 assert.equal(data.provider, 'databricks-sql');
 assert.equal(data.sourceLayer, 'trusted');
 if (process.env.EXPECTED_REVISION) assert.equal(data.revision, process.env.EXPECTED_REVISION);
-assert.equal(data.variables.length, 72, 'All reviewed IDs must remain explicit');
+assert.equal(data.variables.length, 205, 'All consolidated physical indicators must remain explicit');
 for (const variable of data.variables) {
   assert.equal(variable.source, 'databricks-sql');
   assert.equal(variable.sourceLayer, 'trusted');
   assert.match(variable.sourceUC, /^earth-trend-data\.trusted\./);
-  assert.ok(variable.months.some(m => m.validSamples > 0), `No valid months: ${variable.id}`);
+  assert.match(variable.sourceUC, /^earth-trend-data\.trusted\.tb_merra2_(fluxos|nuvens|pressao_altura|temperatura|umidade|variancias|vento)$/);
+  assert.ok(variable.sourceColumn, `Missing physical indicator: ${variable.id}`);
   if (variable.coverageFlag === false) {
     assert.equal(variable.available, false, `Flagged indicator selectable: ${variable.id}`);
     assert.equal(variable.unavailableReason?.code, 'HIDDEN_BY_COVERAGE_FLAG');
   } else {
+    assert.equal(variable.coverageFlag, true, `Unconfigured indicator: ${variable.id}`);
     assert.equal(variable.available, true, `Trusted source unavailable: ${variable.id}`);
+    assert.ok(variable.months.some(m => m.validSamples > 0), `No valid months: ${variable.id}`);
   }
 }
 assert.ok(data.variables.some(v => v.coverageFlag === false), 'Expected hidden inventory indicators');
 assert.ok(data.variables.some(v => v.colorRangeSource === 'indicator_coverage_p5_p95'), 'Expected inventory percentile ranges');
 const temperature = data.variables.find(v => v.id === 'temperature');
 assert.equal(temperature.available, true, 'Confirmed trusted temperature must work');
-assert.equal(temperature.sourceTable, 'earth-trend-data.trusted.tb_merra2_t10m');
-assert.equal(temperature.sourceUC, 'earth-trend-data.trusted.tb_merra2_t10m');
+assert.equal(temperature.sourceTable, 'earth-trend-data.trusted.tb_merra2_temperatura');
+assert.equal(temperature.sourceUC, 'earth-trend-data.trusted.tb_merra2_temperatura');
 fs.writeFileSync(monthFile, temperature.lastMonth);
 console.log(`Smoke OK: trusted catalog (${data.variables.filter(v => v.available).length} available reviewed variables)`);
 JS
@@ -55,7 +58,7 @@ const [frame, series] = process.argv.slice(2).map(p => JSON.parse(fs.readFileSyn
 for (const result of [frame, series]) {
   assert.equal(result.source, 'databricks-sql');
   assert.equal(result.sourceLayer, 'trusted');
-  assert.equal(result.sourceTable, 'earth-trend-data.trusted.tb_merra2_t10m');
+  assert.equal(result.sourceTable, 'earth-trend-data.trusted.tb_merra2_temperatura');
 }
 assert.ok(frame.values.some(v => Number.isFinite(v)), 'Trusted globe needs valid observations');
 assert.ok(series.observations.some(p => Number.isFinite(p.value)), 'Trusted regional series needs valid observations');

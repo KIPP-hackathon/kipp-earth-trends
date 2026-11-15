@@ -23,10 +23,10 @@ function entry(id: string, overrides: Partial<CatalogVariable> = {}): CatalogVar
 test("event choices omit hidden, unqueryable and missing catalog sources", () => {
   const event = historicalEvents.find((event) => event.id === "pantanal-2024")!;
   const result = eventSuggestions(event, [
-    entry("rainfall", { available: false }),
+    entry("merra2_flx_prectotcorr", { available: false }),
     entry("temperature"),
-    entry("ndvi", { coverageFlag: false }),
-    entry("evi", { available: false, coverageFlag: false }),
+    entry("merra2_qv2m", { coverageFlag: false }),
+    entry("merra2_flx_evap", { available: false, coverageFlag: false }),
   ]);
   assert.deepEqual(result.suggestedVariables.map((choice) => choice.id), ["temperature"]);
   assert.equal(result.variable, "temperature");
@@ -36,7 +36,7 @@ test("event choices omit hidden, unqueryable and missing catalog sources", () =>
 
 test("event availability requires valid months in its original historical window", () => {
   const event = historicalEvents.find((event) => event.id === "pantanal-2024")!;
-  const result = eventSuggestions(event, [entry("rainfall", {
+  const result = eventSuggestions(event, [entry("merra2_flx_prectotcorr", {
     months: [
       { month: "2024-05", samples: 1, validSamples: 1 },
       { month: "2024-06", samples: 1, validSamples: 0 },
@@ -51,7 +51,7 @@ test("event availability requires valid months in its original historical window
 
 test("available environmental records never become tsunami measurements", () => {
   const event = historicalEvents.find((event) => event.id === "tohoku-2011")!;
-  const result = eventSuggestions(event, [entry("rainfall", {
+  const result = eventSuggestions(event, [entry("merra2_flx_prectotcorr", {
     months: [{ month: "2011-03", samples: 1, validSamples: 1 }],
   })]);
   assert.equal(result.available, false);
