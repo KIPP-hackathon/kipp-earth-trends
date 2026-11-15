@@ -284,10 +284,6 @@
   min-height: 34px;
   padding: 7px 9px;
 }
-.compact-real-panel .real-time-controls .month-calendar {
-  left: auto;
-  right: 0;
-}
 .compact-real-panel .real-provenance {
   margin-top: 12px;
   overflow-wrap: anywhere;
@@ -398,10 +394,6 @@
     left: auto;
     right: 0;
   }
-  .exploration-period-popover .month-calendar {
-    left: auto;
-    right: 0;
-  }
   .compact-real-panel .real-globe-scene {
     max-width: 400px;
   }
@@ -447,3 +439,11 @@
     max-height: clamp(120px, calc((100dvh - 480px) / 2), 190px);
   }
 }
+
+.compact-real-panel .real-time-controls { flex-wrap: wrap; }
+.compact-real-panel label.real-playback-speed {
+  display: flex; flex-direction: row; align-items: center; gap: 6px;
+  color: var(--muted); font-size: 12px;
+}
+.real-playback-speed select { min-height: 36px; width: auto; padding: 5px; }
+.real-playback-buffering { color: var(--muted); font-size: 11px; }

@@ -35,11 +35,12 @@
   box-shadow: 0 0 0 2px #0b3d9114;
 }
 .month-calendar {
-  --popover-shift-y: 0px;
-  position: absolute;
+  position: fixed;
   z-index: 65;
-  top: calc(100% + 7px);
-  left: 0;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  max-height: calc(100dvh - 32px);
   width: min(278px, calc(100vw - 60px));
   padding: 14px;
   border: 1px solid #bcc9d9;
@@ -47,7 +48,6 @@
   background: #f8fafc;
   color: #172b49;
   box-shadow: 0 16px 40px #071b3930;
-  transform: translateY(var(--popover-shift-y, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -99,14 +99,18 @@
   color: #66778d;
 }
 
-.month-calendar.opens-left {
-  left: auto;
-  right: 0;
+.month-calendar::backdrop { background: #020918aa; }
+.month-calendar-year > select {
+  min-height: 44px;
+  padding: 6px 12px;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
 }
+.month-calendar-year > button,
+.month-calendar-grid > button { min-height: 44px; }
 
-/* A calendar inside the period dialog participates in its scrollable layout. */
-.month-picker-inline .month-calendar {
-  position: static;
-  width: 100%;
-  transform: none;
-}
+.month-calendar-title { margin: 0 0 12px; font-size: 14px; }
+.month-calendar-cancel { float: right; min-height: 44px; padding: 8px 12px; }

@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import "../month-picker.css";
-import { usePopoverPosition } from "../lib/usePopoverPosition";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
 const monthName = new Intl.DateTimeFormat("en", {
@@ -19,14 +18,12 @@ export function MonthPicker({
   value,
   months,
   onChange,
-  inline = false,
 }: {
   id: string;
   label: string;
   value: string;
   months: string[];
   onChange: (month: string) => void;
-  inline?: boolean;
 }) {
   const available = [
     ...new Set(months.filter((month) => monthPattern.test(month))),
@@ -40,11 +37,14 @@ export function MonthPicker({
     : (years[0] ?? new Date().getFullYear());
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(selectedYear);
-  const [alignRight, setAlignRight] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const monthButtons = useRef<(HTMLButtonElement | null)[]>([]);
-  const calendar = usePopoverPosition(open && !inline);
+  const calendar = useRef<HTMLDialogElement>(null);
+  useLayoutEffect(() => {
+    if (open && calendar.current && !calendar.current.open)
+      calendar.current.showModal();
+  }, [open]);
   const close = (restoreFocus: boolean) => {
     setOpen(false);
     if (restoreFocus) trigger.current?.focus();
@@ -70,7 +70,7 @@ export function MonthPicker({
   const yearIndex = years.indexOf(year);
   return (
     <div
-      className={`month-picker${inline ? " month-picker-inline" : ""}`}
+      className="month-picker"
       ref={root}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -102,11 +102,6 @@ export function MonthPicker({
         onClick={() => {
           if (!open) {
             setYear(selectedYear);
-            const left = trigger.current?.getBoundingClientRect().left ?? 0;
-            setAlignRight(
-              left + Math.min(278, document.documentElement.clientWidth - 60) >
-                document.documentElement.clientWidth - 16,
-            );
           }
           setOpen((previous) => !previous);
         }}
@@ -119,13 +114,20 @@ export function MonthPicker({
         <CalendarDays size={16} aria-hidden="true" />
       </button>
       {open && (
-        <div
-          className={`month-calendar${alignRight ? " opens-left" : ""}`}
+        <dialog
+          className="month-calendar"
           ref={calendar}
-          role="dialog"
+          onCancel={(event) => { event.preventDefault(); close(true); }}
+          onClick={(event) => {
+            if (event.target !== event.currentTarget) return;
+            const box = event.currentTarget.getBoundingClientRect();
+            if (event.clientX < box.left || event.clientX > box.right ||
+                event.clientY < box.top || event.clientY > box.bottom) close(true);
+          }}
           aria-label={`${label}: choose month`}
           id={`${id}-calendar`}
         >
+          <h3 className="month-calendar-title">{label}</h3>
           <div className="month-calendar-year">
             <button
               type="button"
@@ -135,7 +137,10 @@ export function MonthPicker({
             >
               <ChevronLeft size={17} />
             </button>
-            <span aria-live="polite">{year}</span>
+            <select aria-label={`${label}: year`} value={year}
+              onChange={(event) => setYear(Number(event.target.value))}>
+              {years.map(value => <option key={value} value={value}>{value}</option>)}
+            </select>
             <button
               type="button"
               aria-label="Next available year"
@@ -198,7 +203,9 @@ export function MonthPicker({
           <p className="month-calendar-note">
             Monthly data. Unavailable months are disabled.
           </p>
-        </div>
+          <button type="button" className="month-calendar-cancel"
+            aria-label="Close calendar" onClick={() => close(true)}>Cancel</button>
+        </dialog>
       )}
     </div>
   );

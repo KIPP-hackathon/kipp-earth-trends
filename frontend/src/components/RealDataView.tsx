@@ -154,6 +154,7 @@ function SelectedRealPanel({
     if (!active) setPlaying(false);
   }, [active]);
   const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [buffering, setBuffering] = useState(false);
   const [playbackError, setPlaybackError] = useState<string>();
   useEffect(() => {
@@ -193,9 +194,7 @@ function SelectedRealPanel({
   const months = useMemo(() => allMonths.filter(m => m.month >= start && m.month <= end),[allMonths,start,end]);
   const month = months.some((m) => m.month === selection.month)
     ? selection.month
-    : side === "A"
-      ? months.at(-1)!.month
-      : months[0].month;
+    : months[0].month;
   const region =
     (drawnRegion?.id === regionId ? drawnRegion : undefined) ??
     config.regions.find((entry) => entry.id === regionId) ??
@@ -352,7 +351,7 @@ function SelectedRealPanel({
     const needed = windFrameVariables(selectedVariables.filter(v =>
       v.months.some(row => row.month === next && row.validSamples > 0) &&
       (v.id === variable.id || (view.showLayer && effectiveSettings.some(s => s.variable === v.id && s.visible && s.opacity > 0)))), availableVariables, next);
-    const deadline = Date.now() + config.playback.cadenceMs;
+    const deadline = Date.now() + config.playback.cadenceMs / playbackSpeed;
     setBuffering(true);
     void Promise.all(needed.map(v => requestFrame(v,next,controller.signal,"background")))
       .then(() => {
@@ -370,7 +369,7 @@ function SelectedRealPanel({
     return () => {controller.abort();clearTimeout(timer);};
     // Batch commits preserve a coherent displayed month while the next layers load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[playing,active,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end]);
+  },[playing,active,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end,playbackSpeed,config.playback.cadenceMs]);
   return (
     <article
       data-panel-id={instanceId}
@@ -421,6 +420,7 @@ function SelectedRealPanel({
             setPlaying(false);
             setPlaybackError(undefined);
             setPeriod(value);
+            setSelection({ variable: variable.id, month: value.start });
           }}
         />
       </div>
@@ -483,6 +483,8 @@ function SelectedRealPanel({
           onClick={() => {
             onManualChange();
             setPlaybackError(undefined);
+            if (!playing && index === months.length - 1)
+              setSelection({ variable: variable.id, month: months[0].month });
             setPlaying((v) => !v);
           }}
         >
@@ -503,6 +505,14 @@ function SelectedRealPanel({
         >
           <ChevronRight size={18} />
         </button>
+        <label className="real-playback-speed">
+          <span>Speed</span>
+          <select aria-label={`Playback speed for panel ${side}`} value={playbackSpeed}
+            onChange={(event) => setPlaybackSpeed(Number(event.target.value))}>
+            {[0.5, 1, 2, 4].map(speed => <option key={speed} value={speed}>{speed}×</option>)}
+          </select>
+        </label>
+        {playing && buffering && <span className="real-playback-buffering" role="status">Loading next month…</span>}
         <MonthPicker
           id={`${id}-month`}
           label="Selected month"

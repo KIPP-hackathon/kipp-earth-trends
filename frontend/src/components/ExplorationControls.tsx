@@ -287,7 +287,6 @@ export function PeriodPicker({
           <MonthPicker
             id={`${id}-start`}
             label="Period start"
-            inline
             value={start}
             months={months}
             onChange={(value) =>
@@ -297,7 +296,6 @@ export function PeriodPicker({
           <MonthPicker
             id={`${id}-end`}
             label="Period end"
-            inline
             value={end}
             months={months}
             onChange={(value) =>

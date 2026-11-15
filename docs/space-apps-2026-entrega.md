@@ -1,5 +1,27 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Calendário da linha do tempo e velocidade — 15/11/2026
+
+Relato posterior do usuário mostrou que a validação anterior não cobria o
+calendário abaixo do globo. OpenAI Codex assistiu a substituição dos calendários
+flutuantes por `dialog.showModal()`, na camada superior do navegador, com seleção
+direta de ano, meses disponíveis e cancelamento. Início/fim e mês exibido usam
+o mesmo componente, sem dependência de recorte ou rolagem dos pais.
+
+Novas seleções iniciam no primeiro mês; alteração do período volta ao início;
+Play no último mês reinicia no primeiro. Reprodução de dados reais ganhou
+controle explícito Speed (0.5×, 1×, 2×, 4×), ligado à cadência e atualizável
+durante reprodução. Zoom está identificado como Zoom. Aguardar dados do mês
+continua obrigatório; velocidade não inventa quadros nem garante latência de rede.
+
+102 testes frontend e build aprovados com Node.js 24. WebKit emulando iPhone
+confirmou mudança do mês pelo calendário abaixo do globo e dos limites do
+período. Com três quadros reais em cache, mudança 0.5× → 4× reduziu a transição
+medida de 3494 para 1368 ms no WebKit e de 2866 para 1114 ms no Chromium desktop.
+As medidas incluem renderização e automação; não constituem SLA. Ambos
+confirmaram início e reinício na posição zero. Sem teste em iPhone físico.
+Publicação em acompanhamento; nenhum dado ou método científico alterado.
+
 ## Toque e seletores no iPhone — 15/11/2026
 
 OpenAI Codex assistiu a correção de interação solicitada pelo usuário:
