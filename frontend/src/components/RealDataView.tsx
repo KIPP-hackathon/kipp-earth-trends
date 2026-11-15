@@ -40,6 +40,7 @@ import { combinedImergLayers } from "../lib/layers";
 import { useLayerFrames } from "../lib/useLayerFrames";
 import { pairWindFrames, windComponents, windFrameVariables } from "../lib/wind";
 import "./multivariable-layers.css";
+import { groupVariables } from "../lib/variableGroups";
 import { MonthPicker } from "./MonthPicker";
 import type {
   PanelPreset,
@@ -157,6 +158,7 @@ function SelectedRealPanel({
   }, [active]);
   const [playing, setPlaying] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const [filterVariable, setFilterVariable] = useState("");
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [buffering, setBuffering] = useState(false);
   const [bufferProgress, setBufferProgress] = useState<{ready:number;total:number}>();
@@ -187,6 +189,9 @@ function SelectedRealPanel({
   const selectedVariables = useMemo(() => (JSON.parse(selectedIds) as string[])
     .map(id => availableVariables.find(v => v.id === id)!),[selectedIds,availableVariables]);
   const variable = selectedVariables.find(v => v.id === selection.variable) ?? selectedVariables[0];
+  const filterGroups = groupVariables(selectedVariables);
+  const configuredVariable = selectedVariables.find(v => v.id === filterVariable) ?? selectedVariables[0];
+  const configuredGroup = filterGroups.find(group => group.variables.some(v => v.id === configuredVariable.id))!;
   const allMonths = useMemo(() => [...new Map(selectedVariables.flatMap(v => v.months.filter(entry => entry.validSamples > 0))
     .map(entry => [entry.month, entry])).values()].sort((a,b) => a.month.localeCompare(b.month)),[selectedVariables]);
   const start = allMonths.some((m) => m.month === period.start)
@@ -594,8 +599,22 @@ function SelectedRealPanel({
           }}>Hide all</button>
         </div>
       </div>
+      {selectedVariables.length > 1 && <div className="layer-cascade">
+        <label>Variable group
+          <select aria-label="Configure variable group" value={configuredGroup.key}
+            onChange={event => setFilterVariable(filterGroups.find(group => group.key === event.target.value)!.variables[0].id)}>
+            {filterGroups.map(group => <option key={group.key} value={group.key}>{group.label}</option>)}
+          </select>
+        </label>
+        <label>Configure variable
+          <select aria-label="Configure variable" value={configuredVariable.id}
+            onChange={event => setFilterVariable(event.target.value)}>
+            {configuredGroup.variables.map(variable => <option key={variable.id} value={variable.id}>{variable.name}</option>)}
+          </select>
+        </label>
+      </div>}
       <div className="layer-stack" role="region" aria-label="Scrollable map layer controls" tabIndex={0}>
-        {selectedVariables.map(entry => {
+        {selectedVariables.filter(entry => entry.id === configuredVariable.id).map(entry => {
           const setting = effectiveSettings.find(layer => layer.variable === entry.id)!;
           const hasMonth = entry.months.some(row => row.month === month && row.validSamples > 0);
           const pair = windComponents(entry.id);

@@ -489,3 +489,23 @@
 }
 
 .compact-real-panel .real-time-controls > input[type="range"] { width: auto; flex: 1 1 80px; }
+
+/* The camera viewport fills the available rectangle, rather than a 440px square. */
+#panel-explore .compact-real-panel .real-globe-scene { width: 100%; max-width: none; margin: 0; padding: 0; }
+.real-globe-viewport { height: clamp(280px, calc(100dvh - 400px), 440px); }
+.real-globe-viewport > .real-globe-svg { width: 100%; height: 100%; }
+.real-globe-actions { justify-content: space-between; flex-wrap: wrap; margin-top: 8px; }
+.real-globe-actions .globe-area-controls { margin: 0; flex-wrap: wrap; gap: 5px; }
+.real-globe-actions .globe-area-controls button { width: auto; min-height: 32px; height: auto; padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+.real-globe-actions .globe-zoom-controls { margin-left: auto; }
+.layer-cascade { display: grid; gap: 8px; margin: 10px 0; }
+.layer-cascade label { font-size: 11px; }
+.layer-cascade select { min-height: 36px; padding: 6px; background: #091326; color: #dfeafa; }
+@media (min-width: 1000px) {
+  .real-panels:not(.is-comparing) .real-panel.compact-real-panel.is-overview {
+    grid-template-columns: 220px minmax(300px, 1.3fr) minmax(300px, 1fr);
+  }
+  .real-panels:not(.is-comparing) .real-panel.compact-real-panel.is-overview.filters-collapsed {
+    grid-template-columns: 44px minmax(300px, 1.3fr) minmax(300px, 1fr);
+  }
+}

@@ -608,3 +608,10 @@
 .layer-source-details summary { cursor: pointer; }
 .layer-source-details p { margin: 7px 0; line-height: 1.5; }
 .filter-summary-collapsed { display: none; }
+.layer-card-actions { display: flex; align-items: flex-start; gap: 4px; flex-shrink: 0; }
+.layer-card-actions .layer-visibility { width: 28px; height: 30px; }
+.layer-group-label { display: flex; align-items: center; gap: 5px; }
+.layer-opacity { grid-template-columns: minmax(0, 1fr) auto; gap: 5px; }
+.layer-opacity label { grid-column: 1; grid-row: 1; }
+.layer-opacity output { grid-column: 2; grid-row: 1; }
+.layer-opacity input[type="range"] { grid-column: 1 / -1; grid-row: 2; width: 100%; margin: 3px 0; }

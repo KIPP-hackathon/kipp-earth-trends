@@ -16,16 +16,18 @@ export function ColorScaleControls({
   onChange: (value?: EarthColorRange) => void;
 }) {
   const id = useId();
+  const appliedMinimum = value?.domain[0] ?? domain[0];
+  const appliedMaximum = value?.domain[1] ?? domain[1];
   const [minimum, setMinimum] = useState(String(value?.domain[0] ?? domain[0]));
   const [maximum, setMaximum] = useState(String(value?.domain[1] ?? domain[1]));
-  const [hideOutside, setHideOutside] = useState(value?.hideOutside ?? true);
+  const [hideOutside, setHideOutside] = useState(value?.hideOutside ?? !colors);
   const [error, setError] = useState("");
   useEffect(() => {
-    setMinimum(String(value?.domain[0] ?? domain[0]));
-    setMaximum(String(value?.domain[1] ?? domain[1]));
-    setHideOutside(value?.hideOutside ?? true);
+    setMinimum(String(appliedMinimum));
+    setMaximum(String(appliedMaximum));
     setError("");
-  }, [value, domain[0], domain[1]]);
+  }, [appliedMinimum, appliedMaximum]);
+  useEffect(() => setHideOutside(value?.hideOutside ?? !colors), [value?.hideOutside, !!colors]);
   return (
     <form
       className={`color-range-controls${colors ? " inline-color-range" : ""}`}
@@ -83,7 +85,7 @@ export function ColorScaleControls({
           onClick={() => {
             setMinimum(String(domain[0]));
             setMaximum(String(domain[1]));
-            setHideOutside(true);
+            setHideOutside(!colors);
             setError("");
             onChange(undefined);
           }}
@@ -91,14 +93,14 @@ export function ColorScaleControls({
           {colors ? "Reset" : "Reset scale"}
         </button>
       </div>
-      <label className="color-range-mask">
+      {!colors && <label className="color-range-mask">
         <input
           type="checkbox"
           checked={hideOutside}
           onChange={(event) => setHideOutside(event.target.checked)}
         />
         {colors ? "Hide outside range" : "Hide values outside this range"}
-      </label>
+      </label>}
       <small id={`${id}-help`} className={colors ? "sr-only" : undefined}>
         Display only. Original values, series and exports stay unchanged. Shared
         by globes showing the same variable.

@@ -8,7 +8,7 @@ const vertexSource = `attribute vec2 position; varying vec2 point;
 void main(){point=position;gl_Position=vec4(position,0.,1.);}`;
 const fragmentSource = `precision highp float;
 varying vec2 point; uniform sampler2D earth; uniform sampler2D field;
-uniform float showField; uniform vec2 center; uniform float pointScale;
+uniform float showField; uniform vec2 center; uniform vec2 pointScale;
 void main(){
   vec2 q=point*pointScale;
   float r2=dot(q,q); if(r2>1.) discard;
@@ -60,6 +60,7 @@ export function GlobeSurface({
   onUnavailable,
   colorRange,
   viewportZoom,
+  viewportAspect = 1,
 }: {
   longitude: number;
   latitude: number;
@@ -71,6 +72,7 @@ export function GlobeSurface({
   colorRange?: EarthColorRange;
   /** Render the visible 640-unit viewport directly; omitted for the legacy SVG zoom. */
   viewportZoom?: number;
+  viewportAspect?: number;
 }) {
   const viewportMode = viewportZoom !== undefined;
   const surfaceSize = viewportMode ? 1024 : 768;
@@ -80,7 +82,7 @@ export function GlobeSurface({
   const canvas = useRef<HTMLCanvasElement>(null);
   const draw = useRef<(() => void) | null>(null);
   const center = useRef([longitude, latitude]);
-  const pointScale = useRef(viewportMode ? 320 / 270 / zoom : 1);
+  const pointScale = useRef<[number, number]>(viewportMode ? [320 / 270 / zoom * viewportAspect, 320 / 270 / zoom] : [1, 1]);
   const updateField = useRef<(() => void) | null>(null);
   const currentField = useRef({ frame, layers, showField, colorRange });
   const failure = useRef(onUnavailable);
@@ -237,7 +239,7 @@ export function GlobeSurface({
         (center.current[0] * Math.PI) / 180,
         (center.current[1] * Math.PI) / 180,
       );
-      gl.uniform1f(pointScaleLocation, pointScale.current);
+      gl.uniform2f(pointScaleLocation, ...pointScale.current);
       gl.uniform1f(showLocation, currentField.current.showField ? 1 : 0);
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -390,9 +392,9 @@ export function GlobeSurface({
     center.current = [longitude, latitude];
     // In viewport mode the 270-unit globe radius is projected into a 640-unit
     // window, keeping raster and SVG geometry aligned without magnifying a bitmap.
-    pointScale.current = viewportMode ? 320 / 270 / zoom : 1;
+    pointScale.current = viewportMode ? [320 / 270 / zoom * viewportAspect, 320 / 270 / zoom] : [1, 1];
     draw.current?.();
-  }, [longitude, latitude, viewportMode, zoom]);
+  }, [longitude, latitude, viewportMode, zoom, viewportAspect]);
   useEffect(() => {
     currentField.current = { frame, layers, showField, colorRange };
     updateField.current?.();
@@ -404,7 +406,7 @@ export function GlobeSurface({
     return (
       <canvas
         ref={canvas}
-        width={surfaceSize}
+        width={Math.min(2048, Math.round(surfaceSize * viewportAspect))}
         height={surfaceSize}
         className="earth-surface globe-surface-viewport"
         aria-hidden="true"

@@ -1,10 +1,12 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ScanEye } from "lucide-react";
 import type { EarthColorRange, EarthVariable } from "../lib/earthApi";
 import { realScale, realUnit, validColorDomain } from "../lib/earthApi";
 import type { LayerSetting } from "../lib/layers";
 import { ColorScaleControls } from "./ColorScaleControls";
+import { DomainIcon } from "../lib/domains";
+import { groupVariables } from "../lib/variableGroups";
 import { windComponents } from "../lib/wind";
 import "./multivariable-layers.css";
 
@@ -44,6 +46,7 @@ export function LayerCard({
       ? colorRange.domain
       : scale.domain;
   const unit = realUnit(variable.unit);
+  const group = groupVariables([variable])[0];
   const wind = windComponents(variable.id);
   const opacity = Number.isFinite(setting.opacity)
     ? Math.max(0, Math.min(1, setting.opacity))
@@ -67,11 +70,18 @@ export function LayerCard({
       <div className="layer-card-heading">
         <div>
           <h3 id={`${id}-title`}>{variable.name}</h3>
-          <p>
-            {variable.product}
-            {variable.run ? ` · ${variable.run}` : ""} · {unit}
-          </p>
+          <p className="layer-group-label"><DomainIcon domain={group.key} size={13} />{group.label}</p>
         </div>
+        <div className="layer-card-actions">
+        {scale.kind === "continuous" && <button type="button" className="layer-visibility layer-range-visibility"
+          aria-label={`Hide values outside color range for ${variable.name}`}
+          aria-pressed={!!colorRange?.hideOutside}
+          title={colorRange?.hideOutside
+            ? "Values outside the scale are hidden. Click to show them; original data and charts stay unchanged."
+            : "Hide values outside the scale on the map; original data and charts stay unchanged."}
+          onClick={() => onColorRange({ domain: colorRange?.domain ?? scale.domain, hideOutside: !colorRange?.hideOutside })}>
+          <ScanEye size={17} aria-hidden="true" />
+        </button>}
         <button
           type="button"
           className="layer-visibility"
@@ -90,6 +100,7 @@ export function LayerCard({
             <EyeOff size={19} aria-hidden="true" />
           )}
         </button>
+        </div>
       </div>
       <div className="layer-opacity">
         <label htmlFor={`${id}-opacity`}>Map opacity</label>
