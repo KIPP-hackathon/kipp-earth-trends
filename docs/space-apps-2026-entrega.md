@@ -1,5 +1,19 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Filtro com altura natural — 15/11/2026
+
+Por decisão posterior do usuário, OpenAI Codex removeu o esticamento vertical
+do filtro desktop. Painel e cartão usam a altura do conteúdo e alinham no topo,
+sem acompanhar a base de globo/gráficos. Escala volta a ficar próxima do nome
+da variável; removidas posição absoluta do conteúdo e margem automática da
+escala. Recolhimento e estabilidade durante o Play permanecem preservados.
+
+141 testes frontend e build aprovados com Node.js 24. Checagem Chromium em
+1440px conferiu painel compacto (aproximadamente 465px) e distância de 14px
+entre cabeçalho e escala; tamanho pode variar com nome, loading ou mensagens
+da variável. Sem alteração de dados, método ou dimensões dos gráficos.
+Publicação em acompanhamento; assistência IA registrada nesta entrada.
+
 ## Filtro estável no Play e mais espaço para comparação — 15/11/2026
 
 OpenAI Codex assistiu o ajuste solicitado: indicadores transitórios de loading

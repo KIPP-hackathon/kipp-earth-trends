@@ -535,7 +535,6 @@
     grid-column: 2; grid-row: 3; height: var(--explore-content-height);
     display: flex; flex-direction: column; gap: 10px; min-height: 0;
   }
-  #panel-explore .real-panel.is-overview > .comparison-map-controls,
   #panel-explore .real-panel.is-overview > .real-series-comparison {
     grid-row: 3; height: var(--explore-content-height); max-height: none; min-height: 0; align-self: stretch;
   }
@@ -563,11 +562,6 @@
   #panel-explore .real-panel.is-overview.filters-collapsed {
     grid-template-columns: 44px minmax(280px, 1fr) minmax(360px, 1.2fr);
   }
-  #panel-explore .comparison-map-controls[open] { display: flex; flex-direction: column; }
-  #panel-explore .comparison-map-controls > :not(.layer-stack) { flex-shrink: 0; }
-  #panel-explore .comparison-map-controls .layer-stack { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  #panel-explore .comparison-map-controls .layer-card { flex: 1; display: flex; flex-direction: column; }
-  #panel-explore .comparison-map-controls .layer-card .inline-color-range { margin-top: auto; }
   #panel-explore .comparison-charts .comparison-plot {
     width: 100%; max-width: none; max-height: none;
     flex: 0 0 clamp(140px, 15dvh, 180px); min-height: 140px;
@@ -575,12 +569,11 @@
   #panel-explore .comparison-charts .runtime-trend-table-scroll { min-height: 110px; }
 }
 @media (min-width: 1000px) {
-  #panel-explore .comparison-map-controls[open] { display: block; position: relative; }
-  #panel-explore .comparison-map-controls > .layer-deck-content {
-    position: absolute; top: 44px; bottom: 10px; left: 10px; right: 10px;
-    display: flex; flex-direction: column; min-height: 0;
+  #panel-explore .real-panel.is-overview > .comparison-map-controls {
+    grid-row: 3; height: auto; max-height: calc(100dvh - 180px); align-self: start;
   }
-  #panel-explore .layer-deck-content > :not(.layer-stack) { flex-shrink: 0; }
+  #panel-explore .comparison-map-controls > .layer-deck-content { position: static; }
+
 }
 @media (min-width: 1000px) {
   #panel-explore .real-panel.is-overview { --explore-content-height: clamp(860px, calc(100dvh - 220px), 1160px); }
