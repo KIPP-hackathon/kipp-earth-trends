@@ -911,9 +911,14 @@ que aceita somente os modos normalizados. Sem alteração no backend ou nas base
 identificadas, calculadas por `transformComparison` existente, conferiu as três
 representações, taxa/p, ausência de novas consultas ao alternar, estados do botão,
 persistência e 1440/390/360 px sem overflow. Não são observações ou descobertas.
-A API pública tinha 72 indicadores com meses, mas todos `available=false` na
-verificação; a interface com dados reais não pôde ser validada nesse estado.
-Disponibilidade real não foi forçada. Publicação do frontend em verificação.
+Inicialmente a API pública tinha 72 indicadores com meses, todos
+`available=false`; disponibilidade não foi forçada. Depois 37 indicadores
+voltaram a estar disponíveis. Publicação `19dc594` confirmada pela
+[Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/2oxNWzobz9e24pQf1aG2FE6LCNMb)
+e pelo bundle público `index-BD9o81K8.js`, idêntico ao build validado.
+Chrome em produção, sem fixtures, conferiu 321 meses reais de temperatura
+a 10 m: coordenada SVG correspondente ao valor regional original, unidade °C,
+taxa/p iguais a `trends.raw` e retorno ao Default sem novas consultas.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
