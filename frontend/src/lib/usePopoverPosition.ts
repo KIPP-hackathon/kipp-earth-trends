@@ -24,11 +24,14 @@ export function usePopoverPosition(open: boolean) {
       popup.style.setProperty("--popover-shift-y", `${shift}px`);
     };
     fit();
+    const observer = new ResizeObserver(fit);
+    if (dialog.current) observer.observe(dialog.current);
     window.addEventListener("resize", fit);
     window.addEventListener("scroll", fit, true);
     viewport?.addEventListener("resize", fit);
     viewport?.addEventListener("scroll", fit);
     return () => {
+      observer.disconnect();
       window.removeEventListener("resize", fit);
       window.removeEventListener("scroll", fit, true);
       viewport?.removeEventListener("resize", fit);

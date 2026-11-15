@@ -3,14 +3,18 @@
 # MAGIC %md
 # MAGIC # Indicator dimension table (tb_dim_indicators)
 # MAGIC
-# MAGIC Catalogs every analysis-ready indicator (one row per data column) across all 228 tables in `earth-trend-data.trusted` - 7 combined MERRA-2 tables, 8 non-MERRA-2 source tables, individual variable tables, and variance tables. Each row carries the thematic classification (domain, theme, sub-theme), provenance (source, collection, data_type), physical context (vertical_level, unit), educational accessibility (core / intermediate / scientific), table stage (combined / individual / variance), and the source table/column.
+# MAGIC Catalogs every analysis-ready indicator (one row per data column) across physical tables in `earth-trend-data.trusted`. Exactly one row per `indicator_name`; application combined tables take precedence and `source_tables` retains upstream aliases. Each row carries the thematic classification (domain, theme, sub-theme), provenance (source, collection, data_type), physical context (vertical_level, unit), educational accessibility (core / intermediate / scientific), table stage (combined / individual / variance), and the source table/column.
 # MAGIC
-# MAGIC This is a dimension table: it does not contain time-series data. Join fact tables on `source_table` + `indicator_name` to look up an indicator's classification.
+# MAGIC This is a dimension table: it does not contain time-series data. Use indicator_name for the unique indicator; source_table is canonical and source_tables lists other physical aliases.
 
 # COMMAND ----------
 
 # DBTITLE 1,Define indicator catalog
 from pyspark.sql import types as T
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path.cwd().parent))
+from indicator_catalog import ADDITIONAL_INDICATORS, canonical_indicators, APP_TABLES
 
 CATALOG = "earth-trend-data"
 TARGET_TABLE = f"`{CATALOG}`.refined.tb_dim_indicators"
@@ -301,13 +305,20 @@ print(f"  Raw:           {sum(1 for r in rows if r['role'] == 'raw')}")
 # Programmatic scan: add all remaining trusted tables not in manual definitions
 # ---------------------------------------------------------------------------
 
+for table, column, code, label, collection, unit in ADDITIONAL_INDICATORS:
+    rows.append(ind(column, code, label, ATM, "aerosol" if collection in ("aer", "adg") else "chemistry",
+                    "surface" if collection == "adg" or "concentration" in column else "column_total",
+                    M2, collection, REAN, "surface" if collection == "adg" or "concentration" in column else "column_total",
+                    unit, table, description=f"Monthly MERRA-2 {collection.upper()} reanalysis; native units {unit}."))
+
 defined_pairs = set((r["source_table"], r["indicator_name"]) for r in rows)
 
 all_cols = spark.sql("""
     SELECT table_name, column_name, data_type, comment
     FROM `earth-trend-data`.information_schema.columns
     WHERE table_schema = 'trusted'
-      AND column_name NOT IN ('time', 'latitude', 'longitude', 'lat_idx', 'lon_idx')
+      AND table_name <> 'tb_indicator_coverage'
+      AND column_name NOT IN ('time', 'latitude', 'longitude', 'lat', 'lon', 'lat_idx', 'lon_idx')
     ORDER BY table_name, ordinal_position
 """).collect()
 
@@ -476,6 +487,8 @@ for row in all_cols:
     ))
     added += 1
 
+physical_columns = {(r.table_name, r.column_name) for r in all_cols}
+rows = canonical_indicators(rows, physical_columns)
 print(f"Manually defined: {len(defined_pairs)}")
 print(f"Programmatically added: {added}")
 print(f"Total indicators: {len(rows)}")
@@ -502,6 +515,7 @@ schema = T.StructType([
     T.StructField("source_table", T.StringType(), False),
     T.StructField("role", T.StringType(), False),
     T.StructField("description", T.StringType(), True),
+    T.StructField("source_tables", T.ArrayType(T.StringType()), False),
 ])
 
 indicators_sdf = spark.createDataFrame(rows, schema=schema)
@@ -510,6 +524,7 @@ indicators_sdf = spark.createDataFrame(rows, schema=schema)
 COMBINED_TABLES_LIST = [
     "tb_merra2_temperatura", "tb_merra2_vento", "tb_merra2_umidade",
     "tb_merra2_pressao_altura", "tb_merra2_nuvens", "tb_merra2_fluxos",
+    "tb_merra2_aerossois", "tb_merra2_quimica",
     "tb_gpm_imerg_precipitation_final_late", "tb_grace_jpl_mass_anomaly",
     "tb_modis_mod13c2_vegetation", "tb_sea_ice_concentration_global",
     "tb_sea_ice_global", "tb_coolr_events_points_monthly_records",
@@ -544,6 +559,21 @@ indicators_sdf = indicators_sdf.withColumn("_rn", F.row_number().over(_dup_w)) \
          .otherwise(F.col("indicator_id"))) \
     .drop("_rn")
 
+# Keep existing IDs stable when choosing a different canonical source table.
+if spark.catalog.tableExists(TARGET_TABLE):
+    previous = spark.table(TARGET_TABLE).select(
+        "indicator_name", F.col("indicator_id").alias("_previous_id"),
+        F.col("created_at").alias("_previous_created_at"),
+    )
+    previous = previous.withColumn("_pick", F.row_number().over(
+        W.partitionBy("indicator_name").orderBy("_previous_id")
+    )).where("_pick = 1").drop("_pick")
+    indicators_sdf = indicators_sdf.join(previous, "indicator_name", "left").withColumn(
+        "indicator_id", F.coalesce("_previous_id", "indicator_id")
+    ).withColumn("created_at", F.coalesce("_previous_created_at", "created_at")).drop(
+        "_previous_id", "_previous_created_at"
+    )
+
 # Classify accessibility: core (self-explanatory), intermediate (1-2 sentences), scientific (domain expertise)
 CORE_CODES = [
     "T2M", "T10M", "T10M_C", "TS", "TS_C",
@@ -577,11 +607,14 @@ display(indicators_sdf.groupBy("accessibility", "domain", "theme").count().order
 # COMMAND ----------
 
 # DBTITLE 1,Write to refined.tb_dim_indicators
+assert indicators_sdf.count() == indicators_sdf.select("indicator_name").distinct().count()
+assert not indicators_sdf.groupBy("indicator_id").count().where("count > 1").limit(1).count()
+assert all((r["source_table"], r["indicator_name"]) in physical_columns for r in rows)
 indicators_sdf.createOrReplaceTempView("vw_dim_indicators")
 
 spark.sql(f"""
 CREATE OR REPLACE TABLE {TARGET_TABLE}
-COMMENT 'Dimension table of analysis-ready indicators across all 228 tables in earth-trend-data.trusted. One row per data column. Classifies each indicator by domain, theme, sub-theme, source, collection, data_type, vertical_level, unit, role, accessibility (core/intermediate/scientific), and stage (combined/individual/variance). Join fact tables on source_table + indicator_name to look up classification.'
+COMMENT 'Dimension table of analysis-ready indicators across physical trusted sources. Exactly one row per indicator_name; source_table is canonical and source_tables retains all physical aliases. Classifies each indicator by domain, theme, sub-theme, source, collection, data_type, vertical_level, unit, role, accessibility (core/intermediate/scientific), and stage (combined/individual/variance). Join fact tables on source_table + indicator_name to look up classification.'
 AS SELECT * FROM vw_dim_indicators
 """)
 
@@ -592,7 +625,7 @@ ALTER COLUMN indicator_id COMMENT 'Unique identifier: source + short_code'
 """)
 spark.sql(f"""
 ALTER TABLE {TARGET_TABLE}
-ALTER COLUMN indicator_name COMMENT 'Column name in the source (trusted) table'
+ALTER COLUMN indicator_name COMMENT 'Unique physical column name; one dimension row per indicator_name'
 """)
 spark.sql(f"""
 ALTER TABLE {TARGET_TABLE}
@@ -608,7 +641,7 @@ ALTER COLUMN domain COMMENT 'Earth system domain: atmosphere, hydrosphere, cryos
 """)
 spark.sql(f"""
 ALTER TABLE {TARGET_TABLE}
-ALTER COLUMN theme COMMENT 'Thematic category: temperature, wind, humidity, pressure, cloud, flux, precipitation, sea_ice, vegetation, mass_gravity, ozone, landslide'
+ALTER COLUMN theme COMMENT 'Thematic category: temperature, wind, humidity, pressure, cloud, flux, variance, aerosol, chemistry, precipitation, sea_ice, vegetation, mass_gravity, ozone, landslide'
 """)
 spark.sql(f"""
 ALTER TABLE {TARGET_TABLE}
@@ -636,7 +669,7 @@ ALTER COLUMN unit COMMENT 'Physical unit of the indicator'
 """)
 spark.sql(f"""
 ALTER TABLE {TARGET_TABLE}
-ALTER COLUMN source_table COMMENT 'Trusted table name containing this indicator'
+ALTER COLUMN source_table COMMENT 'Canonical trusted table; source_tables retains all physical aliases'
 """)
 spark.sql(f"""
 ALTER TABLE {TARGET_TABLE}

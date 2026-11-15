@@ -1,6 +1,8 @@
 import type { EarthVariable } from "./earthApi";
 
 const domains = [
+  "temperature", "wind", "humidity", "pressure", "cloud", "flux",
+  "aerosol", "chemistry", "precipitation", "sea_ice", "variance",
   "atmosphere",
   "hydrosphere",
   "cryosphere",
@@ -8,6 +10,10 @@ const domains = [
   "geosphere",
 ];
 const labels: Record<string, string> = {
+  temperature: "Temperature", wind: "Wind", humidity: "Humidity",
+  pressure: "Pressure & height", cloud: "Clouds", flux: "Surface fluxes",
+  aerosol: "Aerosols", chemistry: "Atmospheric chemistry",
+  precipitation: "Precipitation", sea_ice: "Sea ice", variance: "Variances · advanced",
   atmosphere: "Atmosphere",
   hydrosphere: "Hydrosphere",
   cryosphere: "Cryosphere",
@@ -16,13 +22,14 @@ const labels: Record<string, string> = {
   other: "Other",
 };
 export const variableAvailable = (variable: EarthVariable) =>
-  variable.available !== false &&
+  variable.coverageFlag !== false && variable.available !== false &&
   variable.months.some((month) => month.validSamples > 0);
 
 export function groupVariables(variables: EarthVariable[]) {
   const groups = new Map<string, EarthVariable[]>();
   for (const variable of variables) {
-    const key = variable.domain?.trim().toLowerCase() || "other";
+    const theme = variable.theme?.trim().toLowerCase();
+    const key = (theme === "ozone" ? "chemistry" : theme) || variable.domain?.trim().toLowerCase() || "other";
     const group = groups.get(key) ?? [];
     group.push(variable);
     groups.set(key, group);

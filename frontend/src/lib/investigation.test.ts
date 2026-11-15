@@ -91,3 +91,13 @@ it("validates response identity and caches repeated identical investigations", a
     loadInvestigation({ ...request, baselineStart: "2001-01" }, [], signal),
   ).rejects.toThrow("does not match");
 });
+
+
+it("preserves original monthly processing in investigation exports", () => {
+  const copy=structuredClone(data);
+  copy.series[0].observations[0].processingRun="Final";
+  copy.series[0].observations[1].processingRun="Late";
+  const csv=investigationCsv(copy);
+  expect(csv).toContain('""processingRun"":""Final""');
+  expect(csv).toContain('""processingRun"":""Late""');
+});

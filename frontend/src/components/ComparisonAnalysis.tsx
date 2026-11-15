@@ -187,6 +187,9 @@ function ComparisonAnalysisComponent({
     );
   return (
     <div className="comparison-analysis">
+      {[...new Set(variables.map(v=>v.processingNote).filter(Boolean))].map(note=>(
+        <p className="comparison-notice" key={note}>{note}</p>
+      ))}
       {!available && (
         <p role="status" className="comparison-notice">
           Comparison processing is being published. Charts will become available

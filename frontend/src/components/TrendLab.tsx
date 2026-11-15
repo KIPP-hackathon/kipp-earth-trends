@@ -1,5 +1,11 @@
 import { useEffect, useId, useMemo, useState } from "react";
-import { ArrowRight, FlaskConical, Play, RefreshCw } from "lucide-react";
+import {
+  ArrowRight,
+  FlaskConical,
+  MapPin,
+  Play,
+  RefreshCw,
+} from "lucide-react";
 import type {
   EarthCatalog,
   EarthConfig,
@@ -108,6 +114,10 @@ export function TrendLab({
     method: "relationships-v1",
   };
   const span = [start, end].map(monthIndex);
+  const spanMonths =
+    span[0] !== null && span[1] !== null && span[1] >= span[0]
+      ? span[1] - span[0] + 1
+      : 0;
   const validPeriod =
     !!variable &&
     numeric(variable) &&
@@ -227,194 +237,241 @@ export function TrendLab({
       </header>
       <div className="trend-layout">
         <section className="trend-setup" aria-label="Trend setup">
-          <div className="trend-setup-step">
-            <h3>1 · Select area</h3>
-
-            <SearchPicker
-              id={`${id}-area`}
-              label="Study region"
-              value={region.id}
-              options={regions.map((entry) => ({
-                id: entry.id,
-                name: entry.name,
-                icon: countries.find(
-                  (country) => country.region.id === entry.id,
-                )?.flag,
-              }))}
-              onChange={(value) => {
-                const next = regions.find((entry) => entry.id === value);
-                if (next) selectRegion(next);
-              }}
-            />
-            <details className="trend-area-details">
-              <summary>Draw or inspect area</summary>
-              <div className="trend-map">
-                <RealGlobe
-                  view={camera.view}
-                  onView={camera.setView}
-                  onNavigate={camera.flyTo}
-                  region={region}
-                  outlineGeometry={country?.geometry}
-                  onSelectArea={drawRegion}
-                  onClearArea={() => selectRegion(globalRegion)}
+          <div className="trend-setup-steps">
+            <div className="trend-setup-step">
+              <header className="trend-step-head">
+                <span className="trend-step-num">1</span>
+                <div>
+                  <h3>Area</h3>
+                  <p>Where to investigate</p>
+                </div>
+              </header>
+              <SearchPicker
+                id={`${id}-area`}
+                label="Study region"
+                value={region.id}
+                options={regions.map((entry) => ({
+                  id: entry.id,
+                  name: entry.name,
+                  icon: countries.find(
+                    (country) => country.region.id === entry.id,
+                  )?.flag,
+                }))}
+                onChange={(value) => {
+                  const next = regions.find((entry) => entry.id === value);
+                  if (next) selectRegion(next);
+                }}
+              />
+              <p className="trend-small">
+                Study rectangle <code>{region.bbox}</code> (W, S, E, N).
+                Countries use their bounding box, not the border.
+              </p>
+              <details className="trend-area-details">
+                <summary>
+                  <MapPin size={13} /> Draw or inspect on the globe
+                </summary>
+                <div className="trend-map">
+                  <RealGlobe
+                    view={camera.view}
+                    onView={camera.setView}
+                    onNavigate={camera.flyTo}
+                    region={region}
+                    outlineGeometry={country?.geometry}
+                    onSelectArea={drawRegion}
+                    onClearArea={() => selectRegion(globalRegion)}
+                  />
+                </div>
+                <p className="trend-small">
+                  Rotate the globe, then use Draw area to select a rectangle.
+                  Country selections use their bounding extent.
+                </p>
+              </details>
+            </div>
+            <div className="trend-setup-step">
+              <header className="trend-step-head">
+                <span className="trend-step-num">2</span>
+                <div>
+                  <h3>Indicators</h3>
+                  <p>What to measure — add Y to compare</p>
+                </div>
+              </header>
+              <MultiVariablePicker
+                id={`${id}-indicator`}
+                label="Indicator X"
+                single
+                variables={available.filter(numeric)}
+                selected={variable ? [variable.id] : []}
+                onApply={([value]) => {
+                  setSelectedVariable(value);
+                  if (value === secondId) setSecondId("");
+                  setPeriod({ start: "", end: "" });
+                }}
+              />
+              <MultiVariablePicker
+                id={`${id}-second`}
+                label="Indicator Y (optional)"
+                single
+                optional
+                variables={available.filter(
+                  (v) => numeric(v) && v.id !== variable?.id,
+                )}
+                selected={secondId ? [secondId] : []}
+                onApply={([value]) => {
+                  setSecondId(value ?? "");
+                  setPeriod({ start: "", end: "" });
+                }}
+              />
+              <div className="trend-examples" aria-label="Example studies">
+                <span>Try an example</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    preset("temperature", "merra2_flx_prectotcorr")
+                  }
+                >
+                  Pantanal · heat & precipitation
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    preset("merra2_flx_prectotcorr", "merra2_qv2m")
+                  }
+                >
+                  Pantanal · precipitation & humidity
+                </button>
+              </div>
+            </div>
+            <div className="trend-setup-step">
+              <header className="trend-step-head">
+                <span className="trend-step-num">3</span>
+                <div>
+                  <h3>Period</h3>
+                  <p>Which months to analyse</p>
+                </div>
+                <button
+                  type="button"
+                  className="trend-step-action"
+                  disabled={!period.start && !period.end}
+                  onClick={() => setPeriod({ start: "", end: "" })}
+                >
+                  Use all data
+                </button>
+              </header>
+              <div className="trend-dates">
+                <MonthPicker
+                  id={`${id}-start`}
+                  label="From"
+                  value={start}
+                  months={months}
+                  onChange={(value) =>
+                    setPeriod((previous) => ({ ...previous, start: value }))
+                  }
+                />
+                <MonthPicker
+                  id={`${id}-end`}
+                  label="To"
+                  value={end}
+                  months={months}
+                  onChange={(value) =>
+                    setPeriod((previous) => ({ ...previous, end: value }))
+                  }
                 />
               </div>
               <p className="trend-small">
-                Rotate the globe, then use Draw area to select a rectangle.
-                Country selections use their bounding extent.
+                <strong>
+                  {!period.start && !period.end
+                    ? "All available data"
+                    : "Custom period"}
+                  {spanMonths ? ` · ${spanMonths} months` : ""}
+                </strong>
+                <br />
+                Seasonal fits need 24 values with two of every calendar month;
+                significance tests need 60 consecutive months.
               </p>
-            </details>
-          </div>
-          <div className="trend-setup-step">
-            <h3>2 · Select indicators</h3>
-            <MultiVariablePicker
-              id={`${id}-indicator`}
-              label="Indicator X"
-              single
-              variables={available.filter(numeric)}
-              selected={variable ? [variable.id] : []}
-              onApply={([value]) => {
-                setSelectedVariable(value);
-                if (value === secondId) setSecondId("");
-                setPeriod({ start: "", end: "" });
-              }}
-            />
-            <MultiVariablePicker
-              id={`${id}-second`}
-              label="Indicator Y (optional)"
-              single
-              optional
-              variables={available.filter(
-                (v) => numeric(v) && v.id !== variable?.id,
-              )}
-              selected={secondId ? [secondId] : []}
-              onApply={([value]) => {
-                setSecondId(value ?? "");
-                setPeriod({ start: "", end: "" });
-              }}
-            />
-            <details className="investigation-examples">
-              <summary>Try an example</summary>
-              <div className="investigation-presets">
-                <button
-                  type="button"
-                  onClick={() => preset("temperature", "merra2_flx_prectotcorr")}
-                >
-                  Pantanal: heat & precipitation flux
-                </button>
-                <button
-                  type="button"
-                  onClick={() => preset("merra2_flx_prectotcorr", "merra2_qv2m")}
-                >
-                  Pantanal: precipitation & humidity
-                </button>
-              </div>
-            </details>
-          </div>
-          <div className="trend-setup-step">
-            <h3>3 · Select period</h3>
-            <div className="trend-period-title">
-              <span>Monthly period</span>
-              <button
-                type="button"
-                onClick={() => setPeriod({ start: "", end: "" })}
-              >
-                Use all data
-              </button>
             </div>
-            <div className="trend-dates">
-              <MonthPicker
-                id={`${id}-start`}
-                label="From"
-                value={start}
-                months={months}
-                onChange={(value) =>
-                  setPeriod((previous) => ({ ...previous, start: value }))
-                }
-              />
-              <MonthPicker
-                id={`${id}-end`}
-                label="To"
-                value={end}
-                months={months}
-                onChange={(value) =>
-                  setPeriod((previous) => ({ ...previous, end: value }))
-                }
-              />
-            </div>
-            <p className="trend-small">
-              {!period.start && !period.end
-                ? "All available data selected. "
-                : "Custom analysis period. "}
-              Seasonal fits require 24 values and two of every calendar month.
-              Inference requires 60 consecutive months.
-            </p>
-            {!supported && (
-              <p className="trend-notice">
-                This API version does not support investigations yet. Refresh
-                the catalog after the backend update.
-              </p>
-            )}
-            {!validPeriod && (
-              <p role="alert" className="trend-notice">
-                Choose a continuous indicator and a valid period with the start
-                before the end; study and reference together must span at most
-                600 months.
-              </p>
-            )}
           </div>
-          <div className="trend-setup-step">
-            <h3>4 · Run experiment</h3>
-            <button
-              className="trend-run"
-              type="button"
-              disabled={!validPeriod || !supported}
-              onClick={() => {
-                if (variable && validPeriod) {
-                  setSubmitted({
-                    variable,
-                    region: { ...region },
-                    second,
-                    request: { ...request },
-                    key,
-                  });
-                  if (submitted?.key === key) series.retry();
-                }
-              }}
-            >
-              <Play size={16} fill="currentColor" />{" "}
-              {series.loading
-                ? "Generate new investigation"
-                : "Generate investigation"}
-            </button>
-            <p className="trend-small" role="status">
-              {savedMessage}
-            </p>
-            <div className="trend-methodology" data-open={methodologyOpen}>
-              <button
-                type="button"
-                aria-expanded={methodologyOpen}
-                aria-controls={`${id}-methodology`}
-                onClick={() => setMethodologyOpen(!methodologyOpen)}
-              >
-                ⓘ Methodology
-              </button>
-              <div
-                id={`${id}-methodology`}
-                className="trend-methodology-content"
-              >
-                <strong>Seasonal trends & relationships</strong>
-                <p>
-                  Calendar-month effects and linear time, with
-                  autocorrelation-aware uncertainty when coverage supports it.
-                  Associations are not causes or forecasts.
+          <footer className="trend-setup-run">
+            <div className="trend-setup-summary">
+              <span className="trend-kicker">Your study</span>
+              <p>
+                <strong>{region.name}</strong>
+                {variable && (
+                  <>
+                    {" · "}
+                    {variable.name}
+                    {second ? ` vs ${second.name}` : ""}
+                  </>
+                )}
+                {start && end ? ` · ${start} – ${end}` : ""}
+              </p>
+              {savedMessage && (
+                <p className="trend-small" role="status">
+                  {savedMessage}
                 </p>
-                <button type="button" onClick={onGuide}>
-                  Read more in Guide
-                </button>
-              </div>
+              )}
+              {!supported && (
+                <p className="trend-notice">
+                  This API version does not support investigations yet. Refresh
+                  the catalog after the backend update.
+                </p>
+              )}
+              {!validPeriod && (
+                <p role="alert" className="trend-notice">
+                  Choose a continuous indicator and a valid period with the
+                  start before the end; study and reference together must span
+                  at most 600 months.
+                </p>
+              )}
             </div>
-          </div>
+            <div className="trend-setup-actions">
+              <div className="trend-methodology" data-open={methodologyOpen}>
+                <button
+                  type="button"
+                  aria-expanded={methodologyOpen}
+                  aria-controls={`${id}-methodology`}
+                  onClick={() => setMethodologyOpen(!methodologyOpen)}
+                >
+                  ⓘ Methodology
+                </button>
+                <div
+                  id={`${id}-methodology`}
+                  className="trend-methodology-content"
+                >
+                  <strong>Seasonal trends & relationships</strong>
+                  <p>
+                    Calendar-month effects and linear time, with
+                    autocorrelation-aware uncertainty when coverage supports it.
+                    Associations are not causes or forecasts.
+                  </p>
+                  <button type="button" onClick={onGuide}>
+                    Read more in Guide
+                  </button>
+                </div>
+              </div>
+              <button
+                className="trend-run"
+                type="button"
+                disabled={!validPeriod || !supported}
+                onClick={() => {
+                  if (variable && validPeriod) {
+                    setSubmitted({
+                      variable,
+                      region: { ...region },
+                      second,
+                      request: { ...request },
+                      key,
+                    });
+                    if (submitted?.key === key) series.retry();
+                  }
+                }}
+              >
+                <Play size={16} fill="currentColor" />{" "}
+                {series.loading
+                  ? "Generate new investigation"
+                  : "Generate investigation"}
+              </button>
+            </div>
+          </footer>
         </section>
         <div className="trend-output" aria-busy={series.loading}>
           {dirty && (

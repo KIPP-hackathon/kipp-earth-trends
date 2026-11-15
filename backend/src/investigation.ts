@@ -16,6 +16,7 @@ export type Observation = {
   value: number | null;
   coverage: number | null;
   samples: number | null;
+  processingRun?: string;
 };
 export type InvestigationSource = {
   variable: string;
@@ -28,6 +29,7 @@ export type InvestigationSource = {
   sourceUC: string;
   aggregation: string;
   method: string;
+  processingNote?: string;
   observations: Observation[];
 };
 export const monthNumber = (month: string) =>

@@ -12,6 +12,7 @@ export type MonthlyValue = {
   value: number | null;
   coverage: number | null;
   samples: number | null;
+  processingRun?: string;
 };
 export function comparisonCalendar(start: string, end: string): string[] {
   const index = (month: string) =>

@@ -1,4 +1,5 @@
 import { consolidatedTableFor, additionalIndicators } from "./consolidated-sources.ts";
+import { newMerraIndicators, sourceThemes } from "./additional-sources.ts";
 // Reviewed against docs/inventario-api-databricks.csv and the producer schemas.
 // This is an explicit whitelist: raw encodings, QA and uncertainty fields are not layers.
 export type RenderMetadata = {
@@ -16,8 +17,10 @@ export type Variable = {
   sourceUnit: string;
   product: string;
   run?: string;
+  theme?: string;
+  processingNote?: string;
   description: string;
-  dataType?: "reanalysis" | "model-simulated satellite diagnostic";
+  dataType?: "reanalysis" | "model-simulated satellite diagnostic" | "satellite_product";
   table: string;
   column: string;
   coverage?: string;
@@ -1145,7 +1148,7 @@ const merraDefinitions = [
 export const variables: Variable[] = merraDefinitions.map((definition) =>
   continuous({ ...definition, table: consolidatedTableFor[definition.table] }),
 );
-for (const [id, table, column, name, unit, collection] of additionalIndicators) {
+for (const [id, table, column, name, unit, collection] of [...additionalIndicators, ...newMerraIndicators]) {
   const diagnostic = column.startsWith("simulated_");
   const variance = column.endsWith("_variance");
   variables.push(continuous({
@@ -1165,6 +1168,32 @@ for (const [id, table, column, name, unit, collection] of additionalIndicators) 
     ] },
   }));
 }
+// One combined base per physical quantity. Per-month processing remains explicit.
+for (const rate of [false, true]) {
+  const id = rate ? "rainfall_rate" : "rainfall";
+  const unit = rate ? "mm/h" : "mm";
+  const processingNote = "IMERG combines Final and Late processing in one chronological series. Processing changes can affect comparisons and trends; this is not a homogenized climate record.";
+  variables.push(continuous({
+    id, run: "Final + Late", table: "tb_gpm_imerg_precipitation_final_late",
+    column: rate ? "precipitation_rate_millimeters_per_hour" : "monthly_precipitation_millimeters",
+    name: `Precipitation ${rate ? "rate" : "total"} · IMERG`,
+    quantity: id, unit, sourceUnit: unit, dataType: "satellite_product",
+    product: "GPM IMERG Final + Late V07", processingNote,
+    description: `Monthly ${rate ? "mean precipitation rate" : "precipitation total"} from the consolidated IMERG Final + Late table. Each stored monthly value is used once; original processing is retained as monthly provenance. ${processingNote}`,
+    coverage: "valid_area_fraction", validRange: [0, null], domain: rate ? [0, 1] : [0, 600],
+    quality: { rule: "finite_nonnegative_precipitation AND positive_valid_area_fraction AND known_imerg_run",
+      notes: ["Area-weighted regridding to the application grid; satellite precipitation estimate, not a rain gauge measurement.", processingNote] },
+  }));
+}
+variables.push(continuous({
+  id: "sea_ice_concentration", table: "tb_sea_ice_concentration_global", column: "sea_ice_concentration_percent",
+  name: "Sea ice concentration · both poles", quantity: "sea_ice_concentration", unit: "%", sourceUnit: "%",
+  product: "NSIDC Sea Ice Index G02135 v4", dataType: "satellite_product",
+  description: "Monthly sea ice concentration; polar coverage only. Missing land, coast and pole-hole cells remain missing. This is not ice extent in km²; input sensors change in January 2025.",
+  coverage: "valid_area_fraction", validRange: [0,100], domain: [0,100],
+}));
+for (const variable of variables) variable.theme = sourceThemes[variable.table];
+
 export const excludedSources = [
   {
     id: "legacy_surface_temperature",

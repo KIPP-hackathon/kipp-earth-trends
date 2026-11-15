@@ -23,6 +23,7 @@ import type { InvestigationRequest } from "./investigation.ts";
 import { validateInvestigation } from "./investigation.ts";
 import { configuration, historicalEvents, regions } from "./config.ts";
 import { eventSuggestions } from "./event-context.ts";
+import { trustedColumns } from "./trusted-map.ts";
 
 import { createAssistant } from "./assistant.ts";
 import { TrendReferenceService } from "./trend-reference.ts";
@@ -226,15 +227,18 @@ async function catalogData() {
   if (!catalogPending)
     catalogPending = Promise.all([
       data.catalog(),
-      indicatorReference.domainByTable(),
+      indicatorReference.classificationByIndicator(),
     ])
-      .then(([result, domains]) => {
+      .then(([result, classifications]) => {
         const tables = new Map(
-          data.variables.map((variable) => [variable.id, variable.table]),
+          data.variables.map((variable) => [variable.id, {
+            table: variable.table, column: trustedColumns[variable.table]?.[variable.column],
+          }]),
         );
         const withDomains = result.map((variable) => {
-          const domain = domains[tables.get(variable.id) ?? ""];
-          return domain ? { ...variable, domain } : variable;
+          const physical = tables.get(variable.id);
+          const classification = classifications[physical?.column ?? ""];
+          return classification ? { ...variable, ...classification } : variable;
         });
         catalogMemo = { expires: Date.now() + 300_000, data: withDomains };
         return withDomains;

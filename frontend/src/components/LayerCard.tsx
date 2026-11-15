@@ -19,6 +19,7 @@ export function LayerCard({
   loading = false,
   error,
   status,
+  processingRun,
   children,
 }: {
   variable: EarthVariable;
@@ -31,6 +32,7 @@ export function LayerCard({
   loading?: boolean;
   error?: string;
   status?: string;
+  processingRun?: string;
   children?: ReactNode;
 }) {
   const id = useId();
@@ -70,6 +72,8 @@ export function LayerCard({
             {variable.run ? ` · ${variable.run}` : ""} · {unit}
           </p>
           {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
+          {processingRun && <p>Displayed month processing: {processingRun}</p>}
+          {variable.processingNote && <p>{variable.processingNote}</p>}
         </div>
         <button
           type="button"

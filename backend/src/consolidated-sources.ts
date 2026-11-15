@@ -1,4 +1,4 @@
-// Reviewed against the seven live trusted schemas on 2026-11-15.
+// Reviewed against the eleven selected live trusted schemas on 2026-11-15.
 // Columns: statement 01f1e104-938e-1ea8-bad4-f7d4034caa1b.
 // Units/products: repository producer description_schema.yaml files.
 // Visibility is read at runtime from tb_indicator_coverage; never baked into this manifest.
@@ -9,7 +9,11 @@ export const consolidatedTables = [
   "tb_merra2_temperatura",
   "tb_merra2_umidade",
   "tb_merra2_variancias",
-  "tb_merra2_vento"
+  "tb_merra2_vento",
+  "tb_merra2_aerossois",
+  "tb_merra2_quimica",
+  "tb_gpm_imerg_precipitation_final_late",
+  "tb_sea_ice_concentration_global"
 ] as const;
 
 export const consolidatedTableFor: Record<string, string> = {
