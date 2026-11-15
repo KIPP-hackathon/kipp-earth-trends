@@ -17,12 +17,17 @@ de mês/ano. Somente meses disponíveis são oferecidos; trocar o ano preserva o
 mês quando há dados e escolhe um mês disponível caso contrário. Abrir o período
 foca o diálogo sem acionar um seletor automaticamente.
 
-Validação: 102 testes frontend e build com Node.js 24; Chromium desktop em
+Validação após integrar a main: 105 testes frontend e build com Node.js 24; Chromium desktop em
 1440px e 1024px confirmou ordem das colunas, recolhimento, aplicação de escala,
 limites inválidos e reset. WebKit emulando iPhone alterou período para
 2001-02–2025-04 e mês exibido para 2002-06. Sem overflow horizontal ou erros
-de página nessas verificações; sem teste em iPhone físico. Publicação em
-acompanhamento. Alteração anterior com calendário modal fica substituída.
+de página nessas verificações; sem teste em iPhone físico.
+Publicado em `d06041e`, [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43746367806)
+concluído com sucesso e bundle público `index-nCfufUDG.js` conferido.
+Testes de navegador repetidos no site público confirmaram layout, escala,
+recolhimento e datas nativas. Vercel continua bloqueando novos builds por limite
+de publicações; o endereço Cloudflare contém esta versão. Alteração anterior
+com calendário modal fica substituída.
 
 ## Calendário da linha do tempo e velocidade — 15/11/2026
 
