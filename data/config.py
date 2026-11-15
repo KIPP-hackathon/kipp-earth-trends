@@ -2,13 +2,15 @@
 from pathlib import Path
 
 # Produto NASA
+# PEGAR ESSAS VARIÁVEIS DO ARQUIVO variables.txt
 SHORT_NAME = "M2TMNXSLV"
-VERSION = "5.12.4"
-VARIABLE = "TS"
+VARIABLES = [
+    'T2M', 'T10M', 'TS', 'T850', 'T500', 'CLDTMP', 'TQV', 'QV2M', 'TQL', 'TQI', 'SLP', 'U10M', 'V10M', 'U850', 'V850', 'CLDTOT', 'CLDPRS', 'SWGDN', 'LWGNET', 'TO3'
+]
 
 # Período de interesse
-START_DATE = "2024-01-01"
-END_DATE = "2025-12-31"
+START_DATE = "2000-01-01"
+END_DATE = "2026-10-31"
 # Diretórios
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -33,3 +35,6 @@ for directory in [
     LOG_DIR
 ]:
     directory.mkdir(parents=True, exist_ok=True)
+
+VERSION = "5.12.4"
+VARIABLE = "T10M"
