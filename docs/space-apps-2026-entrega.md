@@ -832,8 +832,10 @@ No mobile, ações ficam como ícones acessíveis na primeira linha e abas abaix
 salvar, listar, reabrir após trocar país, abrir link em página nova, exclusão
 de nome/notas do link, reabrir a partir de Guide e compartilhar dois painéis.
 1440/390/360 px sem overflow; fixture local removida ao finalizar. Ambiente
-sem WebGL, portanto não valida renderização das camadas. Publicação em
-verificação; sem alteração da investigação científica ou submissão formal.
+sem WebGL, portanto não valida renderização das camadas. Publicação `3f26e37`
+confirmada pela [Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/FDRDWKGVvJFqEQzHD8jHkwoiCmr8)
+e pelo bundle público `index-DUP677eb.js`, idêntico ao build validado.
+Sem alteração da investigação científica ou submissão formal.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
