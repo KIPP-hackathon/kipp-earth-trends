@@ -1006,3 +1006,16 @@ Validação sobre a main `a24acb8`: 85 testes frontend e builds frontend/backend
 aprovados em Node.js24. Navegador mediu os sete cards disponíveis com767,98px
 e ações com o mesmo deslocamento vertical no desktop1440px. Incluindo o oitavo
 caso sem cobertura, os oito cards mediram955,33px no mobile390px, sem overflow.
+
+
+### Publicação de Events conferida — 15/11/2026
+
+Versão visual publicada na main pelo commit `aeb92f0`, exclusivamente com Events,
+capas vetoriais, CSS e registro deste trabalho. [Deploy Vercel aprovado](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/7sz2h1gvPnDAbxBWNwoZgvQz15xo),
+status GitHub/Vercel success. Site público carregou o bundle `index-Da2U7flF.js`.
+Navegador em produção mediu os sete cards com782,48px e ações com o mesmo
+deslocamento685,98px no desktop1440px. Incluindo Tōhoku, os oito cards mediram
+972,83px no mobile390px, sem overflow horizontal ou erros JavaScript registrados.
+85 testes frontend e builds frontend/backend aprovados antes do envio, Node.js24.
+A captura de produção permanece fora do Git. A publicação visual não conclui
+as pendências científicas, revisão humana e submissão da página Project.
