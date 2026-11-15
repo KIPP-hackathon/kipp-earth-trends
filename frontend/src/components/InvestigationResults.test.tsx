@@ -93,3 +93,11 @@ it("opens on seasonal departures with both indicators in one combined chart", ()
   expect(html).toContain("Temperature (test) and Rainfall (test)");
   expect(html).not.toMatch(/(?:NaN|Infinity)/);
 });
+
+it("offers a tour button and explains every view in the tour steps", async () => {
+  const { tourSteps } = await import("./InvestigationTour");
+  expect(render()).toContain("Take a tour");
+  const views = tourSteps(true).flatMap((s) => (s.view ? [s.view] : []));
+  expect(views).toEqual(["Anomalies", "Trend", "Relationships"]);
+  expect(tourSteps(false)[3].body.join(" ")).toContain("second indicator");
+});
