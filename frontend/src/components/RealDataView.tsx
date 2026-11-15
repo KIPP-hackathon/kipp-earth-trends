@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { GeoPermissibleObjects } from "d3-geo";
 import "./global-comparison.css";
 import "./compact-exploration.css";
@@ -90,7 +91,9 @@ function SelectedRealPanel({
   onAreaChange,
   eventWindow,
   onNavigate,
+  headerAction,
 }: {
+  headerAction?: ReactNode;
   instanceId?: string;
   overview?: boolean;
   initialRegion?: EarthRegion;
@@ -428,9 +431,12 @@ function SelectedRealPanel({
       }
     >
       {!overview && (
-        <div className="real-panel-title">
-          <span className="real-panel-letter">{side}</span>
-          <span>REAL DATA · {variable.product}</span>
+        <div className="real-panel-heading">
+          <div className="real-panel-title">
+            <span className="real-panel-letter">{side}</span>
+            <span>REAL DATA · {variable.product}</span>
+          </div>
+          {headerAction}
         </div>
       )}
       <div className="compact-exploration-controls">

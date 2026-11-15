@@ -26,6 +26,7 @@ export function EmptyRealPanel({
   onCustomRegion,
   onAreaChange,
   onStart,
+  headerAction,
 }: RealPanelProps & { onStart: (preset: PanelPreset) => void }) {
   const id = useId();
   const [region, setRegion] = useState(initialRegion ?? config.regions[0]);
@@ -98,9 +99,12 @@ export function EmptyRealPanel({
       }
     >
       {!overview && (
-        <div className="real-panel-title">
-          <span className="real-panel-letter">{side}</span>
-          <span>Choose variables to explore</span>
+        <div className="real-panel-heading">
+          <div className="real-panel-title">
+            <span className="real-panel-letter">{side}</span>
+            <span>Choose variables to explore</span>
+          </div>
+          {headerAction}
         </div>
       )}
       <div className="compact-exploration-controls">

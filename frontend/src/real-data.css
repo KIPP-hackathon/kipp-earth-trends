@@ -79,25 +79,23 @@
 .real-panels.is-comparing {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.real-compare-header {
+.real-panel-heading {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 12px 20px;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.real-compare-header > .real-comparison-note {
-  flex: 1 1 340px;
+.compact-real-panel .real-panel-heading .real-panel-title {
+  min-width: 0;
   margin: 0;
+  letter-spacing: .5px;
 }
-.real-compare-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-left: auto;
+.real-panel-heading .real-panel-title > span:last-child {
+  overflow-wrap: anywhere;
 }
-.real-compare-actions > button {
+.real-compare-copy {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -111,15 +109,15 @@
   font-size: 13px;
   white-space: nowrap;
 }
-.real-compare-actions > button:disabled {
+.real-compare-copy:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-.real-compare-actions > button:hover:not(:disabled) {
+.real-compare-copy:hover:not(:disabled) {
   background: #75aaff24;
   border-color: #83b5f5;
 }
-.real-compare-actions > button:focus-visible {
+.real-compare-copy:focus-visible {
   outline: 2px solid #94c2ff;
   outline-offset: 2px;
 }

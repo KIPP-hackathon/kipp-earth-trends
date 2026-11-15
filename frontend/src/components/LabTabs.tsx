@@ -18,9 +18,11 @@ export type LabTab = (typeof labTabs)[number]["id"];
 export function LabTabs({
   active,
   onChange,
+  onSelect,
 }: {
   active: LabTab;
   onChange: (tab: LabTab) => void;
+  onSelect?: () => void;
 }) {
   return (
     <div className="lab-tabs" role="tablist" aria-label="Lab workspaces">
@@ -33,7 +35,10 @@ export function LabTabs({
           aria-selected={active === id}
           aria-controls={`panel-${id}`}
           tabIndex={active === id ? 0 : -1}
-          onClick={() => onChange(id)}
+          onClick={() => {
+            onChange(id);
+            onSelect?.();
+          }}
           onKeyDown={(e) => {
             let next = index;
             if (e.key === "ArrowRight") next = (index + 1) % labTabs.length;

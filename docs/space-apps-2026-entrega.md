@@ -1,5 +1,22 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Header móvel e cópia dentro dos painéis — 15/11/2026
+
+OpenAI Codex assistiu o reposicionamento de Copy A → B e Copy B → A no canto
+superior direito do respectivo painel, acima do formulário, tanto no estado
+vazio quanto com dados. A lógica de cópia dos filtros/camadas foi preservada.
+O header compacto reúne as cinco abas e Save/Saved/Share num menu hambúrguer,
+com nomes completos, botão de fechar, Esc, toque fora e retorno de foco ao
+selecionar uma aba. Os controles de investigação continuam numa única instância.
+O menu também atende tablets para evitar colisão entre abas e ações.
+
+136 testes frontend e builds frontend/API aprovados com Node.js 24. Chromium
+conferiu 360/390 px sem overflow horizontal, botões dentro dos painéis e acima
+do formulário, retorno de foco, Esc, toque fora, abertura dos três diálogos
+Save/Saved/Share e cópia com dados reais. Desktop no limite de 1161 px manteve
+abas e ações sem sobreposição. Nenhum salvo foi criado, nem dado/método
+científico alterado. Publicação em verificação.
+
 ## Cópia entre painéis Compare — 15/11/2026
 
 OpenAI Codex assistiu a restauração de `Copy A → B` e `Copy B → A` acima dos

@@ -9,7 +9,8 @@ import {
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
-import { LabTabs, labTabs } from "./components/LabTabs";
+import { labTabs } from "./components/LabTabs";
+import { SiteHeader } from "./components/SiteHeader";
 import type { LabTab } from "./components/LabTabs";
 import { InvestigationControls } from "./components/InvestigationControls";
 import type { InvestigationView } from "./lib/investigations";
@@ -979,25 +980,7 @@ function App() {
       <a className="skip-link" href="#main-content">
         Skip to investigation
       </a>
-      <header className="site-header has-investigation-actions">
-        <a
-          href="#"
-          className="brand"
-          aria-label="KIPP home"
-          onClick={(event) => {
-            event.preventDefault();
-            showTab("explore");
-          }}
-        >
-          <span className="brand-mark">
-            <Earth size={29} strokeWidth={1.25} />
-            <i />
-          </span>
-          <span>
-            KIPP<span className="brand-dot">.</span>
-          </span>
-        </a>
-        <LabTabs active={active} onChange={showTab} />
+      <SiteHeader active={active} onChange={showTab}>
         <InvestigationControls
           getView={getInvestigationView}
           onRestore={restoreInvestigation}
@@ -1007,7 +990,7 @@ function App() {
             (active === "compare" && comparison.ready && !!comparison.studies.B)
           }
         />
-      </header>
+      </SiteHeader>
       <main id="main-content" className="workspace-main" tabIndex={-1}>
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
@@ -1077,49 +1060,39 @@ function App() {
               aria-labelledby="tab-compare"
               className="real-workspace"
             >
-              <div className="real-compare-header">
-                <p className="real-comparison-note">
-                  Two globes share a camera, with independent filters. Matching
-                  variables use the same color scale. Different products and
-                  units require separate interpretation.
-                </p>
-                <div
-                  className="real-compare-actions"
-                  role="group"
-                  aria-label="Copy comparison panels"
-                >
-                  <button
-                    type="button"
-                    aria-label="Copy left panel to right"
-                    title="Copy filters and layers from A (left) to B (right)"
-                    disabled={
-                      !comparison.studies.A?.selectedMonth ||
-                      comparison.studies.A?.layers?.length === 0
-                    }
-                    onClick={() => copyComparisonPanel("A", "B")}
-                  >
-                    <Copy size={14} aria-hidden="true" /> Copy A → B
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Copy right panel to left"
-                    title="Copy filters and layers from B (right) to A (left)"
-                    disabled={
-                      !comparison.studies.B?.selectedMonth ||
-                      comparison.studies.B?.layers?.length === 0
-                    }
-                    onClick={() => copyComparisonPanel("B", "A")}
-                  >
-                    <Copy size={14} aria-hidden="true" /> Copy B → A
-                  </button>
-                </div>
-              </div>
+              <p className="real-comparison-note">
+                Two globes share a camera, with independent filters. Matching
+                variables use the same color scale. Different products and units
+                require separate interpretation.
+              </p>
               {renderEventContext(comparison, true)}
               <div className="real-panels is-comparing">
                 {(["A", "B"] as PanelSide[]).map((side) => (
                   <RealPanel
                     key={`compare-${side}`}
                     instanceId={`compare-${side}`}
+                    headerAction={
+                      <button
+                        type="button"
+                        className="real-compare-copy"
+                        aria-label={
+                          side === "A"
+                            ? "Copy left panel to right"
+                            : "Copy right panel to left"
+                        }
+                        title={`Copy filters and layers from ${side} to ${side === "A" ? "B" : "A"}`}
+                        disabled={
+                          !comparison.studies[side]?.selectedMonth ||
+                          comparison.studies[side]?.layers?.length === 0
+                        }
+                        onClick={() =>
+                          copyComparisonPanel(side, side === "A" ? "B" : "A")
+                        }
+                      >
+                        <Copy size={14} aria-hidden="true" /> Copy {side} →{" "}
+                        {side === "A" ? "B" : "A"}
+                      </button>
+                    }
                     catalog={catalog.data!}
                     config={comparisonConfig}
                     side={side}
