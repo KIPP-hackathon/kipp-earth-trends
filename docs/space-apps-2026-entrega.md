@@ -1113,3 +1113,11 @@ o envio e linkar produção, sem mudar IAM ou quotas. Capturas fora do Git.
 Branch `feat/guided-user-journey`, sem merge ou promoção. Publicação/URL e
 conferência final serão registradas após o deploy. Revisão humana, investigação
 científica final e submissão oficial permanecem pendentes.
+
+Publicação isolada conferida: código`0bfc135`, Preview READY
+`dpl_5mUS1GTEukcQngL9VZoYWLjNPGYX`. Link compartilhável do alias da branch
+entregue no chat, válido por7dias. Página/configuração/catálogo HTTP200 pelo
+link sem login; catálogo real retorna72variáveis, todas ocultas na fonte.
+Produção manteve exatamente o deploy`dpl_2kVo1FMEdxY9UUioYznn2Yk7jQeD`.
+94testes passaram com o mesmo ambiente preview da Vercel; builds frontend e
+backend aprovados. Não houve merge, publicação backend ou submissão Space Apps.

@@ -36,3 +36,9 @@ Durante a validação, o catálogo público mudou de 37 variáveis disponíveis 
 OpenAI Codex assistiu planejamento, texto da jornada, CSS, implementação, testes e este registro. Ilustração decorativa da entrada usa Earth/Lucide já existente (ISC), sem nova imagem de satélite ou observação. A revisão humana da equipe, investigação científica reproduzível final e submissão Space Apps permanecem pendentes. Links avaliados e produção não são substituídos por este preview.
 
 O primeiro build Vercel expôs um teste preexistente que herdava `VERCEL_ENV=preview` apesar de validar a rota privada de produção. Falha reproduzida localmente; o teste agora fixa seu próprio ambiente `production` e o restaura ao terminar. A suíte completa também é executada com `VERCEL_ENV=preview` antes do novo envio.
+
+## Publicação conferida
+
+Código `0bfc135` (jornada `b647eba`), deploy Preview `dpl_5mUS1GTEukcQngL9VZoYWLjNPGYX`, estado READY. [Alias da branch](https://kipp-earth-trends-lab-git-feat-g-3fe1ba-lucas-projects-62e8b289.vercel.app/). A Vercel protege esse domínio; um link compartilhável limitado a esse alias e válido por sete dias foi entregue no chat, sem versionar o segredo de compartilhamento. Acesso pelo link: página/configuração/catálogo HTTP200; catálogo real72variáveis, zero disponíveis no momento.
+
+Produção conferida antes/depois: mesmo deploy `dpl_2kVo1FMEdxY9UUioYznn2Yk7jQeD`. Sem promoção, alteração de domínio produtivo ou deploy backend. Suíte final sob `VERCEL_ENV=preview`:94testes aprovados; builds frontend/backend aprovados com Node24. Browser local de preview confirmou compositor do assistente desabilitado, link para produção, Default desabilitado com duas variáveis mesmo ocultando curva, restauração do link com duas variáveis/Scale0–100 e Global funcionando após limpar o recorte, sem exceções JavaScript.
