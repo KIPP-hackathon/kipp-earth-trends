@@ -543,7 +543,7 @@
   #panel-explore .exploration-map-column .real-globe-scene { flex: 1; min-height: 0; }
   #panel-explore .exploration-map-column .real-globe-viewport { height: 100%; }
   #panel-explore .exploration-map-column .real-globe-actions { flex-shrink: 0; }
-  #panel-explore .exploration-map-column .real-wind-note { flex-shrink: 0; max-height: 44px; overflow: auto; margin: 4px 0; }
+  #panel-explore .exploration-map-column .real-wind-note { flex-shrink: 0; max-height: none; overflow: visible; margin: 4px 0; }
   #panel-explore .exploration-map-column .globe-assets-loading { position: absolute; top: 10px; left: 10px; }
   #panel-explore .exploration-map-column > .real-time-controls { flex-shrink: 0; margin: 0; }
   #panel-explore .real-series-comparison .comparison-analysis { height: 100%; min-height: 0; }
@@ -601,4 +601,13 @@
     width: min(100%, 640px);
     justify-self: center;
   }
+}
+
+/* Reserve wind readout lines before hover, with no internal text scrollbar. */
+.globe-probe-slot.has-wind-probe { height: 112px; flex-basis: 112px; overflow: visible; }
+.globe-probe-slot .globe-probe-readout { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.wind-probe-direction, .wind-probe-components { display: block; }
+@media (min-width: 1200px) {
+  .globe-probe-slot.has-wind-probe { height: 96px; flex-basis: 96px; }
+
 }
