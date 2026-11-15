@@ -3,7 +3,10 @@ import type { ComparisonMode } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { TrendResults } from "./TrendResults";
-import { comparisonColor } from "../lib/comparisonColors";
+import {
+  comparisonColor,
+  comparisonTrendColor,
+} from "../lib/comparisonColors";
 import type { TrendFamilyTest } from "../lib/runtimeTrends";
 function calendar(start: string, end: string) {
   const index = (value: string) =>
@@ -422,7 +425,7 @@ function ComparisonChartComponent({
                       key={variable.id}
                       className="runtime-trend-line"
                       d={`M${chart.x(a)},${chart.y(first.value)} L${chart.x(b)},${chart.y(last.value)}`}
-                      stroke={comparisonColor(variable.id)}
+                      stroke={comparisonTrendColor(variable.id)}
                       strokeWidth="2"
                       strokeDasharray="5 4"
                       fill="none"

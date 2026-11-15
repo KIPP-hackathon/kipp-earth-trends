@@ -385,30 +385,17 @@
 .runtime-trend-results .has-evidence {
   color: #a6e2c2;
 }
-.runtime-trend-note,
-.runtime-trend-reasons,
-.runtime-trend-original p {
+.runtime-trend-reasons {
+  list-style: none;
+  padding: 0;
+  margin: 7px 0 0;
+  max-height: 80px;
+  overflow: auto;
+  scrollbar-width: thin;
   font-size: 9px;
   color: var(--muted);
   line-height: 1.6;
 }
-.runtime-trend-note {
-  margin: 7px 0;
-}
-.runtime-trend-reasons {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 80px;
-  overflow: auto;
-  scrollbar-width: thin;
-}
 .runtime-trend-reasons li {
   margin: 4px 0;
-}
-.runtime-trend-original > summary {
-  cursor: pointer;
-  color: #b8d8ff;
-  font-size: 9px;
-  margin: 6px 0;
 }
