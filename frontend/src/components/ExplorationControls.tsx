@@ -65,8 +65,8 @@ export function SearchPicker({
       className="exploration-picker"
       ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          close();
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) close();
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -215,8 +215,8 @@ export function PeriodPicker({
       className="exploration-picker exploration-period"
       ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          setOpen(false);
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) setOpen(false);
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
