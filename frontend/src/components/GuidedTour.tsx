@@ -8,6 +8,8 @@ export type GuidedStep = {
   body: ReactNode;
   /** CSS selector of the element to spotlight; centred card when absent. */
   target?: string;
+  /** Follow the target’s open picker instead of dimming its menu. */
+  followDialog?: boolean;
   /** Extra buttons shown in the card (e.g. "Run an example for me"). */
   actions?: ReactNode;
   /** When false, Next is disabled (e.g. until results exist). */
@@ -30,11 +32,15 @@ export function GuidedTour({
   step,
   onStep,
   onClose,
+  onFinish,
+  dismissActions,
 }: {
   steps: GuidedStep[];
   step: number;
   onStep: (step: number) => void;
   onClose: () => void;
+  onFinish?: () => void;
+  dismissActions?: ReactNode;
 }) {
   const current = steps[Math.min(step, steps.length - 1)];
   const card = useRef<HTMLDivElement>(null);
@@ -72,7 +78,6 @@ export function GuidedTour({
       }
     };
     scroll();
-    card.current?.focus({ preventScroll: true });
     return () => {
       window.clearTimeout(timer);
       lifted?.classList.remove("guided-tour-target");
@@ -86,7 +91,10 @@ export function GuidedTour({
       const el = current.target
         ? document.querySelector<HTMLElement>(current.target)
         : null;
-      const r = el?.getBoundingClientRect();
+      const dialog = current.followDialog ? el?.querySelector<HTMLElement>('[role="dialog"]') : null;
+      const dialogBox = dialog?.getBoundingClientRect();
+      const r = dialogBox && dialogBox.width > 0 && dialogBox.height > 0
+        ? dialogBox : el?.getBoundingClientRect();
       const visible = r && r.width > 0 && r.height > 0;
       const next: Box | null = visible
         ? {
@@ -140,7 +148,12 @@ export function GuidedTour({
     };
     update();
     return () => cancelAnimationFrame(frame);
-  }, [current.target]);
+  }, [current.target, current.followDialog]);
+
+  const positioned = pos !== null;
+  useEffect(() => {
+    if (positioned) card.current?.focus({ preventScroll: true });
+  }, [current.id, positioned]);
 
   const last = step >= steps.length - 1;
   const canNext = current.canNext !== false;
@@ -209,11 +222,12 @@ export function GuidedTour({
             type="button"
             className="guided-tour-next"
             disabled={!last && !canNext}
-            onClick={() => (last ? onClose() : onStep(step + 1))}
+            onClick={() => (last ? (onFinish ?? onClose)() : onStep(step + 1))}
           >
             {last ? "Finish" : "Next"}
           </button>
         </div>
+        {dismissActions && <div className="guided-tour-dismiss">{dismissActions}</div>}
       </div>
     </div>
   );

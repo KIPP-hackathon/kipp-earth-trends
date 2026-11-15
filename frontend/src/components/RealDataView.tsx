@@ -35,7 +35,11 @@ import {
 import type { GlobeView } from "../lib/comparison";
 import { RealGlobe } from "./RealGlobe";
 import { MultiVariablePicker } from "./MultiVariablePicker";
+import { useComparePlayback } from "./ComparePlayback";
 import { EmptyRealPanel } from "./EmptyRealPanel";
+import { ExploreTour } from "./ExploreTour";
+import { variableAvailable } from "../lib/variableGroups";
+import type { SuggestedVariableRequest, ExploreChoice } from "./ExploreTour";
 import { LayerCard } from "./LayerCard";
 import { ComparisonAnalysis } from "./ComparisonAnalysis";
 import type { LayerSetting, MapLayer } from "../lib/layers";
@@ -79,7 +83,7 @@ function SelectedRealPanel({
   colorRanges,
   onColorRange,
   onSnapshot,
-  onManualChange,
+  onManualChange: onOriginalManualChange,
   playbackCommand,
   onPlaybackApplied,
   instanceId = side,
@@ -92,7 +96,11 @@ function SelectedRealPanel({
   eventWindow,
   onNavigate,
   headerAction,
+  onTourChoice,
+  suggestedVariable,
 }: {
+  suggestedVariable?: SuggestedVariableRequest;
+  onTourChoice?: (choice: ExploreChoice) => void;
   headerAction?: ReactNode;
   instanceId?: string;
   overview?: boolean;
@@ -118,6 +126,13 @@ function SelectedRealPanel({
   onView: (view: GlobeView) => void;
 }) {
   const id = useId();
+  const jointPlayback = useComparePlayback();
+  const jointPlaying = jointPlayback?.playing ?? false;
+  const reportJointPanel = jointPlayback?.report;
+  const onManualChange = () => {
+    if (jointPlaying) jointPlayback?.stop();
+    onOriginalManualChange();
+  };
   const [comparisonMode,setComparisonMode]=useState<ComparisonMode>(initialComparisonMode(preset, overview));
   const [selection, setSelection] = useState({
     variable: preset.variable,
@@ -150,6 +165,7 @@ function SelectedRealPanel({
   const [period, setPeriod] = useState({ start: preset.start ?? "", end: preset.end ?? "" });
   useEffect(() => {
     if (!preset) return;
+    jointPlayback?.stop();
     setPlaying(false);
     setSelection({ variable: preset.variable, month: preset.month });
     setLayerSettings(preset.layers ?? [{variable:preset.variable,visible:true,opacity:1}]);
@@ -171,6 +187,7 @@ function SelectedRealPanel({
   const [playbackError, setPlaybackError] = useState<string>();
   useEffect(() => {
     if (playbackCommand) {
+      jointPlayback?.stop();
       setPlaybackError(undefined);
       setPlaying(active && playbackCommand.playing);
       onPlaybackApplied(side, playbackCommand.nonce);
@@ -226,6 +243,7 @@ function SelectedRealPanel({
     selectedCountry?.geometry ??
     (region.id === initialRegion?.id ? initialOutline : undefined);
   const applyArea = (next: EarthRegion, center = false) => {
+    onTourChoice?.("area");
     onManualChange();
     onAreaChange?.();
     setPlaying(false);
@@ -311,6 +329,7 @@ function SelectedRealPanel({
     if (next.visible && !view.showLayer) onView({...view,showLayer:true});
   };
   const applyVariables = (ids:string[]) => {
+    onTourChoice?.("variables");
     onManualChange();
     setPlaying(false);
     setPlaybackError(undefined);
@@ -322,6 +341,16 @@ function SelectedRealPanel({
       {variable:id,visible:!preservesSelection && index === 0,opacity:!preservesSelection && index === 0 ? 1 : 0.65}));
     setSelection({month,variable:ids.includes(variable.id) ? variable.id : ids[0]});
   };
+  useEffect(() => {
+    if (!suggestedVariable || !availableVariables.some(v => v.id === suggestedVariable.id)) return;
+    if (effectiveSettings.some(setting => setting.variable === suggestedVariable.id)) {
+      onTourChoice?.("variables");
+    } else {
+      applyVariables([...effectiveSettings.map(setting => setting.variable), suggestedVariable.id]);
+    }
+    // A request is applied once; later manual changes must stay manual.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestedVariable]);
   const snapshotKey = JSON.stringify({
     side,
     variable: variable.id,
@@ -337,7 +366,7 @@ function SelectedRealPanel({
     loading:
       active &&
       (frame.loading || buffering),
-    playing: active && playing,
+    playing: active && (playing || jointPlaying),
   });
   useEffect(() => {
     onSnapshot(JSON.parse(snapshotKey) as PanelSnapshot);
@@ -354,20 +383,39 @@ function SelectedRealPanel({
     effectiveSettings.map(setting=>[setting.variable,setting.visible && setting.opacity>0]),
     selectedFrameVariables.map(v => variableDataKey(v)),start,end]);
   const playbackKey = JSON.stringify([month,layerKey]);
+  const jointPanelKey = JSON.stringify([layerKey,months.map(entry=>entry.month),month,frame.loading,frame.error,playing]);
+  useEffect(() => {
+    if (!reportJointPanel) return;
+    reportJointPanel(side,{
+      months:months.map(entry=>entry.month),month,loading:frame.loading,error:frame.error,
+      playing,studyKey:layerKey,
+      pause:()=>{setPlaying(false);setPlaybackError(undefined);},
+      setSpeed:setPlaybackSpeed,
+      prepare:(target,signal)=>Promise.all(windFrameVariables(selectedVariables.filter(v =>
+        v.months.some(row=>row.month===target && row.validSamples>0) &&
+        (v.id===variable.id || (view.showLayer && effectiveSettings.some(setting=>setting.variable===v.id && setting.visible && setting.opacity>0)))),availableVariables,target)
+        .map(v=>requestFrame(v,target,signal,"foreground"))),
+      commit:target=>setSelection({variable:variable.id,month:target}),
+    });
+    // Registration updates only when calendar, sources or playback state changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[reportJointPanel,side,jointPanelKey]);
+  useEffect(()=>()=>reportJointPanel?.(side,undefined),[reportJointPanel,side]);
+
   // Look-ahead requests outlive a single month step so a frame that is already
   // downloading is not cancelled and restarted each time playback advances.
   const prefetch = useRef<AbortController | undefined>(undefined);
   useEffect(() => {
-    if (!playing || !active) return;
+    if (!playing || !active || jointPlaying) return;
     const controller = new AbortController();
     prefetch.current = controller;
     return () => {
       controller.abort();
       if (prefetch.current === controller) prefetch.current = undefined;
     };
-  },[playing,active,layerKey]);
+  },[playing,active,layerKey,jointPlaying]);
   useEffect(() => {
-    if (!playing || !active) {
+    if (!playing || !active || jointPlaying) {
       playbackStarted.current = undefined;
       setBuffering(false);
       setBufferProgress(undefined);
@@ -421,7 +469,7 @@ function SelectedRealPanel({
     return () => {controller.abort();clearTimeout(timer);};
     // Batch commits preserve a coherent displayed month while the next layers load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[playing,active,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end,playbackSpeed,config.playback.cadenceMs]);
+  },[playing,active,jointPlaying,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end,playbackSpeed,config.playback.cadenceMs]);
   return (
     <article
       data-panel-id={instanceId}
@@ -475,6 +523,7 @@ function SelectedRealPanel({
             setPlaying(false);
             setPlaybackError(undefined);
             setPeriod(value);
+            onTourChoice?.("period");
             setSelection({ variable: variable.id, month: value.start });
           }}
         />
@@ -533,18 +582,19 @@ function SelectedRealPanel({
           <ChevronLeft size={18} />
         </button>
         <button
-          aria-label={`${playing ? "Pause" : "Play"} months for panel ${side}`}
-          aria-pressed={playing}
+          aria-label={`${playing || jointPlaying ? "Pause" : "Play"} months for panel ${side}`}
+          aria-pressed={playing || jointPlaying}
           disabled={months.length < 2}
           onClick={() => {
             onManualChange();
+            if (jointPlaying) return;
             setPlaybackError(undefined);
             if (!playing && index === months.length - 1)
               setSelection({ variable: variable.id, month: months[0].month });
             setPlaying((v) => !v);
           }}
         >
-          {playing ? <Pause size={16} /> : <Play size={16} />}
+          {playing || jointPlaying ? <Pause size={16} /> : <Play size={16} />}
         </button>
         <input
           aria-label={`Timeline for panel ${side}`}
@@ -564,7 +614,7 @@ function SelectedRealPanel({
         <label className="real-playback-speed">
           <span>Speed</span>
           <select aria-label={`Playback speed for panel ${side}`} value={playbackSpeed}
-            onChange={(event) => setPlaybackSpeed(Number(event.target.value))}>
+            onChange={(event) => { onManualChange(); setPlaybackSpeed(Number(event.target.value)); }}>
             {[0.5, 1, 2, 4].map(speed => <option key={speed} value={speed}>{speed}×</option>)}
           </select>
         </label>
@@ -677,11 +727,18 @@ export type RealPanelProps = Omit<Parameters<typeof SelectedRealPanel>[0], "pres
 export function RealPanel(props: RealPanelProps) {
   const [initialPreset, setInitialPreset] = useState<PanelPreset>();
   const preset = props.preset ?? initialPreset;
-  if (preset) return <SelectedRealPanel {...props} preset={preset} />;
-  return <EmptyRealPanel {...props} onStart={(next) => {
-    setInitialPreset(next);
-    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(
-      `[data-panel-id="${CSS.escape(props.instanceId ?? props.side)}"] .multi-variable-trigger`,
-    )?.focus({preventScroll:true}));
-  }} />;
+  const [suggestedVariable, setSuggestedVariable] = useState<SuggestedVariableRequest>();
+  const suggestion = props.catalog.variables.find(variable => variable.id === "temperature" && variableAvailable(variable));
+  const renderPanel = (onTourChoice?: (choice: ExploreChoice) => void) => preset
+    ? <SelectedRealPanel {...props} preset={preset} onTourChoice={onTourChoice} suggestedVariable={suggestedVariable} />
+    : <EmptyRealPanel {...props} onTourChoice={onTourChoice} suggestedVariable={suggestedVariable} onStart={(next) => {
+        setInitialPreset(next);
+        requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(
+          `[data-panel-id="${CSS.escape(props.instanceId ?? props.side)}"] .multi-variable-trigger`,
+        )?.focus({preventScroll:true}));
+      }} />;
+  return props.overview
+    ? <ExploreTour ready={!!preset} active={props.active !== false}
+        suggestion={suggestion} onSuggestion={id => setSuggestedVariable(previous => ({id, nonce: (previous?.nonce ?? 0) + 1}))}>{renderPanel}</ExploreTour>
+    : renderPanel();
 }

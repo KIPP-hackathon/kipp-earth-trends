@@ -17,6 +17,7 @@ import type { InvestigationView } from "./lib/investigations";
 import { EventExplorer } from "./components/EventExplorer";
 import { TrendLab } from "./components/TrendLab";
 import { RealPanel } from "./components/RealDataView";
+import { ComparePlayback } from "./components/ComparePlayback";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { LoadingState, LoadingStatus } from "./components/Loading";
 import { useCountryLocation } from "./lib/useCountryLocation";
@@ -1060,6 +1061,7 @@ function App() {
               aria-labelledby="tab-compare"
               className="real-workspace"
             >
+              <ComparePlayback active={active === "compare"} cadenceMs={comparisonConfig.playback.cadenceMs}>
               <p className="real-comparison-note">
                 Two globes share a camera, with independent filters. Matching
                 variables use the same color scale. Different products and units
@@ -1118,6 +1120,7 @@ function App() {
                 comparisons and descriptive differences do not establish
                 significance or causality.
               </p>
+              </ComparePlayback>
             </section>
             <section
               hidden={active !== "trend"}
