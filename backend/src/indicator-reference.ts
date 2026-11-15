@@ -201,6 +201,20 @@ export class IndicatorReferenceService {
       });
     return this.pending;
   }
+  // Earth-system domain per trusted source table, from the curated dimension.
+  async domainByTable(): Promise<Record<string, string>> {
+    let snapshot: Snapshot;
+    try {
+      snapshot = await this.snapshot();
+    } catch {
+      return {};
+    }
+    const domains: Record<string, string> = {};
+    for (const row of snapshot.rows)
+      if (row.source_table && row.domain && !domains[row.source_table])
+        domains[row.source_table] = row.domain;
+    return domains;
+  }
   async search(args: IndicatorSearchArguments) {
     if (
       typeof args.query !== "string" ||

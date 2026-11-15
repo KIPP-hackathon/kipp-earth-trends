@@ -78,6 +78,7 @@ export type EarthVariable = {
   product: string;
   run?: string;
   category?: string;
+  domain?: string;
   description?: string;
   render?: EarthRender;
   aggregation?: EarthAggregation;

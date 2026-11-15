@@ -518,10 +518,13 @@ export function TrendLab({
             value={variable?.id ?? ""}
             options={available.map((entry) => ({
               id: entry.id,
-              name: entry.name,
+              name: numeric(entry)
+                ? `${entry.name} (${trendUnit(entry.unit)})`
+                : entry.name,
               detail: numeric(entry)
-                ? `${entry.product} · ${trendUnit(entry.unit)}`
-                : "Categorical classes · linear regression unavailable",
+                ? entry.domain
+                : `${entry.domain ? `${entry.domain} · ` : ""}Categorical classes · linear regression unavailable`,
+              domain: entry.domain,
               disabled: !numeric(entry),
             }))}
             onChange={(value) => {

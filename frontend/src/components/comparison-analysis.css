@@ -34,19 +34,10 @@
   background: #79aff32e;
   box-shadow: inset 0 0 0 1px #97c8ff45;
 }
-.comparison-view-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
 .comparison-trends-only {
-  padding: 7px 10px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #04102070;
+  border-radius: 5px;
   color: #9db4d2;
-  font-size: 11px;
 }
 .comparison-trends-only[aria-pressed="true"] {
   color: #f3f8ff;
@@ -158,6 +149,8 @@
 .comparison-chart .real-export-actions {
   flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 5px;
 }
 .comparison-chart .real-export-actions button {

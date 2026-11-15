@@ -52,7 +52,6 @@ function ComparisonChartComponent({
   familySize,
   loading,
   familyTests,
-  trendsOnly = false,
 }: {
   title: string;
   scope: "global" | "regional";
@@ -70,10 +69,10 @@ function ComparisonChartComponent({
   familySize: number;
   loading: boolean;
   familyTests: TrendFamilyTest[];
-  trendsOnly?: boolean;
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
+  const [trendsOnly, setTrendsOnly] = useState(false);
   const months = useMemo(() => calendar(start, end), [start, end]);
   const chart = useMemo(() => {
     const x = (index: number) =>
@@ -241,6 +240,15 @@ function ComparisonChartComponent({
           </p>
         </div>
         <div className="real-export-actions">
+          <button
+            type="button"
+            className="comparison-trends-only"
+            aria-pressed={trendsOnly}
+            title="Hide the observed series and keep only season-adjusted trends"
+            onClick={() => setTrendsOnly((value) => !value)}
+          >
+            Trends only
+          </button>
           <button
             type="button"
             disabled={noArea || !entries.some((entry) => entry.data)}
