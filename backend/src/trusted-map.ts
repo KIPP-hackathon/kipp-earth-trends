@@ -1,427 +1,317 @@
-// Reviewed physical contract from databricks/data-standardization/*/column_mapping.yaml.
-// These names alone never establish availability or trusted lineage.
+// Reviewed consolidated trusted physical column contract, 2026-11-15.
 export const trustedColumns: Record<string, Record<string, string>> = {
-  "tb_merra2_cldprs": {
+  "tb_merra2_fluxos": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
-    "CLDPRS": "cloud_top_pressure_pascals"
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "surface_buoyancy_scale": "surface_buoyancy_scale",
+    "surface_exchange_coefficient_for_heat": "surface_exchange_coefficient_for_heat",
+    "surface_exchange_coefficient_for_momentum": "surface_exchange_coefficient_for_momentum",
+    "surface_exchange_coefficient_for_moisture": "surface_exchange_coefficient_for_moisture",
+    "surface_neutral_drag_coefficient": "surface_neutral_drag_coefficient",
+    "total_latent_energy_flux": "total_latent_energy_flux",
+    "evaporation_from_turbulence": "evaporation_from_turbulence",
+    "areal_fraction_of_anvil_showers": "areal_fraction_of_anvil_showers",
+    "areal_fraction_of_convective_showers": "areal_fraction_of_convective_showers",
+    "areal_fraction_of_nonanvil_large_scale_showers": "areal_fraction_of_nonanvil_large_scale_showers",
+    "ice_covered_fraction_of_tile": "ice_covered_fraction_of_tile",
+    "ground_heating_for_skin_temp": "ground_heating_for_skin_temp",
+    "sensible_heat_flux_from_turbulence": "sensible_heat_flux_from_turbulence",
+    "surface_layer_height": "surface_layer_height",
+    "surface_downwelling_nearinfrared_diffuse_flux": "surface_downwelling_nearinfrared_diffuse_flux",
+    "surface_downwelling_nearinfrared_beam_flux": "surface_downwelling_nearinfrared_beam_flux",
+    "planetary_boundary_layer_height": "planetary_boundary_layer_height",
+    "total_column_production_of_precipitation": "total_column_production_of_precipitation",
+    "anvil_precipitation": "anvil_precipitation",
+    "convective_precipitation": "convective_precipitation",
+    "nonanvil_large_scale_precipitation": "nonanvil_large_scale_precipitation",
+    "snowfall": "snowfall",
+    "total_precipitation_from_atm_model_physics": "total_precipitation_from_atm_model_physics",
+    "bias_corrected_total_precipitation": "bias_corrected_total_precipitation",
+    "total_column_re_evap_subl_of_precipitation": "total_column_re_evap_subl_of_precipitation",
+    "air_density_at_surface": "air_density_at_surface",
+    "surface_bulk_richardson_number": "surface_bulk_richardson_number",
+    "transcom_planetary_boundary_layer_height": "transcom_planetary_boundary_layer_height",
+    "surface_roughness_for_heat": "surface_roughness_for_heat",
+    "surface_roughness": "surface_roughness"
   },
-  "tb_merra2_cldtmp": {
+  "tb_merra2_nuvens": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "cloud_top_pressure_pascals": "cloud_top_pressure_pascals",
+    "cloud_top_temperature_kelvin": "cloud_top_temperature_kelvin",
+    "simulated_isccp_cloud_albedo": "simulated_isccp_cloud_albedo",
+    "simulated_isccp_total_cloud_area_fraction": "simulated_isccp_total_cloud_area_fraction",
+    "simulated_modis_cloud_fraction_water_mean": "simulated_modis_cloud_fraction_water_mean",
+    "simulated_modis_cloud_fraction_high_mean": "simulated_modis_cloud_fraction_high_mean",
+    "simulated_modis_cloud_fraction_ice_mean": "simulated_modis_cloud_fraction_ice_mean",
+    "simulated_modis_cloud_fraction_low_mean": "simulated_modis_cloud_fraction_low_mean",
+    "simulated_modis_cloud_fraction_mid_mean": "simulated_modis_cloud_fraction_mid_mean",
+    "simulated_modis_cloud_fraction_total_mean": "simulated_modis_cloud_fraction_total_mean",
+    "simulated_modis_cloud_particle_size_water_mean": "simulated_modis_cloud_particle_size_water_mean",
+    "simulated_modis_cloud_particle_size_ice_mean": "simulated_modis_cloud_particle_size_ice_mean",
+    "simulated_modis_cloud_top_pressure_total_mean": "simulated_modis_cloud_top_pressure_total_mean",
+    "simulated_modis_liquid_water_path_mean": "simulated_modis_liquid_water_path_mean",
+    "simulated_modis_ice_water_path_mean": "simulated_modis_ice_water_path_mean",
+    "simulated_modis_optical_thickness_water_mean": "simulated_modis_optical_thickness_water_mean",
+    "simulated_modis_optical_thickness_water_logmean": "simulated_modis_optical_thickness_water_logmean",
+    "simulated_modis_optical_thickness_ice_mean": "simulated_modis_optical_thickness_ice_mean",
+    "simulated_modis_optical_thickness_ice_logmean": "simulated_modis_optical_thickness_ice_logmean",
+    "simulated_modis_optical_thickness_total_mean": "simulated_modis_optical_thickness_total_mean",
+    "simulated_modis_optical_thickness_total_logmean": "simulated_modis_optical_thickness_total_logmean",
+    "CLDPRS": "cloud_top_pressure_pascals",
     "CLDTMP": "cloud_top_temperature_kelvin"
   },
-  "tb_merra2_disph": {
+  "tb_merra2_pressao_altura": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
-    "DISPH": "zero_plane_displacement_height_meters"
-  },
-  "tb_merra2_h1000": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "H1000": "geopotential_height_at_1000_hpa_meters"
-  },
-  "tb_merra2_h250": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "H250": "geopotential_height_at_250_hpa_meters"
-  },
-  "tb_merra2_h500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "H500": "geopotential_height_at_500_hpa_meters"
-  },
-  "tb_merra2_h850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "H850": "geopotential_height_at_850_hpa_meters"
-  },
-  "tb_merra2_omega500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "OMEGA500": "vertical_pressure_velocity_at_500_hpa_pascals_per_second"
-  },
-  "tb_merra2_pbltop": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "PBLTOP": "planetary_boundary_layer_top_pressure_pascals"
-  },
-  "tb_merra2_ps": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "PS": "surface_pressure_pascals"
-  },
-  "tb_merra2_q250": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Q250": "specific_humidity_at_250_hpa_kilograms_per_kilogram"
-  },
-  "tb_merra2_q500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Q500": "specific_humidity_at_500_hpa_kilograms_per_kilogram"
-  },
-  "tb_merra2_q850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Q850": "specific_humidity_at_850_hpa_kilograms_per_kilogram"
-  },
-  "tb_merra2_qv10m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "QV10M": "specific_humidity_at_10_meters_kilograms_per_kilogram"
-  },
-  "tb_merra2_qv2m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "QV2M": "specific_humidity_at_2_meters_kilograms_per_kilogram"
-  },
-  "tb_merra2_slp": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "SLP": "sea_level_pressure_pascals"
-  },
-  "tb_merra2_t10m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T10M_C": "air_temperature_at_10_meters_celsius"
-  },
-  "tb_merra2_t250": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T250": "air_temperature_at_250_hpa_kelvin"
-  },
-  "tb_merra2_t2m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T2M": "air_temperature_at_2_meters_kelvin"
-  },
-  "tb_merra2_t2mdew": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T2MDEW": "dew_point_temperature_at_2_meters_kelvin"
-  },
-  "tb_merra2_t2mwet": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T2MWET": "wet_bulb_temperature_at_2_meters_kelvin"
-  },
-  "tb_merra2_t500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T500": "air_temperature_at_500_hpa_kelvin"
-  },
-  "tb_merra2_t850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "T850": "air_temperature_at_850_hpa_kelvin"
-  },
-  "tb_merra2_to3": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TO3": "total_column_ozone_dobson_units"
-  },
-  "tb_merra2_tox": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TOX": "total_column_odd_oxygen_kilograms_per_square_meter"
-  },
-  "tb_merra2_tqi": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TQI": "total_column_ice_water_kilograms_per_square_meter"
-  },
-  "tb_merra2_tql": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TQL": "total_column_liquid_water_kilograms_per_square_meter"
-  },
-  "tb_merra2_tqv": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TQV": "total_column_water_vapor_kilograms_per_square_meter"
-  },
-  "tb_merra2_troppb": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TROPPB": "blended_tropopause_pressure_pascals"
-  },
-  "tb_merra2_troppt": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TROPPT": "thermal_tropopause_pressure_pascals"
-  },
-  "tb_merra2_troppv": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "surface_pressure_pascals": "surface_pressure_pascals",
+    "sea_level_pressure_pascals": "sea_level_pressure_pascals",
+    "geopotential_height_at_1000_hpa_meters": "geopotential_height_at_1000_hpa_meters",
+    "geopotential_height_at_250_hpa_meters": "geopotential_height_at_250_hpa_meters",
+    "geopotential_height_at_500_hpa_meters": "geopotential_height_at_500_hpa_meters",
+    "geopotential_height_at_850_hpa_meters": "geopotential_height_at_850_hpa_meters",
+    "planetary_boundary_layer_top_pressure_pascals": "planetary_boundary_layer_top_pressure_pascals",
+    "blended_tropopause_pressure_pascals": "blended_tropopause_pressure_pascals",
+    "thermal_tropopause_pressure_pascals": "thermal_tropopause_pressure_pascals",
+    "potential_vorticity_tropopause_pressure_pascals": "potential_vorticity_tropopause_pressure_pascals",
+    "zero_plane_displacement_height_meters": "zero_plane_displacement_height_meters",
+    "lifting_condensation_level": "lifting_condensation_level",
+    "total_column_ozone_dobson_units": "total_column_ozone_dobson_units",
+    "total_column_odd_oxygen_kilograms_per_square_meter": "total_column_odd_oxygen_kilograms_per_square_meter",
+    "DISPH": "zero_plane_displacement_height_meters",
+    "H1000": "geopotential_height_at_1000_hpa_meters",
+    "H250": "geopotential_height_at_250_hpa_meters",
+    "H500": "geopotential_height_at_500_hpa_meters",
+    "H850": "geopotential_height_at_850_hpa_meters",
+    "PBLTOP": "planetary_boundary_layer_top_pressure_pascals",
+    "PS": "surface_pressure_pascals",
+    "SLP": "sea_level_pressure_pascals",
+    "TO3": "total_column_ozone_dobson_units",
+    "TOX": "total_column_odd_oxygen_kilograms_per_square_meter",
+    "TROPPB": "blended_tropopause_pressure_pascals",
+    "TROPPT": "thermal_tropopause_pressure_pascals",
     "TROPPV": "potential_vorticity_tropopause_pressure_pascals"
   },
-  "tb_merra2_tropq": {
+  "tb_merra2_temperatura": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
-    "TROPQ": "tropopause_specific_humidity_kilograms_per_kilogram"
-  },
-  "tb_merra2_tropt": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "TROPT": "tropopause_temperature_kelvin"
-  },
-  "tb_merra2_ts": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "air_temperature_at_2_meters_kelvin": "air_temperature_at_2_meters_kelvin",
+    "air_temperature_at_10_meters_kelvin": "air_temperature_at_10_meters_kelvin",
+    "air_temperature_at_10_meters_celsius": "air_temperature_at_10_meters_celsius",
+    "air_temperature_at_250_hpa_kelvin": "air_temperature_at_250_hpa_kelvin",
+    "air_temperature_at_500_hpa_kelvin": "air_temperature_at_500_hpa_kelvin",
+    "air_temperature_at_850_hpa_kelvin": "air_temperature_at_850_hpa_kelvin",
+    "surface_skin_temperature_kelvin": "surface_skin_temperature_kelvin",
+    "surface_skin_temperature_celsius": "surface_skin_temperature_celsius",
+    "dew_point_temperature_at_2_meters_kelvin": "dew_point_temperature_at_2_meters_kelvin",
+    "wet_bulb_temperature_at_2_meters_kelvin": "wet_bulb_temperature_at_2_meters_kelvin",
+    "tropopause_temperature_kelvin": "tropopause_temperature_kelvin",
+    "surface_air_temperature": "surface_air_temperature",
+    "effective_surface_skin_temperature": "effective_surface_skin_temperature",
+    "surface_temperature_scale": "surface_temperature_scale",
+    "T10M_C": "air_temperature_at_10_meters_celsius",
+    "T250": "air_temperature_at_250_hpa_kelvin",
+    "T2M": "air_temperature_at_2_meters_kelvin",
+    "T2MDEW": "dew_point_temperature_at_2_meters_kelvin",
+    "T2MWET": "wet_bulb_temperature_at_2_meters_kelvin",
+    "T500": "air_temperature_at_500_hpa_kelvin",
+    "T850": "air_temperature_at_850_hpa_kelvin",
+    "TROPT": "tropopause_temperature_kelvin",
     "TS_C": "surface_skin_temperature_celsius"
   },
-  "tb_merra2_u10m": {
+  "tb_merra2_umidade": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
-    "U10M": "eastward_wind_at_10_meters_meters_per_second"
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "specific_humidity_at_250_hpa_kilograms_per_kilogram": "specific_humidity_at_250_hpa_kilograms_per_kilogram",
+    "specific_humidity_at_500_hpa_kilograms_per_kilogram": "specific_humidity_at_500_hpa_kilograms_per_kilogram",
+    "specific_humidity_at_850_hpa_kilograms_per_kilogram": "specific_humidity_at_850_hpa_kilograms_per_kilogram",
+    "specific_humidity_at_2_meters_kilograms_per_kilogram": "specific_humidity_at_2_meters_kilograms_per_kilogram",
+    "specific_humidity_at_10_meters_kilograms_per_kilogram": "specific_humidity_at_10_meters_kilograms_per_kilogram",
+    "tropopause_specific_humidity_kilograms_per_kilogram": "tropopause_specific_humidity_kilograms_per_kilogram",
+    "total_column_water_vapor_kilograms_per_square_meter": "total_column_water_vapor_kilograms_per_square_meter",
+    "total_column_ice_water_kilograms_per_square_meter": "total_column_ice_water_kilograms_per_square_meter",
+    "total_column_liquid_water_kilograms_per_square_meter": "total_column_liquid_water_kilograms_per_square_meter",
+    "surface_specific_humidity": "surface_specific_humidity",
+    "effective_surface_specific_humidity": "effective_surface_specific_humidity",
+    "surface_moisture_scale": "surface_moisture_scale",
+    "Q250": "specific_humidity_at_250_hpa_kilograms_per_kilogram",
+    "Q500": "specific_humidity_at_500_hpa_kilograms_per_kilogram",
+    "Q850": "specific_humidity_at_850_hpa_kilograms_per_kilogram",
+    "QV10M": "specific_humidity_at_10_meters_kilograms_per_kilogram",
+    "QV2M": "specific_humidity_at_2_meters_kilograms_per_kilogram",
+    "TQI": "total_column_ice_water_kilograms_per_square_meter",
+    "TQL": "total_column_liquid_water_kilograms_per_square_meter",
+    "TQV": "total_column_water_vapor_kilograms_per_square_meter",
+    "TROPQ": "tropopause_specific_humidity_kilograms_per_kilogram"
   },
-  "tb_merra2_u250": {
+  "tb_merra2_variancias": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
-    "U250": "eastward_wind_at_250_hpa_meters_per_second"
-  },
-  "tb_merra2_u2m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "U2M": "eastward_wind_at_2_meters_meters_per_second"
-  },
-  "tb_merra2_u500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "U500": "eastward_wind_at_500_hpa_meters_per_second"
-  },
-  "tb_merra2_u50m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "U50M": "eastward_wind_at_50_meters_meters_per_second"
-  },
-  "tb_merra2_u850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "U850": "eastward_wind_at_850_hpa_meters_per_second"
-  },
-  "tb_merra2_v10m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "V10M": "northward_wind_at_10_meters_meters_per_second"
-  },
-  "tb_merra2_v250": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "V250": "northward_wind_at_250_hpa_meters_per_second"
-  },
-  "tb_merra2_v2m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "V2M": "northward_wind_at_2_meters_meters_per_second"
-  },
-  "tb_merra2_v500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "V500": "northward_wind_at_500_hpa_meters_per_second"
-  },
-  "tb_merra2_v50m": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "V50M": "northward_wind_at_50_meters_meters_per_second"
-  },
-  "tb_merra2_v850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "V850": "northward_wind_at_850_hpa_meters_per_second"
-  },
-  "tb_merra2_var_cldprs": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_CLDPRS": "cloud_top_pressure_pascals_variance"
-  },
-  "tb_merra2_var_cldtmp": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_CLDTMP": "cloud_top_temperature_kelvin_variance"
-  },
-  "tb_merra2_var_disph": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_DISPH": "zero_plane_displacement_height_meters_variance"
-  },
-  "tb_merra2_var_h1000": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_H1000": "geopotential_height_at_1000_hpa_meters_variance"
-  },
-  "tb_merra2_var_h250": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_H250": "geopotential_height_at_250_hpa_meters_variance"
-  },
-  "tb_merra2_var_h500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_H500": "geopotential_height_at_500_hpa_meters_variance"
-  },
-  "tb_merra2_var_h850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_H850": "geopotential_height_at_850_hpa_meters_variance"
-  },
-  "tb_merra2_var_omega500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_OMEGA500": "vertical_pressure_velocity_at_500_hpa_pascals_per_second_variance"
-  },
-  "tb_merra2_var_pbltop": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_PBLTOP": "planetary_boundary_layer_top_pressure_pascals_variance"
-  },
-  "tb_merra2_var_ps": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_PS": "surface_pressure_pascals_variance"
-  },
-  "tb_merra2_var_q250": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_Q250": "specific_humidity_at_250_hpa_kilograms_per_kilogram_variance"
-  },
-  "tb_merra2_var_q500": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "Var_Q500": "specific_humidity_at_500_hpa_kilograms_per_kilogram_variance"
-  },
-  "tb_merra2_var_q850": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "simulated_isccp_cloud_albedo_variance": "simulated_isccp_cloud_albedo_variance",
+    "simulated_isccp_total_cloud_area_fraction_variance": "simulated_isccp_total_cloud_area_fraction_variance",
+    "simulated_modis_cloud_fraction_water_mean_variance": "simulated_modis_cloud_fraction_water_mean_variance",
+    "simulated_modis_cloud_fraction_high_mean_variance": "simulated_modis_cloud_fraction_high_mean_variance",
+    "simulated_modis_cloud_fraction_ice_mean_variance": "simulated_modis_cloud_fraction_ice_mean_variance",
+    "simulated_modis_cloud_fraction_low_mean_variance": "simulated_modis_cloud_fraction_low_mean_variance",
+    "simulated_modis_cloud_fraction_mid_mean_variance": "simulated_modis_cloud_fraction_mid_mean_variance",
+    "simulated_modis_cloud_fraction_total_mean_variance": "simulated_modis_cloud_fraction_total_mean_variance",
+    "simulated_modis_cloud_particle_size_water_mean_variance": "simulated_modis_cloud_particle_size_water_mean_variance",
+    "simulated_modis_cloud_particle_size_ice_mean_variance": "simulated_modis_cloud_particle_size_ice_mean_variance",
+    "simulated_modis_cloud_top_pressure_total_mean_variance": "simulated_modis_cloud_top_pressure_total_mean_variance",
+    "simulated_modis_liquid_water_path_mean_variance": "simulated_modis_liquid_water_path_mean_variance",
+    "simulated_modis_ice_water_path_mean_variance": "simulated_modis_ice_water_path_mean_variance",
+    "simulated_modis_optical_thickness_water_mean_variance": "simulated_modis_optical_thickness_water_mean_variance",
+    "simulated_modis_optical_thickness_water_logmean_variance": "simulated_modis_optical_thickness_water_logmean_variance",
+    "simulated_modis_optical_thickness_ice_mean_variance": "simulated_modis_optical_thickness_ice_mean_variance",
+    "simulated_modis_optical_thickness_ice_logmean_variance": "simulated_modis_optical_thickness_ice_logmean_variance",
+    "simulated_modis_optical_thickness_total_mean_variance": "simulated_modis_optical_thickness_total_mean_variance",
+    "simulated_modis_optical_thickness_total_logmean_variance": "simulated_modis_optical_thickness_total_logmean_variance",
+    "surface_buoyancy_scale_variance": "surface_buoyancy_scale_variance",
+    "surface_exchange_coefficient_for_heat_variance": "surface_exchange_coefficient_for_heat_variance",
+    "surface_exchange_coefficient_for_momentum_variance": "surface_exchange_coefficient_for_momentum_variance",
+    "surface_exchange_coefficient_for_moisture_variance": "surface_exchange_coefficient_for_moisture_variance",
+    "surface_neutral_drag_coefficient_variance": "surface_neutral_drag_coefficient_variance",
+    "total_latent_energy_flux_variance": "total_latent_energy_flux_variance",
+    "evaporation_from_turbulence_variance": "evaporation_from_turbulence_variance",
+    "areal_fraction_of_anvil_showers_variance": "areal_fraction_of_anvil_showers_variance",
+    "areal_fraction_of_convective_showers_variance": "areal_fraction_of_convective_showers_variance",
+    "areal_fraction_of_nonanvil_large_scale_showers_variance": "areal_fraction_of_nonanvil_large_scale_showers_variance",
+    "ice_covered_fraction_of_tile_variance": "ice_covered_fraction_of_tile_variance",
+    "ground_heating_for_skin_temp_variance": "ground_heating_for_skin_temp_variance",
+    "sensible_heat_flux_from_turbulence_variance": "sensible_heat_flux_from_turbulence_variance",
+    "surface_layer_height_variance": "surface_layer_height_variance",
+    "surface_downwelling_nearinfrared_diffuse_flux_variance": "surface_downwelling_nearinfrared_diffuse_flux_variance",
+    "surface_downwelling_nearinfrared_beam_flux_variance": "surface_downwelling_nearinfrared_beam_flux_variance",
+    "planetary_boundary_layer_height_variance": "planetary_boundary_layer_height_variance",
+    "total_column_production_of_precipitation_variance": "total_column_production_of_precipitation_variance",
+    "anvil_precipitation_variance": "anvil_precipitation_variance",
+    "convective_precipitation_variance": "convective_precipitation_variance",
+    "nonanvil_large_scale_precipitation_variance": "nonanvil_large_scale_precipitation_variance",
+    "snowfall_variance": "snowfall_variance",
+    "total_precipitation_from_atm_model_physics_variance": "total_precipitation_from_atm_model_physics_variance",
+    "bias_corrected_total_precipitation_variance": "bias_corrected_total_precipitation_variance",
+    "total_column_re_evap_subl_of_precipitation_variance": "total_column_re_evap_subl_of_precipitation_variance",
+    "surface_specific_humidity_variance": "surface_specific_humidity_variance",
+    "effective_surface_specific_humidity_variance": "effective_surface_specific_humidity_variance",
+    "surface_moisture_scale_variance": "surface_moisture_scale_variance",
+    "air_density_at_surface_variance": "air_density_at_surface_variance",
+    "surface_bulk_richardson_number_variance": "surface_bulk_richardson_number_variance",
+    "surface_wind_speed_variance": "surface_wind_speed_variance",
+    "surface_wind_speed_max_variance": "surface_wind_speed_max_variance",
+    "surface_eastward_gravity_wave_stress_variance": "surface_eastward_gravity_wave_stress_variance",
+    "surface_northward_gravity_wave_stress_variance": "surface_northward_gravity_wave_stress_variance",
+    "eastward_surface_stress_variance": "eastward_surface_stress_variance",
+    "northward_surface_stress_variance": "northward_surface_stress_variance",
+    "transcom_planetary_boundary_layer_height_variance": "transcom_planetary_boundary_layer_height_variance",
+    "surface_air_temperature_variance": "surface_air_temperature_variance",
+    "effective_surface_skin_temperature_variance": "effective_surface_skin_temperature_variance",
+    "surface_temperature_scale_variance": "surface_temperature_scale_variance",
+    "surface_eastward_wind_variance": "surface_eastward_wind_variance",
+    "surface_velocity_scale_variance": "surface_velocity_scale_variance",
+    "surface_northward_wind_variance": "surface_northward_wind_variance",
+    "surface_roughness_for_heat_variance": "surface_roughness_for_heat_variance",
+    "surface_roughness_variance": "surface_roughness_variance",
+    "specific_humidity_at_10_meters_kilograms_per_kilogram_variance": "specific_humidity_at_10_meters_kilograms_per_kilogram_variance",
+    "specific_humidity_at_2_meters_kilograms_per_kilogram_variance": "specific_humidity_at_2_meters_kilograms_per_kilogram_variance",
+    "sea_level_pressure_pascals_variance": "sea_level_pressure_pascals_variance",
+    "10_meter_air_temperature_variance": "10_meter_air_temperature_variance",
+    "air_temperature_at_250_hpa_kelvin_variance": "air_temperature_at_250_hpa_kelvin_variance",
+    "air_temperature_at_2_meters_kelvin_variance": "air_temperature_at_2_meters_kelvin_variance",
+    "dew_point_temperature_at_2_meters_kelvin_variance": "dew_point_temperature_at_2_meters_kelvin_variance",
+    "wet_bulb_temperature_at_2_meters_kelvin_variance": "wet_bulb_temperature_at_2_meters_kelvin_variance",
+    "air_temperature_at_500_hpa_kelvin_variance": "air_temperature_at_500_hpa_kelvin_variance",
+    "air_temperature_at_850_hpa_kelvin_variance": "air_temperature_at_850_hpa_kelvin_variance",
+    "total_column_ozone_dobson_units_variance": "total_column_ozone_dobson_units_variance",
+    "total_column_odd_oxygen_kilograms_per_square_meter_variance": "total_column_odd_oxygen_kilograms_per_square_meter_variance",
+    "total_column_ice_water_kilograms_per_square_meter_variance": "total_column_ice_water_kilograms_per_square_meter_variance",
+    "total_column_liquid_water_kilograms_per_square_meter_variance": "total_column_liquid_water_kilograms_per_square_meter_variance",
+    "total_column_water_vapor_kilograms_per_square_meter_variance": "total_column_water_vapor_kilograms_per_square_meter_variance",
+    "blended_tropopause_pressure_pascals_variance": "blended_tropopause_pressure_pascals_variance",
+    "cloud_top_pressure_pascals_variance": "cloud_top_pressure_pascals_variance",
+    "cloud_top_temperature_kelvin_variance": "cloud_top_temperature_kelvin_variance",
+    "zero_plane_displacement_height_meters_variance": "zero_plane_displacement_height_meters_variance",
+    "geopotential_height_at_1000_hpa_meters_variance": "geopotential_height_at_1000_hpa_meters_variance",
+    "geopotential_height_at_250_hpa_meters_variance": "geopotential_height_at_250_hpa_meters_variance",
+    "geopotential_height_at_500_hpa_meters_variance": "geopotential_height_at_500_hpa_meters_variance",
+    "geopotential_height_at_850_hpa_meters_variance": "geopotential_height_at_850_hpa_meters_variance",
+    "vertical_pressure_velocity_at_500_hpa_pascals_per_second_variance": "vertical_pressure_velocity_at_500_hpa_pascals_per_second_variance",
+    "planetary_boundary_layer_top_pressure_pascals_variance": "planetary_boundary_layer_top_pressure_pascals_variance",
+    "surface_pressure_pascals_variance": "surface_pressure_pascals_variance",
+    "specific_humidity_at_250_hpa_kilograms_per_kilogram_variance": "specific_humidity_at_250_hpa_kilograms_per_kilogram_variance",
+    "specific_humidity_at_500_hpa_kilograms_per_kilogram_variance": "specific_humidity_at_500_hpa_kilograms_per_kilogram_variance",
+    "specific_humidity_at_850_hpa_kilograms_per_kilogram_variance": "specific_humidity_at_850_hpa_kilograms_per_kilogram_variance",
+    "Var_CLDPRS": "cloud_top_pressure_pascals_variance",
+    "Var_CLDTMP": "cloud_top_temperature_kelvin_variance",
+    "Var_DISPH": "zero_plane_displacement_height_meters_variance",
+    "Var_H1000": "geopotential_height_at_1000_hpa_meters_variance",
+    "Var_H250": "geopotential_height_at_250_hpa_meters_variance",
+    "Var_H500": "geopotential_height_at_500_hpa_meters_variance",
+    "Var_H850": "geopotential_height_at_850_hpa_meters_variance",
+    "Var_OMEGA500": "vertical_pressure_velocity_at_500_hpa_pascals_per_second_variance",
+    "Var_PBLTOP": "planetary_boundary_layer_top_pressure_pascals_variance",
+    "Var_PS": "surface_pressure_pascals_variance",
+    "Var_Q250": "specific_humidity_at_250_hpa_kilograms_per_kilogram_variance",
+    "Var_Q500": "specific_humidity_at_500_hpa_kilograms_per_kilogram_variance",
     "Var_Q850": "specific_humidity_at_850_hpa_kilograms_per_kilogram_variance"
   },
-  "tb_gpm_imerg_precipitation": {
+  "tb_merra2_vento": {
     "lat": "latitude",
     "lon": "longitude",
     "time": "time",
-    "precipitation_mm_month": "monthly_precipitation_millimeters",
-    "valid_area_fraction": "valid_area_fraction",
-    "precipitation_mm_h": "precipitation_rate_millimeters_per_hour"
-  },
-  "tb_gpm_imerg_late_precipitation": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "precipitation_mm_month": "monthly_precipitation_millimeters",
-    "valid_area_fraction": "valid_area_fraction",
-    "precipitation_mm_h": "precipitation_rate_millimeters_per_hour"
-  },
-  "tb_gpm_imerg_liquid_probability": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "liquid_precipitation_probability_pct": "liquid_precipitation_probability_percent",
-    "valid_area_fraction": "valid_area_fraction"
-  },
-  "tb_grace_jpl_mass_anomaly": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "mass_anomaly_mm_we": "surface_mass_anomaly_millimeters_water_equivalent",
-    "valid_area_fraction": "valid_area_fraction",
-    "cell_mass_anomaly_gt": "cell_mass_anomaly_gigatonnes"
-  },
-  "tb_modis_mod13c2_vegetation": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "ndvi": "normalized_difference_vegetation_index",
-    "pixel_reliability": "pixel_reliability_rank",
-    "vi_quality": "vegetation_index_quality_bits",
-    "evi": "enhanced_vegetation_index"
-  },
-  "tb_sea_ice_arctic": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "sea_ice_extent_flag": "sea_ice_extent_flag",
-    "valid_sample": "valid_sample"
-  },
-  "tb_sea_ice_concentration_arctic": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "sea_ice_concentration_pct": "sea_ice_concentration_percent",
-    "valid_area_fraction": "valid_area_fraction"
-  },
-  "tb_sea_ice_antarctic": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "sea_ice_extent_flag": "sea_ice_extent_flag",
-    "valid_sample": "valid_sample"
-  },
-  "tb_sea_ice_concentration_antarctic": {
-    "lat": "latitude",
-    "lon": "longitude",
-    "time": "time",
-    "sea_ice_concentration_pct": "sea_ice_concentration_percent",
-    "valid_area_fraction": "valid_area_fraction"
+    "latitude": "latitude",
+    "longitude": "longitude",
+    "eastward_wind_at_10_meters_meters_per_second": "eastward_wind_at_10_meters_meters_per_second",
+    "eastward_wind_at_250_hpa_meters_per_second": "eastward_wind_at_250_hpa_meters_per_second",
+    "eastward_wind_at_2_meters_meters_per_second": "eastward_wind_at_2_meters_meters_per_second",
+    "eastward_wind_at_500_hpa_meters_per_second": "eastward_wind_at_500_hpa_meters_per_second",
+    "eastward_wind_at_50_meters_meters_per_second": "eastward_wind_at_50_meters_meters_per_second",
+    "eastward_wind_at_850_hpa_meters_per_second": "eastward_wind_at_850_hpa_meters_per_second",
+    "northward_wind_at_10_meters_meters_per_second": "northward_wind_at_10_meters_meters_per_second",
+    "northward_wind_at_250_hpa_meters_per_second": "northward_wind_at_250_hpa_meters_per_second",
+    "northward_wind_at_2_meters_meters_per_second": "northward_wind_at_2_meters_meters_per_second",
+    "northward_wind_at_500_hpa_meters_per_second": "northward_wind_at_500_hpa_meters_per_second",
+    "northward_wind_at_50_meters_meters_per_second": "northward_wind_at_50_meters_meters_per_second",
+    "northward_wind_at_850_hpa_meters_per_second": "northward_wind_at_850_hpa_meters_per_second",
+    "vertical_pressure_velocity_at_500_hpa_pascals_per_second": "vertical_pressure_velocity_at_500_hpa_pascals_per_second",
+    "surface_eastward_wind": "surface_eastward_wind",
+    "surface_northward_wind": "surface_northward_wind",
+    "surface_wind_speed": "surface_wind_speed",
+    "surface_velocity_scale": "surface_velocity_scale",
+    "eastward_surface_stress": "eastward_surface_stress",
+    "northward_surface_stress": "northward_surface_stress",
+    "surface_eastward_gravity_wave_stress": "surface_eastward_gravity_wave_stress",
+    "surface_northward_gravity_wave_stress": "surface_northward_gravity_wave_stress",
+    "OMEGA500": "vertical_pressure_velocity_at_500_hpa_pascals_per_second",
+    "U10M": "eastward_wind_at_10_meters_meters_per_second",
+    "U250": "eastward_wind_at_250_hpa_meters_per_second",
+    "U2M": "eastward_wind_at_2_meters_meters_per_second",
+    "U500": "eastward_wind_at_500_hpa_meters_per_second",
+    "U50M": "eastward_wind_at_50_meters_meters_per_second",
+    "U850": "eastward_wind_at_850_hpa_meters_per_second",
+    "V10M": "northward_wind_at_10_meters_meters_per_second",
+    "V250": "northward_wind_at_250_hpa_meters_per_second",
+    "V2M": "northward_wind_at_2_meters_meters_per_second",
+    "V500": "northward_wind_at_500_hpa_meters_per_second",
+    "V50M": "northward_wind_at_50_meters_meters_per_second",
+    "V850": "northward_wind_at_850_hpa_meters_per_second"
   }
 };
 

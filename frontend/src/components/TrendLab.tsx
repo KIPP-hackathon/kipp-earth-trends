@@ -298,15 +298,15 @@ export function TrendLab({
               <div className="investigation-presets">
                 <button
                   type="button"
-                  onClick={() => preset("temperature", "rainfall")}
+                  onClick={() => preset("temperature", "merra2_flx_prectotcorr")}
                 >
-                  Pantanal: heat & rainfall
+                  Pantanal: heat & precipitation flux
                 </button>
                 <button
                   type="button"
-                  onClick={() => preset("rainfall", "grace_water_equivalent")}
+                  onClick={() => preset("merra2_flx_prectotcorr", "merra2_qv2m")}
                 >
-                  Pantanal: rainfall & storage
+                  Pantanal: precipitation & humidity
                 </button>
               </div>
             </details>

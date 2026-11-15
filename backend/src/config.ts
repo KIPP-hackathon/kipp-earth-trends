@@ -90,11 +90,11 @@ export const historicalEvents: HistoricalEvent[] = [
     location: "Pantanal · Brazil",
     window: ["2024-06", "2024-09"],
     region: "pantanal",
-    variable: "rainfall",
+    variable: "merra2_flx_prectotcorr",
     description:
-      "Satellite records documented fires in the Pantanal in 2024. Explore monthly rainfall and temperature context in the study area.",
+      "Satellite records documented fires in the Pantanal in 2024. Explore monthly MERRA-2 precipitation flux and temperature context in the study area.",
     limitation:
-      "The rectangle is not a burned-area footprint. Monthly rainfall, air temperature and humidity provide environmental context, not hotspots or fire detection.",
+      "The rectangle is not a burned-area footprint. Monthly modeled precipitation flux, air temperature and humidity provide environmental context, not hotspots or fire detection.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/smoke-fills-south-american-skies-153295/",
@@ -124,9 +124,9 @@ export const historicalEvents: HistoricalEvent[] = [
     location: "Caribbean · Gulf of Mexico",
     window: ["2024-06", "2024-07"],
     region: "caribe",
-    variable: "rainfall",
+    variable: "merra2_flx_prectotcorr",
     description:
-      "Beryl occurred from June 28 to July 9, 2024. Compare monthly precipitation context in the Caribbean and the Gulf.",
+      "Beryl occurred from June 28 to July 9, 2024. Compare monthly modeled precipitation flux context in the Caribbean and the Gulf.",
     limitation:
       "The bbox is illustrative, not a storm track. Monthly means do not show peak winds, daily rainfall or hurricane movement.",
     source: {
@@ -141,7 +141,7 @@ export const historicalEvents: HistoricalEvent[] = [
     location: "Pantanal · Brazil",
     window: ["2020-08", "2020-10"],
     region: "pantanal",
-    variable: "rainfall",
+    variable: "merra2_flx_prectotcorr",
     description:
       "Historical record of extensive fires in the Pantanal in 2020.",
     limitation:
@@ -175,7 +175,7 @@ export const historicalEvents: HistoricalEvent[] = [
     location: "Amazon · Brazil",
     window: ["2019-07", "2019-10"],
     region: "amazonia",
-    variable: "rainfall",
+    variable: "merra2_flx_prectotcorr",
     description:
       "Satellite imagery recorded fire activity in the Amazon in 2019.",
     limitation:
@@ -192,7 +192,7 @@ export const historicalEvents: HistoricalEvent[] = [
     location: "Gulf of Mexico · United States",
     window: ["2005-08", "2005-08"],
     region: "caribe",
-    variable: "rainfall",
+    variable: "merra2_flx_prectotcorr",
     description:
       "Historical record of the cyclone that crossed the Gulf of Mexico in August 2005.",
     limitation:
@@ -209,7 +209,7 @@ export const historicalEvents: HistoricalEvent[] = [
     location: "Japan · Pacific Ocean",
     window: ["2011-03", "2011-03"],
     region: "japao",
-    variable: "rainfall",
+    variable: "merra2_flx_prectotcorr",
     description:
       "The earthquake on March 11, 2011 generated a tsunami recorded across the Pacific.",
     limitation:

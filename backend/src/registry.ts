@@ -1,3 +1,4 @@
+import { consolidatedTableFor, additionalIndicators } from "./consolidated-sources.ts";
 // Reviewed against docs/inventario-api-databricks.csv and the producer schemas.
 // This is an explicit whitelist: raw encodings, QA and uncertainty fields are not layers.
 export type RenderMetadata = {
@@ -16,6 +17,7 @@ export type Variable = {
   product: string;
   run?: string;
   description: string;
+  dataType?: "reanalysis" | "model-simulated satellite diagnostic";
   table: string;
   column: string;
   coverage?: string;
@@ -1139,163 +1141,29 @@ const merraDefinitions = [
     validRange: [0, null],
   },
 ] satisfies Parameters<typeof continuous>[0][];
-export const variables: Variable[] = merraDefinitions.map(continuous);
-for (const run of ["Final", "Late"] as const) {
-  const table =
-    run === "Final"
-      ? "tb_gpm_imerg_precipitation"
-      : "tb_gpm_imerg_late_precipitation";
-  for (const rate of [false, true])
-    variables.push(
-      continuous({
-        id: `${run === "Final" ? "rainfall" : "rainfall_late"}${rate ? "_rate" : ""}`,
-        name: `${rate ? "Mean precipitation rate" : "Monthly precipitation"} · ${run}`,
-        quantity: rate ? "precipitation_rate" : "monthly_precipitation",
-        unit: rate ? "mm/h" : "mm/month",
-        sourceUnit: rate ? "mm h-1" : "mm month-1",
-        product: "GPM IMERG V07",
-        run,
-        table,
-        column: rate ? "precipitation_mm_h" : "precipitation_mm_month",
-        coverage: "valid_area_fraction",
-        description:
-          "Monthly precipitation estimate from NASA IMERG; Final and Late are distinct processing runs.",
-        validRange: [0, null],
-        domain: rate ? [0, 3] : [0, 1500],
-        quality: {
-          rule: "finite_nonnegative_with_valid_area_fraction",
-          notes: [
-            "Exporter coverage is preserved; auxiliary native errors are not confidence intervals.",
-          ],
-        },
-      }),
-    );
-}
-variables.push(
-  continuous({
-    id: "liquid_precipitation_probability",
-    name: "Liquid-phase probability",
-    quantity: "liquid_precipitation_probability",
-    unit: "%",
-    sourceUnit: "percent",
-    product: "GPM IMERG V07",
-    run: "Final",
-    table: "tb_gpm_imerg_liquid_probability",
-    column: "liquid_precipitation_probability_pct",
-    coverage: "valid_area_fraction",
-    description:
-      "IMERG Final liquid-phase probability, not the probability of rain or liquid volume fraction.",
-    validRange: [0, 100],
-    domain: [0, 100],
-  }),
+// All active observation queries use the seven consolidated trusted tables.
+export const variables: Variable[] = merraDefinitions.map((definition) =>
+  continuous({ ...definition, table: consolidatedTableFor[definition.table] }),
 );
-for (const mass of [false, true])
-  variables.push(
-    continuous({
-      id: mass ? "grace_mass_anomaly" : "grace_water_equivalent",
-      name: mass
-        ? "Total surface mass anomaly"
-        : "Mass anomaly · water equivalent",
-      quantity: mass
-        ? "total_surface_mass_anomaly"
-        : "surface_mass_anomaly_water_equivalent",
-      unit: mass ? "Gt" : "mm w.e.",
-      sourceUnit: mass ? "Gt" : "mm water equivalent",
-      product: "GRACE/GRACE-FO JPL CRI RL06.3Mv04",
-      table: "tb_grace_jpl_mass_anomaly",
-      column: mass ? "cell_mass_anomaly_gt" : "mass_anomaly_mm_we",
-      coverage: "valid_area_fraction",
-      description:
-        "Anomaly relative to the 2004–2009 mean. Includes land water, ice and ocean; does not isolate groundwater. Hydrological gain factors are not applied.",
-      aggregation: mass ? "sum" : "area_weighted_mean",
-      domain: mass ? [-100, 100] : [-2000, 2000],
-      quality: {
-        rule: "finite_with_valid_area_fraction",
-        notes: [
-          "Mass in Gt is summed by cell/region, without a second area weighting.",
-          "Native uncertainty is auxiliary and does not represent propagated regional uncertainty.",
-        ],
-      },
-    }),
-  );
-for (const index of ["ndvi", "evi"])
-  variables.push(
-    continuous({
-      id: index,
-      name: `${index.toUpperCase()} · vegetation`,
-      quantity: `vegetation_${index}`,
-      unit: "1",
-      sourceUnit: "1",
-      product: "MODIS Terra MOD13C2.061",
-      table: "tb_modis_mod13c2_vegetation",
-      column: index,
-      description:
-        "Calibrated monthly index on the native 0.05° geographic grid. Raw values and QA are not separate scientific layers.",
-      nativeGrid: [0.05, 0.05],
-      factor: 32,
-      validRange: [-0.2, 1],
-      qa: "modis_good",
-      domain: [-0.2, 1],
-      quality: {
-        rule: "range[-0.2,1] AND pixel_reliability=0 AND vi_quality<>65535",
-        notes: [
-          "Conservative good-pixel filter; does not fully decode CMG 061 quality bits.",
-        ],
-      },
-    }),
-  );
-for (const pole of ["arctic", "antarctic"]) {
-  const label = pole === "arctic" ? "Arctic" : "Antarctic";
-  const flag = continuous({
-    id: `sea_ice_extent_${pole}`,
-    name: `Ice extent class · ${label}`,
-    quantity: "sea_ice_extent_class",
-    unit: "class",
-    sourceUnit: "1",
-    product: `NSIDC Sea Ice Index G02135 v4 · ${label}`,
-    table: `tb_sea_ice_${pole}`,
-    column: "sea_ice_extent_flag",
-    description:
-      "Monthly point class: 0 open ocean, 1 ice (native 15% threshold). This is not a regional extent measurement in km².",
-    qa: "ice_valid",
-    validRange: [0, 1],
+for (const [id, table, column, name, unit, collection] of additionalIndicators) {
+  const diagnostic = column.startsWith("simulated_");
+  const variance = column.endsWith("_variance");
+  variables.push(continuous({
+    id, table, column, name, quantity: id, unit, sourceUnit: unit,
+    product: `MERRA-2 ${collection} 5.12.4${diagnostic ? " · COSP simulator diagnostic" : ""}`,
+    dataType: diagnostic ? "model-simulated satellite diagnostic" : "reanalysis",
+    description: `Monthly ${name.toLowerCase()}, in ${unit}. ${diagnostic
+      ? "COSP satellite-simulator diagnostic driven by reanalysis; not a direct MODIS or ISCCP satellite observation."
+      : "MERRA-2 reanalysis model field; not a direct measurement."}${variance
+      ? " Native temporal variance, not pooled spatial variance, propagated uncertainty or a confidence interval." : ""}`,
+    // Visual fallback only. Runtime p5–p95 comes from the exact physical indicator.
     domain: [0, 1],
-    aggregation: "weighted_mode",
-    quality: {
-      rule: "valid_sample=1 AND class IN (0,1)",
-      notes: [
-        "Area-weighted mode; ties select open ocean. No valid samples produce a missing value.",
-      ],
-    },
-  });
-  flag.render = {
-    kind: "categorical",
-    domain: [0, 1],
-    colors: ["#143b64", "#dcf6ff"],
-    factor: 2,
-    categories: [
-      { value: 0, label: "Open ocean" },
-      { value: 1, label: "Sea ice ≥15%" },
-    ],
-  };
-  variables.push(
-    flag,
-    continuous({
-      id: `sea_ice_concentration_${pole}`,
-      name: `Sea ice concentration · ${label}`,
-      quantity: "sea_ice_concentration",
-      unit: "%",
-      sourceUnit: "percent",
-      product: `NSIDC Sea Ice Index G02135 v4 · ${label}`,
-      table: `tb_sea_ice_concentration_${pole}`,
-      column: "sea_ice_concentration_pct",
-      coverage: "valid_area_fraction",
-      description:
-        "Continuous monthly concentration; approximate quadrature remapping. Land/coast/pole hole remain missing; native 15% threshold is preserved.",
-      validRange: [0, 100],
-      domain: [0, 100],
-    }),
-  );
+    quality: { rule: "finite_source_value", notes: [
+      "Missing values and numeric sentinels remain missing.",
+      ...(diagnostic ? ["Model-simulated satellite diagnostic; not a direct satellite observation."] : []),
+      ...(variance ? ["Spatial averaging of native variance is not propagated regional uncertainty."] : []),
+    ] },
+  }));
 }
 export const excludedSources = [
   {

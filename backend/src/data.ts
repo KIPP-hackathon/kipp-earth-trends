@@ -19,8 +19,8 @@ export const limitations = [
   "Real data derived from NASA products; no automatic event classification or causal attribution.",
   "The returned grid is aggregated for display; it does not increase source resolution.",
   "Air temperature at 10 m differs from air temperature at 2 m and surface temperature.",
-  "IMERG Final and Late remain separate because their processing and coverage differ.",
-  "GRACE anomalies use a 2004–2009 reference and do not isolate groundwater; no causal inference or climate forecast is provided.",
+  "MERRA-2 precipitation fields are modeled fluxes in their stated units, not IMERG monthly rainfall totals.",
+  "COSP satellite-simulator diagnostics are model outputs, not direct MODIS or ISCCP observations; native variance is not regional uncertainty.",
   "Color scales are display ranges, not scientific limits or global observed minima/maxima.",
 ];
 export function variableFor(id: string): Variable {
@@ -225,13 +225,13 @@ export class DataService {
         ? "mode weighted by cos(latitude); ties choose class 0; no valid weight yields null; not regional ice extent in km²"
         : "mean weighted by cos(latitude) and valid area coverage over source grid points; display aggregation; bbox is not a basin polygon";
   }
-  private async availabilityGroup(group: Variable[], source: number) {
+  private async availabilityGroup(group: Variable[], source: number, width = group.length) {
     const validCounts = group.map(
       (v, i) => `SUM(CASE WHEN ${this.valid(v)} THEN 1 ELSE 0 END) AS v${i}`,
     );
-    // All layers of a table share one scan. Two valid-count columns cover every
-    // currently reviewed table; unused slots make UNION branches compatible.
-    while (validCounts.length < 2)
+    // Consolidated tables have different numbers of indicators. Pad every
+    // branch to the same width so a UNION cannot misalign their valid counts.
+    while (validCounts.length < width)
       validCounts.push(`CAST(NULL AS BIGINT) AS v${validCounts.length}`);
     return `SELECT ${source} AS source, ${this.month()} AS month, COUNT(*) AS samples,
       ${validCounts.join(", ")} FROM ${this.table(group[0])}
@@ -252,8 +252,22 @@ export class DataService {
   }
   async catalog(): Promise<CatalogVariable[]> {
     if (!queryBudget.getStore()) return withQueryBudget(() => this.catalog());
+    let rows: Record<string, unknown>[];
+    try {
+      rows = await this.provider.query(
+        "SELECT full_table_name, indicator, valid_flag, p5, p95 FROM `earth-trend-data`.`trusted`.`tb_indicator_coverage` WHERE catalogo = 'earth-trend-data' AND schema = 'trusted' LIMIT 10001",
+        {}, 10001,
+      );
+    } catch {
+      throw new ApiError(503, "COVERAGE_INVENTORY_UNAVAILABLE", "The indicator visibility configuration is unavailable. Please try again.");
+    }
+    if (rows.length > 10000)
+      throw new ApiError(503, "COVERAGE_INVENTORY_TOO_LARGE", "The indicator visibility configuration exceeds the supported size.");
+    const domains = percentileDomains(rows, this.variables);
+    const flags = coverageFlags(rows, this.variables);
     const groups: Variable[][] = [];
     for (const variable of this.variables) {
+      if (flags.get(variable.id) === false) continue;
       const existing = groups.find(
         (g) => this.table(g[0]) === this.table(variable),
       );
@@ -261,6 +275,7 @@ export class DataService {
       else groups.push([variable]);
     }
     const months = new Map<string, MonthAvailability[]>();
+    const width = Math.max(...groups.map((group) => group.length));
     const errors = new Map<string, { code: string; message: string }>();
     const load = async (indices: number[]): Promise<void> => {
       const budget = queryBudget.getStore()!;
@@ -272,7 +287,7 @@ export class DataService {
             "Catalog query budget exceeded.",
           );
         const branches = await Promise.all(
-          indices.map((i) => this.availabilityGroup(groups[i], i)),
+          indices.map((i) => this.availabilityGroup(groups[i], i, width)),
         );
         const rows = await this.provider.query(
           branches.join(" UNION ALL "),
@@ -293,8 +308,7 @@ export class DataService {
           );
         }
       } catch (error) {
-        // Isolate missing/denied source tables without silently dropping them.
-        // Splitting only failed chunks keeps a healthy catalog to nine scans/requests.
+        // Preserve source failures explicitly; never substitute observations.
         if (
           indices.length > 1 &&
           Date.now() < budget.deadline - 1000 &&
@@ -320,10 +334,7 @@ export class DataService {
             });
       }
     };
-    const chunks = Array.from(
-      { length: Math.ceil(groups.length / 8) },
-      (_, i) => groups.slice(i * 8, i * 8 + 8).map((_, j) => i * 8 + j),
-    );
+    const chunks = groups.map((_, i) => [i]);
     let next = 0;
     const worker = async () => {
       while (next < chunks.length) await load(chunks[next++]);
@@ -351,19 +362,6 @@ export class DataService {
         "CATALOG_UNAVAILABLE",
         "Could not query the real-data catalog.",
       );
-    let rows: Record<string, unknown>[];
-    try {
-      rows = await this.provider.query(
-        "SELECT full_table_name, indicator, valid_flag, p5, p95 FROM `earth-trend-data`.`trusted`.`tb_indicator_coverage` WHERE catalogo = 'earth-trend-data' AND schema = 'trusted' LIMIT 10001",
-        {}, 10001,
-      );
-    } catch {
-      throw new ApiError(503, "COVERAGE_INVENTORY_UNAVAILABLE", "The indicator visibility configuration is unavailable. Please try again.");
-    }
-    if (rows.length > 10000)
-      throw new ApiError(503, "COVERAGE_INVENTORY_TOO_LARGE", "The indicator visibility configuration exceeds the supported size.");
-    const domains = percentileDomains(rows, this.variables);
-    const flags = coverageFlags(rows, this.variables);
     return this.variables.map((v) => {
       const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
         a.month.localeCompare(b.month),
@@ -707,7 +705,9 @@ export function frameJson(frame: Awaited<ReturnType<DataService["frame"]>>) {
 function sourceMetadata(variable: Variable) {
   const source = `earth-trend-data.trusted.${variable.table}`;
   return { source: "databricks-sql" as const, sourceLayer: "trusted" as const,
-    sourceTable: source, sourceUC: source };
+    sourceTable: source, sourceUC: source,
+    sourceColumn: trustedColumns[variable.table]?.[variable.column],
+    dataType: variable.dataType ?? "reanalysis" };
 }
 
 export function metadataOf(variable: Variable) {

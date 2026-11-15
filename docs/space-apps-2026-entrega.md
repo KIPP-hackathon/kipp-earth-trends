@@ -1,5 +1,23 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Migração para sete tabelas consolidadas — 15/11/2026
+
+O usuário confirmou que as sete tabelas consolidadas MERRA-2 são as fontes
+pretendidas. Registro local atualizado para 205 indicadores físicos, com 87
+habilitados pelo inventário e 118 ocultos; só essas sete tabelas são consultadas
+como observações. IDs MERRA-2 existentes e conversões preservados. Presets de
+Events e Trend Lab usam precipitação modelada com ID, produto e unidade próprios,
+sem reutilizar o ID de chuva IMERG. Diagnósticos COSP identificados como simulados
+por modelo, distintos de observações diretas. Nenhuma flag ou dado alterado.
+
+[Mapeamento, proveniência, consultas reais e limites](consolidated-indicators.md).
+Validação real conferiu os 87 pares tabela/coluna, 321 meses por indicador, sete
+casos de contexto e duas séries regionais. Node.js 24: 87 testes frontend,
+suíte backend (incluindo regressões de mapeamento, largura das tabelas e
+ausência de scans de indicadores ocultos) e ambos os builds aprovados.
+Assistência OpenAI Codex; publicação em preparação, revisão humana e submissão
+formal pendentes.
+
 ### Auditoria das fontes de Events — 15/11/2026
 
 Consultas somente de leitura ao SQL Warehouse e à API pública confirmaram as

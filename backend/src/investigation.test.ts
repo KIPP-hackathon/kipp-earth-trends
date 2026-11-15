@@ -197,12 +197,14 @@ test("data service performs one bounded regional query per source, preserves ant
   });
   const result = await service.investigation({
     ...request,
+    y: "merra2_qv2m",
     bbox: "170,-10,-170,10",
   });
   assert.equal(queries.length, 2);
   assert.equal(queries[0].limit, 601);
   assert.match(queries[0].sql, /OR/);
-  assert.match(queries[1].sql, /valid_area_fraction/);
+  assert.match(queries[1].sql, /tb_merra2_umidade/);
+  assert.match(queries[1].sql, /specific_humidity_at_2_meters_kilograms_per_kilogram/);
   assert.equal(result.request.bbox, "170,-10,-170,10");
   assert.equal(result.series.length, 2);
   await assert.rejects(service.investigation({ ...request, bbox: "bad" }));

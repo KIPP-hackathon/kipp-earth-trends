@@ -7,9 +7,9 @@ type Candidate = { id: string; reason: string };
 const candidates: Record<string, Candidate[]> = {
   Wildfires: [
     {
-      id: "rainfall",
+      id: "merra2_flx_prectotcorr",
       reason:
-        "Monthly rainfall provides moisture context around the fire period; it does not detect fire or establish its cause.",
+        "Monthly bias-corrected MERRA-2 precipitation flux provides modeled moisture context; it is not IMERG rainfall, fire detection or evidence of cause.",
     },
     {
       id: "temperature",
@@ -34,9 +34,9 @@ const candidates: Record<string, Candidate[]> = {
   ],
   Hurricanes: [
     {
-      id: "rainfall",
+      id: "merra2_flx_prectotcorr",
       reason:
-        "Monthly rainfall provides broad precipitation context; it cannot resolve storm rainfall peaks or attribute totals to this cyclone.",
+        "Monthly bias-corrected MERRA-2 precipitation flux provides modeled precipitation context; it cannot resolve storm peaks or attribute rainfall to this cyclone.",
     },
     {
       id: "merra2_u10m",
@@ -61,9 +61,9 @@ const candidates: Record<string, Candidate[]> = {
         "Monthly air temperature at 10 m provides atmospheric context; it is not sea-surface temperature, an ONI index or an ENSO diagnosis.",
     },
     {
-      id: "rainfall",
+      id: "merra2_flx_prectotcorr",
       reason:
-        "Monthly rainfall offers hydrological context during the historical ENSO window; overlap alone does not attribute changes to El Niño.",
+        "Monthly bias-corrected MERRA-2 precipitation flux offers modeled hydrological context; overlap alone does not attribute changes to El Niño.",
     },
   ],
   Tsunamis: [],

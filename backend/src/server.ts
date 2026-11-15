@@ -170,7 +170,7 @@ api.get("/ready", async (_request, reply) => {
   await withQueryBudget(() =>
     Promise.all(
       [
-        warehouse.query("SELECT air_temperature_at_10_meters_celsius FROM `earth-trend-data`.trusted.tb_merra2_t10m LIMIT 0", {}, 1),
+        warehouse.query("SELECT air_temperature_at_10_meters_celsius FROM `earth-trend-data`.trusted.tb_merra2_temperatura LIMIT 0", {}, 1),
         warehouse.query("SELECT indicator_id FROM `earth-trend-data`.refined.tb_dim_indicators LIMIT 0", {}, 1),
         warehouse.query("SELECT region_id FROM `earth-trend-data`.refined.tb_trend_merra2_ts LIMIT 0", {}, 1),
       ],
@@ -190,7 +190,7 @@ api.get("/", async () => ({
     "/v1/availability/:variable",
     "/v1/frames/:variable/:month?factor=4&format=f32",
     "/v1/series/:variable?start=2024-01&end=2024-12&bbox=-60,-22,-54,-16",
-    "/v1/investigation?x=temperature&y=rainfall&bbox=-60,-22,-54,-16&start=2000-01&end=2025-09&baselineStart=2003-01&baselineEnd=2020-12&method=relationships-v1",
+    "/v1/investigation?x=temperature&y=merra2_flx_prectotcorr&bbox=-60,-22,-54,-16&start=2000-01&end=2025-09&baselineStart=2003-01&baselineEnd=2020-12&method=relationships-v1",
   ],
 }));
 api.get("/v1", async () => ({
