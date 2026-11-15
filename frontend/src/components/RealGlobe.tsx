@@ -596,7 +596,7 @@ export function RealGlobe({
         </svg>
         </div>
       </div>
-      <div className="globe-probe-slot">
+      <div className={`globe-probe-slot${windPair ? " has-wind-probe" : ""}`}>
       {probe && probeFrame && view.showLayer && (
         <p className="real-grid-info globe-probe-readout">
           Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
@@ -608,10 +608,10 @@ export function RealGlobe({
                 : "no data"}
           </strong>
           {!hiddenSample && windPair && (probedWind ? <>
-            {" · "}{probedWind.bearing === null ? "Calm monthly resultant; direction undefined" :
-              `Flow toward ${Math.round(probedWind.bearing) % 360}° clockwise from north`}
-            {" · "}monthly resultant {probedWind.resultant.toFixed(2)} m/s
-            {" · "}U {probedWind.u.toFixed(2)}, V {probedWind.v.toFixed(2)} m/s
+            <span className="wind-probe-direction">{probedWind.bearing === null ? "Calm monthly resultant; direction undefined" :
+              `Flow toward ${Math.round(probedWind.bearing) % 360}° clockwise from north`}</span>
+            <span className="wind-probe-components">Monthly resultant {probedWind.resultant.toFixed(2)} m/s
+              {" · "}U {probedWind.u.toFixed(2)}, V {probedWind.v.toFixed(2)} m/s</span>
           </> : " · no paired wind direction for this cell")}
         </p>
       )}
