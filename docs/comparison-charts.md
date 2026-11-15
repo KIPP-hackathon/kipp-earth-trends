@@ -54,7 +54,20 @@ Read-only Warehouse checks confirmed temperature has20reference years/month
 and33valid display months for2024-01–2026-09 in both scopes. Arctic ice returns
 valid-area percent, and explicitly lacks the historical reference in the current
 short source. Local browser checks cover three curves, toggle, share restoration
-and a single-month period with isolated markers. Production evidence follows
-deployment. These checks do not constitute a scientific trend/significance study
+and a single-month period with isolated markers.
+
+Production release `f17753a` was verified on15/11/2026 at
+https://kipp-earth-trends-lab.vercel.app/. The served frontend bundle is
+`index-0MHaCikx.js`; the browser restored three variables and Scale0–100 from a
+share link, drew three curves in each of the two charts, and switched to
+historical deviation with explicit short-reference gaps and back without
+loading notices. Backend CI run43671645405 passed, including the new real-data
+comparison smoke. Cloud Run revision `kipp-earth-api-00039-yiy` is ready with
+100percent traffic; anonymous direct access returned403. The published bundle
+passed an exact private-credential and token-pattern scan. No credentials or
+Lakebase activation were added. Other chats' mascot/architecture edits were
+excluded from this release; the latest team pipeline changes were merged.
+
+These checks do not constitute a scientific trend/significance study
 or complete the challenge submission. OpenAI Codex assisted implementation,
 documentation and verification; the team's scientific review remains separate.

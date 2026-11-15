@@ -45,7 +45,7 @@ no new persistent tests. Preserve unrelated uncommitted work and fetch team main
 - [x] Review changed interfaces/math/queries/security, fix important findings.
 - [x] Browser verify real multivariable toggle, missing reference, raw tooltip,
       map independence, regional selection, saves and responsive layout.
-- [ ] Publish; verify production artifacts, endpoint and private Cloud Run;
+- [x] Publish; verify production artifacts, endpoint and private Cloud Run;
       update evidence and AI record without staging other chats' changes.
 
 Execution notes: existing feature branch reused to preserve active chats; team main7e4abc5 fast-forwarded. No new test suites, per hackathon instruction. Reviewer found a dropped assistant preset mode and invisible singleton runs; both fixed, with runtime browser confirmation of single-month markers. Hover cursor also clears after interaction/month changes. Existing46frontend and6auth checks and Node24 builds passed; local live Warehouse temperature/ice and two-chart/share/mobile checks passed. Other chats’ mascot/architecture work remains outside this change.

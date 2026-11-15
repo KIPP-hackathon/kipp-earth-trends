@@ -374,5 +374,5 @@ atribuição causal. [Método, fontes e evidências](comparison-charts.md).
 Node24:46checks existentes do frontend,6de autenticação e builds aprovados;
 verificação temporária de matemática/save e navegação com dados reais. Revisão
 independente identificou preservação do modo e pontos isolados; corrigidos e
-conferidos. Publicação e evidência final serão registradas após o deploy.
+conferidos. Publicação conferida: release f17753a, bundle index-0MHaCikx.js, CI43671645405 aprovado e Cloud Run kipp-earth-api-00039-yiy com100% do tráfego. Browser em produção: dois gráficos com três curvas, restauração de Scale0–100 e troca para desvio histórico com lacunas explícitas. Acesso anônimo direto403; scan do bundle sem credencial privada/token.
 Isso não conclui a investigação científica nem a submissão ao Space Apps.
