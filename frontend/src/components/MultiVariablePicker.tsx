@@ -286,17 +286,8 @@ export function MultiVariablePicker({
                                   ({realUnit(variable.unit)})
                                 </span>
                               </strong>
-                              {(variable.domain || !available || wind) && (
+                              {(!available || wind) && (
                                 <small className="multi-variable-meta">
-                                  {variable.domain && (
-                                    <span
-                                      className="multi-variable-domain"
-                                      data-domain={variable.domain}
-                                    >
-                                      <DomainIcon domain={variable.domain} />
-                                      {variable.domain}
-                                    </span>
-                                  )}
                                   {!available && <span>unavailable</span>}
                                   {wind && <span>↗ paired wind arrows</span>}
                                 </small>

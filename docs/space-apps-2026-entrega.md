@@ -774,6 +774,22 @@ O domínio público entregou `index-D6rw6RTJ.js`, idêntico ao build validado,
 com controles, checkboxes e grupos, sem os antigos botões de ocultação.
 Sem declaração de navegação visual automatizada.
 
+### Refinamento do gráfico do recorte — 15/11/2026
+
+OpenAI Codex assistiu os três controles compactos e uniformes à direita do
+cabeçalho, a ampliação da área útil do gráfico, a remoção da tabela Original
+values e do bloco How these comparisons are calculated. Explicações,
+cobertura, unidades, proveniência e razões de indisponibilidade ficam no nome
+da variável por hover, foco ou toque, em popup fora da área de scroll da tabela.
+Valores originais continuam no hover do gráfico e da variável. As tags de
+domínio repetidas nos itens do seletor foram removidas; os grupos permanecem.
+Sem alteração do método de tendência ou da família Holm.
+Chrome isolado com fixture sintética identificada conferiu 1120/390 px,
+alinhamento e estilos idênticos dos três controles, ausência das seções
+removidas, hover, Escape, checkbox e ausência de overflow da página.
+Capturas locais ignoradas; não são evidência científica. Publicação pendente
+de confirmação. Revisão humana e submissão permanecem separadas.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

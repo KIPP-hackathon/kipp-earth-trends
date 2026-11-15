@@ -3,6 +3,8 @@ import type { ComparisonMode } from "../lib/earthApi";
 import { formatTrendP, formatTrendRate, trendKey } from "../lib/runtimeTrends";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { comparisonColor } from "../lib/comparisonColors";
+import { realUnit } from "../lib/earthApi";
+import { VariableExplanation } from "./VariableExplanation";
 
 function TrendResultsComponent({
   entries,
@@ -13,6 +15,8 @@ function TrendResultsComponent({
   loading,
   hiddenVariables,
   onToggleVariable,
+  month,
+  monthCount,
 }: {
   entries: ComparisonEntry[];
   mode: ComparisonMode;
@@ -22,6 +26,8 @@ function TrendResultsComponent({
   loading: boolean;
   hiddenVariables: Set<string>;
   onToggleVariable: (id: string) => void;
+  month: string;
+  monthCount: number;
 }) {
   const unit = mode === "standardized" ? "σ/year" : "points/year";
   return (
@@ -51,6 +57,26 @@ function TrendResultsComponent({
             {entries.map(({ variable, data, error }) => {
               const trend = data?.[scope].trends?.[mode],
                 adjusted = adjustedP[trendKey(scope, variable.id)];
+              const source = data?.[scope];
+              const row = source?.observations.find(
+                (row) => row.month === month,
+              );
+              const valid = source?.observations.filter(
+                (row) => row[mode] !== null,
+              ).length;
+              const insufficient =
+                source?.observations.filter(
+                  (row) => row.standardizedStatus === "insufficient_reference",
+                ).length ?? 0;
+              const constant =
+                source?.observations.filter(
+                  (row) => row.standardizedStatus === "constant_reference",
+                ).length ?? 0;
+              const reason =
+                trend?.reason ??
+                (data && !trend
+                  ? "Trend processing is unavailable in this response; refresh the catalog after the API update."
+                  : null);
               return (
                 <tr
                   key={variable.id}
@@ -70,13 +96,62 @@ function TrendResultsComponent({
                   </td>
                   <th scope="row">
                     <i style={{ background: comparisonColor(variable.id) }} />
-                    {variable.name}
-                    {trend && (
-                      <small>
-                        {trend.n} months · {trend.firstMonth ?? "—"}–
-                        {trend.lastMonth ?? "—"}
-                      </small>
-                    )}
+                    <VariableExplanation name={variable.name}>
+                      {variable.description && <p>{variable.description}</p>}
+                      <p>
+                        {data?.product ?? variable.product} ·{" "}
+                        {realUnit(data?.unit ?? variable.unit)}
+                      </p>
+                      {trend && (
+                        <p>
+                          {trend.n} fitted months · {trend.firstMonth ?? "—"}–
+                          {trend.lastMonth ?? "—"}
+                        </p>
+                      )}
+                      <p>
+                        {month}:{" "}
+                        {row?.value !== null && row?.value !== undefined
+                          ? `${row.value.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${realUnit(data?.unit ?? variable.unit)}`
+                          : "No data"}
+                        {row?.coverage !== null && row?.coverage !== undefined
+                          ? ` · ${(row.coverage * 100).toFixed(1)}% coverage`
+                          : ""}
+                      </p>
+                      {valid !== undefined && (
+                        <p>
+                          {valid}/{monthCount} comparable months. Gaps remain
+                          empty.
+                        </p>
+                      )}
+                      {mode === "standardized" && insufficient > 0 && (
+                        <p>
+                          {insufficient} months need at least 10 reference years
+                          for the same calendar month. Try Scale 0–100 to
+                          inspect available values.
+                        </p>
+                      )}
+                      {mode === "standardized" && constant > 0 && (
+                        <p>{constant} months have zero reference variation.</p>
+                      )}
+                      {mode === "minmax" && source?.range.constant && (
+                        <p>No variation in this period; plotted at 50.</p>
+                      )}
+                      {error && <p>{error}</p>}
+                      {reason && <p>{reason}</p>}
+                      {trend && (
+                        <p>
+                          Seasonal OLS trend; approximate two-sided Wald p with
+                          Newey–West HAC12. Holm covers all {familySize} applied
+                          variables, including hidden curves. Significance is
+                          not causation.
+                        </p>
+                      )}
+                      {data && (
+                        <p>
+                          {data.method} · {data.sourceUC}
+                        </p>
+                      )}
+                    </VariableExplanation>
                   </th>
                   <td>
                     {trend?.slopePerYear !== null &&
@@ -109,21 +184,6 @@ function TrendResultsComponent({
           </tbody>
         </table>
       </div>
-      <ul className="runtime-trend-reasons">
-        {entries.map(({ variable, data }) => {
-          const trend = data?.[scope].trends?.[mode];
-          const reason =
-            trend?.reason ??
-            (data && !trend
-              ? "Trend processing is unavailable in this response; refresh the catalog after the API update."
-              : null);
-          return reason ? (
-            <li key={variable.id}>
-              {variable.name}: {reason}
-            </li>
-          ) : null;
-        })}
-      </ul>
     </div>
   );
 }

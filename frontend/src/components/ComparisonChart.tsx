@@ -5,6 +5,10 @@ import { realUnit } from "../lib/earthApi";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { TrendResults } from "./TrendResults";
 import { comparisonColor, comparisonTrendColor } from "../lib/comparisonColors";
+const plot = { left: 52, right: 632, top: 12, bottom: 184 };
+const plotWidth = plot.right - plot.left;
+const plotHeight = plot.bottom - plot.top;
+
 function calendar(start: string, end: string) {
   const index = (value: string) =>
     Number(value.slice(0, 4)) * 12 + Number(value.slice(5)) - 1;
@@ -73,9 +77,10 @@ function ComparisonChartComponent({
   const months = useMemo(() => calendar(start, end), [start, end]);
   const chart = useMemo(() => {
     const x = (index: number) =>
-      48 + (index / Math.max(1, months.length - 1)) * 530;
+      plot.left + (index / Math.max(1, months.length - 1)) * plotWidth;
     const y = (value: number) =>
-      150 - ((value - domain[0]) / (domain[1] - domain[0])) * 122;
+      plot.bottom -
+      ((value - domain[0]) / (domain[1] - domain[0])) * plotHeight;
     const series = plotEntries.map((entry) => {
       const data = entry.data?.[scope];
       let path = "",
@@ -136,8 +141,8 @@ function ComparisonChartComponent({
                 {mode === "standardized"
                   ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
                   : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
-                The selected area has its own reference. Hover for original units. Map
-                opacity does not affect this chart.
+                The selected area has its own reference. Hover for original
+                units. Map opacity does not affect this chart.
               </p>
             </details>
           </div>
@@ -152,29 +157,22 @@ function ComparisonChartComponent({
           role="group"
           aria-label="Chart display controls"
         >
-          <div
-            className="comparison-mode"
-            role="group"
-            aria-label="Chart comparison scale"
-          >
-            <button
-              type="button"
-              aria-pressed={mode === "standardized"}
-              onClick={() => onMode("standardized")}
-            >
-              Historical deviation
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === "minmax"}
-              onClick={() => onMode("minmax")}
-            >
-              Scale 0–100
-            </button>
-          </div>
           <button
             type="button"
-            className="comparison-trends-only"
+            aria-pressed={mode === "standardized"}
+            onClick={() => onMode("standardized")}
+          >
+            Historical deviation
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === "minmax"}
+            onClick={() => onMode("minmax")}
+          >
+            Scale 0–100
+          </button>
+          <button
+            type="button"
             aria-pressed={trendsOnly}
             title="Hide the observed series and keep only season-adjusted trends"
             onClick={() => setTrendsOnly((value) => !value)}
@@ -191,7 +189,8 @@ function ComparisonChartComponent({
       ) : (
         <>
           <svg
-            viewBox="0 0 610 180"
+            className="comparison-plot"
+            viewBox="0 0 640 210"
             role="group"
             tabIndex={0}
             aria-label={`${title}, ${monthLabel(start)} to ${monthLabel(end)}. Left/right arrows inspect months; Enter selects that month on the globe.`}
@@ -228,10 +227,10 @@ function ComparisonChartComponent({
                 event.clientY,
               ).matrixTransform(inverse);
               if (
-                point.x < 48 ||
-                point.x > 578 ||
-                point.y < 20 ||
-                point.y > 155
+                point.x < plot.left ||
+                point.x > plot.right ||
+                point.y < plot.top ||
+                point.y > plot.bottom
               )
                 return;
               setPreview(true);
@@ -241,7 +240,10 @@ function ComparisonChartComponent({
                     0,
                     Math.min(
                       months.length - 1,
-                      Math.round(((point.x - 48) / 530) * (months.length - 1)),
+                      Math.round(
+                        ((point.x - plot.left) / plotWidth) *
+                          (months.length - 1),
+                      ),
                     ),
                   )
                 ],
@@ -251,19 +253,24 @@ function ComparisonChartComponent({
           >
             <defs>
               <clipPath id={`${id}-plot`}>
-                <rect x="48" y="22" width="530" height="134" />
+                <rect
+                  x={plot.left}
+                  y={plot.top - 2}
+                  width={plotWidth}
+                  height={plotHeight + 4}
+                />
               </clipPath>
             </defs>
             <title>{`${title} · ${mode === "standardized" ? "Historical deviation" : "Scale 0–100"}`}</title>
             {eventIndices.length > 0 && (
               <rect
                 x={chart.x(eventIndices[0])}
-                y="22"
+                y={plot.top}
                 width={Math.max(
                   2,
                   chart.x(eventIndices.at(-1)!) - chart.x(eventIndices[0]),
                 )}
-                height="133"
+                height={plotHeight}
                 fill="#e3b253"
                 opacity=".13"
               />
@@ -273,15 +280,19 @@ function ComparisonChartComponent({
               .map((value) => (
                 <g key={value}>
                   <line
-                    x1="48"
-                    x2="578"
+                    x1={plot.left}
+                    x2={plot.right}
                     y1={chart.y(value)}
                     y2={chart.y(value)}
                     stroke="#c2d7f0"
                     opacity={value === 0 ? 0.32 : 0.12}
                     strokeDasharray={value === 0 ? undefined : "3 5"}
                   />
-                  <text x="40" y={chart.y(value) + 3} textAnchor="end">
+                  <text
+                    x={plot.left - 7}
+                    y={chart.y(value) + 3}
+                    textAnchor="end"
+                  >
                     {number(value)}
                   </text>
                 </g>
@@ -347,21 +358,25 @@ function ComparisonChartComponent({
               <line
                 x1={chart.x(index)}
                 x2={chart.x(index)}
-                y1="23"
-                y2="153"
+                y1={plot.top}
+                y2={plot.bottom}
                 stroke="#e8f2ff"
                 opacity=".45"
                 strokeDasharray="3 3"
               />
             )}
-            <text x="48" y="174">
+            <text x={plot.left} y="205">
               {monthLabel(start)}
             </text>
-            <text x="578" y="174" textAnchor="end">
+            <text x={plot.right} y="205" textAnchor="end">
               {monthLabel(end)}
             </text>
             {!hasPlot && (
-              <text x="313" y="94" textAnchor="middle">
+              <text
+                x={(plot.left + plot.right) / 2}
+                y="100"
+                textAnchor="middle"
+              >
                 {plotEntries.length === 0
                   ? "Use the checkboxes below to show variables in the chart"
                   : plotEntries.some((entry) => entry.data)
@@ -400,14 +415,16 @@ function ComparisonChartComponent({
               })}
               {plotEntries.length > 8 && (
                 <small>
-                  Open original values below for all {plotEntries.length}{" "}
-                  variables.
+                  Hover variable names below for details on all{" "}
+                  {plotEntries.length} variables.
                 </small>
               )}
             </div>
           )}
           <TrendResults
             entries={entries}
+            month={activeMonth}
+            monthCount={months.length}
             hiddenVariables={hiddenVariables}
             onToggleVariable={onToggleVariable}
             mode={mode}
@@ -416,120 +433,6 @@ function ComparisonChartComponent({
             familySize={familySize}
             loading={loading}
           />
-          <details className="comparison-values">
-            <summary>
-              {monthLabel(activeMonth)} · original values & coverage
-            </summary>
-            <div className="comparison-table-scroll">
-              <table>
-                <caption>
-                  {title} · {monthLabel(activeMonth)}
-                </caption>
-                <thead>
-                  <tr>
-                    <th>Variable</th>
-                    <th>Original</th>
-                    <th>{mode === "standardized" ? "Deviation" : "0–100"}</th>
-                    <th>Coverage</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {chart.series.map(({ entry, byMonth }) => {
-                    const row = byMonth.get(activeMonth);
-                    const value = row?.[mode];
-                    return (
-                      <tr key={entry.variable.id}>
-                        <th>
-                          <i
-                            style={{
-                              background: comparisonColor(entry.variable.id),
-                            }}
-                          />
-                          {entry.variable.name}
-                        </th>
-                        <td>
-                          {row?.value !== null && row?.value !== undefined
-                            ? `${number(row.value)} ${realUnit(entry.data!.unit)}`
-                            : "—"}
-                        </td>
-                        <td>
-                          {value !== null && value !== undefined
-                            ? `${number(value)}${mode === "standardized" ? " σ" : ""}`
-                            : entry.error
-                              ? "Source error"
-                              : !entry.data
-                                ? "Loading"
-                                : row?.standardizedStatus ===
-                                      "insufficient_reference" &&
-                                    mode === "standardized"
-                                  ? "Short reference"
-                                  : row?.standardizedStatus ===
-                                        "constant_reference" &&
-                                      mode === "standardized"
-                                    ? "Constant reference"
-                                    : "No data"}
-                        </td>
-                        <td>
-                          {row?.coverage !== null && row?.coverage !== undefined
-                            ? `${number(row.coverage * 100)}%`
-                            : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </details>
-          <ul className="comparison-status-list">
-            {plotEntries.map(({ variable, data, error }) => {
-              if (error)
-                return (
-                  <li key={variable.id}>
-                    {variable.name}: {error}
-                  </li>
-                );
-              if (!data) return null;
-              const source = data[scope];
-              const insufficient = source.observations.filter(
-                (row) => row.standardizedStatus === "insufficient_reference",
-              ).length;
-              const constant = source.observations.filter(
-                (row) => row.standardizedStatus === "constant_reference",
-              ).length;
-              const valid = source.observations.filter(
-                (row) => row[mode] !== null,
-              ).length;
-              if (mode === "standardized" && (insufficient || constant))
-                return (
-                  <li key={variable.id}>
-                    {variable.name}: {valid}/{months.length} comparable months;{" "}
-                    {insufficient
-                      ? `${insufficient} need at least 10 reference years for that calendar month`
-                      : ""}
-                    {insufficient && constant ? "; " : ""}
-                    {constant
-                      ? `${constant} have zero reference variation`
-                      : ""}
-                    . Try Scale 0–100 to inspect available values.
-                  </li>
-                );
-              if (mode === "minmax" && source.range.constant)
-                return (
-                  <li key={variable.id}>
-                    {variable.name}: no variation in this period; plotted at 50.
-                  </li>
-                );
-              if (valid < months.length)
-                return (
-                  <li key={variable.id}>
-                    {variable.name}: {valid}/{months.length} months with values.
-                    Gaps remain empty.
-                  </li>
-                );
-              return null;
-            })}
-          </ul>
         </>
       )}
     </section>

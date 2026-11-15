@@ -214,64 +214,6 @@ function ComparisonAnalysisComponent({
           rectangular extent, including cells outside the border.
         </p>
       )}
-      <details className="comparison-method">
-        <summary>How these comparisons are calculated</summary>
-        <p>
-          Historical deviation = (monthly value − reference mean for the same
-          calendar month) / sample standard deviation. The fixed 2001–2020
-          project reference is not a 30-year climate normal. Short or constant
-          references are unavailable, never replaced with another baseline.
-        </p>
-        <p>
-          Scale 0–100 = 100 × (value − minimum) / (maximum − minimum),
-          separately for each variable and area in the selected study period.
-          Changing the period changes this scale. Equal heights compare relative
-          positions, not equal physical values. Normalization alone establishes
-          neither significance nor causality. Dashed lines use a separate
-          seasonal regression; its approximate p-values and limitations are
-          described below.
-        </p>
-        <p>
-          Dashed lines are the straight trend component of OLS with 12
-          calendar-month effects, centered at the observed mean. They exclude
-          repeating seasonal offsets and span only observed dates. P-values test
-          zero time slope using approximate two-sided normal Wald inference with
-          Newey–West HAC, 12 monthly lags, Bartlett weights and n/(n−13)
-          correction. At least 60 consecutive valid months and nondegenerate
-          residual variation are required for p-values; shorter eligible fits
-          are descriptive. Missing months are never interpolated. These are KIPP
-          v1 guardrails, not universal thresholds. Fixed seasonality, a suitable
-          linear model and short-memory dependence remain assumptions.
-        </p>
-        <p>
-          Holm adjustment covers all applied variables for the selected area in
-          the active mode, including visually hidden curves. Evidence uses
-          adjusted p &lt;0.05. No significance does not establish no change;
-          neither p-value proves importance, causation or a future outcome.
-          Standardized monthly scaling can change a fit and its p-value. All
-          numerical results refer to the active representation, not blended map
-          colors.
-        </p>
-        <p>
-          Historical normalization parameters are treated as fixed; their
-          estimation uncertainty is not propagated into these approximate
-          p-values.
-        </p>
-        <p>
-          Monthly gaps are preserved. Ice category maps use the valid-area
-          fraction of ice (%) in these charts, not an average of class codes or
-          ice extent in km². Other source aggregation and quality rules remain
-          unchanged.
-        </p>
-        {entries
-          .filter((entry) => entry.data)
-          .map(({ variable, data }) => (
-            <p key={variable.id}>
-              {variable.name} · {data!.product} · {data!.unit} · {data!.method}{" "}
-              · {data!.sourceUC}
-            </p>
-          ))}
-      </details>
     </div>
   );
 }
