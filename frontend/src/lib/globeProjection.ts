@@ -12,10 +12,11 @@ export function visibleOnGlobe(view: GlobeView, point: [number, number]) {
   return geoDistance([view.longitude, view.latitude], point) < Math.PI / 2;
 }
 export function dragGlobe(view: GlobeView, dx: number, dy: number): GlobeView {
-  const longitude = view.longitude - dx * 0.35;
+  const sensitivity = 0.35 / Math.max(0.8, view.zoom);
+  const longitude = view.longitude - dx * sensitivity;
   return {
     ...view,
     longitude: ((((longitude + 180) % 360) + 360) % 360) - 180,
-    latitude: Math.max(-85, Math.min(85, view.latitude + dy * 0.35)),
+    latitude: Math.max(-85, Math.min(85, view.latitude + dy * sensitivity)),
   };
 }

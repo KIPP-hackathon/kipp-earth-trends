@@ -110,7 +110,7 @@ const sideSchema = { type: "string", enum: ["A", "B"] };
 const tabSchema = { type: "string", enum: [...assistantTabs] };
 const lon = num(-180, 180),
   lat = num(-90, 90),
-  zoom = num(0.8, 1.8);
+  zoom = num(0.8, 8);
 const nullableMonth = { anyOf: [monthSchema, { type: "null" }] };
 const rangeSchema = objectSchema({
   domain: { type: "array", items: num(-1e20, 1e20), minItems: 2, maxItems: 2 },

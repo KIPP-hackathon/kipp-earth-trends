@@ -8,14 +8,16 @@ void main(){point=position;gl_Position=vec4(position,0.,1.);}`;
 const fragmentSource = `precision highp float;
 varying vec2 point; uniform sampler2D earth; uniform sampler2D field;
 uniform float showField; uniform vec2 center; uniform vec4 fieldBounds;
+uniform float pointScale;
 void main(){
-  float r2=dot(point,point); if(r2>1.) discard;
+  vec2 q=point*pointScale;
+  float r2=dot(q,q); if(r2>1.) discard;
   float z=sqrt(max(0.,1.-r2));
-  float lat=asin(clamp(z*sin(center.y)+point.y*cos(center.y),-1.,1.));
-  float lon=center.x+atan(point.x,z*cos(center.y)-point.y*sin(center.y));
+  float lat=asin(clamp(z*sin(center.y)+q.y*cos(center.y),-1.,1.));
+  float lon=center.x+atan(q.x,z*cos(center.y)-q.y*sin(center.y));
   vec2 uv=vec2(fract((lon+3.14159265)/6.2831853),(1.57079633-lat)/3.14159265);
   vec3 color=texture2D(earth,uv).rgb;
-  float light=max(0.,dot(vec3(-.36,.30,.88),vec3(point,z)));
+  float light=max(0.,dot(vec3(-.36,.30,.88),vec3(q,z)));
   vec2 fieldUv=vec2(mod(lon-fieldBounds.x+12.5663706,6.2831853)/fieldBounds.z,(fieldBounds.y-lat)/fieldBounds.w);
   vec4 layer=texture2D(field,fieldUv);
   if(fieldUv.x<0. || fieldUv.x>1. || fieldUv.y<0. || fieldUv.y>1.) layer=vec4(0.);
@@ -29,6 +31,7 @@ export function GlobeSurface({
   showField = false,
   onUnavailable,
   colorRange,
+  viewportZoom,
 }: {
   longitude: number;
   latitude: number;
@@ -36,10 +39,18 @@ export function GlobeSurface({
   showField?: boolean;
   onUnavailable?: () => void;
   colorRange?: EarthColorRange;
+  /** Render the visible 640-unit viewport directly; omitted for the legacy SVG zoom. */
+  viewportZoom?: number;
 }) {
+  const viewportMode = viewportZoom !== undefined;
+  const surfaceSize = viewportMode ? 1024 : 768;
+  const zoom = Number.isFinite(viewportZoom)
+    ? Math.min(8, Math.max(0.8, viewportZoom!))
+    : 1;
   const canvas = useRef<HTMLCanvasElement>(null);
   const draw = useRef<(() => void) | null>(null);
   const center = useRef([longitude, latitude]);
+  const pointScale = useRef(viewportMode ? 320 / 270 / zoom : 1);
   const updateField = useRef<(() => void) | null>(null);
   const currentField = useRef({ frame, showField, colorRange });
   const failure = useRef(onUnavailable);
@@ -156,6 +167,7 @@ export function GlobeSurface({
       draw.current?.();
     };
     const location = gl.getUniformLocation(program, "center");
+    const pointScaleLocation = gl.getUniformLocation(program, "pointScale");
     let disposed = false;
     const image = new Image();
     draw.current = () => {
@@ -165,7 +177,8 @@ export function GlobeSurface({
         (center.current[0] * Math.PI) / 180,
         (center.current[1] * Math.PI) / 180,
       );
-      gl.viewport(0, 0, 768, 768);
+      gl.uniform1f(pointScaleLocation, pointScale.current);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     };
@@ -199,18 +212,27 @@ export function GlobeSurface({
   }, []);
   useLayoutEffect(() => {
     center.current = [longitude, latitude];
+    // In viewport mode the 270-unit globe radius is projected into a 640-unit
+    // window, keeping raster and SVG geometry aligned without magnifying a bitmap.
+    pointScale.current = viewportMode ? 320 / 270 / zoom : 1;
     draw.current?.();
-  }, [longitude, latitude]);
+  }, [longitude, latitude, viewportMode, zoom]);
   useEffect(() => {
     currentField.current = { frame, showField, colorRange };
     updateField.current?.();
   }, [frame, showField, colorRange]);
   return (
-    <foreignObject x="50" y="50" width="540" height="540" pointerEvents="none">
+    <foreignObject
+      x={viewportMode ? 0 : 50}
+      y={viewportMode ? 0 : 50}
+      width={viewportMode ? 640 : 540}
+      height={viewportMode ? 640 : 540}
+      pointerEvents="none"
+    >
       <canvas
         ref={canvas}
-        width="768"
-        height="768"
+        width={surfaceSize}
+        height={surfaceSize}
         className="earth-surface"
         aria-hidden="true"
       />

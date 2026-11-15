@@ -283,3 +283,18 @@ aba, comparação com áreas distintas, exportar/importar e viewport 390 px sem
 overflow. Revisão humana, investigação científica de histórico adequado e
 submissão continuam pendentes; não se declara conformidade completa ou entrega
 científica concluída.
+
+
+## Evidência incremental — zoom e nomes cartográficos (14/11/2026)
+
+OpenAI Codex assistiu zoom0,8–8×, renderização WebGL do trecho visível, nomes de
+países progressivos com prevenção de sobreposição, fronteiras Natural Earth e
+sensibilidade de arraste proporcional à aproximação. Configurações salvas e
+contratos do agente usam o mesmo limite. Zoom não altera recorte científico nem
+aumenta a resolução das observações. Ver [método e verificação](globe-zoom-labels.md).
+
+Builds Node24,46 verificações preexistentes do frontend, seis da API e revisão
+independente aprovados. O navegador confirmou nomes, teclado/limite8×, desenho de
+bbox em8× e sua reabertura por link, reset e câmeras independentes/sincronizadas
+conforme o workspace. Layout390px sem overflow; gesto físico de pinça não foi
+exercitado. Permanecem as pendências científicas e de submissão do checklist.

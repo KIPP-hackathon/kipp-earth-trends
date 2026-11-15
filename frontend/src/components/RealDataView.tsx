@@ -508,6 +508,7 @@ export function RealPanel({
           frame={frame.data}
           view={view}
           onView={onView}
+          onNavigate={onNavigate}
           region={spatialBbox ? region : undefined}
           outlineGeometry={countryOutline}
           onSelectArea={selectArea}
