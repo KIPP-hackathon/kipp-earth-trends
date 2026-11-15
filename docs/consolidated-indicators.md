@@ -1,5 +1,10 @@
 # Consolidated trusted indicators
 
+> Subsequent update (November 15, 2026): the user expanded the intended source
+> list to eleven tables (excluding the retired sea-ice extent mask). Warehouse metadata has been updated; candidate API/UI
+> changes and current evidence are in [indicator catalog update](indicadores-cobertura-catalogo.md).
+> The seven-table production checks below describe the earlier release.
+
 Production verified November 15, 2026, after
 [PR #29](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/29), merge
 `d81e66890cfbf33ef18921476411bf38a157735a`.

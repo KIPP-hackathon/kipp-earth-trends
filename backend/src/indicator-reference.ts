@@ -201,6 +201,18 @@ export class IndicatorReferenceService {
       });
     return this.pending;
   }
+  // The dimension is unique by indicator_name; classify the physical column,
+  // never the first arbitrary indicator in a mixed-theme source table.
+  async classificationByIndicator(): Promise<Record<string, {domain: string; theme: string; subTheme: string}>> {
+    try {
+      const snapshot = await this.snapshot();
+      return Object.fromEntries(snapshot.rows.map(row => [row.indicator_name, {
+        domain: row.domain, theme: row.theme, subTheme: row.sub_theme,
+      }]));
+    } catch {
+      return {};
+    }
+  }
   // Earth-system domain per trusted source table, from the curated dimension.
   async domainByTable(): Promise<Record<string, string>> {
     let snapshot: Snapshot;

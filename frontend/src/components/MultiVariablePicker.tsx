@@ -10,6 +10,7 @@ import {
   variableAvailable as isAvailable,
 } from "../lib/variableGroups";
 import "./multivariable-layers.css";
+import { usePopoverPosition } from "../lib/usePopoverPosition";
 
 const normalize = (text: string) =>
   text
@@ -42,6 +43,7 @@ export function MultiVariablePicker({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [rightAligned, setRightAligned] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const dialog = usePopoverPosition(open);
   const trigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const available = variables.filter(isAvailable);
@@ -161,6 +163,7 @@ export function MultiVariablePicker({
       {open && (
         <div
           className={`multi-variable-popover${rightAligned ? " align-right" : ""}`}
+          ref={dialog}
           role="dialog"
           id={`${id}-dialog`}
           aria-label="Choose investigation variables"

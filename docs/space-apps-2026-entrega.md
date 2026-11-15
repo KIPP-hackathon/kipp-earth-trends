@@ -26,6 +26,53 @@ aguardando DNS da Spaceship. Sem upgrade pago. Os brilhos decorativos em forma d
 removidos do fundo, preservando estrelas em pontos e o controle de zoom.
 Não altera conclusões científicas nem comprova submissão da página Project.
 
+## IMERG Final + Late como uma base no app — 15/11/2026
+
+Por solicitação do usuário, precipitação foi unificada no seletor: uma opção de
+acumulado e outra de taxa, ambas lendo a tabela consolidada Final + Late.
+Catálogo local: 224 definições, 106 habilitadas, 11 tabelas; 322 meses para cada
+grandeza de precipitação, 2000-01–2026-10. Não houve alteração de observações
+ou flags no Databricks nessa união. `processingRun` preserva o processamento
+real por mês em catálogo, mapas, séries, comparações e exportações.
+
+Consultas reais conferiram setembro/2025 (Final) e outubro/2025 (Late), com
+valores preservados. Exportação CSV de investigação conservou os dois rótulos;
+o app identifica a mudança de processamento, sem afirmar homogeneização.
+[Política e limites](indicadores-cobertura-catalogo.md#união-de-imerg-no-seletor).
+Prévia local atualizada em localhost:5173; 101 testes frontend, 24 backend e
+builds aprovados com Node.js 24. Seleções ativas dos antigos IDs Late migram
+para as variáveis combinadas, sem duplicar camadas. Assistência OpenAI Codex;
+publicação e revisão científica humana continuam pendentes.
+
+
+## Metadados e fontes ampliadas do app — 15/11/2026
+
+Por decisão posterior do usuário, `tb_sea_ice_global` foi removida da lista do
+app e seus dois campos receberam `valid_flag=false` no Databricks. A política
+local impede reativação por futuras cargas. Observações e referência na dimensão
+preservadas; concentração de gelo permanece ativa.
+
+Por autorização do usuário, atualizadas no Databricks as tabelas
+`trusted.tb_indicator_coverage` e `refined.tb_dim_indicators`. Dimensão com 253
+nomes/IDs únicos e aliases físicos preservados; cobertura com 474 registros,
+112 habilitados e 362 desabilitados. Os 25 campos numéricos das quatro fontes
+adicionais estão habilitados, sem alterar flags das fontes anteriores ou
+observações. `history_eligible` distingue a triagem histórica da habilitação;
+COSP identificado como diagnóstico simulado e proveniência como metadado.
+
+[Fontes, classificação, contagens, evidências e limitações](indicadores-cobertura-catalogo.md).
+Implementação local de API/UI usa 11 tabelas selecionadas, classificação por
+indicador e grupos por tema, preservando domínios científicos. Catálogo candidato
+real atualizado conferiu 224 definições/106 habilitadas; séries reais verificaram
+IMERG combinado com procedência por mês e concentração de gelo. Chromium conferiu 11 grupos
+em desktop/mobile sem exceções JS/overflow. Atualizar dados não comprova
+publicação da interface: backend/frontend e notebooks alterados ainda estão
+locais. Validação: 4 testes Python, 98 frontend, 23 backend e ambos os builds
+Node.js 24 aprovados. WebKit com perfil iPhone também conferiu os grupos e o
+menu sem corte vertical. Assistência OpenAI Codex; revisão humana e submissão
+não concluídas.
+
+
 ## Correção local de layout no iPhone — 15/11/2026
 
 OpenAI Codex assistiu a correção dos filtros e da composição do globo após

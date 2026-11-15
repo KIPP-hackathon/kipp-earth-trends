@@ -315,6 +315,67 @@ export const trustedColumns: Record<string, Record<string, string>> = {
   }
 };
 
+// Explicit physical contract for the five newly selected sources.
+Object.assign(trustedColumns, {
+  "tb_merra2_aerossois": {
+    "lat": "latitude",
+    "lon": "longitude",
+    "dust_extinction_aerosol_optical_depth_550nm": "dust_extinction_aerosol_optical_depth_550nm",
+    "black_carbon_extinction_aerosol_optical_depth_550nm": "black_carbon_extinction_aerosol_optical_depth_550nm",
+    "organic_carbon_extinction_aerosol_optical_depth_550nm": "organic_carbon_extinction_aerosol_optical_depth_550nm",
+    "total_aerosol_extinction_optical_depth_550nm": "total_aerosol_extinction_optical_depth_550nm",
+    "organic_carbon_scattering_aerosol_optical_depth_550nm": "organic_carbon_scattering_aerosol_optical_depth_550nm",
+    "latitude": "latitude",
+    "sea_salt_surface_mass_concentration_kilograms_per_cubic_meter": "sea_salt_surface_mass_concentration_kilograms_per_cubic_meter",
+    "longitude": "longitude",
+    "time": "time",
+    "black_carbon_surface_mass_concentration_kilograms_per_cubic_meter": "black_carbon_surface_mass_concentration_kilograms_per_cubic_meter",
+    "organic_carbon_surface_mass_concentration_kilograms_per_cubic_meter": "organic_carbon_surface_mass_concentration_kilograms_per_cubic_meter",
+    "total_aerosol_scattering_optical_depth_550nm": "total_aerosol_scattering_optical_depth_550nm",
+    "dust_surface_mass_concentration_kilograms_per_cubic_meter": "dust_surface_mass_concentration_kilograms_per_cubic_meter",
+    "sea_salt_extinction_aerosol_optical_depth_550nm": "sea_salt_extinction_aerosol_optical_depth_550nm",
+    "sulfate_surface_mass_concentration_kilograms_per_cubic_meter": "sulfate_surface_mass_concentration_kilograms_per_cubic_meter",
+    "black_carbon_dry_deposition_bin_001_kilograms_per_square_meter_per_second": "black_carbon_dry_deposition_bin_001_kilograms_per_square_meter_per_second",
+    "sulfate_extinction_aerosol_optical_depth_550nm": "sulfate_extinction_aerosol_optical_depth_550nm"
+  },
+  "tb_merra2_quimica": {
+    "lat": "latitude",
+    "lon": "longitude",
+    "longitude": "longitude",
+    "time": "time",
+    "latitude": "latitude",
+    "total_column_ozone_chm_dobson_units": "total_column_ozone_chm_dobson_units",
+    "carbon_monoxide_emission_kilograms_per_square_meter_per_second": "carbon_monoxide_emission_kilograms_per_square_meter_per_second"
+  },
+  "tb_gpm_imerg_precipitation_final_late": {
+    "lat": "latitude",
+    "lon": "longitude",
+    "imerg_run": "imerg_run",
+    "longitude": "longitude",
+    "precipitation_rate_millimeters_per_hour": "precipitation_rate_millimeters_per_hour",
+    "monthly_precipitation_millimeters": "monthly_precipitation_millimeters",
+    "latitude": "latitude",
+    "valid_day_count": "valid_day_count",
+    "mean_half_hourly_sample_fraction": "mean_half_hourly_sample_fraction",
+    "source_product": "source_product",
+    "native_precipitation_random_error_mean_millimeters_per_hour": "native_precipitation_random_error_mean_millimeters_per_hour",
+    "valid_area_fraction": "valid_area_fraction",
+    "time": "time",
+    "source_processing_versions": "source_processing_versions",
+    "native_daily_precipitation_random_error_mean_millimeters_per_day": "native_daily_precipitation_random_error_mean_millimeters_per_day"
+  },
+  "tb_sea_ice_concentration_global": {
+    "lat": "latitude",
+    "lon": "longitude",
+    "latitude": "latitude",
+    "time": "time",
+    "sea_ice_concentration_percent": "sea_ice_concentration_percent",
+    "longitude": "longitude",
+    "hemisphere": "hemisphere",
+    "valid_area_fraction": "valid_area_fraction"
+  }
+});
+
 export type TrustedSource = {
   schema: string;
   table: string;

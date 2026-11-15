@@ -34,6 +34,7 @@ import { EmptyRealPanel } from "./EmptyRealPanel";
 import { LayerCard } from "./LayerCard";
 import { ComparisonAnalysis } from "./ComparisonAnalysis";
 import type { LayerSetting, MapLayer } from "../lib/layers";
+import { combinedImergLayers } from "../lib/layers";
 import { useLayerFrames } from "../lib/useLayerFrames";
 import { pairWindFrames, windComponents, windFrameVariables } from "../lib/wind";
 import "./multivariable-layers.css";
@@ -173,7 +174,7 @@ function SelectedRealPanel({
   const availableVariables = useMemo(() => catalog.variables.filter(v => v.available !== false &&
     v.months.some(entry => entry.validSamples > 0)),[catalog.variables]);
   const effectiveSettings = useMemo(() => {
-    const settings = layerSettings.filter(setting => availableVariables.some(v => v.id === setting.variable));
+    const settings = combinedImergLayers(layerSettings).filter(setting => availableVariables.some(v => v.id === setting.variable));
     return settings.length ? settings : [{variable:availableVariables[0].id,visible:true,opacity:1}];
   },[layerSettings,availableVariables]);
   const selectedIds = JSON.stringify(effectiveSettings.map(setting => setting.variable));
@@ -557,6 +558,7 @@ function SelectedRealPanel({
               setLayerSettings(effectiveSettings.map(layer => ({...layer,visible:layer.variable === entry.id})));
               if (!view.showLayer) onView({...view,showLayer:true});
             }}
+            processingRun={entry.months.find(row=>row.month===(layerFrames.displayedMonth ?? month))?.processingRun}
             onColorRange={value => onColorRange(entry.id,value)}
             loading={setting.visible && hasMonth && layerFrames.loading}
             error={layerFrames.errors[entry.id] ?? (pair &&

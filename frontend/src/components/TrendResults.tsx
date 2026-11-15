@@ -133,6 +133,7 @@ function TrendResultsComponent({
                           ? ` · ${(row.coverage * 100).toFixed(1)}% coverage`
                           : ""}
                       </p>
+                      {row?.processingRun && <p>Original monthly processing: {row.processingRun}</p>}
                       {valid !== undefined && (
                         <p>
                           {valid}/{monthCount} comparable months. Gaps remain

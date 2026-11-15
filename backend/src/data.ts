@@ -96,6 +96,7 @@ export type MonthAvailability = {
   month: string;
   samples: number | null;
   validSamples: number | null;
+  processingRun?: string;
 };
 export type CatalogVariable = ReturnType<typeof metadataOf> & {
   months: MonthAvailability[];
@@ -190,6 +191,13 @@ export class DataService {
     const [min, max] = variable.validRange ?? [null, null];
     if (min !== null) clauses.push(`${value} >= ${min}`);
     if (max !== null) clauses.push(`${value} <= ${max}`);
+    if (variable.table === "tb_gpm_imerg_precipitation_final_late") {
+      const run = this.physical(variable, "imerg_run");
+      if (variable.run === "Final") clauses.push(`${run} = 'Final'`);
+      else if (variable.run === "Late") clauses.push(`${run} = 'Late'`);
+      else if (variable.run === "Final + Late") clauses.push(`${run} IN ('Final','Late')`);
+      else throw new ApiError(500, "INVALID_RUN", "IMERG requires an explicit reviewed run.");
+    }
     if (variable.qa === "modis_good")
       clauses.push(
         `${this.physical(variable, "pixel_reliability")} = 0`,
@@ -225,6 +233,13 @@ export class DataService {
         ? "mode weighted by cos(latitude); ties choose class 0; no valid weight yields null; not regional ice extent in km²"
         : "mean weighted by cos(latitude) and valid area coverage over source grid points; display aggregation; bbox is not a basin polygon";
   }
+  private processingAggregate(variable: Variable, expression = "source_run") {
+    if (variable.table !== "tb_gpm_imerg_precipitation_final_late")
+      return `CAST(NULL AS ${this.provider.dialect === "databricks" ? "STRING" : "TEXT"})`;
+    return this.provider.dialect === "databricks"
+      ? `array_join(sort_array(collect_set(${expression})), '+')`
+      : `string_agg(DISTINCT ${expression}, '+' ORDER BY ${expression})`;
+  }
   private async availabilityGroup(group: Variable[], source: number, width = group.length) {
     const validCounts = group.map(
       (v, i) => `SUM(CASE WHEN ${this.valid(v)} THEN 1 ELSE 0 END) AS v${i}`,
@@ -234,7 +249,7 @@ export class DataService {
     while (validCounts.length < width)
       validCounts.push(`CAST(NULL AS BIGINT) AS v${validCounts.length}`);
     return `SELECT ${source} AS source, ${this.month()} AS month, COUNT(*) AS samples,
-      ${validCounts.join(", ")} FROM ${this.table(group[0])}
+      ${validCounts.join(", ")}, ${this.processingAggregate(group[0], group[0].table === "tb_gpm_imerg_precipitation_final_late" ? this.physical(group[0], "imerg_run") : "NULL")} AS processing_run FROM ${this.table(group[0])}
       WHERE ${this.q("time")} IS NOT NULL GROUP BY ${this.month()}`;
   }
   async availability(variable: Variable) {
@@ -248,6 +263,7 @@ export class DataService {
       month: String(r.month),
       samples: numeric(r.samples),
       validSamples: numeric(r.v0),
+      ...(r.processing_run ? {processingRun: String(r.processing_run)} : {}),
     }));
   }
   async catalog(): Promise<CatalogVariable[]> {
@@ -304,6 +320,7 @@ export class DataService {
               month: String(row.month),
               samples: numeric(row.samples),
               validSamples: numeric(row[`v${i}`]),
+              ...(row.processing_run ? {processingRun: String(row.processing_run)} : {}),
             }),
           );
         }
@@ -415,7 +432,8 @@ export class DataService {
       ${bounds.wrap ? `CASE WHEN ${longitude} < :west THEN ${longitude}+360 ELSE ${longitude} END` : longitude} AS lon,
       CASE WHEN ${valid} THEN ${this.converted(variable)} ELSE NULL END AS value,
       CASE WHEN ${valid} THEN ${goodCoverage} ELSE 0.0 END AS coverage,
-      GREATEST(0.0, COS(RADIANS(${latitude}))) AS area_weight
+      GREATEST(0.0, COS(RADIANS(${latitude}))) AS area_weight,
+      ${variable.table === "tb_gpm_imerg_precipitation_final_late" ? `CASE WHEN ${valid} THEN ${this.physical(variable, "imerg_run")} END` : "NULL"} AS source_run
       FROM ${this.table(variable)} WHERE ${this.q("time")} >= CAST(:start AS TIMESTAMP)
       AND ${this.q("time")} < CAST(:end AS TIMESTAMP)
       AND ${this.finite(latitude)} AND ${this.finite(longitude)}
@@ -466,8 +484,9 @@ export class DataService {
       -- Snap within 1e-9 of a cell boundary before assigning the display bin.
       SELECT LEAST(CAST(:width AS INT)-1, GREATEST(0, FLOOR((lon - (:west)) / (:dx) + 1e-9))) AS x,
       LEAST(CAST(:height AS INT)-1, GREATEST(0, FLOOR(((:north) - lat) / (:dy) + 1e-9))) AS y,
-      value, coverage, area_weight FROM selected)
+      value, coverage, area_weight, source_run FROM selected)
       SELECT x, y, ${this.aggregate(variable)} AS value,
+      ${this.processingAggregate(variable)} AS processing_run,
       SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage, COUNT(*) AS samples
       FROM binned GROUP BY x,y ORDER BY y,x`,
       { ...parameters, width, height, dx, dy },
@@ -519,6 +538,8 @@ export class DataService {
       unit: variable.unit,
       product: variable.product,
       run: variable.run,
+      processingRun: [...new Set(rows.flatMap(r=>r.processing_run ? String(r.processing_run).split('+') : []))].sort().join('+') || undefined,
+      processingNote: variable.processingNote,
       month,
       grid: {
         width,
@@ -567,13 +588,15 @@ export class DataService {
       .replace(/\bcoverage\b/g,`(CASE WHEN ${inside} THEN coverage ELSE 0.0 END)`);
     const rows=await this.provider.query(`WITH selected AS (${sql})
       SELECT ${this.month("observed_time")} AS month, ${aggregate} AS global_value, ${regional} AS regional_value,
+      ${this.processingAggregate(variable)} AS processing_run,
       SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS global_coverage,
       SUM(CASE WHEN ${inside} THEN coverage*area_weight ELSE 0.0 END)/NULLIF(SUM(CASE WHEN ${inside} THEN area_weight ELSE 0.0 END),0) AS regional_coverage,
       COUNT(*) AS global_samples, SUM(CASE WHEN ${inside} THEN 1 ELSE 0 END) AS regional_samples
       FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,parameters,2412);
     const scope=(name:"global"|"regional")=>transformComparison(rows.map(row=>({month:String(row.month),
-      value:numeric(row[`${name}_value`]),coverage:numeric(row[`${name}_coverage`]),samples:numeric(row[`${name}_samples`])})),start,end);
-    return {...sourceMetadata(variable), variable:id, name:variable.name, product:variable.product, run:variable.run,
+      value:numeric(row[`${name}_value`]),coverage:numeric(row[`${name}_coverage`]),samples:numeric(row[`${name}_samples`]),
+      ...(row.processing_run ? {processingRun:String(row.processing_run)} : {})})),start,end);
+    return {...sourceMetadata(variable), variable:id, name:variable.name, product:variable.product, run:variable.run, processingNote:variable.processingNote,
       unit:categorical?"%":variable.unit, sourceUnit:variable.unit, simulated:false, start,end,
       bbox:[bounds.west,bounds.south,bounds.wrap?bounds.east-360:bounds.east,bounds.north],
       aggregation:categorical?"valid_area_ice_fraction":variable.aggregation,
@@ -602,13 +625,14 @@ export class DataService {
       const {sql, parameters} = this.selected(variable, bounds, `${first}-01`, monthAfter(last));
       const rows = await this.provider.query(`WITH selected AS (${sql}) SELECT ${this.month('observed_time')} AS month,
         ${this.aggregate(variable)} AS value, SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage,
-        COUNT(*) AS samples FROM selected GROUP BY ${this.month('observed_time')} ORDER BY month`, parameters, 601);
+        ${this.processingAggregate(variable)} AS processing_run, COUNT(*) AS samples FROM selected GROUP BY ${this.month('observed_time')} ORDER BY month`, parameters, 601);
       sources.push({...sourceMetadata(variable), variable: variable.id, name: variable.name, unit: variable.unit,
-        product: variable.product, run: variable.run, quality: variable.quality, aggregation: variable.aggregation,
+        product: variable.product, run: variable.run, processingNote: variable.processingNote, quality: variable.quality, aggregation: variable.aggregation,
         method: this.aggregationDescription(variable), observations: rows.map(r => ({month:String(r.month),
-          value:numeric(r.value), coverage:numeric(r.coverage), samples:numeric(r.samples)}))});
+          value:numeric(r.value), coverage:numeric(r.coverage), samples:numeric(r.samples),
+          ...(r.processing_run ? {processingRun:String(r.processing_run)} : {})}))});
     }
-    return {...buildInvestigation(request, sources), sourceRevision: process.env.K_REVISION ?? 'local', limitations};
+    return {...buildInvestigation(request, sources), sourceRevision: process.env.K_REVISION ?? 'local', limitations: [...limitations, ...new Set(selected.map(v=>v.processingNote).filter((note): note is string=>!!note))]};
   }
   async series(id: string, startInput: string, endInput: string, bbox: string) {
     const variable = this.variable(id),
@@ -634,6 +658,7 @@ export class DataService {
     const rows = await this.provider.query(
       `WITH selected AS (${sql}) SELECT ${this.month("observed_time")} AS month,
       ${this.aggregate(variable)} AS value,
+      ${this.processingAggregate(variable)} AS processing_run,
       SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage,
       COUNT(*) AS samples FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,
       parameters,
@@ -652,6 +677,7 @@ export class DataService {
       unit: variable.unit,
       product: variable.product,
       run: variable.run,
+      processingNote: variable.processingNote,
       bbox: [bounds.west, bounds.south, bounds.east, bounds.north],
       start,
       end,
@@ -665,6 +691,7 @@ export class DataService {
         value: numeric(r.value),
         coverage: numeric(r.coverage),
         samples: numeric(r.samples),
+        ...(r.processing_run ? {processingRun: String(r.processing_run)} : {}),
       })),
       limitations,
     };

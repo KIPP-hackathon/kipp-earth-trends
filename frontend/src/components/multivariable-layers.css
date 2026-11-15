@@ -54,8 +54,13 @@
   line-height: 1.5;
 }
 .multi-variable-popover {
+  --popover-shift-y: 0px;
+  transform: translateY(var(--popover-shift-y, 0px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: absolute;
-  z-index: 75;
+  z-index: 90;
   top: calc(100% + 7px);
   left: 0;
   width: min(430px, calc(100vw - 40px));
@@ -67,6 +72,12 @@
   box-shadow: 0 18px 48px #0008;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+}
+.multi-variable-popover > :not(.multi-variable-options) {
+  flex-shrink: 0;
+}
+.multi-variable-popover .multi-variable-options {
+  min-height: 0;
 }
 .multi-variable-popover.align-right {
   left: auto;

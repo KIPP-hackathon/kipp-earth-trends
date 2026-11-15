@@ -85,12 +85,15 @@ export type EarthVariable = {
   run?: string;
   category?: string;
   domain?: string;
+  theme?: string;
+  processingNote?: string;
+  subTheme?: string;
   description?: string;
   render?: EarthRender;
   aggregation?: EarthAggregation;
   quality?: EarthQuality;
   available?: boolean;
-  months: { month: string; samples: number; validSamples: number }[];
+  months: { month: string; samples: number; validSamples: number; processingRun?: string }[];
 };
 export type EarthCatalog = {
   capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean;runtimeTrends?:boolean;investigations?:boolean};
@@ -105,6 +108,8 @@ export type EarthFrame = {
   unit: string;
   product: string;
   run?: string;
+  processingRun?: string;
+  processingNote?: string;
   render?: EarthRender;
   month: string;
   simulated: false;
@@ -130,6 +135,7 @@ export type EarthSeries = {
   unit: string;
   product: string;
   run?: string;
+  processingNote?: string;
   simulated: false;
   method: string;
   render?: EarthRender;
@@ -141,6 +147,7 @@ export type EarthSeries = {
     value: number | null;
     coverage: number | null;
     samples: number;
+    processingRun?: string;
   }[];
 };
 
@@ -156,7 +163,7 @@ export type ComparisonScope = {
   observations:ComparisonObservation[];
 };
 export type EarthComparison = {
-  variable:string;name:string;unit:string;sourceUnit:string;product:string;run?:string;
+  variable:string;name:string;unit:string;sourceUnit:string;product:string;run?:string;processingNote?:string;
   simulated:false;start:string;end:string;bbox:number[];method:string;aggregation:string;
   source:string;sourceLayer:string;sourceTable:string;sourceUC:string;
   quality?:EarthQuality;limitations:string[];
