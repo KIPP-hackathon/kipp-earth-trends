@@ -814,6 +814,10 @@ e pelo bundle público `index-D4j8B6pk.js`, idêntico ao build validado.
 Conferência adicional em 360 px manteve país e período compactos, sem overflow.
 Investigação científica e submissão não alteradas.
 
+Complemento solicitado: OpenAI Codex assistiu a remoção da data mensal que
+ainda aparecia acima dos botões Data layer / Draw area / Clear area.
+A seleção temporal permanece no campo e nos controles de reprodução.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

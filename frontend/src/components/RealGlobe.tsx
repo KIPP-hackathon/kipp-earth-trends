@@ -17,7 +17,7 @@ import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
 import type { EarthColorRange, EarthFrame, EarthRegion } from "../lib/earthApi";
 import type { MapLayer } from "../lib/layers";
-import { displayScale, realMonth, realScale, realUnit } from "../lib/earthApi";
+import { displayScale, realScale, realUnit } from "../lib/earthApi";
 import { countryLabels, countryBorderGeometry } from "../lib/globeLabels";
 import {
   clampGlobeZoom,
@@ -238,7 +238,6 @@ export function RealGlobe({
   return (
     <div className="real-globe">
       <div className="real-globe-toolbar">
-        <span className="real-globe-month">{frame ? realMonth(frame.month) : "Monthly field"}</span>
         <div className="globe-area-controls" role="group" aria-label="Globe data and area controls">
           <button
             type="button"
