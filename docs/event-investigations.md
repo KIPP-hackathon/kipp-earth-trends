@@ -1,5 +1,82 @@
 # Event context and exact stored trend evidence
 
+## Events source audit — November 15, 2026
+
+Read-only SQL Warehouse queries and the public `/api/earth/v1/catalog` and
+`/api/earth/v1/events` responses (revision `kipp-earth-api-00019-ner`) confirmed
+that all seven tables referenced by the event candidates exist. All names below
+belong to `earth-trend-data.trusted`. Coverage is global catalog coverage, not
+confirmation of valid observations throughout each event rectangle.
+
+| Table | Event variable | `valid_flag` | Catalog coverage |
+| --- | --- | --- | --- |
+| `tb_gpm_imerg_precipitation` | Rainfall, IMERG Final | true | 2000-01–2025-09 |
+| `tb_merra2_t10m` | Air temperature at 10 m | true | 2000-01–2026-09 |
+| `tb_merra2_qv2m` | Specific humidity at 2 m | true | 2000-01–2026-09 |
+| `tb_merra2_u10m` | Eastward wind at 10 m | true | 2000-01–2026-09 |
+| `tb_merra2_v10m` | Northward wind at 10 m | true | 2000-01–2026-09 |
+| `tb_merra2_ps` | Surface pressure | true | 2000-01–2026-09 |
+| `tb_modis_mod13c2_vegetation` | NDVI and EVI | false | 2024-01–2024-03; hidden |
+
+The observed issue was that Events still listed hidden NDVI/EVI candidates as
+disabled choices. Local `eventSuggestions` now omits variables missing from the
+catalog, unavailable sources and explicit false coverage flags. Queryable sources
+with no valid month in the event's original window remain disabled; their dates
+are never substituted. Primary selection still falls back only to a relevant
+candidate with valid overlap. Seven cases have environmental context; Tōhoku
+remains unavailable because no suitable sea-level or seismic layer is registered.
+Old statements that the 2005/2015/2019/2020 cases were outside the loaded record
+were replaced with the relevant measurement limitations.
+
+The trusted catalog also contains `tb_coolr_events_points_monthly_records` and
+`tb_coolr_reports_points_monthly_records`. Only their existence was verified in
+this audit. They are not queried by the curated Events endpoint, and this work
+does not integrate them or establish their coverage or suitability.
+
+Reproducible metadata queries:
+
+```sql
+SELECT table_name
+FROM `earth-trend-data`.information_schema.tables
+WHERE table_schema = 'trusted'
+  AND (table_name IN (
+    'tb_gpm_imerg_precipitation', 'tb_merra2_t10m', 'tb_merra2_qv2m',
+    'tb_merra2_u10m', 'tb_merra2_v10m', 'tb_merra2_ps',
+    'tb_modis_mod13c2_vegetation'
+  ) OR table_name LIKE '%event%' OR table_name LIKE '%report%')
+ORDER BY table_name;
+
+SELECT table_name, indicator, valid_flag, min_date, max_date
+FROM `earth-trend-data`.trusted.tb_indicator_coverage
+WHERE schema = 'trusted'
+  AND table_name IN (
+    'tb_gpm_imerg_precipitation', 'tb_merra2_t10m', 'tb_merra2_qv2m',
+    'tb_merra2_u10m', 'tb_merra2_v10m', 'tb_merra2_ps',
+    'tb_modis_mod13c2_vegetation'
+  )
+ORDER BY table_name, indicator;
+```
+
+Statement IDs: table existence `01f1e101-62ca-142f-ba90-0601ed968a59`;
+coverage flags `01f1e101-5661-1742-9e93-ecfad6919b1e`. Both succeeded without
+truncation (9 table names and 16 indicator rows). Public response snapshots were
+kept in temporary local files, not committed.
+
+Local validation with Node.js 24: 85 frontend tests, backend tests and both builds
+passed. New regression cases cover hidden/missing/unqueryable sources, primary
+fallback, zero valid overlap and tsunami exclusion. Replaying the public catalog
+through the revised function retained seven available cases and omitted NDVI/EVI.
+OpenAI Codex assisted the audit, code, tests and text; human review and deployment
+remain pending. No warehouse data, grants or scientific statistics were changed.
+
+Deployment preparation: the Events-only release was integrated on main `ae24cf0`
+in `/tmp/kipp-events-release`, branch `fix/event-source-availability`. Node.js 24
+validation passed with 87 frontend tests, backend tests and both builds. The
+existing frontend design and unrelated local edits were preserved. The user
+explicitly authorized `c0ffex` for this deployment after both GitHub connections
+reported that account; Git authorship retains the repository's personal identity.
+Production verification will be recorded after the pipeline completes.
+
 Update, November 15, 2026: the Evidence workspace and its dedicated trend panel
 were removed at the user's request. The guide and assistant navigation now use
 the remaining workspaces. Legacy saved Evidence configurations normalize to
