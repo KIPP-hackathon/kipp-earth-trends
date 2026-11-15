@@ -602,7 +602,8 @@ export function RealPanel({
         <ComparisonAnalysis variables={selectedVariables} region={region} start={start} end={end}
           month={month} onMonth={selectMonth} active={active} mode={comparisonMode}
           onMode={mode=> {onManualChange();setComparisonMode(mode);}}
-          eventWindow={eventWindow} countryOutline={!!countryOutline} available={catalog.capabilities?.comparisonCharts===true}/>
+          eventWindow={eventWindow} countryOutline={!!countryOutline} available={catalog.capabilities?.comparisonCharts===true}
+          runtimeTrends={catalog.capabilities?.runtimeTrends===true}/>
 
       </section>
 

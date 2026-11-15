@@ -527,6 +527,11 @@ export class DataService {
       aggregation:categorical?"valid_area_ice_fraction":variable.aggregation,
       method:categorical?"Ice-class1 fraction of valid area weighted by cos(latitude) and coverage; not a mean of category codes or ice extent in km²":this.aggregationDescription(variable),
       reference:comparisonReference, quality:variable.quality,
+      trendAnalysis:{version:1,method:"OLS linear calendar time +12month effects; Newey-West HAC12 Bartlett; n/(n-13) correction; approximate two-sided normal Wald inference",
+        minimumFitMonths:24,minimumInferenceMonths:60,requiresConsecutiveMonthsForInference:true,
+        pValueNullHypothesis:"zero time slope in the indicated representation",alpha:.05,
+        multipleComparisons:"Holm adjustment is computed for the full selected family across available scopes in the frontend; per-variable API p-values are unadjusted.",
+        assumptions:"Adequate linear trend, fixed calendar-month seasonality and short-memory residual dependence. Historical normalization parameters are treated as fixed; their estimation uncertainty is not propagated."},
       global:scope("global"),regional:scope("regional"),
       limitations:[...limitations,"Historical reference2001–2020 is a project reference, not a30-year climate normal. At least10valid years per calendar month are required; zero reference variance is unavailable.",
         "Each spatial scope has its own reference and min/max.0–100 uses the displayed period; a constant series is50. Normalized values compare relative behavior, not physical magnitudes, probabilities, statistical significance or causal effects."]};

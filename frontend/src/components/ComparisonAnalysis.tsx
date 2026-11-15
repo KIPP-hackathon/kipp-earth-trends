@@ -7,7 +7,10 @@ import type {
   EarthRegion,
   EarthVariable,
 } from "../lib/earthApi";
-import { ComparisonChart, comparisonColor } from "./ComparisonChart";
+import { ComparisonChart } from "./ComparisonChart";
+import { comparisonColor } from "../lib/comparisonColors";
+import { adjustTrendFamily } from "../lib/runtimeTrends";
+import type { TrendFamilyTest } from "../lib/runtimeTrends";
 import "./comparison-analysis.css";
 
 export type ComparisonEntry = {
@@ -28,6 +31,7 @@ function ComparisonAnalysisComponent({
   eventWindow,
   countryOutline,
   available,
+  runtimeTrends,
 }: {
   variables: EarthVariable[];
   region: EarthRegion;
@@ -41,6 +45,7 @@ function ComparisonAnalysisComponent({
   eventWindow?: [string, string];
   countryOutline: boolean;
   available: boolean;
+  runtimeTrends: boolean;
 }) {
   const [attempt, setAttempt] = useState(0);
   const key = JSON.stringify([
@@ -49,6 +54,7 @@ function ComparisonAnalysisComponent({
     start,
     end,
     attempt,
+    runtimeTrends,
   ]);
   const [result, setResult] = useState<{
     key: string;
@@ -65,6 +71,7 @@ function ComparisonAnalysisComponent({
         end,
         region.bbox,
         controller.signal,
+        runtimeTrends,
       ).then(
         (data) => {
           if (!controller.signal.aborted)
@@ -110,21 +117,58 @@ function ComparisonAnalysisComponent({
       })),
     [variables, result, key],
   );
-  const [hiddenVariables, setHiddenVariables] = useState<Set<string>>(new Set());
+  const [hiddenVariables, setHiddenVariables] = useState<Set<string>>(
+    new Set(),
+  );
   const visibleEntries = useMemo(
     () => entries.filter((entry) => !hiddenVariables.has(entry.variable.id)),
     [entries, hiddenVariables],
   );
-  const toggleVariable = (id: string) => setHiddenVariables((previous) => {
-    const next = new Set(previous);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return next;
-  });
+  const toggleVariable = (id: string) =>
+    setHiddenVariables((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const hasArea = region.bbox !== "-180,-90,180,90";
   const [cursor, setCursor] = useState<string>();
   useEffect(() => setCursor(undefined), [month, start, end, region.bbox]);
   const completed = entries.filter((entry) => entry.data || entry.error).length;
+  const adjustedP = useMemo(
+    () => adjustTrendFamily(entries, mode, hasArea),
+    [entries, mode, hasArea],
+  );
+  const familySize = entries.length * (hasArea ? 2 : 1);
+  const familyTests = useMemo<TrendFamilyTest[]>(
+    () =>
+      entries.flatMap((entry) =>
+        (hasArea
+          ? (["global", "regional"] as const)
+          : (["global"] as const)
+        ).map((scope) => ({
+          variable: entry.variable.id,
+          name: entry.variable.name,
+          scope,
+          bbox: scope === "global" ? "-180,-90,180,90" : region.bbox,
+          regionName: scope === "global" ? "Global" : region.name,
+          requestedStart: start,
+          requestedEnd: end,
+          referenceStart: entry.data?.reference.start,
+          referenceEnd: entry.data?.reference.end,
+          rangeMin: entry.data?.[scope].range.min,
+          rangeMax: entry.data?.[scope].range.max,
+          unit: entry.data?.unit ?? entry.variable.unit,
+          trend: entry.data?.[scope].trends?.[mode],
+          originalTrend: entry.data?.[scope].trends?.raw,
+          adjustedP: adjustedP[`${scope}:${entry.variable.id}`] ?? null,
+          product: entry.data?.product,
+          source: entry.data?.sourceUC,
+          error: entry.error,
+        })),
+      ),
+    [entries, mode, hasArea, adjustedP, region.bbox, region.name, start, end],
+  );
   const domain = useMemo<[number, number]>(() => {
     if (mode === "minmax") return [0, 100];
     let max = 2;
@@ -132,7 +176,14 @@ function ComparisonAnalysisComponent({
       for (const scope of hasArea
         ? (["global", "regional"] as const)
         : (["global"] as const))
-        for (const row of entry.data?.[scope].observations ?? [])
+        for (const row of [
+          ...(entry.data?.[scope].observations ?? []).map((row) => ({
+            standardized: row.standardized,
+          })),
+          ...(entry.data?.[scope].trends?.standardized.line ?? []).map(
+            (row) => ({ standardized: row.value }),
+          ),
+        ])
           if (row.standardized !== null)
             max = Math.max(max, Math.abs(row.standardized));
     return [-max * 1.1, max * 1.1];
@@ -143,14 +194,18 @@ function ComparisonAnalysisComponent({
         <div className="comparison-title">
           <h2>Compare selected variables</h2>
           <details className="comparison-info">
-            <summary aria-label="About the chart scale" title="About the chart scale">
+            <summary
+              aria-label="About the chart scale"
+              title="About the chart scale"
+            >
               <Info size={16} aria-hidden="true" />
             </summary>
             <p className="comparison-explainer">
               {mode === "standardized"
                 ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
                 : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
-              Each area has its own reference. Hover for original units. Map opacity does not affect these charts.
+              Each area has its own reference. Hover for original units. Map
+              opacity does not affect these charts.
             </p>
           </details>
         </div>
@@ -229,6 +284,10 @@ function ComparisonAnalysisComponent({
         onCursor={setCursor}
         onMonth={onMonth}
         eventWindow={eventWindow}
+        adjustedP={adjustedP}
+        familySize={familySize}
+        loading={completed < entries.length}
+        familyTests={familyTests}
       />
       <ComparisonChart
         title={`Selected area · ${hasArea ? region.name : "no area selected"}`}
@@ -243,6 +302,10 @@ function ComparisonAnalysisComponent({
         onMonth={onMonth}
         eventWindow={eventWindow}
         noArea={!hasArea}
+        adjustedP={adjustedP}
+        familySize={familySize}
+        loading={completed < entries.length}
+        familyTests={familyTests}
       />
       {countryOutline && (
         <p className="comparison-explainer">
@@ -262,9 +325,38 @@ function ComparisonAnalysisComponent({
           Scale 0–100 = 100 × (value − minimum) / (maximum − minimum),
           separately for each variable and area in the selected study period.
           Changing the period changes this scale. Equal heights compare relative
-          positions, not equal physical values. Neither mode establishes
-          statistical significance, probabilities, causal effects or a long-term
-          trend.
+          positions, not equal physical values. Normalization alone establishes
+          neither significance nor causality. Dashed lines use a separate
+          seasonal regression; its approximate p-values and limitations are
+          described below.
+        </p>
+        <p>
+          Dashed lines are the straight trend component of OLS with 12
+          calendar-month effects, centered at the observed mean. They exclude
+          repeating seasonal offsets and span only observed dates. P-values test
+          zero time slope using approximate two-sided normal Wald inference with
+          Newey–West HAC, 12 monthly lags, Bartlett weights and n/(n−13)
+          correction. At least 60 consecutive valid months and nondegenerate
+          residual variation are required for p-values; shorter eligible fits
+          are descriptive. Missing months are never interpolated. These are KIPP
+          v1 guardrails, not universal thresholds. Fixed seasonality, a suitable
+          linear model and short-memory dependence remain assumptions.
+        </p>
+        <p>
+          Holm adjustment covers all applied variables across the available
+          global and regional charts in the active mode, including visually
+          hidden curves. Evidence uses adjusted p &lt;0.05. No significance does
+          not establish no change; neither p-value proves importance, causation
+          or a future outcome. Standardized monthly scaling can change a fit and
+          its p-value. All numerical results refer to the active representation,
+          not blended map colors.
+        </p>
+        <p>
+          Historical normalization parameters are treated as fixed; their
+          estimation uncertainty is not propagated into these approximate
+          p-values. Export JSON or Trend CSV for the complete test family,
+          including hidden variables. The ordinary chart CSV contains the
+          displayed scope and curves.
         </p>
         <p>
           Monthly gaps are preserved. Ice category maps use the valid-area

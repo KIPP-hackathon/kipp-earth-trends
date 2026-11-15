@@ -81,3 +81,19 @@ for(const scope of ['global','regional']) {
 }
 console.log('Runtime comparison smoke passed: trusted physical units, fixed monthly reference, global/regional z-scores and0–100.');
 JS_CHECK
+
+# Runtime season-adjusted slopes and robust inference need a long real record.
+curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 --connect-timeout 10 --max-time 60 "$task_url/v1/comparison/temperature?start=2000-01&end=2026-09&bbox=-73.98614,-33.76766,-34.73135,5.24412&analysis=trend-v1${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/runtime-trend.json"
+node --input-type=module - "$task_tmp/runtime-trend.json" <<'JS_TREND'
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+assert.equal(d.simulated,false);assert.equal(d.source,'databricks-sql');assert.equal(d.unit,'degC');
+for(const scope of ['global','regional']) for(const mode of ['raw','standardized','minmax']) {
+ const t=d[scope].trends[mode];assert.equal(t.status,'available');assert.equal(t.inferenceStatus,'available');
+ assert.equal(t.method,'ols_calendar_month_hac12');assert.equal(t.hacLags,12);assert.equal(t.n,321);
+ assert.equal(t.missingMonths,0);assert.equal(t.line.length,2);
+ assert.ok(Number.isFinite(t.slopePerYear));assert.ok(t.standardErrorPerYear>0);assert.ok(t.pValue>=0 && t.pValue<=1);
+ assert.ok(t.slopeCi95PerYear[0]<=t.slopePerYear && t.slopeCi95PerYear[1]>=t.slopePerYear);
+}
+console.log('Runtime trend smoke passed: real321-month series, two scopes, three representations, seasonal/HAC method and finite inference.');
+JS_TREND

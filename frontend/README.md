@@ -88,6 +88,16 @@ A imagem de base é NASA Blue Marble, janeiro de 2004, e não muda com o mês.
 A camada colorida representa o campo mensal indicado. Continentes Natural Earth
 via world-atlas; fontes locais Manrope e Instrument Serif.
 
+The KIPP mascot is AI-generated artwork inspired by the robot in *Interstellar*
+(2014), created with OpenAI ImageGen and Codex. Its forward/backward arm animation
+was authored with Three.js (MIT), captured with Playwright (Apache-2.0) and encoded
+with FFmpeg. It is not official film artwork; the screen graphics are decorative
+and are not scientific results. Two animated appearances remain in the assistant:
+its chat header and floating control, including while open. Header/footer keep
+the original Earth icon and KIPP text. The favicon provides the robot GIF with a
+PNG fallback; animation depends on the browser. Reduced motion selects still
+images. See [assets, credits and validation](../docs/kipp-mascot.md).
+
 ## Multivariable layers and country flags
 
 Variable selection uses draft checkboxes and Apply. Each applied variable keeps

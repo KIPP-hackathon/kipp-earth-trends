@@ -71,11 +71,13 @@ export default async function handler(
     const allowed = new Set(
       path === "/v1/trends"
         ? ["variable", "bbox", "start", "end"]
+        : path.startsWith("/v1/comparison/") ? ["bbox","start","end","analysis"]
         : ["bbox", "factor", "format", "start", "end"],
     );
     for (const [key, value] of query)
       if (
         !allowed.has(key) ||
+        (key==="analysis" && value!=="trend-v1") ||
         value.length > 200 ||
         query.getAll(key).length !== 1
       ) {

@@ -4,6 +4,15 @@ Revisado em 2026-11-14. Este documento mapeia as fontes selecionadas, as tabelas
 
 O mapa considera a proposta de consolidar as fontes que formam uma única variável lógica **já na extração**. Se a decisão for manter uma transient por prefixo e unir apenas na camada trusted, os notebooks de extração podem permanecer separados.
 
+Configurações locais preparadas em 15/11/2026 para ampliar o histórico de
+concentração de gelo, IMERG Final/Late e GRACE seguem `data/config.py` e
+reutilizam os extratores existentes. Consulte os [arquivos e comandos](configuracoes-extracao-fontes-reduzidas.md).
+Essa preparação não executa downloads nem implementa a consolidação proposta.
+As configurações consultam os meses existentes no bucket antes da extração
+e pulam CSVs não vazios; gelo é verificado por polo e IMERG por processamento.
+Em 15/11/2026 foram confirmados gelo 2024-01–2026-10 nos dois polos,
+Final 2024-01–2025-09, Late 2025-10–2026-10 e GRACE 2024-01–2026-09.
+
 ## Mapa de fontes e extrações
 
 | Tabela lógica proposta | Prefixo de origem | Tabela transient atual | Notebook de extração atual | Mudança prevista |

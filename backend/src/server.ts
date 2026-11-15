@@ -267,7 +267,7 @@ api.get("/v1/catalog", async (request, reply) =>
     json({
       provider: mode,
       sourceLayer: "trusted",
-      capabilities: {layeredAssistant:true,comparisonCharts:true},
+      capabilities: {layeredAssistant:true,comparisonCharts:true,runtimeTrends:true},
       simulated: false,
       revision: process.env.K_REVISION ?? "local",
       variables: await catalogData(),
@@ -427,13 +427,13 @@ api.get<{
     );
   },
 );
-api.get<{Params:{variable:string};Querystring:{start:string;end:string;bbox:string}}>(
+api.get<{Params:{variable:string};Querystring:{start:string;end:string;bbox:string;analysis?:"trend-v1"}}>(
   "/v1/comparison/:variable", {schema:{params:{type:"object",additionalProperties:false,required:["variable"],properties:{variable:{type:"string",maxLength:40}}},
-    querystring:{type:"object",additionalProperties:false,required:["start","end","bbox"],properties:{start:{type:"string",maxLength:7},end:{type:"string",maxLength:7},bbox:{type:"string",maxLength:100}}}}},
+    querystring:{type:"object",additionalProperties:false,required:["start","end","bbox"],properties:{start:{type:"string",maxLength:7},end:{type:"string",maxLength:7},bbox:{type:"string",maxLength:100},analysis:{type:"string",enum:["trend-v1"]}}}}},
   async(request,reply)=> {
     variableFor(request.params.variable);
     const {start,end,bbox}=request.query;
-    return serve(request,reply,`comparison:v1:${request.params.variable}:${start}:${end}:${bbox}`,300,
+    return serve(request,reply,`comparison:v2:${request.params.variable}:${start}:${end}:${bbox}`,300,
       async()=>json(await data.comparison(request.params.variable,start,end,bbox)));
   });
 api.addHook("onClose", async () => {

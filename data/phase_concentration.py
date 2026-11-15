@@ -308,10 +308,11 @@ def run_phase(args, start, end):
 
 def run_concentration(args, start, end):
     raw = args.raw_dir or ROOT / "data/data/raw/G02135_V4_CONCENTRATION"
-    caches = {"N": None, "S": None}
-    found = {"N": set(), "S": set()}
+    hemispheres = tuple(dict.fromkeys(getattr(args, "hemispheres", None) or ("N", "S")))
+    caches = {pole: None for pole in hemispheres}
+    found = {pole: set() for pole in hemispheres}
     for month in pd.date_range(start, end, freq="MS"):
-        for hemisphere in ("N", "S"):
+        for hemisphere in hemispheres:
             url = sea_ice_url(month, hemisphere).replace("_extent_", "_concentration_")
             path = raw / url.rsplit("/", 1)[-1]
             if args.plan:
@@ -353,6 +354,7 @@ def main(argv=None):
     parser.add_argument("--raw-dir", type=Path)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "data/data/processed/csv")
     parser.add_argument("--reference-csv", type=Path)
+    parser.add_argument("--hemispheres", nargs="+", choices=["N", "S"], default=["N", "S"])
     parser.add_argument("--minimum-coverage", type=float, default=1.0)
     parser.add_argument("--quadrature-samples", type=int, default=16,
                         help="Equal-area samples per axis for polar reprojection (default 16).")
