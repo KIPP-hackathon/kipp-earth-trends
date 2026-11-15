@@ -15,7 +15,11 @@ conferiu 360/390 px sem overflow horizontal, botões dentro dos painéis e acima
 do formulário, retorno de foco, Esc, toque fora, abertura dos três diálogos
 Save/Saved/Share e cópia com dados reais. Desktop no limite de 1161 px manteve
 abas e ações sem sobreposição. Nenhum salvo foi criado, nem dado/método
-científico alterado. Publicação em verificação.
+científico alterado. Publicado em `9eb8f18`, com
+[workflow Cloudflare aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43753405377).
+Chromium no site público conferiu os dois botões dentro dos painéis, acima
+do formulário, cópia A → B e menu a 390 px com as cinco abas e Save/Saved/Share.
+Capturas de evidência em `/tmp`, fora do Git.
 
 ## Cópia entre painéis Compare — 15/11/2026
 
