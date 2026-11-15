@@ -889,6 +889,28 @@ e pelo bundle público `index-DZtDWBmn.js`, idêntico ao validado. Chrome em
 produção confirmou zero variáveis/gráficos e zero consultas de dados de
 variáveis na entrada, com Saved acessível e Save aguardando seleção.
 
+### Explore: Default na unidade original — 15/11/2026
+
+OpenAI Codex assistiu a visão Default com uma variável aplicada em Explore:
+valores mensais regionais antes da normalização do gráfico, unidade do produto,
+reta sazonal e taxa/p correspondentes a `trends.raw`, já retornados pela API.
+Não significa dado bruto sem agregação/QA. Domínio vertical usa valores e reta,
+com margem inclusive para séries constantes; lacunas continuam vazias.
+Default fica desabilitado com mais de uma variável aplicada, mesmo ocultando
+curvas. Adicionar outra variável à visão nativa ativa Historical deviation;
+uma escala normalizada já escolhida permanece. Voltar a uma variável em Explore
+restaura Default. O padrão da aba Compare continua normalizado.
+Visão escolhida permanece em salvos/links; registros legados são aceitos.
+O modo nativo não é enviado no campo opcional do contrato legado do assistente,
+que aceita somente os modos normalizados. Sem alteração no backend ou nas bases.
+85 testes frontend e build aprovados. Chrome isolado com fixtures sintéticas
+identificadas, calculadas por `transformComparison` existente, conferiu as três
+representações, taxa/p, ausência de novas consultas ao alternar, estados do botão,
+persistência e 1440/390/360 px sem overflow. Não são observações ou descobertas.
+A API pública tinha 72 indicadores com meses, mas todos `available=false` na
+verificação; a interface com dados reais não pôde ser validada nesse estado.
+Disponibilidade real não foi forçada. Publicação do frontend em verificação.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

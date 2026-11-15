@@ -429,7 +429,8 @@
 }
 .comparison-chart-controls {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  max-width: 100%;
   align-items: center;
   justify-content: flex-end;
   gap: 5px;
@@ -450,6 +451,17 @@
   color: #f3f8ff;
   background: #79aff32e;
   border-color: #97c8ff70;
+}
+#root .comparison-chart-controls > button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  #root .comparison-chart-controls > button {
+    font-size: 10px;
+    padding: 5px 6px;
+  }
+  .comparison-chart-controls { gap: 4px; }
 }
 .comparison-chart-controls > button:focus-visible,
 .runtime-variable-name:focus-visible {

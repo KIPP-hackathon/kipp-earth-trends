@@ -55,6 +55,11 @@ function Failure({ message, retry }: { message: string; retry: () => void }) {
   );
 }
 
+const initialComparisonMode = (preset: PanelPreset, overview: boolean): ComparisonMode =>
+  (preset.layers?.length ?? 1) > 1
+    ? preset.comparisonMode === "minmax" ? "minmax" : "standardized"
+    : preset.comparisonMode ?? (overview ? "raw" : "standardized");
+
 function SelectedRealPanel({
   catalog,
   side,
@@ -103,7 +108,7 @@ function SelectedRealPanel({
   onView: (view: GlobeView) => void;
 }) {
   const id = useId();
-  const [comparisonMode,setComparisonMode]=useState<ComparisonMode>(preset.comparisonMode ?? "standardized");
+  const [comparisonMode,setComparisonMode]=useState<ComparisonMode>(initialComparisonMode(preset, overview));
   const [selection, setSelection] = useState({
     variable: preset.variable,
     month: preset.month,
@@ -138,7 +143,7 @@ function SelectedRealPanel({
     setPlaying(false);
     setSelection({ variable: preset.variable, month: preset.month });
     setLayerSettings(preset.layers ?? [{variable:preset.variable,visible:true,opacity:1}]);
-    setComparisonMode(preset.comparisonMode ?? "standardized");
+    setComparisonMode(initialComparisonMode(preset, overview));
     setRegionId(preset.region);
     if (config.regions.some((region) => region.id === preset.region))
       setDrawnRegion(undefined);
@@ -293,6 +298,9 @@ function SelectedRealPanel({
     onManualChange();
     setPlaying(false);
     setPlaybackError(undefined);
+    if (overview && ids.length === 1 && (selectedVariables.length !== 1 || selectedVariables[0].id !== ids[0]))
+      setComparisonMode("raw");
+    else if (ids.length > 1 && comparisonMode === "raw") setComparisonMode("standardized");
     const preservesSelection = ids.some(id=>effectiveSettings.some(setting=>setting.variable===id));
     setLayerSettings(ids.map((id,index) => effectiveSettings.find(setting => setting.variable === id) ??
       {variable:id,visible:!preservesSelection && index === 0,opacity:!preservesSelection && index === 0 ? 1 : 0.65}));

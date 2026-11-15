@@ -29,7 +29,18 @@ function TrendResultsComponent({
   month: string;
   monthCount: number;
 }) {
-  const unit = mode === "standardized" ? "σ/year" : "points/year";
+  const nativeUnit = realUnit(
+    entries[0]?.data?.unit ?? entries[0]?.variable.unit ?? "",
+  );
+  const unit =
+    mode === "raw"
+      ? nativeUnit === "%"
+        ? "percentage points/year"
+        : `${nativeUnit}/year`
+      : mode === "standardized"
+        ? "σ/year"
+        : "points/year";
+  const valueKey = mode === "raw" ? "value" : mode;
   return (
     <div className="runtime-trend-results">
       <p className="runtime-trend-caption">
@@ -40,8 +51,12 @@ function TrendResultsComponent({
         <table>
           <caption>
             Trend and significance ·{" "}
-            {mode === "standardized" ? "historical deviation" : "scale 0–100"} ·{" "}
-            {familySize} selected-area tests
+            {mode === "raw"
+              ? `original values · ${nativeUnit}`
+              : mode === "standardized"
+                ? "historical deviation"
+                : "scale 0–100"}{" "}
+            · {familySize} selected-area tests
           </caption>
           <thead>
             <tr>
@@ -63,7 +78,7 @@ function TrendResultsComponent({
                 (row) => row.month === month,
               );
               const valid = source?.observations.filter(
-                (row) => row[mode] !== null,
+                (row) => row[valueKey] !== null,
               ).length;
               const insufficient =
                 source?.observations.filter(
@@ -153,7 +168,9 @@ function TrendResultsComponent({
                         </p>
                       )}
                       {quality?.rule && <p>Quality rule: {quality.rule}</p>}
-                      {quality?.notes.map((note, index) => <p key={index}>{note}</p>)}
+                      {quality?.notes.map((note, index) => (
+                        <p key={index}>{note}</p>
+                      ))}
                     </VariableExplanation>
                   </th>
                   <td>

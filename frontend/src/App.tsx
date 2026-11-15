@@ -351,14 +351,16 @@ function App() {
         ),
         supportsComparison =
           catalog.data?.capabilities?.comparisonCharts === true;
-      return supportsComparison
-        ? context
-        : {
-            ...context,
-            panels: context.panels.map(
-              ({ comparisonMode: _mode, ...panel }) => panel,
-            ),
-          };
+      // The current assistant contract accepts normalized modes only. Keep
+      // native display in saved views and omit that optional wire field.
+      return {
+        ...context,
+        panels: context.panels.map(({ comparisonMode, ...panel }) =>
+          supportsComparison && comparisonMode && comparisonMode !== "raw"
+            ? { ...panel, comparisonMode }
+            : panel,
+        ),
+      };
     },
     [
       comparison.getContext,

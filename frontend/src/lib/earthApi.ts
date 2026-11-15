@@ -144,7 +144,7 @@ export type EarthSeries = {
   }[];
 };
 
-export type ComparisonMode = "standardized" | "minmax";
+export type ComparisonMode = "raw" | "standardized" | "minmax";
 export type ComparisonObservation = EarthSeries["observations"][number] & {
   standardized:number|null;minmax:number|null;
   standardizedStatus:"available"|"no_data"|"insufficient_reference"|"constant_reference";

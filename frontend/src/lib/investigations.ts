@@ -172,8 +172,10 @@ export function validateInvestigationView(value: unknown): InvestigationView {
     if (start > end || current < start || current > end)
       return fail("Current month must be inside the investigation period.");
     const variable = identifier(p.variable);
-    if(p.comparisonMode!==undefined && p.comparisonMode!=="standardized" && p.comparisonMode!=="minmax")
+    if(p.comparisonMode!==undefined && p.comparisonMode!=="raw" && p.comparisonMode!=="standardized" && p.comparisonMode!=="minmax")
       return fail("Unsupported chart comparison mode.");
+    if (p.comparisonMode === "raw" && Array.isArray(p.layers) && p.layers.length > 1)
+      return fail("Original chart units require exactly one selected variable.");
     return {
       side: p.side as "A" | "B",
       variable,
