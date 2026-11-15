@@ -16,6 +16,10 @@ a faixa configurada. As estatísticas do inventário não necessariamente reflet
 a região ou o período selecionados. Código e testes assistidos por OpenAI Codex;
 revisão humana pendente. Publicação e leitura pela identidade da API ainda
 precisam ser verificadas.
+Primeira tentativa de publicação: o catálogo candidato leu o inventário, mas
+o smoke test anterior exigia disponibilidade de todos os 72 indicadores e
+provocou rollback automático. O smoke test foi ajustado para verificar o flag e
+os percentis mantendo as verificações de observações e proveniência trusted.
 
 > **Estado consolidado em 15/11/2026:** o KIPP atende ao núcleo técnico do desafio com dados reais, análise regional/temporal, taxa de mudança e significância reproduzidas. A entrega formal ainda não está comprovada. O checklist atual abaixo substitui o diagnóstico inicial de frontend simulado; os registros incrementais preservam o contexto e a data de cada verificação.
 
