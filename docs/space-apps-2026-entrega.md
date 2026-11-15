@@ -1495,3 +1495,8 @@ Integracao dos controles do Trend Lab em 15/11/2026: conflito de anexos no
 checklist resolvido preservando os registros do Trend Lab e Events. Main
 `19dc594` integrada com 87 testes frontend e builds frontend/API aprovados
 em Node.js 24. Conta `Marcelo-Kenji-Noda` autorizada pelo usuario nesta sessao.
+
+### Formatação do range — 15/11/2026
+
+OpenAI Codex ajustou localmente os campos de mínimo/máximo da escala para duas casas decimais no carregamento, sincronização e Reset. Precisão dos dados da API preservada. Node.js 24.22.3: 136 testes frontend e builds frontend/backend aprovados. Sem publicação ou alteração da submissão.
+
