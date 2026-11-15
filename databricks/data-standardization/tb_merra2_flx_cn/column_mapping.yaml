@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   CN: surface_neutral_drag_coefficient
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

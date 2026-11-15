@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   MDSCLDFRCH2O: simulated_modis_cloud_fraction_water_mean
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

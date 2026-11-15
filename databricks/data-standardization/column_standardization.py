@@ -133,3 +133,30 @@ def apply_constraints(spark, mapping):
     columns = ", ".join(quote_identifier(column) for column in primary_key)
     constraint_name = quote_identifier("pk_" + name)
     spark.sql(f"ALTER TABLE {table} ADD CONSTRAINT {constraint_name} PRIMARY KEY ({columns})")
+
+
+def deduplicate_rows(df, mapping):
+    """Keep one row per configured PK, preferring the latest source file."""
+    keys = mapping.get("constraints", {}).get("primary_key", [])
+    if not keys:
+        return df
+    if "source_file_modified_at" not in df.columns:
+        return df.dropDuplicates(keys)
+
+    from pyspark.sql import Window, functions as F
+
+    order = [F.col("source_file_modified_at").desc_nulls_last()]
+    if "source_file" in df.columns:
+        order.append(F.col("source_file").desc_nulls_last())
+    # Resolve even identical metadata ties consistently, keeping the whole row.
+    payload = F.to_json(F.struct(*[F.col(quote_identifier(c)) for c in sorted(df.columns)]))
+    order.append(F.sha2(payload, 256).desc())
+    rank_column = "__kipp_dedup_rank"
+    if rank_column in df.columns:
+        raise ValueError(f"Coluna reservada para deduplicação: {rank_column}")
+    window = Window.partitionBy(*keys).orderBy(*order)
+    return (
+        df.withColumn(rank_column, F.row_number().over(window))
+        .filter(F.col(rank_column) == 1)
+        .drop(rank_column)
+    )

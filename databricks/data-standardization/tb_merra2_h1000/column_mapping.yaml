@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   H1000: geopotential_height_at_1000_hpa_meters
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   CLDTMP: cloud_top_temperature_kelvin
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

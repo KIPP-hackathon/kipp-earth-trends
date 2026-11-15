@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   T250: air_temperature_at_250_hpa_kelvin
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

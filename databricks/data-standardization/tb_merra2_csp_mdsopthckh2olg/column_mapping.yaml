@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   MDSOPTHCKH2OLG: simulated_modis_optical_thickness_water_logmean
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

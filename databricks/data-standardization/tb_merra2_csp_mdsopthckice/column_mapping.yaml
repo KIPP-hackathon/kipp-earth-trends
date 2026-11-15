@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   MDSOPTHCKICE: simulated_modis_optical_thickness_ice_mean
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

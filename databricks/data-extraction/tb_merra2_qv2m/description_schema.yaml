@@ -1,8 +1,8 @@
 table:
   name: '`earth-trend-data`.transient.tb_merra2_qv2m'
-  description: Diagnóstico mensal QV2M do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV com subpastas
-    anuais. Média mensal de QV2M (2-meter specific humidity), na unidade kg kg-1 indicada pelo atributo units
-    do arquivo MERRA-2.
+  description: Diagnóstico mensal QV2M do produto MERRA-2 M2TMNXSLV 5.12.4, exportado
+    em CSV com subpastas anuais. Média mensal de QV2M (2-meter specific humidity),
+    na unidade kg kg-1 indicada pelo atributo units do arquivo MERRA-2.
   theme: atmosfera
   product: M2TMNXSLV_QV2M
   source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_QV2M/
@@ -22,11 +22,22 @@ columns:
     description: Longitude do ponto da grade, em graus leste.
     unit: degrees_east
   time:
-    description: Timestamp mensal preservado do CSV MERRA-2. Cruzamentos com outras fontes devem considerar
-      ano e mês.
+    description: Timestamp mensal preservado do CSV MERRA-2. Cruzamentos com outras
+      fontes devem considerar ano e mês.
     unit: null
   QV2M:
-    description: Média mensal de QV2M (2-meter specific humidity), na unidade kg kg-1 indicada pelo atributo
-      units do arquivo MERRA-2.
+    description: Média mensal de QV2M (2-meter specific humidity), na unidade kg kg-1
+      indicada pelo atributo units do arquivo MERRA-2.
     unit: kg kg-1
-    source: Atributos long_name e units do NetCDF original, cabeçalho CSV e especificação MERRA-2.
+    source: Atributos long_name e units do NetCDF original, cabeçalho CSV e especificação
+      MERRA-2.
+  source_file:
+    description: URI do CSV de origem no GCS, preservada para rastreabilidade e desempate
+      de reingestões.
+    unit: null
+    source: Databricks _metadata.file_path.
+  source_file_modified_at:
+    description: Última atualização do arquivo de origem no GCS. A trusted prefere
+      o arquivo mais recente ao deduplicar latitude, longitude e data.
+    unit: null
+    source: Databricks _metadata.file_modification_time.

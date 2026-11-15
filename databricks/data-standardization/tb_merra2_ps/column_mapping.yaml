@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   PS: surface_pressure_pascals
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

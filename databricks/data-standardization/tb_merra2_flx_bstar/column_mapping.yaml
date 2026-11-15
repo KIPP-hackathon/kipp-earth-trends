@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   BSTAR: surface_buoyancy_scale
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

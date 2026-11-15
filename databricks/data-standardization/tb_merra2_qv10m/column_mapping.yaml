@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   QV10M: specific_humidity_at_10_meters_kilograms_per_kilogram
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

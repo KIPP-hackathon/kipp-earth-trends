@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   CDQ: surface_exchange_coefficient_for_moisture
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

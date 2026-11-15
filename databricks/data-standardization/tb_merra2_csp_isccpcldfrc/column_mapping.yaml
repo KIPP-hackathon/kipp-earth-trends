@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   ISCCPCLDFRC: simulated_isccp_total_cloud_area_fraction
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

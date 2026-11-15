@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   OMEGA500: vertical_pressure_velocity_at_500_hpa_pascals_per_second
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

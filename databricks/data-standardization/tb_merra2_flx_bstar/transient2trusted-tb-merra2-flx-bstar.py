@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path.cwd().parents[1] / "data-extraction"))
 sys.path.insert(0, str(Path.cwd().parent))
 from table_metadata import load_description, apply_comments
 from column_standardization import (
-    load_mapping, standardize_columns, validate_key_data, apply_constraints,
+    load_mapping, standardize_columns, deduplicate_rows, validate_key_data, apply_constraints,
 )
 
 mapping = load_mapping(Path.cwd() / "column_mapping.yaml")
@@ -28,6 +28,7 @@ df, description = standardize_columns(source_df, mapping, source_description)
 # COMMAND ----------
 
 if WRITE_ENABLED:
+    df = deduplicate_rows(df, mapping)
     validate_key_data(df, mapping)
     (
         df.write.format("delta")
