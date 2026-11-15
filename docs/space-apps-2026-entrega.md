@@ -12,7 +12,11 @@ escala. Recolhimento e estabilidade durante o Play permanecem preservados.
 1440px conferiu painel compacto (aproximadamente 465px) e distância de 14px
 entre cabeçalho e escala; tamanho pode variar com nome, loading ou mensagens
 da variável. Sem alteração de dados, método ou dimensões dos gráficos.
-Publicação em acompanhamento; assistência IA registrada nesta entrada.
+Publicado em `46a13b2` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/),
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43757617422)
+concluído com sucesso. Checagem pública confirmou altura natural e recolhimento/
+reabertura, sem o espaço central vazio. Vercel recusou este build por limite de
+publicações e mantém a versão anterior. Assistência IA registrada nesta entrada.
 
 ## Filtro estável no Play e mais espaço para comparação — 15/11/2026
 
