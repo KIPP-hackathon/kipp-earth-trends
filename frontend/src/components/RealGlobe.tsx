@@ -3,6 +3,9 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
+import { WindArrows } from "./WindArrows";
+import { pairWindFrames, sampleWind, windComponents } from "../lib/wind";
+import "./wind-arrows.css";
 import "./space-scene.css";
 import {
   frameCellIndex,
@@ -58,6 +61,7 @@ function regionBoundary(bbox: string): GeoPermissibleObjects | null {
 export function RealGlobe({
   frame,
   layers,
+  windFrames = {},
   view,
   onView,
   onNavigate,
@@ -70,6 +74,7 @@ export function RealGlobe({
 }: {
   frame?: EarthFrame;
   layers?: MapLayer[];
+  windFrames?: Record<string, EarthFrame>;
   region?: EarthRegion;
   outlineGeometry?: GeoPermissibleObjects;
   colorRange?: EarthColorRange;
@@ -220,6 +225,16 @@ export function RealGlobe({
     probeRange?.hideOutside &&
     Number.isFinite(sampled) &&
     (sampled < probeScale.domain[0] || sampled > probeScale.domain[1]);
+  const windPair = probeFrame ? windComponents(probeFrame.variable) : undefined;
+  const windField = windPair
+    ? pairWindFrames(windFrames[windPair.eastward], windFrames[windPair.northward])
+    : undefined;
+  const probedWind = windField && windField.eastward.month === probeFrame?.month
+    ? sampleWind(windField, cellIndex) : undefined;
+  const windLevels = [...new Set((effectiveLayers ?? []).flatMap(layer => {
+    const pair = windComponents(layer.id);
+    return pair ? [pair.level] : [];
+  }))];
   return (
     <div className="real-globe">
       <div className="real-globe-toolbar">
@@ -518,8 +533,8 @@ export function RealGlobe({
             viewportZoom={view.zoom}
             longitude={view.longitude}
             latitude={view.latitude}
-            frame={frame}
-            layers={layers}
+            frame={frame && !windComponents(frame.variable) ? frame : undefined}
+            layers={layers?.filter(layer => !windComponents(layer.id))}
             colorRange={colorRange}
             showField={view.showLayer}
             onUnavailable={() => setUnavailable(true)}
@@ -575,6 +590,8 @@ export function RealGlobe({
               )}
             </g>
           </g>
+          {view.showLayer && layers && <WindArrows layers={layers} frames={windFrames}
+            view={view} viewportPixels={viewportPixels} />}
           <g
             className="globe-country-labels"
             pointerEvents="none"
@@ -644,6 +661,10 @@ export function RealGlobe({
           </button>
         </div>
       </div>
+      {view.showLayer && windLevels.length > 0 && <p className="real-wind-note">
+        <span aria-hidden="true">↗</span> Wind flow · {windLevels.join(" / ")} · arrows point toward flow.
+        {" "}Monthly MERRA-2 reanalysis; fixed arrow length, color = selected component (m/s).
+      </p>}
       {probe && probeFrame && view.showLayer && (
         <p className="real-grid-info">
           Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
@@ -654,12 +675,18 @@ export function RealGlobe({
                 ? `${sampled.toLocaleString("en", { maximumFractionDigits: 2 })} ${realUnit(probeFrame.unit)}`
                 : "no data"}
           </strong>
+          {!hiddenSample && windPair && (probedWind ? <>
+            {" · "}{probedWind.bearing === null ? "Calm monthly resultant; direction undefined" :
+              `Flow toward ${Math.round(probedWind.bearing) % 360}° clockwise from north`}
+            {" · "}monthly resultant {probedWind.resultant.toFixed(2)} m/s
+            {" · "}U {probedWind.u.toFixed(2)}, V {probedWind.v.toFixed(2)} m/s
+          </> : " · no paired wind direction for this cell")}
         </p>
       )}
       {unavailable && (
         <p role="alert">
-          WebGL is unavailable. The map data layer could not be drawn; the
-          monthly series remains available.
+          WebGL is unavailable. The image basemap and color fields could not be drawn;
+          wind arrows and monthly series remain available when their data is loaded.
         </p>
       )}
       {scale && frame && (

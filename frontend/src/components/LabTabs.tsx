@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  ChartNoAxesCombined,
   Columns2,
   Earth,
   MapPinned,
@@ -10,7 +9,6 @@ export const labTabs = [
   { id: "explore", label: "Explore", icon: Earth },
   { id: "compare", label: "Compare", icon: Columns2 },
   { id: "events", label: "Events", icon: MapPinned },
-  { id: "analysis", label: "Evidence", icon: ChartNoAxesCombined },
   { id: "learn", label: "Guide", icon: BookOpen },
 ] as const;
 export type LabTab = (typeof labTabs)[number]["id"];

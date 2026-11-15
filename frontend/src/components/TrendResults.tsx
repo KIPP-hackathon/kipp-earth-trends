@@ -1,6 +1,5 @@
 import { memo } from "react";
 import type { ComparisonMode } from "../lib/earthApi";
-import { realUnit } from "../lib/earthApi";
 import { formatTrendP, formatTrendRate, trendKey } from "../lib/runtimeTrends";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { comparisonColor } from "../lib/comparisonColors";
@@ -192,13 +191,6 @@ function TrendResultsComponent({
           </tbody>
         </table>
       </div>
-      <p className="runtime-trend-note">
-        p tests zero slope in this chart’s representation. Evidence:
-        Holm-adjusted p &lt;0.05 across {familySize} selected tests in both
-        available areas, including hidden curves.{" "}
-        {loading ? "Final labels wait for loading." : ""} No significance does
-        not establish no change.
-      </p>
       <ul className="runtime-trend-reasons">
         {entries.map(({ variable, data }) => {
           const trend = data?.[scope].trends?.[mode];
@@ -214,35 +206,6 @@ function TrendResultsComponent({
           ) : null;
         })}
       </ul>
-      <details className="runtime-trend-original">
-        <summary>Original-unit trends & method</summary>
-        <p>
-          Linear time + 12 calendar-month effects. Newey–West HAC 12, Bartlett
-          weights, n/(n−13) correction, approximate two-sided normal Wald p and
-          95% slope CI. P-values require 60 consecutive monthly values; fixed
-          seasonality and short-memory dependence remain assumptions. Dotted
-          lines are centered trend components, not seasonal predictions or
-          forecasts.
-        </p>
-        {entries.map(({ variable, data }) => {
-          const raw = data?.[scope].trends?.raw;
-          if (!data || !raw) return null;
-          return (
-            <p key={variable.id}>
-              <strong>{variable.name}</strong> ·{" "}
-              {raw.slopePerYear !== null
-                ? `${formatTrendRate(raw.slopePerYear)} ${realUnit(data.unit)}/year`
-                : "No eligible raw fit"}{" "}
-              · raw-fit p={formatTrendP(raw.pValue)}
-              {raw.slopeCi95PerYear
-                ? ` ·95% CI: ${formatTrendRate(raw.slopeCi95PerYear[0])} to ${formatTrendRate(raw.slopeCi95PerYear[1])} ${realUnit(data.unit)}/year`
-                : ""}{" "}
-              · {raw.n} months ·{" "}
-              {raw.reason ?? "Approximate inference; raw-fit p is unadjusted."}
-            </p>
-          );
-        })}
-      </details>
     </div>
   );
 }

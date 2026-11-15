@@ -516,25 +516,9 @@
   gap: 8px;
   margin-top: 10px;
 }
-.is-analysis .real-globe-container,
-.is-analysis .real-grid-info,
-.is-analysis .real-time-controls {
-  display: none;
-}
 @media (min-width: 1000px) {
   .real-panels:not(.is-comparing) .real-panel > .real-provenance {
     grid-column: 1;
-  }
-  .is-analysis .real-panels .real-panel {
-    grid-template-columns: minmax(250px, 0.7fr) minmax(0, 1.3fr);
-  }
-  .is-analysis .real-panels .real-panel > .real-series {
-    grid-row: 2 / span 7;
-    align-self: start;
-  }
-  .is-analysis .real-panels .real-panel > .real-region-filter {
-    grid-column: 1;
-    grid-row: auto;
   }
 }
 @media (max-width: 1000px) {
