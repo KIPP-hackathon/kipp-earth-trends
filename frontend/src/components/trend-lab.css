@@ -757,3 +757,8 @@
 .investigation-table th {color:#e6edf7;font-weight:550}
 .trend-lab select:focus-visible {outline:2px solid var(--trend-cyan);outline-offset:3px}
 @media(max-width:720px){.investigation-toolbar{gap:6px}.investigation-toolbar button{font-size:11px;padding:8px}.investigation-reference{grid-template-columns:1fr}.trend-model-tag{white-space:normal}.trend-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.trend-setup .multi-variable-picker { min-width: 0; margin-bottom: 14px; }
+.investigation-examples { margin-top: 12px; }
+.investigation-examples summary { cursor: pointer; color: #9eacc1; font-size: 11px; }
+.investigation-examples .investigation-presets { margin: 8px 0 0; }

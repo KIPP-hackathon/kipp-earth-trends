@@ -969,3 +969,17 @@ A verificação final inclui mudanças posteriores da main até `5655e01` e o ca
 normal já atualizado após expirar seu cache. [Evidências e método](trend-lab-relationships.md#production-verification--2026-11-15).
 OpenAI Codex assistiu integração, publicação e verificação. Revisão científica
 humana, previsão ENSO e submissão na página Project continuam etapas distintas.
+
+
+### Simplificacao dos controles do Trend Lab - 15/11/2026
+
+OpenAI Codex assistiu a reutilizacao do seletor agrupado do Explore nos eixos
+X/Y, com uma variavel por eixo e Y opcional. Exemplos ficam recolhidos.
+Removidos os badges Real monthly data e as acoes Save settings/Restore saved.
+Monthly period passa a definir tambem a referencia das anomalias, explicitada
+nos resultados. Os controles A/B voltam a alimentar o TrendChart existente,
+com delta quando ha espaco e cor de extrapolacao alem do ultimo mes observado.
+O ajuste sazonal da API e suas estatisticas permanecem como fonte dos valores.
+
+Validacao local com Node.js 24, testes frontend e builds frontend/API.
+Conferencia visual em navegador pendente. Alteracao local, sem publicacao.

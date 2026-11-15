@@ -23,12 +23,18 @@ export function MultiVariablePicker({
   selected,
   onApply,
   summary,
+  label = "Variables",
+  single = false,
+  optional = false,
 }: {
   id: string;
   variables: EarthVariable[];
   selected: string[];
   onApply: (ids: string[]) => void;
   summary?: string;
+  label?: string;
+  single?: boolean;
+  optional?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -61,7 +67,7 @@ export function MultiVariablePicker({
     if (focus) trigger.current?.focus();
   };
   const apply = () => {
-    if (!validDraft.length) return;
+    if (!validDraft.length && !optional) return;
     onApply(validDraft);
     close(true);
   };
@@ -104,7 +110,7 @@ export function MultiVariablePicker({
       }}
     >
       <span className="exploration-control-label" id={`${id}-label`}>
-        Variables
+        {label}
       </span>
       <button
         id={id}
@@ -197,19 +203,21 @@ export function MultiVariablePicker({
             />
           </label>
           <div className="multi-variable-bulk">
-            <button
-              type="button"
-              onClick={() =>
-                setDraft([
-                  ...validDraft,
-                  ...available
-                    .map((variable) => variable.id)
-                    .filter((id) => !validDraft.includes(id)),
-                ])
-              }
-            >
-              Select all available
-            </button>
+            {!single && (
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft([
+                    ...validDraft,
+                    ...available
+                      .map((variable) => variable.id)
+                      .filter((id) => !validDraft.includes(id)),
+                  ])
+                }
+              >
+                Select all available
+              </button>
+            )}
             <button type="button" onClick={() => setDraft([])}>
               Clear
             </button>
@@ -236,21 +244,23 @@ export function MultiVariablePicker({
               return (
                 <section className="multi-variable-group" key={group.key}>
                   <div className="multi-variable-group-heading">
-                    <input
-                      type="checkbox"
-                      checked={all}
-                      disabled={!eligible.length}
-                      aria-label={`Select all available variables in ${group.label}`}
-                      aria-checked={partial ? "mixed" : all}
-                      ref={(element) => {
-                        if (element) element.indeterminate = partial;
-                      }}
-                      onChange={() =>
-                        setDraft((previous) =>
-                          toggleVariableGroup(previous, group.variables),
-                        )
-                      }
-                    />
+                    {!single && (
+                      <input
+                        type="checkbox"
+                        checked={all}
+                        disabled={!eligible.length}
+                        aria-label={`Select all available variables in ${group.label}`}
+                        aria-checked={partial ? "mixed" : all}
+                        ref={(element) => {
+                          if (element) element.indeterminate = partial;
+                        }}
+                        onChange={() =>
+                          setDraft((previous) =>
+                            toggleVariableGroup(previous, group.variables),
+                          )
+                        }
+                      />
+                    )}
                     <button
                       type="button"
                       className="multi-variable-group-toggle"
@@ -293,18 +303,21 @@ export function MultiVariablePicker({
                             className={available ? "" : "is-unavailable"}
                           >
                             <input
-                              type="checkbox"
+                              type={single ? "radio" : "checkbox"}
+                              name={single ? `${id}-choice` : undefined}
                               checked={draft.includes(variable.id)}
                               disabled={!available}
                               onChange={(event) =>
                                 setDraft((previous) =>
                                   event.target.checked
-                                    ? [
-                                        ...previous.filter(
-                                          (id) => id !== variable.id,
-                                        ),
-                                        variable.id,
-                                      ]
+                                    ? single
+                                      ? [variable.id]
+                                      : [
+                                          ...previous.filter(
+                                            (id) => id !== variable.id,
+                                          ),
+                                          variable.id,
+                                        ]
                                     : previous.filter(
                                         (id) => id !== variable.id,
                                       ),
@@ -338,7 +351,7 @@ export function MultiVariablePicker({
             )}
           </div>
           <p className="multi-variable-note">
-            {term && (
+            {term && !single && (
               <>
                 Selecting a group includes all its available variables, even
                 those outside this search.{" "}
@@ -354,7 +367,7 @@ export function MultiVariablePicker({
             <button
               type="button"
               className="multi-variable-apply"
-              disabled={!validDraft.length}
+              disabled={!validDraft.length && !optional}
               onClick={apply}
             >
               <Check size={15} aria-hidden="true" /> Apply{" "}

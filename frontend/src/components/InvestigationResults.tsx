@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Investigation } from "../lib/earthApi";
 import { formatTrendP } from "../lib/runtimeTrends";
 import { formatTrendValue, monthIndex, trendUnit } from "../lib/trendLab";
+import { TrendChart } from "./TrendChart";
 import { downloadInvestigation, investigationCsv } from "../lib/investigation";
 
 const fmt = (v: number | null | undefined) =>
@@ -218,7 +219,6 @@ export function InvestigationResults({
             {data.request.bbox}
           </p>
         </div>
-        <span className="trend-model-tag">Real monthly data</span>
       </div>
       <nav className="investigation-tabs" aria-label="Investigation view">
         {(["Trend", "Anomalies", "Relationships"] as const).map((tab) => (
@@ -470,32 +470,34 @@ export function InvestigationResults({
             </>
           )}
           {view === "Trend" && <FittedChange series={s} />}
-          <SeriesChart
-            title={s.name}
-            unit={
-              view === "Anomalies" && representation === "standardized"
-                ? "standard deviations"
-                : trendUnit(s.unit)
-            }
-            points={points(index)}
-            line={view === "Trend" ? s.trend.line : []}
-            color={colors[index]}
-            selected={
-              view === "Relationships" && index === 1 && pair
-                ? pair.yMonth
-                : selected
-            }
-            onSelect={(month) =>
-              setSelected(
-                view === "Relationships" && index === 1
-                  ? (rel?.pairs.find((p) => p.yMonth === month)?.xMonth ??
-                      month)
-                  : month,
-              )
-            }
-            start={data.request.start}
-            end={data.request.end}
-          />
+          {view !== "Trend" && (
+            <SeriesChart
+              title={s.name}
+              unit={
+                view === "Anomalies" && representation === "standardized"
+                  ? "standard deviations"
+                  : trendUnit(s.unit)
+              }
+              points={points(index)}
+              line={[]}
+              color={colors[index]}
+              selected={
+                view === "Relationships" && index === 1 && pair
+                  ? pair.yMonth
+                  : selected
+              }
+              onSelect={(month) =>
+                setSelected(
+                  view === "Relationships" && index === 1
+                    ? (rel?.pairs.find((p) => p.yMonth === month)?.xMonth ??
+                        month)
+                    : month,
+                )
+              }
+              start={data.request.start}
+              end={data.request.end}
+            />
+          )}
           {view === "Anomalies" && (
             <details className="trend-provenance">
               <summary>Reference counts and monthly statistics</summary>
@@ -804,6 +806,37 @@ function FittedChange({ series }: { series: Investigation["series"][number] }) {
           ? `95% interval for fitted change: ${t.slopeCi95PerYear.map((v) => fmt((v * months) / 12)).join(" to ")} ${trendUnit(series.unit)}. This is not a prediction interval.`
           : "Uncertainty is unavailable for this selection."}
       </p>
+      <TrendChart
+        from={from}
+        to={from + months}
+        unit={trendUnit(series.unit)}
+        trend={{
+          points: series.observations.flatMap((p) =>
+            p.value === null
+              ? []
+              : [
+                  {
+                    month: p.month,
+                    x: monthIndex(p.month)!,
+                    value: p.value,
+                    coverage: null,
+                  },
+                ],
+          ),
+          slope: t.slopePerYear / 12,
+          interval: t.slopeCi95PerYear
+            ? [t.slopeCi95PerYear[0] / 12, t.slopeCi95PerYear[1] / 12]
+            : null,
+          significant: t.pValue === null ? null : t.pValue < 0.05,
+          n: t.n,
+          rSquared: null,
+          startMonth: first,
+          endMonth: last,
+          missingMonths: last - first + 1 - t.n,
+          predict: value,
+          confidenceAt: () => null,
+        }}
+      />
     </section>
   );
 }

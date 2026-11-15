@@ -93,7 +93,8 @@
   border-radius: 6px;
   color: var(--muted);
 }
-.real-panel .multi-variable-search {
+.real-panel .multi-variable-search,
+.trend-lab .multi-variable-search {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -194,7 +195,8 @@
   outline-offset: -3px;
   border-radius: 5px;
 }
-.real-panel .multi-variable-group-options > label {
+.real-panel .multi-variable-group-options > label,
+.trend-lab .multi-variable-group-options > label {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
