@@ -284,14 +284,9 @@ export function RealGlobe({
           )}
         </div>
       </div>
-      {onSelectArea && (
+      {onSelectArea && (drawing || areaNotice) && (
         <p className="globe-area-hint" role="status">
-          {areaNotice ||
-            (drawing
-              ? "Drag between two points on the globe. Release to analyze this area. Esc cancels."
-              : region
-                ? `Selected area: ${region.name}`
-                : "Global view · choose a country or draw a study area.")}
+          {areaNotice || "Drag between two points on the globe. Release to analyze this area. Esc cancels."}
         </p>
       )}
       <div
@@ -616,19 +611,7 @@ export function RealGlobe({
           </g>
         </svg>
       </div>
-      {region && (
-        <p className="real-region-outline-note">
-          {outlineGeometry
-            ? "Country boundary · series uses its rectangular extent"
-            : "Series area boundary"}{" "}
-          · {region.name}
-        </p>
-      )}
       <div className="real-globe-actions">
-        <small>
-          Drag to rotate · Ctrl/⌘ + scroll or pinch to zoom · double-click to
-          approach
-        </small>
         <div>
           <output
             className="globe-zoom-level"

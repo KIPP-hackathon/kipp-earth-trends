@@ -375,6 +375,13 @@ export function RealPanel({
           variables={catalog.variables}
           selected={effectiveSettings.map(setting => setting.variable)}
           onApply={applyVariables}
+          summary={[
+            region.name,
+            `${months.length} available months`,
+            ((period.start && period.start !== start) || (period.end && period.end !== end))
+              ? `Study period adjusted to available coverage: ${start} – ${end}. Choose a new period to revise.`
+              : undefined,
+          ].filter(Boolean).join(" · ")}
         />
         <SearchPicker
           id={`${id}-country`}
@@ -401,19 +408,6 @@ export function RealPanel({
           }}
         />
       </div>
-      <p className="real-source">
-        {selectedVariables.length > 1 ? <>{selectedVariables.length} variables · independent units and scales · </> : <>{variable.product}
-        {variable.run ? ` · ${variable.run}` : ""} · {realUnit(variable.unit)} ·{" "}
-        </>}
-        {months.length} available months
-        {((period.start && period.start !== start) ||
-          (period.end && period.end !== end)) && (
-          <span className="compact-period-coverage-note" role="status">
-            Study period adjusted to available coverage: {start} – {end}. Choose
-            a new period to revise.
-          </span>
-        )}
-      </p>
       <div className="real-globe-container" aria-busy={frame.loading}>
         <RealGlobe
           frame={frame.data}

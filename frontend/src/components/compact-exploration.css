@@ -14,8 +14,9 @@
 }
 .compact-exploration-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(190px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 180px) minmax(190px, 220px);
   gap: 10px;
+  margin-bottom: 24px;
 }
 .exploration-picker {
   position: relative;
@@ -336,7 +337,7 @@
     > .real-series-comparison {
     grid-column: 2;
     grid-row: 3 / span 6;
-    margin-top: 8px;
+    margin-top: 0;
     align-self: start;
   }
   .real-panels:not(.is-comparing) .compact-real-panel > .real-notice {
@@ -344,10 +345,13 @@
     grid-row: 7;
   }
   .is-comparing .compact-exploration-controls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+  .is-comparing .compact-exploration-controls > .multi-variable-picker {
+    grid-column: 1 / -1;
   }
   .is-comparing .compact-exploration-controls > .exploration-period {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
   .is-comparing .exploration-period-popover {
     left: 0;
@@ -359,11 +363,14 @@
     padding: 12px;
   }
   .compact-exploration-controls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
     gap: 8px;
   }
-  .compact-exploration-controls > .exploration-period {
+  .compact-exploration-controls > .multi-variable-picker {
     grid-column: 1 / -1;
+  }
+  .compact-exploration-controls > .exploration-period {
+    grid-column: auto;
   }
   .exploration-period-popover {
     left: 0;

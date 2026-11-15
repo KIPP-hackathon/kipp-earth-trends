@@ -151,6 +151,9 @@
 .real-globe-toolbar {
   padding-top: 18px;
 }
+.real-globe-actions {
+  justify-content: flex-end;
+}
 .real-globe-toolbar button {
   display: flex;
   align-items: center;

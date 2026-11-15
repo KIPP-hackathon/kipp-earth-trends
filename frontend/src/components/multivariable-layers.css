@@ -25,6 +25,34 @@
   outline: 2px solid #83b5f5;
   outline-offset: 1px;
 }
+.multi-variable-selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.multi-variable-selection-names {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.multi-variable-selection-count {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: #a8c7ef;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.multi-variable-trigger > svg {
+  flex-shrink: 0;
+}
+#root .multi-variable-selection-summary {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
 .multi-variable-popover {
   position: absolute;
   z-index: 75;

@@ -793,6 +793,23 @@ confirmada pela [Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-t
 e pelo bundle público `index-BhFMRo6n.js`, idêntico ao validado, com as seções
 removidas ausentes. Revisão humana e submissão permanecem separadas.
 
+### Campos de exploração e legendas do globo — 15/11/2026
+
+OpenAI Codex assistiu o seletor com nomes das variáveis aplicadas, contagem,
+detalhes de produto/unidade no próprio campo e contexto de área/cobertura no
+seletor aberto. A linha redundante sob os campos foi removida. País e período
+usam menos largura; variáveis ocupam o restante, com linha inteira em mobile.
+O gráfico fica 24 px abaixo dos campos em desktop. Removidas as legendas
+fixas de área selecionada, contorno e navegação sob o globo; instruções de
+teclado permanecem no rótulo acessível, avisos de desenho/erro continuam e os
+controles de zoom são preservados. Proveniência e limitação do bbox seguem
+disponíveis em Source, quality & coordinates e no gráfico.
+85 testes frontend e build aprovados. Chrome isolado com API real conferiu
+1440/390 px, proporções dos campos, 24 px de separação, detalhes no seletor,
+ausência das legendas e de overflow da página. Ambiente sem WebGL; conferência
+limitada à interface, sem alegar validação da renderização das camadas.
+Publicação em verificação; investigação científica e submissão não alteradas.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

@@ -22,11 +22,13 @@ export function MultiVariablePicker({
   variables,
   selected,
   onApply,
+  summary,
 }: {
   id: string;
   variables: EarthVariable[];
   selected: string[];
   onApply: (ids: string[]) => void;
+  summary?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -38,6 +40,19 @@ export function MultiVariablePicker({
   const search = useRef<HTMLInputElement>(null);
   const available = variables.filter(isAvailable);
   const availableIds = new Set(available.map((variable) => variable.id));
+  const selectedVariables = selected.flatMap((id) => {
+    const variable = variables.find((entry) => entry.id === id);
+    return variable ? [variable] : [];
+  });
+  const selectionLabel =
+    selectedVariables.map((variable) => variable.name).join(", ") ||
+    "Choose variables";
+  const selectionDetails = selectedVariables
+    .map(
+      (variable) =>
+        `${variable.name} · ${realUnit(variable.unit)} · ${variable.product}${variable.run ? ` · ${variable.run}` : ""}`,
+    )
+    .join("\n");
   const validDraft = draft.filter(
     (id, index) => availableIds.has(id) && draft.indexOf(id) === index,
   );
@@ -100,6 +115,8 @@ export function MultiVariablePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? `${id}-dialog` : undefined}
+        aria-describedby={summary ? `${id}-summary` : undefined}
+        title={[selectionDetails, summary].filter(Boolean).join("\n")}
         disabled={!available.length}
         onClick={() => {
           if (!open) {
@@ -120,9 +137,21 @@ export function MultiVariablePicker({
           setOpen(!open);
         }}
       >
-        <span id={`${id}-value`}>{selected.length} selected</span>
+        <span id={`${id}-value`} className="multi-variable-selection">
+          <span className="multi-variable-selection-names">
+            {selectionLabel}
+          </span>
+          <span className="multi-variable-selection-count">
+            {selected.length} selected
+          </span>
+        </span>
         <ChevronDown size={15} aria-hidden="true" />
       </button>
+      {summary && (
+        <span id={`${id}-summary`} className="sr-only">
+          {summary}
+        </span>
+      )}
       {open && (
         <div
           className={`multi-variable-popover${rightAligned ? " align-right" : ""}`}
@@ -140,6 +169,9 @@ export function MultiVariablePicker({
               <X size={17} />
             </button>
           </div>
+          {summary && (
+            <p className="multi-variable-selection-summary">{summary}</p>
+          )}
           <label className="multi-variable-search">
             <Search size={15} aria-hidden="true" />
             <input
