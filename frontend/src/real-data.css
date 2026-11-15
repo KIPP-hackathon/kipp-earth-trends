@@ -214,6 +214,10 @@
   cursor: grab;
   overflow: hidden;
 }
+.real-globe-svg:focus,
+.real-globe-svg:focus-visible {
+  outline: none;
+}
 .real-globe-svg:active {
   cursor: grabbing;
 }
