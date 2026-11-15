@@ -2,17 +2,15 @@ import { useId, useMemo, useState } from "react";
 import type { Investigation } from "../lib/earthApi";
 import { fitLayers } from "../lib/twoLayer";
 import { formatTrendValue, monthFromIndex, trendUnit } from "../lib/trendLab";
+import { useMeasuredWidth } from "../lib/useMeasuredWidth";
 import { ChartInfo } from "./ChartInfo";
 
 const CYAN = "#84dbe8";
 const CORAL = "#f2958a";
 const TEXT = "#b4c4da";
-const W = 760;
-const H = 360;
-const LEFT = 84;
-const RIGHT = 20;
-const TOP = 28;
-const BOTTOM = 52;
+// Same frame as TrendChart so both Trend-view charts match in size.
+const TOP = 40;
+const BOTTOM = 61;
 const Z95 = 1.959963984540054;
 
 const num = (v: number, signed = false) =>
@@ -44,6 +42,12 @@ export function LayeredTrend({
   heading?: boolean;
 }) {
   const id = useId();
+  const [figureRef, measured] = useMeasuredWidth<HTMLElement>();
+  const W = Math.max(280, measured);
+  const narrow = W < 500;
+  const H = narrow ? 340 : 390;
+  const LEFT = narrow ? 70 : 88;
+  const RIGHT = narrow ? 20 : 24;
   const [span, setSpan] = useState(60);
   const [anchor, setAnchor] = useState<number | null>(null);
   const [showResidual, setShowResidual] = useState(false);
@@ -55,7 +59,7 @@ export function LayeredTrend({
   const xUnit = trendUnit(data.series[0].unit);
 
   const lagSelect = onLag && (
-    <label className="layered-lag">
+    <label>
       X leads Y by
       <select
         aria-label="Lag for the added layer"
@@ -95,7 +99,10 @@ export function LayeredTrend({
   );
   if (!fit)
     return (
-      <section className="layered-trend" aria-label="Layered trend">
+      <section
+        className={`layered-trend${heading ? " trend-projection" : ""}`}
+        aria-label="Layered trend"
+      >
         {heading && title}
         {lagSelect}
         <p className="trend-small">
@@ -163,20 +170,23 @@ export function LayeredTrend({
   ];
 
   return (
-    <section className="layered-trend" aria-label="Layered trend">
+    <section
+        className={`layered-trend${heading ? " trend-projection" : ""}`}
+        aria-label="Layered trend"
+      >
       {heading && title}
-      <div className="layered-controls">
+      <div className="investigation-toolbar layered-controls">
         {lagSelect}
-        <label className="layered-check">
-          <input
-            type="checkbox"
-            checked={showResidual}
-            onChange={(e) => setShowResidual(e.target.checked)}
-          />
-          Also show {yName} with {xName}&apos;s contribution removed
-        </label>
+        <button
+          type="button"
+          aria-pressed={showResidual}
+          title={`Also show ${yName} with ${xName}'s contribution removed`}
+          onClick={() => setShowResidual(!showResidual)}
+        >
+          {showResidual ? "Hide" : "Show"} {yName} without {xName}
+        </button>
       </div>
-      <figure className="trend-chart">
+      <figure className="trend-chart" ref={figureRef}>
         <div className="trend-chart-unit">
           Monthly value, seasonal effect removed ({unit})
         </div>
