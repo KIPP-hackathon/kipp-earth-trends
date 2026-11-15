@@ -1,4 +1,4 @@
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { IncomingMessage, ServerResponse } from "node:http";
 vi.mock("../../server/cloudRunAuth.js", () => ({
   cloudRunOrigin: "https://fixed-api.example",
@@ -6,7 +6,9 @@ vi.mock("../../server/cloudRunAuth.js", () => ({
 }));
 import handler from "../../api/earth";
 
-afterEach(() => vi.unstubAllGlobals());
+// This file tests the private production route, independently of the CI host.
+beforeEach(() => vi.stubEnv("VERCEL_ENV", "production"));
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 async function request(url: string) {
   let body = "";
   const headers: Record<string, string> = {};

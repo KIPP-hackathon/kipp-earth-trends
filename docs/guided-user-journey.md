@@ -34,3 +34,5 @@ Durante a validação, o catálogo público mudou de 37 variáveis disponíveis 
 - Capturas de teste ficam fora do Git. Revisão independente conferiu restauração de estudos e controles; encontrou assistente indisponível no preview, tratado com compositor desabilitado e explicação.
 
 OpenAI Codex assistiu planejamento, texto da jornada, CSS, implementação, testes e este registro. Ilustração decorativa da entrada usa Earth/Lucide já existente (ISC), sem nova imagem de satélite ou observação. A revisão humana da equipe, investigação científica reproduzível final e submissão Space Apps permanecem pendentes. Links avaliados e produção não são substituídos por este preview.
+
+O primeiro build Vercel expôs um teste preexistente que herdava `VERCEL_ENV=preview` apesar de validar a rota privada de produção. Falha reproduzida localmente; o teste agora fixa seu próprio ambiente `production` e o restaura ao terminar. A suíte completa também é executada com `VERCEL_ENV=preview` antes do novo envio.
