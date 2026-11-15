@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-task_project="${GCP_PROJECT:-nasa-earth-trends-lab}"
+task_project="${GCP_PROJECT:-kipp-space-apps-2026}"
 task_region="${GCP_REGION:-us-east4}"
-task_account="${GCP_ACCOUNT:-admin@kipptrend.space}"
-if [[ "$task_account" != "lucas.henrique.tai@gmail.com" && "$task_account" != "admin@kipptrend.space" ]]; then
+task_account="${GCP_ACCOUNT:-kipp.nasa@gmail.com}"
+if [[ "$task_account" != "kipp.nasa@gmail.com" && "$task_account" != "lucas.henrique.tai@gmail.com" && "$task_account" != "admin@kipptrend.space" ]]; then
   echo "Use a KIPP hackathon GCP account." >&2
   exit 1
 fi

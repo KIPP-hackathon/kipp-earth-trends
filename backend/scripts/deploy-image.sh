@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-task_project="${GCP_PROJECT:-nasa-earth-trends-lab}"
+task_project="${GCP_PROJECT:-kipp-space-apps-2026}"
 task_region="${GCP_REGION:-us-east4}"
 task_image="${1:?Usage: deploy-image.sh IMAGE}"
 task_service=kipp-earth-api
@@ -46,7 +46,10 @@ gcloud run deploy "$task_service" \
   --remove-env-vars PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,LAKEBASE_ENDPOINT,LAKEBASE_DATABRICKS_HOST \
   --remove-secrets DATABRICKS_CREDENTIALS --quiet
 
-mapfile -t task_deployment < <(gcloud run services describe "$task_service" --project "$task_project" --region "$task_region" --format=json | node --input-type=module -e '
+task_deployment=()
+while IFS= read -r task_line; do
+  task_deployment+=("$task_line")
+done < <(gcloud run services describe "$task_service" --project "$task_project" --region "$task_region" --format=json | node --input-type=module -e '
   import assert from "node:assert/strict";
   let body = "";
   for await (const chunk of process.stdin) body += chunk;

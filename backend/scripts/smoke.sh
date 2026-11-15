@@ -38,9 +38,9 @@ JS
 task_month="$(cat "$task_tmp/month")"
 [[ "$task_month" =~ ^[0-9]{4}-[0-9]{2}$ ]]
 curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
-  "$task_url/v1/frames/temperature/$task_month?factor=8&format=json${task_query/\?/\&}" -o "$task_tmp/frame.json"
+  "$task_url/v1/frames/temperature/$task_month?factor=8&format=json${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/frame.json"
 curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
-  "$task_url/v1/series/temperature?start=$task_month&end=$task_month&bbox=-60,-22,-54,-16${task_query/\?/\&}" -o "$task_tmp/series.json"
+  "$task_url/v1/series/temperature?start=$task_month&end=$task_month&bbox=-60,-22,-54,-16${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/series.json"
 node --input-type=module - "$task_tmp/frame.json" "$task_tmp/series.json" <<'JS'
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
@@ -56,7 +56,7 @@ console.log('Smoke OK: trusted frame and regional series');
 JS
 
 curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
-  "$task_url/v1/trends?variable=surface_temperature&bbox=-80,-20,-45,5&start=2024-01&end=2026-09${task_query/\?/\&}" -o "$task_tmp/trends.json"
+  "$task_url/v1/trends?variable=surface_temperature&bbox=-80,-20,-45,5&start=2024-01&end=2026-09${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/trends.json"
 node --input-type=module - "$task_tmp/trends.json" <<'JS'
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
