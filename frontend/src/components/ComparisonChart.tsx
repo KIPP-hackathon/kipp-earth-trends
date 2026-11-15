@@ -376,7 +376,9 @@ function ComparisonChartComponent({
             </text>
             {!hasValues && (
               <text x="313" y="94" textAnchor="middle">
-                {entries.some((entry) => entry.data)
+                {entries.length === 0
+                  ? "Select a variable above to show it in the charts"
+                  : entries.some((entry) => entry.data)
                   ? "No comparable values for this mode"
                   : "Loading selected variables…"}
               </text>
@@ -516,7 +518,7 @@ function ComparisonChartComponent({
               if (mode === "minmax" && source.range.constant)
                 return (
                   <li key={variable.id}>
-                    {variable.name}: no variation in this period; plotted at50.
+                    {variable.name}: no variation in this period; plotted at 50.
                   </li>
                 );
               if (valid < months.length)

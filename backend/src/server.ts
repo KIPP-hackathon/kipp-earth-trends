@@ -102,8 +102,8 @@ api.setErrorHandler((error, request, reply) => {
         message: known
           ? error.message
           : validation
-            ? "Parâmetros inválidos. Consulte /v1 para o contrato."
-            : "Não foi possível atender à requisição.",
+            ? "Invalid parameters. See /v1 for the contract."
+            : "Could not complete the request.",
         requestId: request.id,
       },
     });

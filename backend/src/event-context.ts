@@ -5,7 +5,7 @@ import { variables } from "./registry.ts";
 type Candidate = { id: string; reason: string };
 // Reviewed runtime IDs only. Relevance is curated context, never attribution.
 const candidates: Record<string, Candidate[]> = {
-  Queimadas: [
+  Wildfires: [
     {
       id: "rainfall",
       reason:
@@ -32,7 +32,7 @@ const candidates: Record<string, Candidate[]> = {
         "Monthly EVI offers a distinct vegetation-greenness context; it does not measure the fire footprint or attribute vegetation changes.",
     },
   ],
-  Furacões: [
+  Hurricanes: [
     {
       id: "rainfall",
       reason:

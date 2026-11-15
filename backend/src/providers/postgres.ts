@@ -36,7 +36,7 @@ export class PostgresProvider implements Provider {
             throw new ApiError(
               502,
               "UPSTREAM_AUTH",
-              "Credencial Lakebase indisponível.",
+              "Lakebase credential unavailable.",
             );
           return result.token;
         }),
@@ -67,7 +67,7 @@ export class PostgresProvider implements Provider {
           throw new ApiError(
             504,
             "QUERY_TIMEOUT",
-            "Consulta excedeu o tempo disponível.",
+            "The query timed out.",
           );
         return remaining;
       };
@@ -99,7 +99,7 @@ export class PostgresProvider implements Provider {
           throw new ApiError(
             504,
             "QUERY_TIMEOUT",
-            "Consulta excedeu o tempo disponível.",
+            "The query timed out.",
           );
         throw error;
       } finally {

@@ -33,10 +33,10 @@ describe("demonstration analysis", () => {
       "rainfall",
       "pantanal",
     );
-    expect(csv).toContain("DADOS SIMULADOS");
+    expect(csv).toContain("SIMULATED DATA");
     expect(csv).toContain("2024-12");
     expect(csv).not.toContain("2023-12");
-    expect(csv).toContain("mm/mes");
+    expect(csv).toContain("mm/month");
   });
   it("keeps the designed rainfall example inconclusive and the warming example positive", () => {
     expect(

@@ -299,6 +299,7 @@ bbox em8× e sua reabertura por link, reset e câmeras independentes/sincronizad
 conforme o workspace. Layout390px sem overflow; gesto físico de pinça não foi
 exercitado. Permanecem as pendências científicas e de submissão do checklist.
 
+
 ## Evidência incremental — tema espacial translúcido, preview local (14/11/2026)
 
 OpenAI Codex assistiu a aplicação de um fundo espacial contínuo e tema escuro
@@ -415,3 +416,63 @@ conferiram reversão da quota entre horas/dias e operação Bash 3. OpenAI Codex
 assistiu configuração, código e documentação; revisão técnica independente
 executada e achados corrigidos. Revisão humana e submissão Space Apps continuam
 sob responsabilidade da equipe; esta evidência não conclui os itens científicos.
+
+
+
+### Evidência incremental — primeira tela do Explore (15/11/2026)
+
+OpenAI Codex assistiu a mudança de layout em `App.tsx` e
+`compact-exploration.css`: ferramentas de preset, salvar/compartilhar e
+localização foram movidas para depois da investigação. Variables/Country/Study
+period iniciam o conteúdo abaixo do header. Globo e gráficos adaptam o tamanho
+à altura do desktop; título e modo compartilham a linha quando há espaço.
+
+Playwright Chromium foi usado por ausência de ferramenta Browser/IAB conectada.
+Fixtures sintéticas locais serviram apenas ao QA, sem alteração dos dados do
+produto. Com duas variáveis selecionadas, globo, playback e dois gráficos
+couberam em 1854×759, 1366×768 e 1440×900; 390×844 manteve fluxo vertical sem
+overflow horizontal. Seleção múltipla e troca para Scale 0–100 funcionaram,
+sem exceções JavaScript. Referência: captura fornecida pelo usuário; comparação
+visual por `view_image` com a captura renderizada no tamanho nativo 1854×759.
+
+Conferência visual: (1) espaço anterior aos filtros removido; (2) dois gráficos
+inteiros na primeira tela; (3) globo e playback inteiros; (4) tipografia,
+ícones e paleta existentes preservados; (5) mobile mantém empilhamento e
+controles acessíveis. Textos/ferramentas da faixa removida foram realocados,
+sem novo conteúdo de produto. Diferenças intencionais: tamanho do globo e área
+dos gráficos ajustados à altura; dados sintéticos nas capturas de QA. Nenhuma
+publicação ou conclusão científica é comprovada por essa verificação.
+
+Build frontend com Node.js 24 aprovado. A suíte existente retornou 46 testes
+aprovados e uma falha em `earthApi.test.ts`, no caso de histórico trusted de
+temperatura (`response.status` de resposta indefinida). Essa alteração de
+layout não modifica o teste nem o cliente da API; esses arquivos já tinham
+alterações locais no início do trabalho. Revisão humana da equipe pendente.
+
+
+### Evidência incremental — inglês e legenda dos gráficos (15/11/2026)
+
+Checkout atualizado por rebase sobre `origin/main` (`266408f`). Alterações locais
+anteriores ao rebase foram preservadas no stash `pre-rebase local work 2026-11-15`;
+conflitos de contratos e acesso a dados mantiveram a implementação mais recente
+da main, sem reaplicar roteamento antigo.
+
+OpenAI Codex assistiu a tradução do percurso ativo, metadados de variáveis,
+configuração, eventos, mensagens de erro e formatos de data/número para inglês.
+A documentação interna permanece em português. Textos e dados digitados pelo
+usuário não são traduzidos automaticamente; o assistente continua respondendo
+no idioma da pergunta. Revisão humana da equipe pendente.
+
+A legenda permite ocultar/restaurar cada variável nos gráficos global e regional,
+com estado acessível por teclado, sem alterar camadas do mapa ou refazer consultas.
+O domínio vertical acompanha as séries visíveis. A explicação da escala foi
+movida para um ícone de informação expansível, preservando referência, unidades
+e limites científicos. Nenhuma observação ou cálculo estatístico foi modificado.
+
+QA local com fixtures sintéticas identificadas: Chromium confirmou duas curvas
+por gráfico, ocultação/restauração, todas ocultas, teclado, troca de escala sem
+novas consultas, explicação expansível e viewport de 390 px sem overflow ou
+texto da explicação fora da tela. Sem exceções JavaScript. Builds frontend e
+backend com Node.js 24 aprovados; 47 testes do frontend aprovados. A conferência é local; não comprova publicação,
+submissão nem conclusão da investigação científica.
+

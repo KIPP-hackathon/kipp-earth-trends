@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import { memo, useEffect, useMemo, useState } from "react";
 import { loadComparison, variableDataKey } from "../lib/earthApi";
 import type {
@@ -109,6 +110,17 @@ function ComparisonAnalysisComponent({
       })),
     [variables, result, key],
   );
+  const [hiddenVariables, setHiddenVariables] = useState<Set<string>>(new Set());
+  const visibleEntries = useMemo(
+    () => entries.filter((entry) => !hiddenVariables.has(entry.variable.id)),
+    [entries, hiddenVariables],
+  );
+  const toggleVariable = (id: string) => setHiddenVariables((previous) => {
+    const next = new Set(previous);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  });
   const hasArea = region.bbox !== "-180,-90,180,90";
   const [cursor, setCursor] = useState<string>();
   useEffect(() => setCursor(undefined), [month, start, end, region.bbox]);
@@ -116,7 +128,7 @@ function ComparisonAnalysisComponent({
   const domain = useMemo<[number, number]>(() => {
     if (mode === "minmax") return [0, 100];
     let max = 2;
-    for (const entry of entries)
+    for (const entry of visibleEntries)
       for (const scope of hasArea
         ? (["global", "regional"] as const)
         : (["global"] as const))
@@ -124,11 +136,24 @@ function ComparisonAnalysisComponent({
           if (row.standardized !== null)
             max = Math.max(max, Math.abs(row.standardized));
     return [-max * 1.1, max * 1.1];
-  }, [entries, mode, hasArea]);
+  }, [visibleEntries, mode, hasArea]);
   return (
     <div className="comparison-analysis">
       <div className="comparison-heading">
-        <h2>Compare selected variables</h2>
+        <div className="comparison-title">
+          <h2>Compare selected variables</h2>
+          <details className="comparison-info">
+            <summary aria-label="About the chart scale" title="About the chart scale">
+              <Info size={16} aria-hidden="true" />
+            </summary>
+            <p className="comparison-explainer">
+              {mode === "standardized"
+                ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
+                : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
+              Each area has its own reference. Hover for original units. Map opacity does not affect these charts.
+            </p>
+          </details>
+        </div>
         <div
           className="comparison-mode"
           role="group"
@@ -150,13 +175,6 @@ function ComparisonAnalysisComponent({
           </button>
         </div>
       </div>
-      <p className="comparison-explainer">
-        {mode === "standardized"
-          ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
-          : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
-        Each area has its own reference. Hover for original units. Map opacity
-        does not affect these charts.
-      </p>
       {!available && (
         <p role="status" className="comparison-notice">
           Comparison processing is being published. Charts will become available
@@ -182,20 +200,27 @@ function ComparisonAnalysisComponent({
       )}
       <div
         className="comparison-variable-key"
-        aria-label="Selected variable colors"
+        aria-label="Show or hide chart variables"
       >
         {entries.map((entry) => (
-          <span key={entry.variable.id} title={entry.variable.name}>
+          <button
+            type="button"
+            key={entry.variable.id}
+            aria-pressed={!hiddenVariables.has(entry.variable.id)}
+            aria-label={`${hiddenVariables.has(entry.variable.id) ? "Show" : "Hide"} ${entry.variable.name} in charts`}
+            title={`${hiddenVariables.has(entry.variable.id) ? "Show" : "Hide"} in both charts`}
+            onClick={() => toggleVariable(entry.variable.id)}
+          >
             <i style={{ background: comparisonColor(entry.variable.id) }} />
             {entry.variable.name}
             {entry.error ? " · error" : !entry.data ? " · loading" : ""}
-          </span>
+          </button>
         ))}
       </div>
       <ComparisonChart
         title="Global"
         scope="global"
-        entries={entries}
+        entries={visibleEntries}
         mode={mode}
         domain={domain}
         start={start}
@@ -208,7 +233,7 @@ function ComparisonAnalysisComponent({
       <ComparisonChart
         title={`Selected area · ${hasArea ? region.name : "no area selected"}`}
         scope="regional"
-        entries={entries}
+        entries={visibleEntries}
         mode={mode}
         domain={domain}
         start={start}

@@ -6,92 +6,92 @@ export type AnnualValue = { year: number; value: number };
 export const regions = [
   {
     id: "saofrancisco",
-    name: "Bacia do São Francisco",
+    name: "São Francisco basin",
     short: "São Francisco",
-    subtitle: "Um rio, muitos futuros possíveis.",
+    subtitle: "One river, many possible futures.",
     biome: "Cerrado · Caatinga",
     location: [-44, -13] as [number, number],
-    coords: "13° S, 44° O",
+    coords: "13° S, 44° W",
     description:
-      "A água conecta chuva, calor e vegetação. Investigue os três sinais na região do Velho Chico.",
+      "Water connects rainfall, heat and vegetation. Investigate all three signals in the São Francisco region.",
   },
   {
     id: "amazonia",
-    name: "Amazônia central",
-    short: "Amazônia",
-    subtitle: "O pulso de uma floresta viva.",
-    biome: "Floresta tropical",
+    name: "Central Amazon",
+    short: "Amazon",
+    subtitle: "The pulse of a living forest.",
+    biome: "Tropical rainforest",
     location: [-62, -5] as [number, number],
-    coords: "05° S, 62° O",
+    coords: "05° S, 62° W",
     description:
-      "Uma floresta tem muitos ritmos. Compare mudanças de longo prazo com seu ciclo natural de chuvas.",
+      "A forest has many rhythms. Compare long-term changes with its natural rainfall cycle.",
   },
   {
     id: "pantanal",
     name: "Pantanal",
     short: "Pantanal",
-    subtitle: "A vida acompanha o ritmo da água.",
-    biome: "Planície inundável",
+    subtitle: "Life follows the rhythm of water.",
+    biome: "Floodplain",
     location: [-56, -18] as [number, number],
-    coords: "18° S, 56° O",
+    coords: "18° S, 56° W",
     description:
-      "O pulso das águas transforma a paisagem. Observe o que muda entre os ciclos e ao longo dos anos.",
+      "The pulse of water transforms the landscape. Explore changes between cycles and across years.",
   },
 ] as const;
 
 export const variables = {
   temperature: {
-    name: "Temperatura do ar",
-    short: "Temperatura",
-    question: "Está ficando mais quente?",
+    name: "Air temperature",
+    short: "Temperature",
+    question: "Is it getting warmer?",
     unit: "°C",
-    decadeUnit: "°C / década",
+    decadeUnit: "°C / decade",
     color: "#f4b080",
     source: "MERRA-2",
     product: "M2TMNXSLV",
-    resolution: "0,5° × 0,625°",
+    resolution: "0.5° × 0.625°",
     url: "https://gmao.gsfc.nasa.gov/gmao-products/merra-2/",
     definition:
-      "A temperatura do ar a dois metros de altura. É diferente da temperatura do chão vista por um sensor térmico.",
+      "Air temperature at two meters above the ground. It differs from ground temperature observed by a thermal sensor.",
     explanation:
-      "Uma linha que sobe representa aquecimento. A faixa ao redor dela mostra a incerteza da estimativa.",
-    trendLabel: "aquecimento",
+      "A rising line represents warming. The band around it shows uncertainty in the estimate.",
+    trendLabel: "warming",
     icon: "temperature",
   },
   rainfall: {
-    name: "Precipitação",
-    short: "Chuva",
-    question: "O ritmo das chuvas mudou?",
-    unit: "mm/mês",
-    decadeUnit: "mm/mês / década",
+    name: "Precipitation",
+    short: "Rainfall",
+    question: "Has the rainfall pattern changed?",
+    unit: "mm/month",
+    decadeUnit: "mm/month / decade",
     color: "#8fc9dc",
     source: "GPM · IMERG",
     product: "GPM_3IMERGM V07",
-    resolution: "0,1° × 0,1°",
+    resolution: "0.1° × 0.1°",
     url: "https://gpm.nasa.gov/data/imerg",
     definition:
-      "A quantidade de chuva em um mês. Um milímetro equivale a um litro de água sobre cada metro quadrado.",
+      "Rainfall over one month. One millimeter equals one liter of water per square meter.",
     explanation:
-      "A chuva varia muito de um ano para outro. Uma linha inclinada pode continuar compatível com ausência de mudança.",
-    trendLabel: "mudança na chuva",
+      "Rainfall varies greatly between years. A sloping line can still be consistent with no change.",
+    trendLabel: "change in rainfall",
     icon: "rainfall",
   },
   vegetation: {
-    name: "Vigor da vegetação",
-    short: "Vegetação",
-    question: "Como a vegetação responde?",
+    name: "Vegetation vigor",
+    short: "Vegetation",
+    question: "How does vegetation respond?",
     unit: "EVI",
-    decadeUnit: "EVI / década",
+    decadeUnit: "EVI / decade",
     color: "#c5dfa2",
     source: "Terra · MODIS",
     product: "MOD13Q1.061",
-    resolution: "250 m · 16 dias",
+    resolution: "250 m · 16 days",
     url: "https://cmr.earthdata.nasa.gov/search/concepts/C1748066515-LPCLOUD",
     definition:
-      "O EVI é um índice de vegetação derivado da luz refletida. Ele indica atividade e estrutura vegetal, sem medir diretamente a biodiversidade.",
+      "EVI is a vegetation index derived from reflected light. It indicates vegetation activity and structure without directly measuring biodiversity.",
     explanation:
-      "A vegetação responde ao clima e ao uso do solo. Uma associação não permite afirmar qual fator causou a mudança.",
-    trendLabel: "mudança na vegetação",
+      "Vegetation responds to climate and land use. An association does not establish which factor caused a change.",
+    trendLabel: "change in vegetation",
     icon: "vegetation",
   },
 } as const;
@@ -222,7 +222,7 @@ export function calculateTrend(points: AnnualValue[]) {
 }
 
 export function formatValue(value: number, variable: Variable, signed = false) {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: variable === "vegetation" ? 3 : 2,
     maximumFractionDigits: variable === "vegetation" ? 3 : 2,
     signDisplay: signed ? "exceptZero" : "auto",
@@ -235,7 +235,7 @@ export function toCsv(
   region: RegionId,
 ) {
   return (
-    `# DADOS SIMULADOS — prototipo educacional; nao sao medicoes NASA\n# regiao=${region}; variavel=${variable}; unidade=${variable === "rainfall" ? "mm/mes" : variables[variable].unit}\ndata,valor\n` +
+    `# SIMULATED DATA — educational prototype; not NASA measurements\n# region=${region}; variable=${variable}; unit=${variable === "rainfall" ? "mm/month" : variables[variable].unit}\ndate,value\n` +
     series
       .map(
         (p) =>

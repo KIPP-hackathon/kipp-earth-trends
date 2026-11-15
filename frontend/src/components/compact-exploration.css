@@ -392,3 +392,19 @@
   font-size: 11px;
   line-height: 1.6;
 }
+
+/* Keep the initial desktop investigation within the available screen height. */
+@media (min-width: 1000px) {
+  #panel-explore .compact-real-panel .real-globe-scene {
+    width: min(100%, clamp(280px, calc(100dvh - 420px), 440px));
+  }
+  #panel-explore .comparison-heading {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  #panel-explore .comparison-chart svg {
+    max-height: clamp(120px, calc((100dvh - 480px) / 2), 190px);
+  }
+}

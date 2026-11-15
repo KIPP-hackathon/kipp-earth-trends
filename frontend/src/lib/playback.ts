@@ -109,7 +109,7 @@ export function parseMonth(value: string): number | null {
   return (year - 2001) * 12 + month - 1;
 }
 
-const monthFormatter = new Intl.DateTimeFormat("pt-BR", {
+const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
   year: "numeric",
   timeZone: "UTC",

@@ -58,7 +58,7 @@ function RequestFailure({
     <div className="real-error" role="alert">
       <p>{message}</p>
       <button onClick={retry}>
-        <RefreshCw size={14} /> Tentar novamente
+        <RefreshCw size={14} /> Try again
       </button>
     </div>
   );
@@ -979,60 +979,11 @@ function App() {
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
-        <div className="workspace-actions">
-          {(active === "explore" || active === "analysis") && (
-            <button
-              className="preset-shortcut"
-              onClick={() => showTab("events")}
-            >
-              Try an event preset →
-            </button>
-          )}
-          <InvestigationControls
-            getView={getInvestigationView}
-            onRestore={restoreInvestigation}
-            ready={
-              !!catalog.data &&
-              !!config.data &&
-              (active === "explore" ||
-                active === "analysis" ||
-                active === "compare")
-            }
-          />
-        </div>
         {studyError && (
           <p role="alert" className="real-error">
             {studyError}
             <button onClick={() => setStudyError("")}>Dismiss</button>
           </p>
-        )}
-        {active === "explore" && (
-          <div className="country-location-note">
-            <p role="status" aria-live="polite">
-              {location.status === "locating"
-                ? `Starting with ${startingCountry.name}. Location is optional; choose any area below.`
-                : location.status === "detected"
-                  ? location.country.countryCode === startingCountry.countryCode
-                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
-                    : `Country found: ${location.country.name}. Your current selection was preserved.`
-                  : location.status === "denied"
-                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
-                    : `Started with ${startingCountry.name}. Choose any country or draw an area below.`}
-            </p>
-            <div>
-              {location.status !== "locating" && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    locationVersion.current = version.current;
-                    location.requestLocation();
-                  }}
-                >
-                  Use my location
-                </button>
-              )}
-            </div>
-          </div>
         )}
         {(catalog.loading || config.loading) && (
           <p className="real-notice" role="status">
@@ -1163,6 +1114,55 @@ function App() {
             <Guide config={config.data} />
           </section>
         )}
+        <div className="workspace-actions">
+          {(active === "explore" || active === "analysis") && (
+            <button
+              className="preset-shortcut"
+              onClick={() => showTab("events")}
+            >
+              Try an event preset →
+            </button>
+          )}
+          <InvestigationControls
+            getView={getInvestigationView}
+            onRestore={restoreInvestigation}
+            ready={
+              !!catalog.data &&
+              !!config.data &&
+              (active === "explore" ||
+                active === "analysis" ||
+                active === "compare")
+            }
+          />
+        </div>
+        {active === "explore" && (
+          <div className="country-location-note">
+            <p role="status" aria-live="polite">
+              {location.status === "locating"
+                ? `Starting with ${startingCountry.name}. Location is optional; choose any area below.`
+                : location.status === "detected"
+                  ? location.country.countryCode === startingCountry.countryCode
+                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
+                    : `Country found: ${location.country.name}. Your current selection was preserved.`
+                  : location.status === "denied"
+                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
+                    : `Started with ${startingCountry.name}. Choose any country or draw an area below.`}
+            </p>
+            <div>
+              {location.status !== "locating" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    locationVersion.current = version.current;
+                    location.requestLocation();
+                  }}
+                >
+                  Use my location
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         <p className="workspace-data-note">
           Real data derived from NASA products. The base image is static; the
           data layer represents its displayed month. Descriptive comparisons do
@@ -1228,17 +1228,16 @@ function App() {
           ) : (
             <div className="real-source-modal">
               <p>
-                Os campos mensais são derivados de produtos NASA e servidos pelo
-                catálogo de dados do laboratório. Cada variável identifica o
-                produto, a unidade, a agregação e os filtros de qualidade. A
-                imagem de base é NASA Blue Marble, estática. O fundo estrelado é
-                uma ambientação decorativa, sem representar posições
-                astronômicas ou observações científicas.
+                Monthly fields are derived from NASA products and served by the
+                lab’s data catalog. Each variable identifies its product, unit,
+                aggregation and quality filters. The base image is static NASA
+                Blue Marble imagery. The star field is decorative and does not
+                represent astronomical positions or scientific observations.
               </p>
               <p>
-                As fichas de eventos são curadas e citam suas fontes históricas.
-                Uma coincidência entre campos e eventos não demonstra
-                causalidade.
+                Event cards are curated and cite their historical sources.
+                A coincidence between fields and events does not establish
+                causality.
               </p>
               {[
                 ...new Set([
@@ -1249,8 +1248,8 @@ function App() {
                 <p key={item}>{item}</p>
               ))}
               <p>
-                Explore a proveniência em “Fonte, qualidade & limites” e exporte
-                o JSON da série para preservar os metadados da consulta.
+                Explore provenance under “Source, quality & limitations” and export
+                the series JSON to preserve query metadata.
               </p>
               <a
                 href="https://earthdata.nasa.gov/"
