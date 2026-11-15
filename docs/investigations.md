@@ -53,3 +53,10 @@ remained 390 px. Duplicate area IDs with conflicting geometry are rejected befor
 restore; explicit country/location changes clear incompatible event context.
 A focused temporary smoke verified the conflict rejection and existing storage
 preservation on quota/corrupt data. No automated suite was added.
+
+Production verification at source `28a4b22ba501e428d9ac69463af0342f057641b1`:
+saved “Brasil · temperatura mensal” on the public Vercel app, reloaded and
+reopened it with notes intact. Drew bbox `-67.68172,-21.37311,-43.30973,3.35155`,
+kept the 288×180 global field and opened its share URL in another tab; the exact
+custom rectangle and dates were restored without login. Import-then-save also
+retained the imported name and notes in local browser verification.

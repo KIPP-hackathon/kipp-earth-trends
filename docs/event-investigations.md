@@ -65,7 +65,8 @@ exactness again and uses the existing bounded memory-only read cache.
 
 `TrendEvidence` shows the exact methods in Analysis, including disagreement and
 source notes about autocorrelation/effective sample size. Separate supported
-contexts are informational and never mutate filters. Stored area weighting and
+contexts do not automatically mutate filters; an explicit “Open this analysis”
+action restores the exact supported selection after catalog validation. Stored area weighting and
 cell-center bounds may differ from the descriptive chart's aggregation; the
 component explicitly identifies this as stored analysis rather than a fresh
 calculation of that chart. A short 33-month record does not establish a
@@ -96,7 +97,7 @@ degenerate bounds, extra source parameter and unknown variable were rejected.
 This checks the backend route; it does not establish production BFF access.
 
 OpenAI Codex assisted the implementation, English contextual rationale and this
-documentation. Exact model identifier was not verified. Human scientific review and production verification remain pending. No new
+documentation. Exact model identifier was not verified. Human scientific review remains pending; production verification is recorded below. No new
 source data, scientific statistics, cloud permissions or provider grants were
 created by this work.
 
@@ -110,3 +111,15 @@ unsupported selection; explicitly opening the stored Amazon study selected
 surface temperature, bbox -80,-20,-45,5 and January 2024–September 2026, then
 rendered all five method rows and their significance disagreement. Opening a
 supported context is an explicit user action, never an automatic substitution.
+
+Production verification at source `28a4b22ba501e428d9ac69463af0342f057641b1`:
+[Vercel deployment](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/BvVAu6BH6trCqRnqNJMWN1bcmkoQ)
+and [backend workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43656060304)
+succeeded. Public BFF events returned eight cases and five curated fire-variable
+suggestions, with uncovered vegetation disabled. The exact Amazon request
+returned all five methods; the same area/period with air temperature returned
+unsupported and zero statistics. Browser navigation explicitly opened the
+supported study from Evidence. Anonymous direct Cloud Run access remained 403;
+the public bundle contained no secret patterns or server-authentication helpers.
+
+Cloud Run revision `kipp-earth-api-00033-hob` served 100% of traffic after the successful deployment.

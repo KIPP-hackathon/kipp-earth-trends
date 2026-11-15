@@ -46,6 +46,8 @@ Files: App.tsx, EventExplorer.tsx, LabTabs.tsx, docs.
 - [x] Wire save/share/bootstrap restore, real catalog validation, custom-region registration, optional event context, playback paused and camera restored.
 - [x] Events show related candidates with coverage and apply exact available event window/context; manual area changes clear context. Analysis uses exact stored trends.
 - [x] Existing frontend/backend checks, secret scan, focused review, browser save/reload/share/import/clear/event/compare paths.
-- [ ] Update source/AI evidence, publish main to Vercel/Cloud Run, verify private API and public complete flow.
+- [x] Update source/AI evidence, publish main to Vercel/Cloud Run, verify private API and public complete flow.
 
 Independent review found optional-name action gates, incompatible event context after explicit location use and conflicting custom region IDs during A/B restore. All were fixed before publication. Browser checks and an ephemeral conflict/quota/roundtrip smoke passed. Existing 46 frontend and six backend auth checks plus Node24 builds passed.
+
+Published source28a4b22; Vercel and backend workflow43656060304 successful. Public browser verified save/reload/open and exact drawn-region share restore. Public BFF verified event suggestions and exact/unsupported trends; direct CloudRun403 and bundle scan passed.
