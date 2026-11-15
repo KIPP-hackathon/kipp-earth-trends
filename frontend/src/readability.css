@@ -1,0 +1,42 @@
+/* Readable type sizes for the lab, without scaling the globe or controls. */
+:root {
+  --text-body: 15px;
+  --text-control: 14px;
+  --text-caption: 13px;
+}
+#root { font-size: var(--text-body); }
+#root :is(p, li) { font-size: var(--text-body); line-height: 1.65; }
+#root :is(button, label, summary, select) { font-size: var(--text-control); }
+#root :is(input:not([type="range"]):not([type="checkbox"]), textarea) { font-size: 16px; }
+#root :is(small, th, td) { font-size: var(--text-caption); line-height: 1.6; }
+#root :is(.exploration-control-label, .month-picker-label, .multi-variable-label,
+  .multi-variable-count, .real-panel-title, .real-source, .real-region-outline-note,
+  .globe-area-hint, .globe-navigation-help, .workspace-data-note, .real-method-note,
+  .real-series-comparison-note, .comparison-explainer, .comparison-notice,
+  .comparison-status-list li, .layer-card-heading p, .layer-map-state,
+  .layer-status, .layer-error, .layer-legend, .layer-legend span, .layer-category-labels li,
+  .comparison-chart-heading p, .comparison-values, .comparison-hover,
+  .comparison-hover > div > span, .real-provenance p) {
+  font-size: var(--text-caption);
+  line-height: 1.65;
+}
+#root :is(.comparison-heading h2, .layer-deck-heading h2) { font-size: 18px; }
+#root :is(.comparison-chart h3, .layer-card h3) { font-size: 16px; }
+#root .comparison-variable-key button { font-size: var(--text-control); padding: 7px 10px; }
+#root .comparison-variable-key { max-height: 132px; }
+#root .comparison-mode button { padding: 9px 12px; }
+#root :is(.exploration-picker-trigger, .multi-variable-trigger, .month-picker-trigger) { min-height: 44px; }
+#root .comparison-chart .real-export-actions button { padding: 6px 8px; }
+#root .comparison-chart svg text { font-size: 12px; }
+#root .comparison-info .comparison-explainer { width: min(360px, calc(100vw - 64px)); }
+#root .comparison-table-scroll { max-height: 300px; }
+#root .site-footer :is(span, button) { font-size: var(--text-caption); }
+#root .layer-opacity { gap: 12px; }
+#root .layer-deck-heading { flex-wrap: wrap; }
+#root .layer-opacity label { white-space: nowrap; }
+#root .real-time-controls .month-picker { flex-basis: 190px; }
+@media (max-width: 600px) {
+  #root .comparison-chart svg text { font-size: 18px; }
+  #root .comparison-chart-heading { flex-wrap: wrap; }
+  #root .real-time-controls .month-picker { flex-basis: 100%; }
+}

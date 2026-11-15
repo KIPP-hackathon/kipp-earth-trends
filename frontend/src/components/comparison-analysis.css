@@ -314,6 +314,8 @@
 }
 .runtime-trend-caption {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   align-items: center;
   gap: 7px;
   margin: 0 0 7px;

@@ -531,3 +531,18 @@ exportação e layout móvel. Publicação em produção será registrada após 
 Esta análise condicional não estabelece causalidade, previsão ou normalidade
 climática nem comprova submissão/aderência completa ao desafio. Revisão
 científica humana do caso, recursos NASA e submissão permanecem separados.
+
+
+### Preview local — textos maiores (15/11/2026)
+
+OpenAI Codex assistiu o aumento da tipografia: corpo de 15 px, controles de
+14 px, textos auxiliares de 13 px, campos de 16 px e títulos dos painéis de
+16–18 px. Legendas, proveniência, camadas e eixos dos gráficos também foram
+ampliados, com ajustes de quebra de linha e altura dos controles. Alteração
+local revisada pelo usuário, que autorizou a publicação em 15/11/2026.
+Dados e cálculos preservados.
+
+Preview em `http://localhost:5185`, com proxy para a API pública existente.
+47 testes aprovados; build aprovado com Node.js 24. Chromium confirmou
+posicionamento das camadas, tamanhos de texto maiores, controles funcionais e
+390 px sem overflow horizontal ou exceções JS. Captura mobile inspecionada.
