@@ -10,7 +10,6 @@ import type {
 import { ComparisonChart } from "./ComparisonChart";
 import { comparisonColor } from "../lib/comparisonColors";
 import { adjustTrendFamily } from "../lib/runtimeTrends";
-import type { TrendFamilyTest } from "../lib/runtimeTrends";
 import "./comparison-analysis.css";
 
 export type ComparisonEntry = {
@@ -47,6 +46,7 @@ function ComparisonAnalysisComponent({
   available: boolean;
   runtimeTrends: boolean;
 }) {
+  const hasArea = region.bbox !== "-180,-90,180,90";
   const [attempt, setAttempt] = useState(0);
   const key = JSON.stringify([
     variables.map(variableDataKey),
@@ -61,7 +61,7 @@ function ComparisonAnalysisComponent({
     entries: Record<string, { data?: EarthComparison; error?: string }>;
   }>({ key: "", entries: {} });
   useEffect(() => {
-    if (!active || !available) return;
+    if (!active || !available || !hasArea) return;
     const controller = new AbortController();
     setResult({ key, entries: {} });
     for (const variable of variables) {
@@ -108,7 +108,7 @@ function ComparisonAnalysisComponent({
     return () => controller.abort();
     // Mode, camera, opacity and selected month never reload a study series.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, active, available]);
+  }, [key, active, available, hasArea]);
   const entries = useMemo<ComparisonEntry[]>(
     () =>
       variables.map((variable) => ({
@@ -131,63 +131,40 @@ function ComparisonAnalysisComponent({
       else next.add(id);
       return next;
     });
-  const hasArea = region.bbox !== "-180,-90,180,90";
   const [cursor, setCursor] = useState<string>();
   useEffect(() => setCursor(undefined), [month, start, end, region.bbox]);
   const completed = entries.filter((entry) => entry.data || entry.error).length;
   const adjustedP = useMemo(
-    () => adjustTrendFamily(entries, mode, hasArea),
-    [entries, mode, hasArea],
+    () => adjustTrendFamily(entries, mode, ["regional"]),
+    [entries, mode],
   );
-  const familySize = entries.length * (hasArea ? 2 : 1);
-  const familyTests = useMemo<TrendFamilyTest[]>(
-    () =>
-      entries.flatMap((entry) =>
-        (hasArea
-          ? (["global", "regional"] as const)
-          : (["global"] as const)
-        ).map((scope) => ({
-          variable: entry.variable.id,
-          name: entry.variable.name,
-          scope,
-          bbox: scope === "global" ? "-180,-90,180,90" : region.bbox,
-          regionName: scope === "global" ? "Global" : region.name,
-          requestedStart: start,
-          requestedEnd: end,
-          referenceStart: entry.data?.reference.start,
-          referenceEnd: entry.data?.reference.end,
-          rangeMin: entry.data?.[scope].range.min,
-          rangeMax: entry.data?.[scope].range.max,
-          unit: entry.data?.unit ?? entry.variable.unit,
-          trend: entry.data?.[scope].trends?.[mode],
-          originalTrend: entry.data?.[scope].trends?.raw,
-          adjustedP: adjustedP[`${scope}:${entry.variable.id}`] ?? null,
-          product: entry.data?.product,
-          source: entry.data?.sourceUC,
-          error: entry.error,
-        })),
-      ),
-    [entries, mode, hasArea, adjustedP, region.bbox, region.name, start, end],
-  );
+  const familySize = entries.length;
   const domain = useMemo<[number, number]>(() => {
     if (mode === "minmax") return [0, 100];
     let max = 2;
     for (const entry of visibleEntries)
-      for (const scope of hasArea
-        ? (["global", "regional"] as const)
-        : (["global"] as const))
-        for (const row of [
-          ...(entry.data?.[scope].observations ?? []).map((row) => ({
-            standardized: row.standardized,
-          })),
-          ...(entry.data?.[scope].trends?.standardized.line ?? []).map(
-            (row) => ({ standardized: row.value }),
-          ),
-        ])
-          if (row.standardized !== null)
-            max = Math.max(max, Math.abs(row.standardized));
+      for (const row of [
+        ...(entry.data?.regional.observations ?? []).map((row) => ({
+          standardized: row.standardized,
+        })),
+        ...(entry.data?.regional.trends?.standardized.line ?? []).map(
+          (row) => ({ standardized: row.value }),
+        ),
+      ])
+        if (row.standardized !== null)
+          max = Math.max(max, Math.abs(row.standardized));
     return [-max * 1.1, max * 1.1];
-  }, [visibleEntries, mode, hasArea]);
+  }, [visibleEntries, mode]);
+  if (!hasArea)
+    return (
+      <section className="comparison-analysis">
+        <h2>Selected area</h2>
+        <p className="comparison-empty">
+          Choose a country or draw an area on the globe to see its variables and
+          trends.
+        </p>
+      </section>
+    );
   return (
     <div className="comparison-analysis">
       <div className="comparison-heading">
@@ -263,7 +240,7 @@ function ComparisonAnalysisComponent({
             key={entry.variable.id}
             aria-pressed={!hiddenVariables.has(entry.variable.id)}
             aria-label={`${hiddenVariables.has(entry.variable.id) ? "Show" : "Hide"} ${entry.variable.name} in charts`}
-            title={`${hiddenVariables.has(entry.variable.id) ? "Show" : "Hide"} in both charts`}
+            title={`${hiddenVariables.has(entry.variable.id) ? "Show" : "Hide"} in chart`}
             onClick={() => toggleVariable(entry.variable.id)}
           >
             <i style={{ background: comparisonColor(entry.variable.id) }} />
@@ -272,23 +249,6 @@ function ComparisonAnalysisComponent({
           </button>
         ))}
       </div>
-      <ComparisonChart
-        title="Global"
-        scope="global"
-        entries={visibleEntries}
-        mode={mode}
-        domain={domain}
-        start={start}
-        end={end}
-        month={cursor ?? month}
-        onCursor={setCursor}
-        onMonth={onMonth}
-        eventWindow={eventWindow}
-        adjustedP={adjustedP}
-        familySize={familySize}
-        loading={completed < entries.length}
-        familyTests={familyTests}
-      />
       <ComparisonChart
         title={`Selected area · ${hasArea ? region.name : "no area selected"}`}
         scope="regional"
@@ -305,7 +265,6 @@ function ComparisonAnalysisComponent({
         adjustedP={adjustedP}
         familySize={familySize}
         loading={completed < entries.length}
-        familyTests={familyTests}
       />
       {countryOutline && (
         <p className="comparison-explainer">
@@ -343,20 +302,18 @@ function ComparisonAnalysisComponent({
           linear model and short-memory dependence remain assumptions.
         </p>
         <p>
-          Holm adjustment covers all applied variables across the available
-          global and regional charts in the active mode, including visually
-          hidden curves. Evidence uses adjusted p &lt;0.05. No significance does
-          not establish no change; neither p-value proves importance, causation
-          or a future outcome. Standardized monthly scaling can change a fit and
-          its p-value. All numerical results refer to the active representation,
-          not blended map colors.
+          Holm adjustment covers all applied variables for the selected area in
+          the active mode, including visually hidden curves. Evidence uses
+          adjusted p &lt;0.05. No significance does not establish no change;
+          neither p-value proves importance, causation or a future outcome.
+          Standardized monthly scaling can change a fit and its p-value. All
+          numerical results refer to the active representation, not blended map
+          colors.
         </p>
         <p>
           Historical normalization parameters are treated as fixed; their
           estimation uncertainty is not propagated into these approximate
-          p-values. Export JSON or Trend CSV for the complete test family,
-          including hidden variables. The ordinary chart CSV contains the
-          displayed scope and curves.
+          p-values.
         </p>
         <p>
           Monthly gaps are preserved. Ice category maps use the valid-area

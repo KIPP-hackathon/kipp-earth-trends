@@ -3,11 +3,7 @@ import type { ComparisonMode } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { TrendResults } from "./TrendResults";
-import {
-  comparisonColor,
-  comparisonTrendColor,
-} from "../lib/comparisonColors";
-import type { TrendFamilyTest } from "../lib/runtimeTrends";
+import { comparisonColor, comparisonTrendColor } from "../lib/comparisonColors";
 function calendar(start: string, end: string) {
   const index = (value: string) =>
     Number(value.slice(0, 4)) * 12 + Number(value.slice(5)) - 1;
@@ -27,14 +23,6 @@ const monthLabel = (month: string) =>
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${month}-01T00:00:00Z`));
-function download(content: string, type: string, name: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = name;
-  anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 function ComparisonChartComponent({
   title,
   scope,
@@ -51,7 +39,6 @@ function ComparisonChartComponent({
   adjustedP,
   familySize,
   loading,
-  familyTests,
 }: {
   title: string;
   scope: "global" | "regional";
@@ -68,7 +55,6 @@ function ComparisonChartComponent({
   adjustedP: Record<string, number>;
   familySize: number;
   loading: boolean;
-  familyTests: TrendFamilyTest[];
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
@@ -117,112 +103,6 @@ function ComparisonChartComponent({
       return trend?.status === "available" && trend.line.length === 2;
     });
   const hasPlot = hasValues && (!trendsOnly || hasTrends);
-  const exportRows = () =>
-    entries.flatMap((entry) =>
-      entry.data ? [{ ...entry.data, [scope]: entry.data[scope] }] : [],
-    );
-  const csv = () => {
-    const header = [
-      "variable",
-      "month",
-      "original_value",
-      "original_unit",
-      "comparison_mode",
-      "comparison_value",
-      "coverage",
-      "samples",
-      "reference_start",
-      "reference_end",
-      "reference_month_count",
-      "reference_mean",
-      "reference_sample_std",
-      "period_min",
-      "period_max",
-      "bbox",
-      "source",
-      "product",
-      "aggregation",
-      "method",
-      "status",
-      "simulated",
-      "trend_method",
-      "trend_n",
-      "trend_first_month",
-      "trend_last_month",
-      "trend_slope_per_year",
-      "trend_standard_error_per_year",
-      "trend_p",
-      "trend_p_holm",
-      "trend_family_size",
-      "trend_inference_status",
-      "trend_reason",
-      "trend_ci95_low_per_year",
-      "trend_ci95_high_per_year",
-    ];
-    const rows = entries.flatMap(({ variable, data }) =>
-      data
-        ? data[scope].observations.map((row) => {
-            const reference =
-              data[scope].reference[Number(row.month.slice(5)) - 1];
-            const trend = data[scope].trends?.[mode];
-            return [
-              variable.id,
-              row.month,
-              row.value,
-              data.unit,
-              mode,
-              row[mode],
-              row.coverage,
-              row.samples,
-              data.reference.start,
-              data.reference.end,
-              reference.count,
-              reference.mean,
-              reference.standardDeviation,
-              data[scope].range.min,
-              data[scope].range.max,
-              scope === "global" ? "-180,-90,180,90" : data.bbox.join(","),
-              data.sourceUC,
-              data.product,
-              data.aggregation,
-              data.method,
-              mode === "standardized"
-                ? row.standardizedStatus
-                : row.value === null
-                  ? "no_data"
-                  : data[scope].range.constant
-                    ? "constant_series"
-                    : "available",
-              false,
-              trend?.method,
-              trend?.n,
-              trend?.firstMonth,
-              trend?.lastMonth,
-              trend?.slopePerYear,
-              trend?.standardErrorPerYear,
-              trend?.pValue,
-              adjustedP[`${scope}:${variable.id}`],
-              familySize,
-              trend?.inferenceStatus,
-              trend?.reason,
-              trend?.slopeCi95PerYear?.[0],
-              trend?.slopeCi95PerYear?.[1],
-            ];
-          })
-        : [],
-    );
-    download(
-      [header, ...rows]
-        .map((row) =>
-          row
-            .map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`)
-            .join(","),
-        )
-        .join("\n"),
-      "text/csv;charset=utf-8",
-      `kipp-${scope}-${mode}-${start}-${end}.csv`,
-    );
-  };
   const eventIndices = eventWindow
     ? months.flatMap((value, index) =>
         value >= eventWindow[0] && value <= eventWindow[1] ? [index] : [],
@@ -249,54 +129,12 @@ function ComparisonChartComponent({
           >
             Trends only
           </button>
-          <button
-            type="button"
-            disabled={noArea || !entries.some((entry) => entry.data)}
-            onClick={csv}
-          >
-            CSV
-          </button>
-          <button
-            type="button"
-            disabled={noArea || !entries.some((entry) => entry.data)}
-            onClick={() =>
-              download(
-                JSON.stringify(
-                  {
-                    mode,
-                    inference: {
-                      method: "OLS calendar-month effects + HAC12",
-                      adjustment: "Holm",
-                      familySize,
-                      familyTests,
-                      familyScope:
-                        "All applied variables in available global/regional charts in this mode, including hidden curves; unavailable p-values conservatively treated as1",
-                      adjustedP,
-                      loading,
-                      alpha: 0.05,
-                    },
-                    scope,
-                    start,
-                    end,
-                    simulated: false,
-                    variables: exportRows(),
-                  },
-                  null,
-                  2,
-                ),
-                "application/json",
-                `kipp-${scope}-${mode}.json`,
-              )
-            }
-          >
-            JSON
-          </button>
         </div>
       </div>
       {noArea ? (
         <p className="comparison-empty">
-          Choose a country or draw an area on the globe. The global chart
-          remains available.
+          Choose a country or draw an area on the globe to see its variables and
+          trends.
         </p>
       ) : (
         <>
@@ -528,7 +366,6 @@ function ComparisonChartComponent({
             adjustedP={adjustedP}
             familySize={familySize}
             loading={loading}
-            familyTests={familyTests}
           />
           <details className="comparison-values">
             <summary>

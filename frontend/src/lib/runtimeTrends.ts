@@ -25,34 +25,11 @@ export type RuntimeTrend = {
 };
 export const trendKey = (scope: "global" | "regional", id: string) =>
   `${scope}:${id}`;
-export type TrendFamilyTest = {
-  bbox: string;
-  regionName: string;
-  requestedStart: string;
-  requestedEnd: string;
-  referenceStart?: string;
-  referenceEnd?: string;
-  rangeMin?: number | null;
-  rangeMax?: number | null;
-  variable: string;
-  name: string;
-  scope: "global" | "regional";
-  unit: string;
-  trend?: RuntimeTrend;
-  originalTrend?: RuntimeTrend;
-  adjustedP: number | null;
-  product?: string;
-  source?: string;
-  error?: string;
-};
 export function adjustTrendFamily(
   entries: { variable: { id: string }; data?: EarthComparison }[],
   mode: ComparisonMode,
-  includeRegional: boolean,
+  scopes: readonly ("global" | "regional")[],
 ) {
-  const scopes = includeRegional
-    ? (["global", "regional"] as const)
-    : (["global"] as const);
   const familySize = entries.length * scopes.length;
   const tests = entries
     .flatMap((entry) =>

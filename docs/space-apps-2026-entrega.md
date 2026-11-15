@@ -737,3 +737,15 @@ e submissão na página Project continuam etapas distintas.
 Integração posterior com a main atual preservou mascote, Trend Lab e setas de
 vento do time.80checks existentes de frontend e builds frontend/backend
 aprovados com Node24. Publicação do alinhamento autorizada pelo usuário.
+
+
+### Simplificação solicitada — somente gráfico do recorte (15/11/2026)
+
+OpenAI Codex assistiu a remoção do gráfico Global e dos botões CSV, JSON e
+Trend CSV dos gráficos. O gráfico da área selecionada mantém multivariáveis,
+toggle de escala, tendências, p-valores e Trends only. O ajuste Holm passa a
+considerar apenas as variáveis selecionadas no recorte, incluindo as curvas
+ocultas; a escala vertical usa somente os dados regionais. Sem recorte, a UI
+pede selecionar um país ou desenhar uma área, sem consultar uma série global
+como substituta. O contrato da API permanece compatível. Nenhum dado ou
+modelo de tendência foi alterado. Publicação e validação serão registradas.

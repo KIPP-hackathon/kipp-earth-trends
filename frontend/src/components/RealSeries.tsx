@@ -90,47 +90,6 @@ export function RealSeries({
   const eventRight = eventIndices.length
     ? Math.min(588, x(eventIndices.at(-1)!) + halfStep)
     : 0;
-  const exportCsv = () => {
-    const csv = [
-      "month,value,unit,coverage,bbox,product,run,aggregation,method,simulated",
-      ...rows.map((p) =>
-        [
-          p.month,
-          p.value ?? "",
-          data.unit,
-          p.coverage ?? "",
-          data.bbox.join(","),
-          data.product,
-          data.run ?? "",
-          data.aggregation ?? "area_weighted_mean",
-          data.method,
-          "false",
-        ]
-          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-          .join(","),
-      ),
-    ].join("\n");
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `kipp-real-${data.variable}-${context}.csv`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
-  const exportJson = () => {
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json;charset=utf-8",
-      }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `kipp-real-${data.variable}-${context}.json`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
   return (
     <section className="real-series" aria-labelledby={id}>
       <div className="real-series-heading">
@@ -139,10 +98,6 @@ export function RealSeries({
           <small>
             {realUnit(data.unit)} · {aggregationLabel(data.aggregation)}
           </small>
-        </div>
-        <div className="real-export-actions">
-          <button onClick={exportCsv}>CSV</button>
-          <button onClick={exportJson}>JSON</button>
         </div>
       </div>
       {eventWindow && (
@@ -160,12 +115,29 @@ export function RealSeries({
           if (event.detail === 0) return;
           const inverse = event.currentTarget.getScreenCTM()?.inverse();
           if (!inverse) return;
-          const point = new DOMPoint(event.clientX,event.clientY).matrixTransform(inverse);
-          if (point.x < chartLeft || point.x > 588 || point.y < 24 || point.y > 180) return;
-          const index = Math.max(0,Math.min(rows.length-1,
-            Math.round((point.x-chartLeft)/(588-chartLeft)*(rows.length-1))));
+          const point = new DOMPoint(
+            event.clientX,
+            event.clientY,
+          ).matrixTransform(inverse);
+          if (
+            point.x < chartLeft ||
+            point.x > 588 ||
+            point.y < 24 ||
+            point.y > 180
+          )
+            return;
+          const index = Math.max(
+            0,
+            Math.min(
+              rows.length - 1,
+              Math.round(
+                ((point.x - chartLeft) / (588 - chartLeft)) * (rows.length - 1),
+              ),
+            ),
+          );
           const row = rows[index];
-          if (row.value !== null && Number.isFinite(row.value)) onMonth(row.month);
+          if (row.value !== null && Number.isFinite(row.value))
+            onMonth(row.month);
         }}
       >
         {eventIndices.length > 0 && (
@@ -218,7 +190,10 @@ export function RealSeries({
               tabIndex={0}
               aria-label={`${realMonth(p.month)}: ${formatObservation(p.value)}`}
               onClick={(event) => {
-                if (event.detail === 0) {event.stopPropagation();onMonth(p.month);}
+                if (event.detail === 0) {
+                  event.stopPropagation();
+                  onMonth(p.month);
+                }
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {

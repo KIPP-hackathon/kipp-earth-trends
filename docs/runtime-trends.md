@@ -117,3 +117,13 @@ No claim of successful final browser verification is made.
 OpenAI Codex assisted implementation/docs; an independent code review identified
 SVG clip placement and missing CSV study coordinates. Both were fixed and
 verified. No new production dependency or persistent test suite was added.
+
+
+## Atualização de interface — 15/11/2026
+
+Por solicitação do usuário, o gráfico Global e a exportação CSV/JSON dos
+gráficos foram removidos da interface. O único gráfico junto ao globo usa
+o recorte selecionado. Holm considera N variáveis desse recorte, inclusive
+curvas ocultas, sem acrescentar os testes globais à família. Os parágrafos
+anteriores que descrevem dois gráficos e exportações registram a versão
+anterior; método, dados e endpoints continuam disponíveis no contrato da API.
