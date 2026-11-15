@@ -71,6 +71,7 @@ export function RealGlobe({
   onColorRange,
   onSelectArea,
   onClearArea,
+  dataAvailable = true,
 }: {
   frame?: EarthFrame;
   layers?: MapLayer[];
@@ -81,6 +82,7 @@ export function RealGlobe({
   onColorRange?: (value?: EarthColorRange) => void;
   onSelectArea?: (bbox: string) => void;
   onClearArea?: () => void;
+  dataAvailable?: boolean;
   view: GlobeView;
   onView: (view: GlobeView) => void;
   onNavigate?: (view: GlobeView) => void;
@@ -241,7 +243,9 @@ export function RealGlobe({
         <div className="globe-area-controls" role="group" aria-label="Globe data and area controls">
           <button
             type="button"
-            aria-pressed={view.showLayer}
+            aria-pressed={dataAvailable && view.showLayer}
+            disabled={!dataAvailable}
+            title={!dataAvailable ? "Choose variables to display data" : undefined}
             onClick={() => onView({ ...view, showLayer: !view.showLayer })}
           >
             <Layers3 size={14} /> Data layer

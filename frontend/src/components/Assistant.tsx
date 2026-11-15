@@ -285,7 +285,7 @@ export function Assistant({
               <small id={`${id}-help`}>
                 {ready
                   ? `${input.length}/2000 · Enter to send`
-                  : "Waiting for the lab catalog…"}
+                  : "Choose variables in Explore or Compare to enable the assistant."}
               </small>
               {pending ? (
                 <button type="button" onClick={cancel}>

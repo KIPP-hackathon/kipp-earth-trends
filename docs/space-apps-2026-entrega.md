@@ -849,6 +849,25 @@ ausência dos textos removidos. Publicação `694f4a2` confirmada pela
 [Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/F3TX6bHHEUzTvPuUpZSMqvqhw5XK)
 e pelo bundle público `index-Cxfht65a.js`, idêntico ao validado.
 
+### Entrada sem variável selecionada — 15/11/2026
+
+OpenAI Codex assistiu a entrada de Explore/Compare sem seleção automática.
+O globo permanece navegável e permite escolher país/desenhar região; leitores
+de frames e séries só são montados após Apply ou abertura explícita de um
+preset, salvo ou link. Seletor inicia com zero variáveis; período, camada,
+reprodução, Save/Share e contexto do agente aguardam uma seleção real.
+Saved continua disponível. A mensagem do agente orienta escolher variáveis.
+O primeiro carregamento usa diretamente o preset aplicado, sem buscar
+temperatura como variável intermediária. Nenhum dado ou método foi alterado.
+85 testes frontend e build aprovados. Chrome isolado com API real registrou
+zero consultas de frames/séries/comparação antes de Apply, inclusive durante
+edição do seletor. Conferiu outra variável sem consulta intermediária de
+temperatura, país escolhido preservado, comparação inicialmente independente,
+seleção preservada entre abas e abertura de salvo/link a partir da tela vazia.
+Nova visita comum continuou vazia mesmo com salvo local; fixture removida.
+1440/390/360 px sem overflow. Ambiente sem WebGL: validação da interface e
+consultas, não da renderização das camadas. Publicação em verificação.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

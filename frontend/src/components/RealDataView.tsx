@@ -30,6 +30,7 @@ import {
 import type { GlobeView } from "../lib/comparison";
 import { RealGlobe } from "./RealGlobe";
 import { MultiVariablePicker } from "./MultiVariablePicker";
+import { EmptyRealPanel } from "./EmptyRealPanel";
 import { LayerCard } from "./LayerCard";
 import { ComparisonAnalysis } from "./ComparisonAnalysis";
 import type { LayerSetting, MapLayer } from "../lib/layers";
@@ -54,7 +55,7 @@ function Failure({ message, retry }: { message: string; retry: () => void }) {
   );
 }
 
-export function RealPanel({
+function SelectedRealPanel({
   catalog,
   side,
   view,
@@ -89,7 +90,7 @@ export function RealPanel({
   onNavigate?: (view: GlobeView) => void;
   catalog: EarthCatalog;
   config: EarthConfig;
-  preset?: PanelPreset;
+  preset: PanelPreset;
   playbackCommand?: PlaybackCommand;
   onPlaybackApplied: (side: "A" | "B", nonce: number) => void;
   onSnapshot: (snapshot: PanelSnapshot) => void;
@@ -102,13 +103,13 @@ export function RealPanel({
   onView: (view: GlobeView) => void;
 }) {
   const id = useId();
-  const [comparisonMode,setComparisonMode]=useState<ComparisonMode>("standardized");
+  const [comparisonMode,setComparisonMode]=useState<ComparisonMode>(preset.comparisonMode ?? "standardized");
   const [selection, setSelection] = useState({
-    variable: "temperature",
-    month: "",
+    variable: preset.variable,
+    month: preset.month,
   });
   const [regionId, setRegionId] = useState(
-    (initialRegion ?? config.regions[0]).id,
+    preset.region,
   );
   const [drawnRegion, setDrawnRegion] = useState<EarthRegion>();
   const drawnSequence = useRef(0);
@@ -128,10 +129,10 @@ export function RealPanel({
     // A bootstrap update never overwrites a rectangle selected by the user.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initializationKey]);
-  const [layerSettings, setLayerSettings] = useState<LayerSetting[]>([
-    {variable:"temperature", visible:true, opacity:1},
+  const [layerSettings, setLayerSettings] = useState<LayerSetting[]>(() => preset.layers ?? [
+    {variable:preset.variable, visible:true, opacity:1},
   ]);
-  const [period, setPeriod] = useState({ start: "", end: "" });
+  const [period, setPeriod] = useState({ start: preset.start ?? "", end: preset.end ?? "" });
   useEffect(() => {
     if (!preset) return;
     setPlaying(false);
@@ -357,6 +358,7 @@ export function RealPanel({
   },[playing,active,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end]);
   return (
     <article
+      data-panel-id={instanceId}
       className={`real-panel compact-real-panel${overview ? " is-overview" : ""}`}
       aria-label={
         overview ? "Earth data exploration" : `Earth data panel ${side}`
@@ -561,4 +563,19 @@ export function RealPanel({
 
     </article>
   );
+}
+
+export type RealPanelProps = Omit<Parameters<typeof SelectedRealPanel>[0], "preset"> & { preset?: PanelPreset };
+
+/** Do not mount data readers until variables are explicitly applied or restored. */
+export function RealPanel(props: RealPanelProps) {
+  const [initialPreset, setInitialPreset] = useState<PanelPreset>();
+  const preset = props.preset ?? initialPreset;
+  if (preset) return <SelectedRealPanel {...props} preset={preset} />;
+  return <EmptyRealPanel {...props} onStart={(next) => {
+    setInitialPreset(next);
+    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(
+      `[data-panel-id="${CSS.escape(props.instanceId ?? props.side)}"] .multi-variable-trigger`,
+    )?.focus({preventScroll:true}));
+  }} />;
 }
