@@ -1,0 +1,226 @@
+resources:
+  jobs:
+    merra2_adg_bcdp001:
+      name: kipp-raw2trusted-merra2-adg-bcdp001
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_adg_bcdp001/raw2transient-tb-merra2-adg-bcdp001.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_adg_bcdp001/transient2trusted-tb-merra2-adg-bcdp001.py
+          source: WORKSPACE
+    merra2_aer_bcexttau:
+      name: kipp-raw2trusted-merra2-aer-bcexttau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_bcexttau/raw2transient-tb-merra2-aer-bcexttau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_bcexttau/transient2trusted-tb-merra2-aer-bcexttau.py
+          source: WORKSPACE
+    merra2_aer_bcsmass:
+      name: kipp-raw2trusted-merra2-aer-bcsmass
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_bcsmass/raw2transient-tb-merra2-aer-bcsmass.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_bcsmass/transient2trusted-tb-merra2-aer-bcsmass.py
+          source: WORKSPACE
+    merra2_aer_duexttau:
+      name: kipp-raw2trusted-merra2-aer-duexttau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_duexttau/raw2transient-tb-merra2-aer-duexttau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_duexttau/transient2trusted-tb-merra2-aer-duexttau.py
+          source: WORKSPACE
+    merra2_aer_dusmass:
+      name: kipp-raw2trusted-merra2-aer-dusmass
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_dusmass/raw2transient-tb-merra2-aer-dusmass.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_dusmass/transient2trusted-tb-merra2-aer-dusmass.py
+          source: WORKSPACE
+    merra2_aer_ocexttau:
+      name: kipp-raw2trusted-merra2-aer-ocexttau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_ocexttau/raw2transient-tb-merra2-aer-ocexttau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_ocexttau/transient2trusted-tb-merra2-aer-ocexttau.py
+          source: WORKSPACE
+    merra2_aer_ocscatau:
+      name: kipp-raw2trusted-merra2-aer-ocscatau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_ocscatau/raw2transient-tb-merra2-aer-ocscatau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_ocscatau/transient2trusted-tb-merra2-aer-ocscatau.py
+          source: WORKSPACE
+    merra2_aer_ocsmass:
+      name: kipp-raw2trusted-merra2-aer-ocsmass
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_ocsmass/raw2transient-tb-merra2-aer-ocsmass.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_ocsmass/transient2trusted-tb-merra2-aer-ocsmass.py
+          source: WORKSPACE
+    merra2_aer_so4smass:
+      name: kipp-raw2trusted-merra2-aer-so4smass
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_so4smass/raw2transient-tb-merra2-aer-so4smass.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_so4smass/transient2trusted-tb-merra2-aer-so4smass.py
+          source: WORKSPACE
+    merra2_aer_ssexttau:
+      name: kipp-raw2trusted-merra2-aer-ssexttau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_ssexttau/raw2transient-tb-merra2-aer-ssexttau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_ssexttau/transient2trusted-tb-merra2-aer-ssexttau.py
+          source: WORKSPACE
+    merra2_aer_sssmass:
+      name: kipp-raw2trusted-merra2-aer-sssmass
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_sssmass/raw2transient-tb-merra2-aer-sssmass.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_sssmass/transient2trusted-tb-merra2-aer-sssmass.py
+          source: WORKSPACE
+    merra2_aer_suexttau:
+      name: kipp-raw2trusted-merra2-aer-suexttau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_suexttau/raw2transient-tb-merra2-aer-suexttau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_suexttau/transient2trusted-tb-merra2-aer-suexttau.py
+          source: WORKSPACE
+    merra2_aer_totexttau:
+      name: kipp-raw2trusted-merra2-aer-totexttau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_totexttau/raw2transient-tb-merra2-aer-totexttau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_totexttau/transient2trusted-tb-merra2-aer-totexttau.py
+          source: WORKSPACE
+    merra2_aer_totscatau:
+      name: kipp-raw2trusted-merra2-aer-totscatau
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_aer_totscatau/raw2transient-tb-merra2-aer-totscatau.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_aer_totscatau/transient2trusted-tb-merra2-aer-totscatau.py
+          source: WORKSPACE
+    merra2_chm_coem:
+      name: kipp-raw2trusted-merra2-chm-coem
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_chm_coem/raw2transient-tb-merra2-chm-coem.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_chm_coem/transient2trusted-tb-merra2-chm-coem.py
+          source: WORKSPACE
+    merra2_chm_to3:
+      name: kipp-raw2trusted-merra2-chm-to3
+      max_concurrent_runs: 1
+      tasks:
+      - task_key: extract
+        notebook_task:
+          notebook_path: ../data-extraction/tb_merra2_chm_to3/raw2transient-tb-merra2-chm-to3.py
+          source: WORKSPACE
+      - task_key: standardize
+        depends_on:
+        - task_key: extract
+        notebook_task:
+          notebook_path: ../data-standardization/tb_merra2_chm_to3/transient2trusted-tb-merra2-chm-to3.py
+          source: WORKSPACE

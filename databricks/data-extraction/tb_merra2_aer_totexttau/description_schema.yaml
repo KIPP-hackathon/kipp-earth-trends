@@ -1,0 +1,47 @@
+table:
+  name: '`earth-trend-data`.transient.tb_merra2_aer_totexttau'
+  description: Profundidade óptica de extinção do conjunto de aerossóis a 550 nm.
+    Média mensal da reanálise MERRA-2 M2TMNXAER 5.12.4, em 1, preservada do CSV de
+    origem sem conversão de unidade. Leitura recursiva de todos os meses disponíveis;
+    lacunas não são interpoladas.
+  theme: atmosfera
+  product: M2TMNXAER_TOTEXTTAU
+  source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXAER_TOTEXTTAU/
+provenance:
+  reviewed_on: '2026-11-15'
+  references:
+  - https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  - https://disc.gsfc.nasa.gov/datasets/M2TMNXAER_5.12.4/summary
+  sample_file: gs://nasa-earth-trends-lab-raw/transient/M2TMNXAER_TOTEXTTAU/2000/M2TMNXAER_TOTEXTTAU_2000_01.csv
+  verification: Cabeçalho CSV conferido por leitura parcial autenticada no GCS; significado
+    e unidade conferidos na especificação MERRA-2 GMAO Office Note No. 9, versão 1.1.
+    NetCDF original não inspecionado nesta implementação.
+  reference_units: '1'
+columns:
+  lat:
+    description: Latitude do ponto da grade, em graus norte.
+    unit: degrees_north
+  lon:
+    description: Longitude do ponto da grade, em graus leste.
+    unit: degrees_east
+  time:
+    description: Timestamp mensal preservado do CSV MERRA-2. Cruzamentos com outras
+      fontes devem considerar ano e mês.
+    unit: null
+  TOTEXTTAU:
+    description: Profundidade óptica de extinção do conjunto de aerossóis a 550 nm;
+      média mensal na unidade 1. Valor de reanálise, sem conversão ou cálculo adicional
+      nesta ingestão.
+    unit: '1'
+    source: Cabeçalho CSV e especificação oficial MERRA-2 (GMAO Office Note No. 9,
+      versão 1.1).
+  source_file:
+    description: URI do CSV de origem no GCS, preservada para rastreabilidade e desempate
+      de reingestões.
+    unit: null
+    source: Databricks _metadata.file_path.
+  source_file_modified_at:
+    description: Última atualização do arquivo de origem no GCS. A trusted prefere
+      o arquivo mais recente ao deduplicar latitude, longitude e data.
+    unit: null
+    source: Databricks _metadata.file_modification_time.

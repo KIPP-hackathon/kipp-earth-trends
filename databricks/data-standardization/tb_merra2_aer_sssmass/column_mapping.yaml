@@ -1,0 +1,22 @@
+source_table: '`earth-trend-data`.transient.tb_merra2_aer_sssmass'
+target_table: '`earth-trend-data`.trusted.tb_merra2_aer_sssmass'
+source_description: ../../data-extraction/tb_merra2_aer_sssmass/description_schema.yaml
+write_enabled: true
+column_types:
+  time: date
+constraints:
+  primary_key:
+  - latitude
+  - longitude
+  - time
+  not_null:
+  - latitude
+  - longitude
+  - time
+columns:
+  lat: latitude
+  lon: longitude
+  time: time
+  SSSMASS: sea_salt_surface_mass_concentration_kilograms_per_cubic_meter
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

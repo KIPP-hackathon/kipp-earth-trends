@@ -24,6 +24,33 @@ abertura de Pantanal com frame real da tabela consolidada de fluxos; 1440/390 px
 sem exceções JavaScript ou overflow. Evidências em [indicadores consolidados](consolidated-indicators.md).
 Assistência OpenAI Codex; revisão humana e submissão formal pendentes.
 
+## Preparação de 16 jobs MERRA-2 adicionais — 15/11/2026
+
+OpenAI Codex assistiu a criação de 16 jobs para as pastas de aerossóis (13),
+química atmosférica (2) e deposição de carbono negro (1) sem ingestão localizada
+na auditoria. Cada job tem notebook raw→transient, descrição de origem,
+notebook transient→trusted e mapeamento com chave latitude/longitude/data,
+deduplicação e proveniência. Definições em
+`databricks/resources/merra2-aerosols-chemistry.jobs.yml`.
+
+[Fontes, tabelas, unidades, comportamento e validações](ingestao-merra2-aerossois-quimica.md).
+Cabeçalhos e amostras inicial/final dos CSVs reais conferidos; sintaxe Python,
+contratos dos metadados/mapeamentos, caminhos, dependências e unicidade dos jobs
+validados. `databricks bundle validate` aprovado no workspace KIPP, sem deploy
+ou execução. BCDP001 tem cobertura histórica parcial no bucket e não deve ser
+anunciado como série contínua desde 2000. Nenhum dado foi transformado nesta
+preparação; ingestão efetiva, integração no produto e revisão humana continuam
+etapas separadas. Estes novos jobs não comprovam investigação ou submissão.
+
+Publicação posterior concluída por autorização do usuário: plano seletivo com
+16 criações, deploy aprovado e conferência dos 16 jobs e dos 64 arquivos remotos
+contra os locais. As configurações dos 221 jobs preexistentes permaneceram
+iguais; nenhuma execução de ingestão foi iniciada. IDs e links registrados na
+[documentação dos jobs](ingestao-merra2-aerossois-quimica.md#publicação-verificada--15112026).
+A publicação no GitHub inclui os notebooks, metadados, recurso do bundle e
+documentação, sem arquivos locais de dados ou credenciais.
+
+
 ### Auditoria das fontes de Events — 15/11/2026
 
 Consultas somente de leitura ao SQL Warehouse e à API pública confirmaram as
