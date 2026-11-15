@@ -1,8 +1,6 @@
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./lib/globeZoom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowUpRight,
-  BookOpen,
   Copy,
   Earth,
   ExternalLink,
@@ -34,8 +32,6 @@ import type {
   EarthVariable,
 } from "./lib/earthApi";
 import { useEarthResource } from "./lib/useEarthResource";
-import { invalidateFrames } from "./lib/earthFrameCache";
-import { earthReadCache } from "./lib/earthReadCache";
 import { Assistant } from "./components/Assistant";
 import { parseStudyBbox, validateAssistantActions } from "./lib/assistant";
 import type {
@@ -1188,25 +1184,6 @@ function App() {
           >
             <Earth size={19} /> KIPP.
           </a>
-          <div>
-            <button onClick={() => setModal("sources")}>
-              Credits & data <ArrowUpRight size={12} />
-            </button>
-            <button onClick={() => setModal("guide")}>
-              <BookOpen size={12} /> Field guide
-            </button>
-            <button
-              onClick={() => {
-                markChanged();
-                invalidateFrames();
-                earthReadCache.clear();
-                catalog.retry();
-                config.retry();
-              }}
-            >
-              <RefreshCw size={12} /> Refresh catalog
-            </button>
-          </div>
         </footer>
       </main>
       <div>
