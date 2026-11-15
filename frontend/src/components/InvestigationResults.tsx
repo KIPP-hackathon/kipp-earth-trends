@@ -5,6 +5,8 @@ import { formatTrendValue, monthIndex, trendUnit } from "../lib/trendLab";
 import { TrendChart } from "./TrendChart";
 import { CombinedSeriesChart } from "./CombinedSeriesChart";
 import { ChartInfo } from "./ChartInfo";
+import { InvestigationTour, tourSteps } from "./InvestigationTour";
+import { Compass } from "lucide-react";
 import { downloadInvestigation, investigationCsv } from "../lib/investigation";
 
 const fmt = (v: number | null | undefined) =>
@@ -26,6 +28,11 @@ export function InvestigationResults({
   const [view, setView] = useState<"Trend" | "Anomalies" | "Relationships">(
     initialView,
   );
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const tourView =
+    tourStep === null
+      ? undefined
+      : tourSteps(data.series.length > 1)[tourStep]?.view;
   const [representation, setRepresentation] = useState<
     "raw" | "anomaly" | "standardized"
   >("anomaly");
@@ -54,6 +61,49 @@ export function InvestigationResults({
           : p.value,
     }));
   const choose = selected || data.request.end;
+  const exportButtons = (
+    <>
+      <button
+        type="button"
+        className="investigation-export"
+        onClick={() =>
+          downloadInvestigation(
+            "trend-lab-evidence.json",
+            JSON.stringify({ ...data, regionName }, null, 2),
+            "application/json",
+          )
+        }
+      >
+        Export JSON
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          downloadInvestigation(
+            "trend-lab-evidence.csv",
+            investigationCsv(data),
+            "text/csv",
+          )
+        }
+      >
+        Export CSV
+      </button>
+    </>
+  );
+  const inspectMonth = (
+    <label>
+      Inspect month
+      <select
+        aria-label="Inspect month"
+        value={choose}
+        onChange={(e) => setSelected(e.target.value)}
+      >
+        {data.series[0].observations.map((p) => (
+          <option key={p.month}>{p.month}</option>
+        ))}
+      </select>
+    </label>
+  );
   return (
     <>
       <div className="trend-result-heading">
@@ -65,58 +115,49 @@ export function InvestigationResults({
             {data.request.bbox}
           </p>
         </div>
+        <button
+          type="button"
+          className="investigation-tour-start"
+          aria-expanded={tourStep !== null}
+          onClick={() => setTourStep(tourStep === null ? 0 : null)}
+        >
+          <Compass size={15} /> {tourStep === null ? "Take a tour" : "End tour"}
+        </button>
       </div>
-      <nav className="investigation-tabs" aria-label="Investigation view">
+      <nav
+        className="investigation-tabs"
+        aria-label="Investigation view"
+        data-tour={tourStep === 0 ? "focus" : undefined}
+      >
         {(["Anomalies", "Trend", "Relationships"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
             aria-pressed={view === tab}
+            data-tour={tourView === tab ? "focus" : undefined}
             onClick={() => setView(tab)}
           >
             {tab}
           </button>
         ))}
       </nav>
-      <div className="investigation-toolbar">
-        <label>
-          Inspect month
-          <select
-            aria-label="Inspect month"
-            value={choose}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            {data.series[0].observations.map((p) => (
-              <option key={p.month}>{p.month}</option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className="investigation-export"
-          onClick={() =>
-            downloadInvestigation(
-              "trend-lab-evidence.json",
-              JSON.stringify({ ...data, regionName }, null, 2),
-              "application/json",
-            )
-          }
-        >
-          Export JSON
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            downloadInvestigation(
-              "trend-lab-evidence.csv",
-              investigationCsv(data),
-              "text/csv",
-            )
-          }
-        >
-          Export CSV
-        </button>
-      </div>
+      {tourStep !== null && (
+        <InvestigationTour
+          step={tourStep}
+          hasRelationships={data.series.length > 1}
+          onStep={(next, nextView) => {
+            setTourStep(next);
+            if (nextView) setView(nextView);
+          }}
+          onClose={() => setTourStep(null)}
+        />
+      )}
+      {!(view === "Relationships" && rel) && (
+        <div className="investigation-toolbar">
+          {inspectMonth}
+          {exportButtons}
+        </div>
+      )}
       {view === "Anomalies" && (
         <>
           <div className="investigation-toolbar">
@@ -166,6 +207,10 @@ export function InvestigationResults({
                   unusual months in Y. Values near 0 mean little association,
                   near ±1 a strong one.
                 </p>
+                <p>
+                  Raw and adjusted r for every lag, with the number of common
+                  month pairs, are listed under Data, coverage &amp; methods.
+                </p>
                 <p>Association is not causation and not a forecast.</p>
               </ChartInfo>
             </div>
@@ -189,6 +234,7 @@ export function InvestigationResults({
                   ))}
                 </select>
               </label>
+              {inspectMonth}
               <button
                 type="button"
                 aria-pressed={adjusted}
@@ -196,140 +242,143 @@ export function InvestigationResults({
               >
                 {adjusted ? "Adjusted scatterplot" : "Raw scatterplot"}
               </button>
+              {exportButtons}
             </div>
-            <div className="trend-metrics">
-              <div>
-                <span>Raw Pearson r</span>
-                <strong>{fmt(rel.rawR)}</strong>
-              </div>
-              <div>
-                <span>Adjusted Pearson r</span>
-                <strong>{fmt(rel.adjustedR)}</strong>
-              </div>
-              <div>
-                <span>Common pairs</span>
-                <strong>{rel.n}</strong>
-              </div>
-            </div>
-            <div className="investigation-heading-row">
-              <h4>Adjusted correlation by lag</h4>
-              <ChartInfo label="How to read the lag chart">
-                <p>
-                  Each point is the adjusted correlation between X in one month
-                  and Y the given number of months later (0–6).
-                </p>
-                <p>
-                  A peak away from 0 months suggests Y tends to respond to X
-                  with a delay; a flat line near 0 means no lagged association.
-                  Click a point to inspect that lag.
-                </p>
-              </ChartInfo>
-            </div>
-            <svg
-              className="investigation-lag"
-              viewBox="0 0 440 170"
-              role="img"
-              aria-label="Adjusted correlation by lag, zero to six months"
+            <section
+              className="investigation-verdict"
+              data-evidence={
+                (test(`lag:${lag}`)?.adjustedP ?? 1) < 0.05 ? "yes" : "no"
+              }
+              aria-label={`Result at lag ${lag} months`}
             >
-              {[-1, 0, 1].map((v) => (
-                <g key={v}>
-                  <line
-                    x1="40"
-                    x2="420"
-                    y1={75 - v * 55}
-                    y2={75 - v * 55}
-                    stroke="#a2bfe52b"
-                  />
-                  <text
-                    x="28"
-                    y={79 - v * 55}
-                    textAnchor="end"
-                    fill="#b4c4da"
-                    fontSize="12"
-                  >
-                    {v}
-                  </text>
-                </g>
-              ))}
-              <path
-                d={data.lags
-                  .map((r, i) =>
-                    r.adjustedR === null
-                      ? ""
-                      : `${i === 0 || data.lags[i - 1].adjustedR === null ? "M" : "L"}${45 + i * 60},${75 - r.adjustedR * 55}`,
-                  )
-                  .join(" ")}
-                fill="none"
-                stroke={colors[0]}
-                strokeWidth="2"
-              />
-              {data.lags.map((r) => (
-                <g key={r.lag}>
-                  {r.adjustedR !== null && (
-                    <circle
-                      cx={45 + r.lag * 60}
-                      cy={75 - r.adjustedR * 55}
-                      r={lag === r.lag ? 7 : 4}
-                      fill={colors[0]}
-                      onClick={() => setLag(r.lag)}
-                    >
-                      <title>
-                        Lag {r.lag}: r {fmt(r.adjustedR)}
-                      </title>
-                    </circle>
-                  )}
-                  <text
-                    x={45 + r.lag * 60}
-                    y="155"
-                    textAnchor="middle"
-                    fill="#b4c4da"
-                    fontSize="12"
-                  >
-                    {r.lag}m
-                  </text>
-                </g>
-              ))}
-            </svg>
-            <div className="investigation-heading-row">
-              <h4>
-                {adjusted ? "Adjusted" : "Raw"} scatterplot · lag {lag} months
-              </h4>
-              <ChartInfo label="How to read the scatterplot">
-                <p>
-                  Each dot pairs one month of X (horizontal) with Y {lag} months
-                  later (vertical).
-                </p>
-                <p>
-                  A cloud tilted upward means they rise together; tilted
-                  downward means one rises as the other falls; a round cloud
-                  means little relationship.{" "}
-                  {adjusted
-                    ? "Adjusted values have seasons and linear trends removed."
-                    : "Raw values still include the seasonal cycle, which can create a misleading pattern."}
-                </p>
-              </ChartInfo>
-            </div>
-            <Scatter
-              data={data}
-              lag={lag}
-              adjusted={adjusted}
-              selected={selected}
-              onSelect={setSelected}
-            />
-            <p className="trend-small">
-              {pair
-                ? `${pair.xMonth} X = ${fmt(pair.x)} ${trendUnit(data.series[0].unit)} → ${pair.yMonth} Y = ${fmt(pair.y)} ${trendUnit(data.series[1].unit)}`
-                : "This selected month is outside the common lag support. Select a scatterplot point or another month."}
-            </p>
-            <div className="trend-notice">
+              <span className="trend-kicker">Result · lag {lag} months</span>
               <strong>{evidence(`lag:${lag}`)}</strong>
               <p>
                 {rel.reason ??
                   `Beta ${fmt(rel.beta)} ${trendUnit(data.series[1].unit)} per ${trendUnit(data.series[0].unit)}. Approximate 95% beta CI: ${rel.betaCi95?.map(fmt).join(" to ")}. Raw p: ${formatTrendP(rel.pValue)}; Holm p: ${formatTrendP(test(`lag:${lag}`)?.adjustedP)}.`}
               </p>
-              Correlation is not causality or a forecast. Beta uncertainty is
-              not a correlation interval.
+              <small>
+                Correlation is not causality or a forecast. Beta uncertainty is
+                not a correlation interval.
+              </small>
+            </section>
+            <div className="investigation-pair">
+              <div className="investigation-panel">
+                <div className="investigation-heading-row">
+                  <h4>Adjusted correlation by lag</h4>
+                  <ChartInfo label="How to read the lag chart">
+                    <p>
+                      Each point is the adjusted correlation between X in one
+                      month and Y the given number of months later (0–6).
+                    </p>
+                    <p>
+                      A peak away from 0 months suggests Y tends to respond to X
+                      with a delay; a flat line near 0 means no lagged
+                      association. Click a point to inspect that lag.
+                    </p>
+                  </ChartInfo>
+                </div>
+                <svg
+                  className="investigation-lag"
+                  viewBox="0 0 440 260"
+                  role="img"
+                  aria-label="Adjusted correlation by lag, zero to six months"
+                >
+                  {[-1, 0, 1].map((v) => (
+                    <g key={v}>
+                      <line
+                        x1="40"
+                        x2="420"
+                        y1={120 - v * 95}
+                        y2={120 - v * 95}
+                        stroke="#a2bfe52b"
+                      />
+                      <text
+                        x="28"
+                        y={124 - v * 95}
+                        textAnchor="end"
+                        fill="#b4c4da"
+                        fontSize="12"
+                      >
+                        {v}
+                      </text>
+                    </g>
+                  ))}
+                  <path
+                    d={data.lags
+                      .map((r, i) =>
+                        r.adjustedR === null
+                          ? ""
+                          : `${i === 0 || data.lags[i - 1].adjustedR === null ? "M" : "L"}${45 + i * 60},${120 - r.adjustedR * 95}`,
+                      )
+                      .join(" ")}
+                    fill="none"
+                    stroke={colors[0]}
+                    strokeWidth="2"
+                  />
+                  {data.lags.map((r) => (
+                    <g key={r.lag}>
+                      {r.adjustedR !== null && (
+                        <circle
+                          cx={45 + r.lag * 60}
+                          cy={120 - r.adjustedR * 95}
+                          r={lag === r.lag ? 7 : 4}
+                          fill={colors[0]}
+                          onClick={() => setLag(r.lag)}
+                        >
+                          <title>
+                            Lag {r.lag}: r {fmt(r.adjustedR)}
+                          </title>
+                        </circle>
+                      )}
+                      <text
+                        x={45 + r.lag * 60}
+                        y="245"
+                        textAnchor="middle"
+                        fill="#b4c4da"
+                        fontSize="12"
+                      >
+                        {r.lag}m
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+              </div>
+              <div className="investigation-panel">
+                <div className="investigation-heading-row">
+                  <h4>
+                    {adjusted ? "Adjusted" : "Raw"} scatterplot · lag {lag}{" "}
+                    months
+                  </h4>
+                  <ChartInfo label="How to read the scatterplot">
+                    <p>
+                      Each dot pairs one month of X (horizontal) with Y {lag}{" "}
+                      months later (vertical).
+                    </p>
+                    <p>
+                      A cloud tilted upward means they rise together; tilted
+                      downward means one rises as the other falls; a round cloud
+                      means little relationship.{" "}
+                      {adjusted
+                        ? "Adjusted values have seasons and linear trends removed."
+                        : "Raw values still include the seasonal cycle, which can create a misleading pattern."}
+                    </p>
+                  </ChartInfo>
+                </div>
+                <Scatter
+                  data={data}
+                  lag={lag}
+                  adjusted={adjusted}
+                  selected={selected}
+                  onSelect={setSelected}
+                />
+              </div>
             </div>
+            <p className="trend-small">
+              {pair
+                ? `${pair.xMonth} X = ${fmt(pair.x)} ${trendUnit(data.series[0].unit)} → ${pair.yMonth} Y = ${fmt(pair.y)} ${trendUnit(data.series[1].unit)}`
+                : "This selected month is outside the common lag support. Select a scatterplot point or another month."}
+            </p>
           </>
         ))}
       {view !== "Trend" && (
@@ -532,6 +581,35 @@ export function InvestigationResults({
           and Late remain separate. Country/biome names describe rectangular
           study boxes, not polygon masks.
         </p>
+        {data.lags.length > 0 && (
+          <div className="investigation-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Lag (X precedes Y)</th>
+                  <th>Raw Pearson r</th>
+                  <th>Adjusted Pearson r</th>
+                  <th>Common pairs</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.lags.map((r) => (
+                  <tr
+                    key={r.lag}
+                    aria-current={r.lag === lag ? "true" : undefined}
+                  >
+                    <td>
+                      {r.lag} months{r.lag === lag ? " · selected" : ""}
+                    </td>
+                    <td>{fmt(r.rawR)}</td>
+                    <td>{fmt(r.adjustedR)}</td>
+                    <td>{r.n}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         <div className="investigation-table">
           <table>
             <thead>

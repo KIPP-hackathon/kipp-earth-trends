@@ -790,3 +790,35 @@
 .combined-chart-legend .chart-info + button {margin-left:0}
 .combined-chart-legend .chart-info-content {left:auto;right:0}
 @media(max-width:720px){.investigation-toolbar .investigation-export{margin-left:0}}
+/* Lag curve and scatterplot side by side; stacked on narrow screens. */
+.investigation-pair {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start;margin:20px 0}
+.investigation-panel {min-width:0;display:flex;flex-direction:column;gap:12px}
+.investigation-pair .investigation-lag,.investigation-pair .investigation-scatter svg {max-width:none}
+.investigation-pair .investigation-scatter {margin:0}
+.investigation-panel:last-child .chart-info-content {left:auto;right:-8px}
+@media(max-width:900px){.investigation-pair{grid-template-columns:minmax(0,1fr)}.investigation-panel:last-child .chart-info-content{left:0;right:auto}}
+.investigation-table tr[aria-current="true"] td {color:var(--trend-cyan)}
+/* Relationship verdict: shown right after the lag controls, before the charts. */
+.investigation-verdict {display:flex;flex-direction:column;gap:6px;margin:16px 0 4px;padding:14px 16px;border:1px solid #a2bfe53b;border-left:3px solid #b4c4da;border-radius:8px;background:#0b2035aa}
+.investigation-verdict[data-evidence="yes"] {border-left-color:var(--trend-cyan)}
+.investigation-verdict strong {font-size:14px;font-weight:600;color:#e6edf7}
+.investigation-verdict p {margin:0;font-size:12px;line-height:1.6;color:#c4d5e9;font-variant-numeric:tabular-nums}
+.investigation-verdict small {font-size:11px;color:#9cb1ce}
+/* Guided tour of the three investigation views. */
+.investigation-tour-start {display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding:8px 14px;border:1px solid var(--trend-cyan);border-radius:999px;color:var(--trend-cyan);background:#87dbe514;font-size:12px;cursor:pointer}
+.investigation-tour-start:hover,.investigation-tour-start[aria-expanded="true"] {background:#87dbe52e}
+.investigation-tabs[data-tour="focus"] button,.investigation-tabs button[data-tour="focus"] {box-shadow:0 0 0 2px #07111f,0 0 0 4px var(--trend-cyan);transition:box-shadow .2s}
+.investigation-tour {display:flex;flex-direction:column;gap:8px;margin:0 0 18px;padding:16px 18px;border:1px solid var(--trend-cyan);border-radius:10px;background:#102238;box-shadow:0 12px 30px #0006;outline:none}
+.investigation-tour:focus-visible {box-shadow:0 0 0 2px var(--trend-cyan)}
+.investigation-tour-head {display:flex;align-items:center;justify-content:space-between}
+.investigation-tour-head button {display:inline-flex;padding:4px;border-radius:50%;color:#b4c4da;cursor:pointer}
+.investigation-tour > strong {font-size:15px;font-weight:600;color:#e6edf7}
+.investigation-tour p {margin:0;font-size:13px;line-height:1.6;color:#c4d5e9}
+.investigation-tour-nav {display:flex;align-items:center;gap:8px;margin-top:6px}
+.investigation-tour-nav button {height:34px;padding:0 14px;border:1px solid #a2bfe53b;border-radius:6px;color:#c4d5e9;font-size:12px;cursor:pointer}
+.investigation-tour-nav button:disabled {opacity:.4;cursor:default}
+.investigation-tour-nav .investigation-tour-next {color:#07111f;background:var(--trend-cyan);border-color:var(--trend-cyan);font-weight:600}
+.investigation-tour-dots {display:flex;gap:6px;margin-right:auto}
+.investigation-tour-dots i {width:7px;height:7px;border-radius:50%;background:#a2bfe54f}
+.investigation-tour-dots i[data-active="true"] {background:var(--trend-cyan)}
+@media(max-width:600px){.trend-result-heading{flex-wrap:wrap}}
