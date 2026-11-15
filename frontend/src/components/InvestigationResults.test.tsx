@@ -44,6 +44,7 @@ const render = (study = data) =>
       data: study,
       regionName: "Synthetic QA box",
       onGuide: () => {},
+      initialView: "Trend" as const,
     }),
   );
 
@@ -76,5 +77,19 @@ it("keeps source charts without inventing an extension when a fit is unavailable
   expect(html).not.toContain('class="trend-chart-extension"');
   expect(html).not.toContain('class="trend-chart-point-b"');
   expect(html).toContain('class="investigation-chart"');
+  expect(html).not.toMatch(/(?:NaN|Infinity)/);
+});
+
+it("opens on seasonal departures with both indicators in one combined chart", () => {
+  const html = renderToStaticMarkup(
+    createElement(InvestigationResults, {
+      data,
+      regionName: "Synthetic QA box",
+      onGuide: () => {},
+    }),
+  );
+  expect(html).toMatch(/aria-pressed="true"[^>]*>Anomalies</);
+  expect(html.match(/class="investigation-chart"/g)).toHaveLength(1);
+  expect(html).toContain("Temperature (test) and Rainfall (test)");
   expect(html).not.toMatch(/(?:NaN|Infinity)/);
 });

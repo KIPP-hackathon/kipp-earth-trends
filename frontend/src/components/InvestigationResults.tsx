@@ -1,184 +1,30 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Investigation } from "../lib/earthApi";
 import { formatTrendP } from "../lib/runtimeTrends";
 import { formatTrendValue, monthIndex, trendUnit } from "../lib/trendLab";
 import { TrendChart } from "./TrendChart";
+import { CombinedSeriesChart } from "./CombinedSeriesChart";
+import { ChartInfo } from "./ChartInfo";
 import { downloadInvestigation, investigationCsv } from "../lib/investigation";
 
 const fmt = (v: number | null | undefined) =>
   v === null || v === undefined ? "Unavailable" : formatTrendValue(v);
 const colors = ["#87dbe5", "#efbf80"];
 type Point = { month: string; value: number | null };
-function SeriesChart({
-  title,
-  unit,
-  points,
-  line = [],
-  color,
-  selected,
-  onSelect,
-  start,
-  end,
-}: {
-  title: string;
-  unit: string;
-  points: Point[];
-  line?: Point[];
-  color: string;
-  selected: string;
-  onSelect: (month: string) => void;
-  start: string;
-  end: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(600);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new ResizeObserver((entries) =>
-      setWidth(Math.max(250, entries[0].contentRect.width)),
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  const values = [...points, ...line].flatMap((p) =>
-    p.value === null ? [] : [p.value],
-  );
-  const lo = values.length ? Math.min(...values) : 0,
-    hi = values.length ? Math.max(...values) : 1;
-  const pad = (hi - lo) * 0.08 || 1,
-    min = lo - pad,
-    max = hi + pad;
-  const left = 58,
-    right = width - 14,
-    top = 15,
-    bottom = 180;
-  const t0 = monthIndex(start)!,
-    t1 = monthIndex(end)!;
-  const x = (m: string) =>
-    left + ((monthIndex(m)! - t0) / Math.max(1, t1 - t0)) * (right - left);
-  const y = (v: number) => bottom - ((v - min) / (max - min)) * (bottom - top);
-  const path = (rows: Point[]) => {
-    let connected = false;
-    return rows
-      .map((p) => {
-        if (p.value === null) {
-          connected = false;
-          return "";
-        }
-        const c = connected ? "L" : "M";
-        connected = true;
-        return `${c}${x(p.month)},${y(p.value)}`;
-      })
-      .join(" ");
-  };
-  const chosen = points.find((p) => p.month === selected);
-  return (
-    <div className="investigation-chart" ref={ref}>
-      <div className="investigation-chart-heading">
-        <strong style={{ color }}>{title}</strong>
-        <span>{unit}</span>
-      </div>
-      {!values.length ? (
-        <p className="trend-notice">
-          No values available for this representation. Check coverage and
-          reference counts.
-        </p>
-      ) : (
-        <svg
-          viewBox={`0 0 ${width} 210`}
-          role="img"
-          aria-label={`${title}, ${unit}, ${start} to ${end}`}
-        >
-          {[0, 0.5, 1].map((f) => {
-            const value = min + (max - min) * f;
-            return (
-              <g key={f}>
-                <line
-                  x1={left}
-                  x2={right}
-                  y1={y(value)}
-                  y2={y(value)}
-                  stroke="#a2bfe52b"
-                />
-                <text
-                  x={left - 7}
-                  y={y(value) + 4}
-                  textAnchor="end"
-                  fill="#b4c4da"
-                  fontSize="10"
-                >
-                  {value.toLocaleString("en", { maximumSignificantDigits: 3 })}
-                </text>
-              </g>
-            );
-          })}
-          <path d={path(points)} fill="none" stroke={color} strokeWidth="1.5" />
-          {line.length > 0 && (
-            <path
-              d={path(line)}
-              fill="none"
-              stroke="#fff"
-              strokeWidth="2"
-              strokeDasharray="5 4"
-            />
-          )}
-          {points.map((p) =>
-            p.value === null ? null : (
-              <circle
-                key={p.month}
-                cx={x(p.month)}
-                cy={y(p.value)}
-                r={p.month === selected ? 5 : 3}
-                fill={color}
-                fillOpacity={p.month === selected ? 1 : 0.2}
-                onClick={() => onSelect(p.month)}
-              >
-                <title>
-                  {p.month}: {fmt(p.value)} {unit}
-                </title>
-              </circle>
-            ),
-          )}
-          {chosen?.value !== null && chosen?.value !== undefined && (
-            <line
-              x1={x(selected)}
-              x2={x(selected)}
-              y1={top}
-              y2={bottom}
-              stroke={color}
-              strokeDasharray="2 3"
-            />
-          )}
-          <text x={left} y={203} fill="#b4c4da" fontSize="11">
-            {start}
-          </text>
-          <text x={right} y={203} textAnchor="end" fill="#b4c4da" fontSize="11">
-            {end}
-          </text>
-        </svg>
-      )}
-      <p className="trend-small">
-        {selected}: {fmt(chosen?.value)} {unit}
-        {line.length > 0
-          ? " · Dashed: season-adjusted linear time component."
-          : ""}
-      </p>
-    </div>
-  );
-}
 
 export function InvestigationResults({
   data,
   regionName,
   onGuide,
+  initialView = "Anomalies",
 }: {
   data: Investigation;
   regionName: string;
   onGuide: () => void;
+  initialView?: "Trend" | "Anomalies" | "Relationships";
 }) {
   const [view, setView] = useState<"Trend" | "Anomalies" | "Relationships">(
-    "Trend",
+    initialView,
   );
   const [representation, setRepresentation] = useState<
     "raw" | "anomaly" | "standardized"
@@ -221,7 +67,7 @@ export function InvestigationResults({
         </div>
       </div>
       <nav className="investigation-tabs" aria-label="Investigation view">
-        {(["Trend", "Anomalies", "Relationships"] as const).map((tab) => (
+        {(["Anomalies", "Trend", "Relationships"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -247,6 +93,7 @@ export function InvestigationResults({
         </label>
         <button
           type="button"
+          className="investigation-export"
           onClick={() =>
             downloadInvestigation(
               "trend-lab-evidence.json",
@@ -304,9 +151,24 @@ export function InvestigationResults({
           </p>
         ) : (
           <>
-            <h4>
-              Does {data.series[0].name} precede {data.series[1].name}?
-            </h4>
+            <div className="investigation-heading-row">
+              <h4>
+                Does {data.series[0].name} precede {data.series[1].name}?
+              </h4>
+              <ChartInfo label="How to read the relationship">
+                <p>
+                  Raw r compares the monthly values directly, so it is inflated
+                  when both indicators simply share the same seasons.
+                </p>
+                <p>
+                  Adjusted r first removes each indicator&apos;s seasonal cycle
+                  and linear trend; it asks whether unusual months in X go with
+                  unusual months in Y. Values near 0 mean little association,
+                  near ±1 a strong one.
+                </p>
+                <p>Association is not causation and not a forecast.</p>
+              </ChartInfo>
+            </div>
             <p className="trend-small">
               All lags use the same {rel.n} predictor months. Positive lag means
               X precedes Y. Calendar-month effects and linear trends are removed
@@ -348,6 +210,20 @@ export function InvestigationResults({
                 <span>Common pairs</span>
                 <strong>{rel.n}</strong>
               </div>
+            </div>
+            <div className="investigation-heading-row">
+              <h4>Adjusted correlation by lag</h4>
+              <ChartInfo label="How to read the lag chart">
+                <p>
+                  Each point is the adjusted correlation between X in one month
+                  and Y the given number of months later (0–6).
+                </p>
+                <p>
+                  A peak away from 0 months suggests Y tends to respond to X
+                  with a delay; a flat line near 0 means no lagged association.
+                  Click a point to inspect that lag.
+                </p>
+              </ChartInfo>
             </div>
             <svg
               className="investigation-lag"
@@ -414,6 +290,25 @@ export function InvestigationResults({
                 </g>
               ))}
             </svg>
+            <div className="investigation-heading-row">
+              <h4>
+                {adjusted ? "Adjusted" : "Raw"} scatterplot · lag {lag} months
+              </h4>
+              <ChartInfo label="How to read the scatterplot">
+                <p>
+                  Each dot pairs one month of X (horizontal) with Y {lag} months
+                  later (vertical).
+                </p>
+                <p>
+                  A cloud tilted upward means they rise together; tilted
+                  downward means one rises as the other falls; a round cloud
+                  means little relationship.{" "}
+                  {adjusted
+                    ? "Adjusted values have seasons and linear trends removed."
+                    : "Raw values still include the seasonal cycle, which can create a misleading pattern."}
+                </p>
+              </ChartInfo>
+            </div>
             <Scatter
               data={data}
               lag={lag}
@@ -437,98 +332,154 @@ export function InvestigationResults({
             </div>
           </>
         ))}
-      {data.series.map((s, index) => (
-        <section key={s.variable} className="investigation-series">
-          {view === "Trend" && (
+      {view !== "Trend" && (
+        <CombinedSeriesChart
+          start={data.request.start}
+          end={data.request.end}
+          zeroLine={view === "Anomalies" && representation !== "raw"}
+          info={
             <>
-              <h4>{s.name}</h4>
-              <div className="trend-metrics">
-                <div>
-                  <span>Change per year</span>
-                  <strong>
-                    {fmt(s.trend.slopePerYear)}{" "}
-                    <small>{trendUnit(s.unit)}/year</small>
-                  </strong>
-                </div>
-                <div>
-                  <span>Change per decade</span>
-                  <strong>
-                    {fmt(s.trend.slopePerDecade)}{" "}
-                    <small>{trendUnit(s.unit)}/decade</small>
-                  </strong>
-                </div>
-                <div>
-                  <span>Valid months</span>
-                  <strong>{s.trend.n}</strong>
-                </div>
-              </div>
-              <p className="trend-small">
-                {s.trend.reason ??
-                  `95% slope CI: ${s.trend.slopeCi95PerYear?.map(fmt).join(" to ")} ${trendUnit(s.unit)}/year. Raw p: ${formatTrendP(s.trend.pValue)}; Holm p: ${formatTrendP(test(`trend:${s.variable}`)?.adjustedP)}.`}{" "}
-                {evidence(`trend:${s.variable}`)}.
+              {view === "Relationships" ? (
+                <p>
+                  Both indicators over time. The highlighted months follow the
+                  selected lag: the X month and the Y month {lag} months later.
+                </p>
+              ) : representation === "raw" ? (
+                <p>
+                  Monthly regional averages in physical units. The regular waves
+                  are the seasonal cycle, which usually hides slower change.
+                </p>
+              ) : representation === "anomaly" ? (
+                <p>
+                  How far each month was from its usual value for that calendar
+                  month (reference {data.request.baselineStart}–
+                  {data.request.baselineEnd}). Above the dashed zero line means
+                  higher than usual for that time of year; below means lower.
+                </p>
+              ) : (
+                <p>
+                  Departures divided by each calendar month&apos;s typical
+                  variability. ±1 is an ordinary month; beyond ±2 is unusual.
+                  Both indicators share this unit, so their sizes are
+                  comparable.
+                </p>
+              )}
+              <p>
+                The thick line averages the last 12 months. A thick line that
+                drifts steadily up or down suggests a long-term change; check
+                the Trend view for its rate and evidence.
               </p>
+              {data.series.length > 1 &&
+                (view === "Relationships" ||
+                  representation !== "standardized") && (
+                  <p>
+                    Each indicator has its own vertical scale (left and right).
+                    Compare timing and shape, not where the lines cross.
+                  </p>
+                )}
             </>
-          )}
-          <FittedChange series={s} enabled={view === "Trend"}>
-            <SeriesChart
-              title={s.name}
-              unit={
-                view === "Anomalies" && representation === "standardized"
-                  ? "standard deviations"
-                  : trendUnit(s.unit)
-              }
-              points={points(index)}
-              line={[]}
-              color={colors[index]}
-              selected={
-                view === "Relationships" && index === 1 && pair
-                  ? pair.yMonth
-                  : selected
-              }
-              onSelect={(month) =>
-                setSelected(
-                  view === "Relationships" && index === 1
-                    ? (rel?.pairs.find((p) => p.yMonth === month)?.xMonth ??
-                        month)
-                    : month,
-                )
-              }
-              start={data.request.start}
-              end={data.request.end}
-            />
-          </FittedChange>
-          {view === "Anomalies" && (
-            <details className="trend-provenance">
-              <summary>Reference counts and monthly statistics</summary>
-              <div className="investigation-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Month</th>
-                      <th>Years</th>
-                      <th>Mean ({trendUnit(s.unit)})</th>
-                      <th>Sample SD</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {s.reference.map((r) => (
-                      <tr key={r.month}>
-                        <td>{r.month}</td>
-                        <td>
-                          {r.count}
-                          {r.count < 10 ? " · insufficient" : ""}
-                        </td>
-                        <td>{fmt(r.mean)}</td>
-                        <td>{fmt(r.standardDeviation)}</td>
+          }
+          series={data.series.map((s, index) => ({
+            name: s.name,
+            unit:
+              view === "Anomalies" && representation === "standardized"
+                ? "standard deviations"
+                : trendUnit(s.unit),
+            color: colors[index],
+            points: points(index),
+            selected:
+              view === "Relationships" && index === 1 && pair
+                ? pair.yMonth
+                : choose,
+          }))}
+          onSelect={(_, month) => setSelected(month)}
+        />
+      )}
+      {view !== "Relationships" &&
+        data.series.map((s, index) => (
+          <section key={s.variable} className="investigation-series">
+            {view === "Trend" && (
+              <>
+                <h4>{s.name}</h4>
+                <div className="trend-metrics">
+                  <div>
+                    <span>Change per year</span>
+                    <strong>
+                      {fmt(s.trend.slopePerYear)}{" "}
+                      <small>{trendUnit(s.unit)}/year</small>
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Change per decade</span>
+                    <strong>
+                      {fmt(s.trend.slopePerDecade)}{" "}
+                      <small>{trendUnit(s.unit)}/decade</small>
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Valid months</span>
+                    <strong>{s.trend.n}</strong>
+                  </div>
+                </div>
+                <p className="trend-small">
+                  {s.trend.reason ??
+                    `95% slope CI: ${s.trend.slopeCi95PerYear?.map(fmt).join(" to ")} ${trendUnit(s.unit)}/year. Raw p: ${formatTrendP(s.trend.pValue)}; Holm p: ${formatTrendP(test(`trend:${s.variable}`)?.adjustedP)}.`}{" "}
+                  {evidence(`trend:${s.variable}`)}.
+                </p>
+              </>
+            )}
+            {view === "Trend" && (
+              <FittedChange series={s}>
+                <CombinedSeriesChart
+                  start={data.request.start}
+                  end={data.request.end}
+                  series={[
+                    {
+                      name: s.name,
+                      unit: trendUnit(s.unit),
+                      color: colors[index],
+                      points: points(index),
+                      selected: choose,
+                    },
+                  ]}
+                  onSelect={(_, month) => setSelected(month)}
+                />
+              </FittedChange>
+            )}
+            {view === "Anomalies" && (
+              <details className="trend-provenance">
+                <summary>
+                  Reference counts and monthly statistics · {s.name}
+                </summary>
+                <div className="investigation-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Month</th>
+                        <th>Years</th>
+                        <th>Mean ({trendUnit(s.unit)})</th>
+                        <th>Sample SD</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </details>
-          )}
-        </section>
-      ))}
+                    </thead>
+                    <tbody>
+                      {s.reference.map((r) => (
+                        <tr key={r.month}>
+                          <td>{r.month}</td>
+                          <td>
+                            {r.count}
+                            {r.count < 10 ? " · insufficient" : ""}
+                          </td>
+                          <td>{fmt(r.mean)}</td>
+                          <td>{fmt(r.standardDeviation)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            )}
+          </section>
+        ))}
       <button type="button" className="trend-guide-link" onClick={onGuide}>
         Read the statistical interpretation in Guide
       </button>
@@ -643,7 +594,7 @@ function Scatter({
     xmax = Math.max(...xs),
     ymin = Math.min(...ys),
     ymax = Math.max(...ys);
-  const x = (v: number) => 55 + ((v - xmin) / (xmax - xmin || 1)) * 350,
+  const x = (v: number) => 78 + ((v - xmin) / (xmax - xmin || 1)) * 330,
     y = (v: number) => 210 - ((v - ymin) / (ymax - ymin || 1)) * 180;
   return (
     <figure className="investigation-scatter">
@@ -652,7 +603,7 @@ function Scatter({
         role="img"
         aria-label={`${adjusted ? "Season and trend adjusted" : "Raw"} scatterplot; X ${data.series[0].name}, Y ${data.series[1].name}`}
       >
-        <path d="M55 20V210H415" fill="none" stroke="#a2bfe54f" />
+        <path d="M78 20V210H415" fill="none" stroke="#a2bfe54f" />
         {rows.map((p) => (
           <circle
             key={p.xMonth}
@@ -668,19 +619,19 @@ function Scatter({
             </title>
           </circle>
         ))}
-        <text x="55" y="230" fill="#b4c4da" fontSize="12">
+        <text x="78" y="230" fill="#b4c4da" fontSize="12">
           {xmin.toPrecision(3)}
         </text>
         <text x="410" y="230" textAnchor="end" fill="#b4c4da" fontSize="12">
           {xmax.toPrecision(3)}
         </text>
-        <text x="48" y="210" textAnchor="end" fill="#b4c4da" fontSize="10">
+        <text x="72" y="210" textAnchor="end" fill="#b4c4da" fontSize="10">
           {ymin.toPrecision(3)}
         </text>
-        <text x="48" y="32" textAnchor="end" fill="#b4c4da" fontSize="10">
+        <text x="72" y="32" textAnchor="end" fill="#b4c4da" fontSize="10">
           {ymax.toPrecision(3)}
         </text>
-        <text x="235" y="253" textAnchor="middle" fill="#b4c4da" fontSize="12">
+        <text x="246" y="253" textAnchor="middle" fill="#b4c4da" fontSize="12">
           X ({trendUnit(data.series[0].unit)})
         </text>
         <text
@@ -704,11 +655,10 @@ function Scatter({
 
 function FittedChange({
   series,
-  enabled,
   children,
 }: {
   series: Investigation["series"][number];
-  enabled: boolean;
+  /** Shown instead when no fitted trend is available. */
   children: ReactNode;
 }) {
   const t = series.trend;
@@ -716,7 +666,6 @@ function FittedChange({
   const [duration, setDuration] = useState(12);
   const [anchor, setAnchor] = useState<number | null>(null);
   if (
-    !enabled ||
     t.slopePerYear === null ||
     !t.firstMonth ||
     !t.lastMonth ||
@@ -743,7 +692,22 @@ function FittedChange({
       className="trend-projection"
       aria-label={`${series.name} fitted change`}
     >
-      <h3>How much changes over {months} months?</h3>
+      <div className="investigation-heading-row">
+        <h3>How much changes over {months} months?</h3>
+        <ChartInfo label="How to read the trend chart">
+          <p>
+            Dots are monthly regional values. The solid line is the fitted
+            long-term trend after accounting for the usual seasonal pattern; the
+            shaded band is the 95% interval for that fitted line, not for
+            individual months.
+          </p>
+          <p>
+            Points A and B mark a span on the line; the number above is the
+            change the trend implies over that span. The dashed extension is a
+            straight-line projection, not a forecast.
+          </p>
+        </ChartInfo>
+      </div>
       <div className="trend-duration-presets">
         {(["projection", "historical"] as const).map((m) => (
           <button

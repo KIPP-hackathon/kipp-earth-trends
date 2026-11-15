@@ -173,3 +173,25 @@ Ignored local evidence: `artifacts/trend-lab-release/production-api.json`,
 `production-check.json`, `production-export.json`, `production-desktop.png`,
 `production-390.png`, `production-360.png`. Deployment verifies the technical
 release; scientific review, ENSO forecasting and official submission remain separate.
+
+## Combined series chart — 15/11/2026 (local, not deployed)
+
+Anomalies and Relationships now draw both indicators on one time axis
+(`CombinedSeriesChart`). Different units get independent left/right value axes;
+identical units (standardized departures) share one axis. Departure views are
+symmetric around zero so both indicators share a single zero line. A trailing
+12-month mean (only where all 12 months are valid; gaps are not bridged) is
+drawn over the thin monthly line and is labeled as smoothing, not a fitted trend.
+Year ticks replace start/end-only labels; hover reads both values, click selects
+the month. With a lag, each series keeps its own highlighted month.
+
+Motivation from a read-only Databricks check (trusted MERRA-2, Brazil bounding
+box, cos-latitude weighting, 2000-01–2026-09, 321 months): T10M seasonal cycle
+amplitude ≈3.3 °C vs. deseasonalized anomaly SD ≈0.53 °C and a fitted
+≈+0.40 °C/decade; raw T10M vs. surface pressure r≈−0.84 drops to ≈−0.16 on
+anomalies. Raw monthly plots therefore mostly show the seasonal cycle and a
+spurious shared-season correlation. These are exploratory numbers from a
+simple OLS on departures, not the app's HAC inference or a scientific finding.
+Results now open on **Anomalies** (seasonal departures), listed first; Trend
+and Relationships remain one click away.
+Claude Code (Anthropic) assisted this change.
