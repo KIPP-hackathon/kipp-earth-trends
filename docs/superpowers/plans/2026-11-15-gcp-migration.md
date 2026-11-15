@@ -29,30 +29,30 @@
 **Files:** backend/src/assistant.ts, backend/src/assistant-quota.ts, backend/scripts/deploy.sh, backend/scripts/deploy-image.sh; temporary operational scripts outside Git.
 **Interfaces:** Existing HTTP contracts and Databricks Google ID auth; produces a private Cloud Run URL and healthy revision.
 
-- [ ] Install locked dependencies in the worktree and run frontend/backend baseline tests/builds with Node 24.
-- [ ] Enable APIs; create repository, three SAs, restricted WIF providers, runtime roles and Firestore database.
-- [ ] Register new Google SA in Databricks with explicit existing read grants and CAN USE. Record inherited workspace policy without modifying shared groups.
-- [ ] Change backend Google project constants and script defaults/allowed account; keep explicit overrides for operations.
-- [ ] Test Vertex and Firestore with new runtime identity; build/push image and perform initial private deployment as owner.
-- [ ] Verify readiness, catalog, frame, regional series, comparison and stored trend; confirm anonymous 401/403 and runtime IAM.
+- [x] Install locked dependencies in the worktree and run frontend/backend baseline tests/builds with Node 24.
+- [x] Enable APIs; create repository, three SAs, restricted WIF providers, runtime roles and Firestore database.
+- [x] Register new Google SA in Databricks with explicit existing read grants and CAN USE. Record inherited workspace policy without modifying shared groups.
+- [x] Change backend Google project constants and script defaults/allowed account; keep explicit overrides for operations.
+- [x] Test Vertex and Firestore with new runtime identity; build/push image and perform initial private deployment as owner.
+- [x] Verify readiness, catalog, frame, regional series, comparison and stored trend; confirm anonymous 401/403 and runtime IAM.
 
 ## Task 2: Production route and quota cutover
 
 **Files:** frontend/server/cloudRunAuth.ts, docs/gcp-migration.md, docs/space-apps-2026-entrega.md.
 **Interfaces:** Task 1 URL/provider/invoker; produces Vercel production traffic on the new backend.
 
-- [ ] Preserve old quota counters with a bounded reservation block/drain/copy procedure and rollback state outside Git. Never silently reset limits.
-- [ ] Change the three public identifiers in cloudRunAuth.ts to the new URL/provider/invoker.
-- [ ] Run required tests/builds and review diff; commit/push with verified personal identity; open and merge PR after checks.
-- [ ] Wait for Vercel publication, then verify revision, 72 variables, real frame/series/comparison/trends and an assistant request with persistent quota.
-- [ ] Inspect public bundle for accidental credentials; confirm direct backend remains private.
+- [x] Preserve old quota counters with a bounded reservation block/drain/copy procedure and rollback state outside Git. Never silently reset limits.
+- [x] Change the three public identifiers in cloudRunAuth.ts to the new URL/provider/invoker.
+- [x] Run required tests/builds and review diff; commit/push with verified personal identity; open and merge PR after checks.
+- [x] Wait for Vercel publication, then verify revision, 72 variables, real frame/series/comparison/trends and an assistant request with persistent quota.
+- [x] Inspect public bundle for accidental credentials; confirm direct backend remains private.
 
 ## Task 3: Ongoing deployment and evidence
 
 **Files:** .github/workflows/backend.yml, backend/README.md, docs/backend-cicd.md, docs/acesso-vercel-cloud-run.md, docs/gcp-migration.md, delivery checklist.
 **Interfaces:** Healthy production route; produces CI deploying to the new GCP and reproducible operation/rollback instructions.
 
-- [ ] Update workflow project ID, project number, provider and deployer; update current operational documentation, retaining historical evidence.
-- [ ] Review/commit/push/merge under personal identity; await CI on main and verify exact revision through Vercel smoke.
-- [ ] Verify final IAM, GCP config, old service preservation, frontend edits preserved and no temporary excessive permissions left behind.
-- [ ] Record verified URLs, revision/image/commit/CI and AI assistance; report any remaining dependency or explicit blocker.
+- [x] Update workflow project ID, project number, provider and deployer; update current operational documentation, retaining historical evidence.
+- [x] Review/commit/push/merge under personal identity; await CI on main and verify exact revision through Vercel smoke.
+- [x] Verify final IAM, GCP config, old service preservation, frontend edits preserved and no temporary excessive permissions left behind.
+- [x] Record verified URLs, revision/image/commit/CI and AI assistance; report any remaining dependency or explicit blocker.

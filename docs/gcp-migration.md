@@ -1,7 +1,8 @@
 # Migração Cloud Run para o GCP da equipe
 
-Estado em 15/11/2026: novo serviço implantado e em validação; troca da Vercel e
-do CI/CD pendentes. Não declarar a migração concluída com base nesta preparação.
+Migração concluída e verificada em 15/11/2026. Produção na revisão
+`kipp-earth-api-00002-qay`, com 100% do tráfego no projeto novo. O CI concluiu
+em 15/11/2026 às 00:58:33 (America/Sao_Paulo, UTC−03).
 
 | Recurso | Destino |
 | --- | --- |
@@ -55,6 +56,7 @@ bash backend/scripts/deploy.sh
 ```
 
 Os scripts passam a selecionar a conta `kipp.nasa@gmail.com` e o projeto novo.
+A operação manual aceita o Bash3 do macOS, além do Bash atual usado pelo CI.
 O perfil corporativo padrão permanece separado. GitHub pessoal `Luckstai`
 foi exigido explicitamente pelo usuário nesta conversa.
 
@@ -98,8 +100,44 @@ imagens ou identidades antigos nesta tarefa.
 - Imagem inicial: `sha256:2297dc22ffd50dd91914c96f5972d4e7593208eccb44b8cedd9285176bc173c9`.
 - Smoke do serviço novo aprovado: catálogo com 72 variáveis, frame, série,
   tendência armazenada e comparação reais; chat real HTTP 200.
-- Aguardando cópia da quota, troca Vercel, CI e remoção das
-  concessões temporárias de impersonação/teste. Atualizar com evidência efetiva.
+- Quota ativa copiada e verificada antes da troca do proxy; o uso dos testes
+  no destino foi somado. Backup privado e helper de reversão (modo 600), fora do
+  Git, em `$HOME/.config/gcloud-kipp-nasa/migrations/2026-11-15/`.
+- [PR11: troca do proxy](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/11),
+  merge `96eec4b`, e [Vercel aprovado](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/2WH9c23jeW7gJQcc9Ni9Kmmx8yRm).
+  Site público retornou 72 variáveis reais e chat HTTP 200/no-store; método e origem
+  indevidos recusados. Navegador carregou globo e dois gráficos com 321 meses.
+- [PR12: backend e CI](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/12),
+  merge `6cd2e5e`, e [CI aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43674601450).
+  Revisão `kipp-earth-api-00002-qay` promovida a 100% após startup e smoke completo.
+- Imagem publicada pelo CI: `sha256:f3c621c9bc81c5308b3a9dfe20d56c19c2b73a652621d785c5d74587790538f7`.
+- Conferência final: IAM obrigatório; zero invokers públicos; zero chaves de
+  usuário nas três SAs; zero concessões temporárias de impersonação; remoção
+  do acesso Firestore temporário do operador antigo e do Editor automático na
+  SA Compute padrão, que não é usada pela API. Os sete membros permanecem Editores.
+- Invoker Vercel antigo removido do serviço antigo; recursos e revisão 00039-yiy
+  preservados para reversão. Nenhuma credencial privada encontrada pelo scan do
+  bundle público; a implementação de STS/IAM também não está no bundle cliente.
+
+## Limitação herdada no Databricks
+
+A consulta de permissões efetivas mostrou grants de `account users` herdados
+no catálogo, incluindo `MODIFY`, além do `SELECT` explícito da SA. Essa política
+já existia para a identidade antiga e foi preservada; portanto, o conjunto
+**efetivo** de privilégios Databricks não deve ser descrito como somente leitura.
+A API continua executando consultas fixas de leitura e recusando SQL arbitrário.
+Não se alterou a política compartilhada, que pode sustentar cargas de outros
+integrantes. Uma redução desses grants precisa considerar seus consumidores.
+A [API de permissões efetivas](https://docs.databricks.com/api/uc-grants/v1/get-effective-permissions)
+explica a inclusão das heranças; a evidência foi consultada no workspace real.
+
+Para uma reversão, o operador administrativo antigo precisa receber novamente
+`roles/datastore.user` condicionado ao banco antigo, temporariamente. Executar
+primeiro o helper privado `quota_cutover.py rollback` bloqueia as reservas do
+novo banco, reconcilia os contadores atuais e reabre o banco antigo. Depois,
+restaurar `run.invoker` de `kipp-vercel-invoker@nasa-earth-trends-lab.iam.gserviceaccount.com`
+no serviço antigo, reverter somente os três identificadores do proxy e conferir
+os dados/chat. Remover a concessão temporária de Firestore após a recuperação.
 
 OpenAI Codex assistiu o inventário, a configuração e esta documentação;
 identificador exato do modelo não verificado. Revisão técnica independente do
