@@ -508,6 +508,44 @@ export function RealPanel({
           global series. The global map remains visible.
         </p>
       )}
+      <details className="comparison-map-controls" open>
+      <summary>Map layers · {selectedVariables.length} selected · visibility, opacity & scales</summary>
+      <div className="layer-deck-heading">
+        <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
+          Map layers keep their physical units and scales. Opacity blends colors, not measurements. Later visible layers appear on top.
+        </p></div>
+        <div className="layer-deck-actions">
+          <button type="button" onClick={() => {
+            onManualChange();
+            setLayerSettings(effectiveSettings.map(setting => ({...setting,visible:true})));
+            if (!view.showLayer) onView({...view,showLayer:true});
+          }}>Show all</button>
+          <button type="button" onClick={() => {
+            onManualChange();
+            setLayerSettings(effectiveSettings.map(setting => ({...setting,visible:false})));
+          }}>Hide all</button>
+        </div>
+      </div>
+      <div className="layer-stack" role="region" aria-label="Scrollable map layer controls" tabIndex={0}>
+        {selectedVariables.map(entry => {
+          const setting = effectiveSettings.find(layer => layer.variable === entry.id)!;
+          const hasMonth = entry.months.some(row => row.month === month && row.validSamples > 0);
+          return <LayerCard key={entry.id} variable={entry} setting={setting}
+            colorRange={colorRanges[entry.id]} onChange={changeLayer}
+            mapEnabled={view.showLayer}
+            onSolo={() => {
+              onManualChange();
+              setLayerSettings(effectiveSettings.map(layer => ({...layer,visible:layer.variable === entry.id})));
+              if (!view.showLayer) onView({...view,showLayer:true});
+            }}
+            onColorRange={value => onColorRange(entry.id,value)}
+            loading={setting.visible && hasMonth && layerFrames.loading}
+            error={layerFrames.errors[entry.id]}
+            status={layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
+              !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : undefined}/>
+        })}
+      </div>
+      </details>
       <details className="real-provenance">
         <summary>{selectedVariables.length > 1 ? "Primary source, quality & coordinates" : "Source, quality & coordinates"}</summary>
         <p>{variable.description}</p>
@@ -541,49 +579,12 @@ export function RealPanel({
           <p key={note}>{note}</p>
         ))}
       </details>
-      <section className="real-series-comparison multivariable-analysis" aria-label="Selected variables and map layers">
+      <section className="real-series-comparison multivariable-analysis" aria-label="Selected variable charts">
         <ComparisonAnalysis variables={selectedVariables} region={region} start={start} end={end}
           month={month} onMonth={selectMonth} active={active} mode={comparisonMode}
           onMode={mode=> {onManualChange();setComparisonMode(mode);}}
           eventWindow={eventWindow} countryOutline={!!countryOutline} available={catalog.capabilities?.comparisonCharts===true}/>
-        <details className="comparison-map-controls">
-        <summary>Map layers · {selectedVariables.length} selected · visibility, opacity & scales</summary>
-        <div className="layer-deck-heading">
-          <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
-            Map layers keep their physical units and scales. Opacity blends colors, not measurements. Later visible layers appear on top.
-          </p></div>
-          <div className="layer-deck-actions">
-            <button type="button" onClick={() => {
-              onManualChange();
-              setLayerSettings(effectiveSettings.map(setting => ({...setting,visible:true})));
-              if (!view.showLayer) onView({...view,showLayer:true});
-            }}>Show all</button>
-            <button type="button" onClick={() => {
-              onManualChange();
-              setLayerSettings(effectiveSettings.map(setting => ({...setting,visible:false})));
-            }}>Hide all</button>
-          </div>
-        </div>
-        <div className="layer-stack" role="region" aria-label="Scrollable map layer controls" tabIndex={0}>
-          {selectedVariables.map(entry => {
-            const setting = effectiveSettings.find(layer => layer.variable === entry.id)!;
-            const hasMonth = entry.months.some(row => row.month === month && row.validSamples > 0);
-            return <LayerCard key={entry.id} variable={entry} setting={setting}
-              colorRange={colorRanges[entry.id]} onChange={changeLayer}
-              mapEnabled={view.showLayer}
-              onSolo={() => {
-                onManualChange();
-                setLayerSettings(effectiveSettings.map(layer => ({...layer,visible:layer.variable === entry.id})));
-                if (!view.showLayer) onView({...view,showLayer:true});
-              }}
-              onColorRange={value => onColorRange(entry.id,value)}
-              loading={setting.visible && hasMonth && layerFrames.loading}
-              error={layerFrames.errors[entry.id]}
-              status={layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
-                !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : undefined}/>
-          })}
-        </div>
-        </details>
+
       </section>
 
     </article>

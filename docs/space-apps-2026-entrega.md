@@ -498,3 +498,17 @@ avisos, junto à mensagem de país inicial e botão Use my location em `App.tsx`
 O guia deixou de anunciar o salvamento removido. Eventos continuam acessíveis
 pela aba existente; seleção de país e desenho de área continuam nos filtros.
 Alteração de interface, sem mudança nos dados ou cálculos científicos.
+
+
+### Ajuste solicitado — Map layers abaixo do globo (15/11/2026)
+
+OpenAI Codex assistiu o reposicionamento de Map layers para a coluna do globo,
+logo após o playback e antes da proveniência. O painel inicia expandido e mantém
+visibilidade, opacidade e escalas existentes. Em telas estreitas os controles
+seguem no fluxo vertical. Gráficos continuam na coluna direita em desktop.
+Nenhuma alteração em observações, agregações ou interpretações científicas.
+
+Validação: 47 testes e build frontend com Node.js 24 aprovados. Chromium local
+com API pública confirmou Map layers a 12 px do playback na coluna esquerda,
+proveniência abaixo, controles Show all/Hide all e viewport de 390 px sem
+overflow horizontal ou exceções JavaScript. Capturas locais inspecionadas.

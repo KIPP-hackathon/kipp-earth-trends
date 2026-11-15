@@ -323,7 +323,13 @@
   }
   .real-panels:not(.is-comparing) .compact-real-panel > .real-provenance {
     grid-column: 1;
-    grid-row: 7;
+    grid-row: 8;
+  }
+  .real-panels:not(.is-comparing) .compact-real-panel > .comparison-map-controls {
+    grid-column: 1;
+    grid-row: 6;
+    margin-top: 12px;
+    min-width: 0;
   }
   .real-panels:not(.is-comparing)
     .compact-real-panel
@@ -335,7 +341,7 @@
   }
   .real-panels:not(.is-comparing) .compact-real-panel > .real-notice {
     grid-column: 1;
-    grid-row: 6;
+    grid-row: 7;
   }
   .is-comparing .compact-exploration-controls {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
