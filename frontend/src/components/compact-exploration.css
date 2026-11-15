@@ -97,6 +97,18 @@
   left: auto;
   right: 0;
 }
+.exploration-search-popover {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--search-popover-max-height, calc(100dvh - 16px));
+  overflow: hidden;
+}
+.exploration-search-popover > :not(.exploration-options) {
+  flex-shrink: 0;
+}
+.exploration-search-popover .exploration-options {
+  min-height: 0;
+}
 .compact-real-panel label.exploration-search {
   display: flex;
   flex-direction: row;
@@ -176,6 +188,8 @@
   text-decoration: underline;
 }
 .exploration-period-popover {
+  --popover-shift-y: 0px;
+  transform: translateY(var(--popover-shift-y, 0px));
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
@@ -372,9 +386,19 @@
   .compact-exploration-controls > .exploration-period {
     grid-column: auto;
   }
-  .exploration-period-popover {
+  /* Country is the left column; period is the right column. Anchor their
+     wider dialogs inward so both fit the viewport, including iPhone Safari. */
+  .compact-exploration-controls > .exploration-picker:not(.exploration-period) .exploration-popover {
     left: 0;
-    right: auto !important;
+    right: auto;
+  }
+  .compact-exploration-controls > .exploration-period .exploration-period-popover {
+    left: auto;
+    right: 0;
+  }
+  .exploration-period-popover .month-calendar {
+    left: auto;
+    right: 0;
   }
   .compact-real-panel .real-globe-scene {
     max-width: 400px;

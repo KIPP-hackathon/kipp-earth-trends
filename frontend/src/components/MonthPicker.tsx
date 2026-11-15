@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import "../month-picker.css";
+import { usePopoverPosition } from "../lib/usePopoverPosition";
 
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
 const monthName = new Intl.DateTimeFormat("en", {
@@ -41,6 +42,7 @@ export function MonthPicker({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const monthButtons = useRef<(HTMLButtonElement | null)[]>([]);
+  const calendar = usePopoverPosition(open);
   const close = (restoreFocus: boolean) => {
     setOpen(false);
     if (restoreFocus) trigger.current?.focus();
@@ -115,6 +117,7 @@ export function MonthPicker({
       {open && (
         <div
           className={`month-calendar${alignRight ? " opens-left" : ""}`}
+          ref={calendar}
           role="dialog"
           aria-label={`${label}: choose month`}
           id={`${id}-calendar`}
