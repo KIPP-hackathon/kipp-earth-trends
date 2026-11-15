@@ -13,7 +13,7 @@ vi.mock("./earthApi", () => ({
       started.push({ id, month, signal, finish: () => resolve(frame) });
     }),
 }));
-const { bufferWindow, invalidateFrames, requestFrame, upcomingMonths } = await import("./earthFrameCache");
+const { bufferWindow, invalidateFrames, playbackRefill, requestFrame, upcomingMonths } = await import("./earthFrameCache");
 
 // Requests left pending are rejected by invalidateFrames() between tests.
 const ask = (...args: Parameters<typeof requestFrame>) => {
@@ -78,5 +78,31 @@ describe("playback buffer window", () => {
     expect(bufferWindow(6, 4)).toBe(6);
     expect(bufferWindow(6, 8)).toBe(3);
     expect(bufferWindow(6, 40)).toBe(1);
+  });
+});
+
+describe("batched playback refill", () => {
+  const months = Array.from({ length: 24 }, (_, i) => `2024-${String(i + 1).padStart(2, "0")}`);
+  it("requests a batch of eight on selection and waits until four remain", () => {
+    const requested = new Set<string>();
+    expect(playbackRefill(months, 0, requested, 8, 4)).toEqual(months.slice(1, 9));
+    for (let index = 1; index <= 3; index++)
+      expect(playbackRefill(months, index, requested, 8, 4)).toEqual([]);
+    // At index 4 only months 5–8 remain ahead: fetch the following eight.
+    expect(playbackRefill(months, 4, requested, 8, 4)).toEqual(months.slice(9, 17));
+    expect(playbackRefill(months, 5, requested, 8, 4)).toEqual([]);
+  });
+  it("starts a fresh batch after a jump outside the window", () => {
+    const requested = new Set<string>();
+    playbackRefill(months, 0, requested, 8, 4);
+    expect(playbackRefill(months, 15, requested, 8, 4)).toEqual(months.slice(16, 24));
+    expect(requested).toEqual(new Set(months.slice(16, 24)));
+  });
+  it("wraps without ever requesting the current month", () => {
+    const short = months.slice(0, 6);
+    const requested = new Set<string>();
+    expect(playbackRefill(short, 3, requested, 8, 4)).toEqual(["2024-05", "2024-06", "2024-01", "2024-02", "2024-03"]);
+    expect(playbackRefill(short, 4, requested, 8, 4)).toEqual(["2024-04"]);
+    expect(playbackRefill(["2024-01"], 0, requested, 8, 4)).toEqual([]);
   });
 });

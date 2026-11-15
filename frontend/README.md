@@ -48,10 +48,12 @@ Contorno regional identifica o bbox da série, sem representar área atingida
 por evento. Arraste, use as setas ou os controles de zoom para navegar.
 
 Cache de frames de 64 MiB e cinco minutos, até quatro downloads (a
-pré-busca usa no máximo dois), deduplicação e prefetch. Ao tocar em Play, o
-globo enche primeiro um buffer de `playback.initialBuffer` meses (limitado a 24
-frames em cache, somando as camadas visíveis) e depois mantém `playback.lookAhead`
-meses à frente; a animação só avança quando o mês seguinte já está carregado.
+pré-busca usa no máximo dois), deduplicação e prefetch. Ao selecionar dados, o
+globo já pede em segundo plano um lote de `playback.lookAhead` (8) meses seguintes;
+quando restam `playback.initialBuffer` (4) meses pedidos à frente, pede o próximo
+lote (lote + limite cabem em 24 frames em cache, somando as camadas visíveis). Ao
+tocar em Play, espera os primeiros `playback.initialBuffer` meses do lote; a
+animação só avança quando o mês seguinte já está carregado.
 Todas as camadas do mês são baixadas em paralelo, e as séries de estudo das
 variáveis selecionadas vão em uma única requisição `/v1/comparisons`, com
 retorno automático à rota por variável se a API ainda não a tiver. O quadro compatível permanece até o próximo estar pronto; a data sobre
