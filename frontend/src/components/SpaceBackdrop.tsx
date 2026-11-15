@@ -49,14 +49,6 @@ export function SpaceBackdrop({
             ))}
         </g>
       ))}
-      <g stroke="#e7f2ff" strokeWidth=".6" opacity=".7">
-        {[stars[6], stars[39], stars[124]].map((star, index) => (
-          <path
-            key={index}
-            d={`M${star.x - 4},${star.y}h8M${star.x},${star.y - 4}v8`}
-          />
-        ))}
-      </g>
     </svg>
   );
 }

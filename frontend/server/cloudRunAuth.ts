@@ -1,7 +1,8 @@
 import { getVercelOidcToken } from "@vercel/oidc";
 
 // Public identifiers only. Authentication credentials are short-lived and server-side.
-export const cloudRunOrigin = "https://kipp-earth-api-adsg5m6pua-uk.a.run.app";
+import { cloudRunOrigin } from "./cloudRunOrigin.js";
+export { cloudRunOrigin };
 const provider =
   "//iam.googleapis.com/projects/696766216489/locations/global/workloadIdentityPools/kipp-vercel/providers/production";
 const invoker =

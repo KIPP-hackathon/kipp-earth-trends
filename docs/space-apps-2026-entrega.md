@@ -1,5 +1,15 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Hospedagem alternativa Cloudflare — 15/11/2026
+
+OpenAI Codex assistiu a preparação de uma segunda hospedagem solicitada pelo
+usuário, preservando a Vercel, Cloud Run privado, fonte Warehouse e cálculos.
+[Configuração, identidade dedicada, limites e operação](cloudflare-deploy.md).
+95 testes frontend, build frontend e verificações locais do Worker aprovados;
+publicação e DNS em andamento. Os brilhos decorativos em forma de “+” foram
+removidos do fundo, preservando estrelas em pontos e o controle de zoom.
+Não altera conclusões científicas nem comprova submissão da página Project.
+
 ## Correção local de layout no iPhone — 15/11/2026
 
 OpenAI Codex assistiu a correção dos filtros e da composição do globo após
