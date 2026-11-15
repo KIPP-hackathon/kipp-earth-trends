@@ -762,3 +762,31 @@
 .investigation-examples { margin-top: 12px; }
 .investigation-examples summary { cursor: pointer; color: #9eacc1; font-size: 11px; }
 .investigation-examples .investigation-presets { margin: 8px 0 0; }
+.combined-chart-legend {display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:12px;font-weight:600;margin-bottom:10px}
+.combined-chart-legend > span:not(.chart-info) {display:inline-flex;align-items:center;gap:7px}
+.combined-chart-legend i {display:inline-block;width:14px;height:3px;border-radius:2px}
+.combined-chart-legend small {color:#b4c4da;font-weight:400}
+.combined-chart-legend button {margin-left:auto;font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid #a2bfe54f;background:transparent;color:#b4c4da;cursor:pointer}
+.combined-chart-legend button[aria-pressed="true"] {color:#07111f;background:#e6edf7;border-color:#e6edf7}
+.investigation-chart svg {touch-action:pan-y}
+.combined-chart-readout {display:flex;flex-wrap:wrap;gap:4px 18px;font-variant-numeric:tabular-nums}
+/* Alignment: labelled selects and buttons share one baseline and height. */
+.investigation-toolbar {align-items:flex-end}
+.investigation-toolbar button,.investigation-toolbar select {box-sizing:border-box;height:38px;min-height:38px;line-height:1}
+.investigation-toolbar .investigation-export {margin-left:auto}
+.investigation-heading-row {display:flex;align-items:center;gap:8px}
+.investigation-heading-row h3,.investigation-heading-row h4 {margin:0}
+.trend-metrics > div {display:flex;flex-direction:column;justify-content:flex-end}
+/* Chart explainer popover */
+.chart-info {position:relative;display:inline-flex;vertical-align:middle}
+.chart-info > button {display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border-radius:50%;border:1px solid #a2bfe54f;background:transparent;color:#b4c4da;cursor:help}
+.chart-info > button:hover,.chart-info > button:focus-visible,.chart-info[data-open="true"] > button {color:var(--trend-cyan);border-color:var(--trend-cyan);outline:none}
+.chart-info-content {display:none;position:absolute;z-index:30;top:calc(100% + 8px);left:0;width:min(340px,80vw);padding:14px 16px;border:1px solid #52708e;border-radius:8px;background:#102238;box-shadow:0 12px 30px #0008;color:#d5e1f0;font-size:12px;font-weight:400;line-height:1.6;text-align:left;white-space:normal}
+.chart-info-content strong {display:block;margin-bottom:6px;color:var(--trend-cyan);font-size:12px}
+.chart-info-content p {margin:0 0 6px}
+.chart-info-content p:last-child {margin-bottom:0}
+.chart-info:hover > .chart-info-content,.chart-info:focus-within > .chart-info-content,.chart-info[data-open="true"] > .chart-info-content {display:block}
+.combined-chart-legend .chart-info {margin-left:auto}
+.combined-chart-legend .chart-info + button {margin-left:0}
+.combined-chart-legend .chart-info-content {left:auto;right:0}
+@media(max-width:720px){.investigation-toolbar .investigation-export{margin-left:0}}
