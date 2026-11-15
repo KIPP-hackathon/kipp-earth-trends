@@ -82,8 +82,8 @@ export function ExploreTour({ ready, active, suggestion, onSuggestion, children 
     {
       followDialog: true,
       id: "explore-area", title: "1 · Choose an area",
-      target: `${panel} .compact-exploration-controls > .exploration-picker:not(.exploration-period)`,
-      body: <p>Search for a country, or keep the current area. You can also use Draw area on the globe to select a rectangle. Country values use their bounding rectangle, including cells outside the border.</p>,
+      target: `${panel} .compact-exploration-controls .study-context-picker`,
+      body: <p>Open Study context and expand Countries, Places or Events, or search across the groups. Countries and places set a study rectangle; events apply a historical preset with area, period and a suggested variable. You can also draw an area on the globe. Country values use a bounding rectangle, including cells outside the border.</p>,
       ...confirm("area", "Current area"),
     },
     {
@@ -125,7 +125,7 @@ export function ExploreTour({ ready, active, suggestion, onSuggestion, children 
     {
       id: "explore-chart", title: "Compare regional and global series",
       target: `${panel} .multivariable-analysis`,
-      body: <p>The regional chart uses your selected rectangle; Global provides context for the same period. Both share a display scale. A single variable can use its physical units; multiple variables use Historical deviation or Scale 0–100. These transformations help compare patterns, but matching curves do not establish causality. Clear area keeps the global chart; choose a country or draw an area to restore the regional series. Loading and source errors remain visible.</p>,
+      body: <p>The regional chart uses your selected rectangle; Global provides context for the same period. Both share a display scale. A single variable can use its physical units; multiple variables use Historical deviation or Scale 0–100. These transformations help compare patterns, but matching curves do not establish causality. Clear area keeps the global chart; choose a country, place or event, or draw an area to restore the regional series. Loading and source errors remain visible.</p>,
     },
     {
       id: "explore-save", title: "Save and continue investigating",

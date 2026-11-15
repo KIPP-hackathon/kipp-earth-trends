@@ -1,5 +1,5 @@
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./lib/globeZoom";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   Copy,
   Earth,
@@ -16,6 +16,7 @@ import { EventExplorer } from "./components/EventExplorer";
 import { TrendLab } from "./components/TrendLab";
 import { RealPanel } from "./components/RealDataView";
 import { ComparePlayback } from "./components/ComparePlayback";
+import { WorkspaceTour } from "./components/WorkspaceTour";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { LoadingState, LoadingStatus } from "./components/Loading";
 import { useCountryLocation } from "./lib/useCountryLocation";
@@ -47,6 +48,9 @@ import type {
 } from "./lib/assistant";
 import type { EarthRegion } from "./lib/earthApi";
 import type { GlobeView } from "./lib/comparison";
+import type { CatalogInvestigation } from "./lib/variableCatalog";
+
+const VariableCatalog = lazy(() => import("./components/VariableCatalog"));
 
 function RequestFailure({
   message,
@@ -270,12 +274,22 @@ function App() {
   const markChanged = useCallback(() => {
     version.current++;
   }, []);
-  const [active, setActive] = useState<LabTab>("explore");
+  const [active, setActive] = useState<LabTab>(() => window.location.hash === "#catalog" ? "catalog" : "explore");
+  const [catalogOpened, setCatalogOpened] = useState(() => window.location.hash === "#catalog");
+  const [exploreAreaCommand, setExploreAreaCommand] = useState<{ region: EarthRegion; nonce: number }>();
+  const acknowledgeExploreArea = useCallback((nonce: number) => {
+    setExploreAreaCommand(previous => previous?.nonce === nonce ? undefined : previous);
+  }, []);
   const trendContext = useRef<TrendContext>({loading: false});
   const [trendCommand, setTrendCommand] = useState<{selection: TrendSelection; name: string; nonce: number}>();
   const receiveTrendContext = useCallback((context: TrendContext) => { trendContext.current = context; }, []);
 
   const exploration = useLabWorkspace(markChanged);
+  const emptyExploreArea = useRef<EarthRegion | undefined>(undefined);
+  const registerExploreRegion = useCallback((region: EarthRegion) => {
+    emptyExploreArea.current = region;
+    exploration.registerRegion(region);
+  }, [exploration.registerRegion]);
   const comparison = useLabWorkspace(markChanged);
   const location = useCountryLocation();
   const [startingCountry, setStartingCountry] = useState(brazilCountry);
@@ -386,10 +400,34 @@ function App() {
   const isExploration = active === "explore";
   const showTab = (tab: LabTab) => {
     markChanged();
+    if (tab === "catalog") setCatalogOpened(true);
     setActive(tab);
     requestAnimationFrame(() =>
       document.getElementById(`tab-${tab}`)?.focus({ preventScroll: true }),
     );
+  };
+  const openCatalogInvestigation = (investigation: CatalogInvestigation) => {
+    const region = investigation.region ?? exploration.studies.A?.region ?? emptyExploreArea.current ?? startingCountry.region;
+    exploration.registerRegion(region);
+    exploration.setPreset("A", {
+      variable: investigation.variables[0],
+      layers: investigation.variables.map((variable, index) => ({ variable, visible: true, opacity: index === 0 ? 1 : 0.55 })),
+      region: region.id,
+      month: investigation.end,
+      start: investigation.start,
+      end: investigation.end,
+      nonce: ++commandNonce.current,
+    });
+    exploration.setEventContext(undefined);
+    exploration.setPlaybackCommands({});
+    exploration.camera.flyTo({ ...exploration.camera.view, longitude: region.longitude, latitude: region.latitude });
+    showTab("explore");
+  };
+  const openCatalogArea = (region: EarthRegion) => {
+    exploration.registerRegion(region);
+    exploration.setEventContext(undefined);
+    setExploreAreaCommand({ region, nonce: ++commandNonce.current });
+    showTab("explore");
   };
   const eventMonths = (event: EarthEvent, variable: EarthVariable) => {
     const months = variable.months
@@ -1057,6 +1095,10 @@ function App() {
                   onView={exploration.changeView}
                   onNavigate={exploration.navigateView}
                   preset={exploration.presets.A}
+                  areaCommand={exploreAreaCommand}
+                  studyEvent={exploration.eventContext}
+                  onStudyEvent={event => applyEvent(event, false)}
+                  onAreaApplied={acknowledgeExploreArea}
                   active={isExploration}
                   colorRanges={exploration.colorRanges}
                   onColorRange={exploration.changeColorRange}
@@ -1064,7 +1106,7 @@ function App() {
                   onManualChange={markChanged}
                   playbackCommand={exploration.playbackCommands.A}
                   onPlaybackApplied={exploration.acknowledgePlayback}
-                  onCustomRegion={exploration.registerRegion}
+                  onCustomRegion={registerExploreRegion}
                   onAreaChange={() => exploration.setEventContext(undefined)}
                   eventWindow={exploration.eventContext?.window}
                 />
@@ -1077,6 +1119,10 @@ function App() {
               aria-labelledby="tab-compare"
               className="real-workspace"
             >
+              <header className="comparison-workspace-heading">
+                <h2>Compare.</h2>
+                <WorkspaceTour workspace="compare" active={active === "compare"} />
+              </header>
               <ComparePlayback active={active === "compare"} cadenceMs={comparisonConfig.playback.cadenceMs}>
               <p className="real-comparison-note">
                 Two globes share a camera, with independent filters. Matching
@@ -1118,6 +1164,8 @@ function App() {
                     onView={comparison.changeView}
                     onNavigate={comparison.navigateView}
                     preset={comparison.presets[side]}
+                    studyEvent={comparison.eventContext}
+                    onStudyEvent={event => applyEvent(event, true)}
                     active={active === "compare"}
                     colorRanges={comparison.colorRanges}
                     onColorRange={comparison.changeColorRange}
@@ -1170,6 +1218,13 @@ function App() {
             )}
           </>
         )}
+        {catalogOpened && catalog.data && (
+          <section hidden={active !== "catalog"} role="tabpanel" id="panel-catalog" aria-labelledby="tab-catalog">
+            <Suspense fallback={<LoadingState title="Opening the Earth system field guide" detail="Preparing variable explanations…" />}>
+              <VariableCatalog active={active === "catalog"} catalog={catalog.data} onOpen={openCatalogInvestigation} onOpenArea={openCatalogArea} />
+            </Suspense>
+          </section>
+        )}
         {active === "learn" && (
           <section role="tabpanel" id="panel-learn" aria-labelledby="tab-learn">
             <Guide config={config.data} />
@@ -1189,11 +1244,11 @@ function App() {
           </a>
         </footer>
       </main>
-      <div>
+      <div hidden={active === "catalog"}>
         <Assistant
           ready={
             !!catalog.data &&
-            !!config.data
+            !!config.data && active !== "catalog"
           }
           getContext={getContext}
           applyResponse={applyAssistantResponse}

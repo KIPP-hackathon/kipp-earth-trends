@@ -1,0 +1,131 @@
+.study-context-picker {
+  min-width: 0;
+}
+.study-event-selection {
+  margin: 7px 0 0;
+  color: #becddd;
+  font-size: 10px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.study-event-selection summary {
+  cursor: pointer;
+  color: #afc4d5;
+}
+.study-event-selection p {
+  color: #94aac0;
+  margin: 6px 0 0;
+  font-size: 10px;
+}
+.study-event-selection a {
+  color: #b7d5c5;
+  font-size: 10px;
+}
+.study-context-picker .exploration-options > button {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding-block: 10px;
+}
+.study-context-picker .exploration-options > button small {
+  text-align: left;
+  line-height: 1.5;
+  white-space: normal;
+}
+.study-events-error {
+  color: #e1b59d;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.study-events-error button {
+  color: #b9d7c8;
+  text-decoration: underline;
+  font: inherit;
+  padding: 3px;
+}
+
+.study-context-picker .exploration-options {
+  padding: 5px;
+}
+.study-context-picker .multi-variable-group {
+  flex-shrink: 0;
+}
+.study-context-picker .multi-variable-group-name strong {
+  font-size: 12px;
+}
+.study-context-picker .multi-variable-group-heading {
+  padding-left: 0;
+}
+.study-context-picker .exploration-options .multi-variable-group-toggle {
+  width: 100%;
+  padding: 11px 19px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  flex-direction: row;
+  align-items: center;
+}
+.study-context-picker .exploration-options .multi-variable-group-toggle:hover,
+.study-context-picker .exploration-options .multi-variable-group-toggle:focus-visible {
+  background: #75aaff20;
+  color: #fff;
+}
+.study-context-picker .study-context-group-options > button {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 8px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  border-radius: 5px;
+}
+.study-context-picker
+  .study-context-group-options
+  > button:hover:not(:disabled) {
+  background: #75aaff14;
+}
+.study-context-choice-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  height: 16px;
+  width: 16px;
+  margin-top: 2px;
+  border: 1px solid #8ca8c265;
+  border-radius: 50%;
+}
+.study-context-choice-mark.is-selected {
+  color: #183326;
+  background: #b9d6c4;
+  border-color: #b9d6c4;
+}
+.study-context-choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.study-context-choice-text .exploration-option-name {
+  min-height: 20px;
+}
+.study-context-choice-text strong {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #dce8f4;
+  font-weight: 500;
+  white-space: normal;
+}
+.study-context-picker .study-context-choice-text small {
+  text-align: left;
+  color: #99aec5;
+  font-size: 10px;
+  line-height: 1.6;
+  white-space: normal;
+}
+.study-context-group-options > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

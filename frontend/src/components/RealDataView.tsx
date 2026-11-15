@@ -7,7 +7,8 @@ import { loadCountries } from "../lib/countries";
 import { LoadingStatus } from "./Loading";
 import { useDelayedFlag } from "../lib/useDelayedFlag";
 import type { CountrySelection } from "../lib/countries";
-import { PeriodPicker, SearchPicker } from "./ExplorationControls";
+import { PeriodPicker } from "./ExplorationControls";
+import { StudyAreaPicker } from "./StudyAreaPicker";
 import {
   ChevronDown,
   ChevronLeft,
@@ -25,6 +26,7 @@ import type {
   EarthColorRange,
   EarthConfig,
   EarthRegion,
+  EarthEvent,
   ComparisonMode,
 } from "../lib/earthApi";
 
@@ -100,9 +102,17 @@ function SelectedRealPanel({
   headerAction,
   onTourChoice,
   suggestedVariable,
+  areaCommand,
+  onAreaApplied,
+  studyEvent,
+  onStudyEvent,
 }: {
   suggestedVariable?: SuggestedVariableRequest;
   onTourChoice?: (choice: ExploreChoice) => void;
+  areaCommand?: { region: EarthRegion; nonce: number };
+  onAreaApplied?: (nonce: number) => void;
+  studyEvent?: EarthEvent;
+  onStudyEvent: (event: EarthEvent) => void;
   headerAction?: ReactNode;
   instanceId?: string;
   overview?: boolean;
@@ -260,6 +270,13 @@ function SelectedRealPanel({
         latitude: next.latitude,
       });
   };
+  useEffect(() => {
+    if (!areaCommand) return;
+    applyArea(areaCommand.region, true);
+    onAreaApplied?.(areaCommand.nonce);
+    // Each navigation command is consumed once; later user choices take priority.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areaCommand]);
   const selectArea = (bbox: string) => {
     const parts = bbox.split(",");
     if (parts.length !== 4 || parts.some((part) => !part.trim())) return;
@@ -296,15 +313,6 @@ function SelectedRealPanel({
       longitude: 0,
       latitude: 0,
     });
-  const countryOptions = countries
-    .filter((entry) => entry.selectable)
-    .sort((a, b) => a.name.localeCompare(b.name, "en"))
-    .map((entry) => ({
-      id: entry.region.id,
-      name: entry.name,
-      icon: entry.flag,
-      searchTerms: entry.searchTerms,
-    }));
   const frameVariables = windFrameVariables(selectedVariables.filter(v =>
     v.months.some(entry => entry.month === month && entry.validSamples > 0) &&
     (v.id === variable.id || (view.showLayer && effectiveSettings.some(setting => setting.variable === v.id && setting.visible && setting.opacity > 0)))), availableVariables, month);
@@ -530,18 +538,7 @@ function SelectedRealPanel({
               : undefined,
           ].filter(Boolean).join(" · ")}
         />
-        <SearchPicker
-          id={`${id}-country`}
-          label="Country"
-          value={region.id}
-          placeholder="Choose a country"
-          options={countryOptions}
-          onChange={(value) => {
-            const next = countries.find((entry) =>
-              entry.selectable && entry.region.id === value)?.region;
-            if (next) applyArea(next, true);
-          }}
-        />
+        <StudyAreaPicker id={`${id}-area`} current={region} countries={countries} regions={config.regions} catalog={catalog} currentEvent={studyEvent} onEvent={onStudyEvent} onChange={next => applyArea(next, true)} />
         <PeriodPicker
           id={`${id}-period`}
           start={start}

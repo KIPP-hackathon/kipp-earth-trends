@@ -1,0 +1,56 @@
+.workspace-tour-launcher {
+  flex: 0 0 auto;
+}
+.workspace-tour-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #a2bfe54f;
+  border-radius: 999px;
+  background: #87dbe50a;
+  color: #c3dce5;
+  cursor: pointer;
+}
+.workspace-tour-start:hover,
+.workspace-tour-start[aria-expanded="true"] {
+  background: #87dbe51f;
+  border-color: #87dbe5;
+}
+.workspace-tour-start:focus-visible {
+  outline: 2px solid #94c2ff;
+  outline-offset: 3px;
+}
+.comparison-workspace-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+.comparison-workspace-heading h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+.vc-heading-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+}
+@media (max-width: 950px) {
+  .vc-heading-actions {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 900px) {
+  #panel-compare:has(.guided-tour-target [role="dialog"]) .guided-tour-card {
+    visibility: hidden !important;
+    pointer-events: none;
+  }
+}

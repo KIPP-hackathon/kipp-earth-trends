@@ -4,6 +4,7 @@ import type {
   EarthCatalog,
   EarthConfig,
   EarthRegion,
+  EarthEvent,
   EarthVariable,
   Investigation,
   InvestigationRequest,
@@ -20,7 +21,8 @@ import { parseStudyBbox } from "../lib/assistant";
 import { monthIndex } from "../lib/trendLab";
 import { MultiVariablePicker } from "./MultiVariablePicker";
 import { RealGlobe } from "./RealGlobe";
-import { SearchPicker } from "./ExplorationControls";
+import { StudyAreaPicker } from "./StudyAreaPicker";
+import { eventStudySelection } from "../lib/studyAreas";
 import { MonthPicker } from "./MonthPicker";
 import { InvestigationResults } from "./InvestigationResults";
 import { GuidedTour } from "./GuidedTour";
@@ -74,6 +76,7 @@ export function TrendLab({
     initialCountry,
   ]);
   const [region, setRegion] = useState<EarthRegion>(initialCountry.region);
+  const [studyEvent, setStudyEvent] = useState<EarthEvent>();
   const [selectedVariable, setSelectedVariable] = useState("temperature");
   const [secondId, setSecondId] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
@@ -235,6 +238,7 @@ export function TrendLab({
     setSelectedVariable(s.x);
     setSecondId(s.y ?? "");
     setRegion(nextRegion);
+    setStudyEvent(undefined);
     setPeriod({ start: s.start, end: s.end });
     setSubmitted({
       variable: x,
@@ -267,6 +271,7 @@ export function TrendLab({
   ];
   const country = countries.find((entry) => entry.region.id === region.id);
   const selectRegion = (next: EarthRegion) => {
+    setStudyEvent(undefined);
     setRegion(next);
     camera.flyTo({
       ...camera.view,
@@ -275,6 +280,7 @@ export function TrendLab({
     });
   };
   const drawRegion = (bbox: string) => {
+    setStudyEvent(undefined);
     mark("area");
     const bounds = parseStudyBbox(bbox);
     if (!bounds) return;
@@ -404,23 +410,24 @@ export function TrendLab({
                   <p>Where to investigate</p>
                 </div>
               </header>
-              <SearchPicker
+              <StudyAreaPicker
                 id={`${id}-area`}
-                label="Study region"
-                value={region.id}
-                options={regions.map((entry) => ({
-                  id: entry.id,
-                  name: entry.name,
-                  icon: countries.find(
-                    (country) => country.region.id === entry.id,
-                  )?.flag,
-                }))}
-                onChange={(value) => {
-                  const next = regions.find((entry) => entry.id === value);
-                  if (next) {
-                    selectRegion(next);
-                    mark("area");
-                  }
+                current={region}
+                countries={countries}
+                regions={regions}
+                catalog={catalog}
+                currentEvent={studyEvent}
+                onChange={next => { selectRegion(next); mark("area"); }}
+                onEvent={event => {
+                  const selection = eventStudySelection(event, catalog.variables);
+                  const variable = catalog.variables.find(variable => variable.id === selection?.variable);
+                  if (!selection || !variable || !numeric(variable)) return;
+                  selectRegion({ id: event.region, name: event.location, bbox: event.bbox, longitude: event.longitude, latitude: event.latitude });
+                  setSelectedVariable(selection.variable);
+                  setSecondId("");
+                  setPeriod({ start: selection.start, end: selection.end });
+                  setStudyEvent(event);
+                  mark("area");
                 }}
               />
               <p className="trend-small">

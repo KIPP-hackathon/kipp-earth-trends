@@ -5,7 +5,7 @@ import type { EarthRegion } from "../lib/earthApi";
 import { loadCountries } from "../lib/countries";
 import type { CountrySelection } from "../lib/countries";
 import { variableAvailable } from "../lib/variableGroups";
-import { SearchPicker } from "./ExplorationControls";
+import { StudyAreaPicker } from "./StudyAreaPicker";
 import { MultiVariablePicker } from "./MultiVariablePicker";
 import { RealGlobe } from "./RealGlobe";
 import type { RealPanelProps } from "./RealDataView";
@@ -29,6 +29,10 @@ export function EmptyRealPanel({
   headerAction,
   onTourChoice,
   suggestedVariable,
+  areaCommand,
+  onAreaApplied,
+  studyEvent,
+  onStudyEvent,
 }: RealPanelProps & { onStart: (preset: PanelPreset) => void }) {
   const id = useId();
   const [region, setRegion] = useState(initialRegion ?? config.regions[0]);
@@ -61,6 +65,13 @@ export function EmptyRealPanel({
         latitude: next.latitude,
       });
   };
+  useEffect(() => {
+    if (!areaCommand) return;
+    applyArea(areaCommand.region, true);
+    onAreaApplied?.(areaCommand.nonce);
+    // Do not reapply a consumed region command after manual changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areaCommand]);
   const outline =
     countries.find((country) => country.region.id === region.id)?.geometry ??
     (region.id === initialRegion?.id ? initialOutline : undefined);
@@ -123,27 +134,7 @@ export function EmptyRealPanel({
           selected={[]}
           onApply={applyVariables}
         />
-        <SearchPicker
-          id={`${id}-country`}
-          label="Country"
-          value={region.id}
-          placeholder="Choose a country"
-          options={countries
-            .filter((country) => country.selectable)
-            .sort((a, b) => a.name.localeCompare(b.name, "en"))
-            .map((country) => ({
-              id: country.region.id,
-              name: country.name,
-              icon: country.flag,
-              searchTerms: country.searchTerms,
-            }))}
-          onChange={(value) => {
-            const country = countries.find(
-              (entry) => entry.selectable && entry.region.id === value,
-            );
-            if (country) applyArea(country.region, true);
-          }}
-        />
+        <StudyAreaPicker id={`${id}-area`} current={region} countries={countries} regions={config.regions} catalog={catalog} currentEvent={studyEvent} onEvent={onStudyEvent} onChange={next => applyArea(next, true)} />
         <div className="exploration-picker exploration-period">
           <span className="exploration-control-label" id={`${id}-period-label`}>
             Study period
