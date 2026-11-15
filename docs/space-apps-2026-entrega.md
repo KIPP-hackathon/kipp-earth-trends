@@ -19,6 +19,13 @@ melhoria de qualidade foi medida em produção. Ver [auditoria e casos de
 avaliação](assistant-prompt-audit.md). Este registro não encerra submissão,
 revisão científica ou regras formais de IA.
 
+Publicado na main em `c39c098`; [workflow Backend
+CI/CD](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43754973768)
+concluiu testes/build, promoveu a revisão `kipp-earth-api-00033-sep` a 100% do
+tráfego e aprovou os smoke checks de catálogo, frames, séries e referência de
+tendência; o endpoint direto continuou exigindo IAM. Isso comprova a publicação
+técnica, não a qualidade das respostas com modelo real nem revisão humana.
+
 ## Comparação global/regional e alinhamento dos painéis — 15/11/2026
 
 OpenAI Codex assistiu os ajustes solicitados: Display cell at voltou para fora
