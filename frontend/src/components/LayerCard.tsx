@@ -71,9 +71,6 @@ export function LayerCard({
             {variable.product}
             {variable.run ? ` · ${variable.run}` : ""} · {unit}
           </p>
-          {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
-          {processingRun && <p>Displayed month processing: {processingRun}</p>}
-          {variable.processingNote && <p>{variable.processingNote}</p>}
         </div>
         <button
           type="button"
@@ -135,6 +132,10 @@ export function LayerCard({
           {error}
         </p>
       )}
+      {scale.kind === "continuous" ? (
+        <ColorScaleControls domain={scale.domain} unit={unit} value={colorRange}
+          colors={scale.colors} onChange={onColorRange} />
+      ) : (
       <div className="layer-legend" aria-label={`${variable.name} map scale`}>
         <div>
           <span>
@@ -167,20 +168,17 @@ export function LayerCard({
           </small>
         )}
       </div>
-      {scale.kind === "continuous" && (
-        <details className="layer-range-controls">
-          <summary>Color range · {colorRange ? "custom" : "default"}</summary>
-          <p>{variable.colorRangeSource === "indicator_coverage_p5_p95"
-            ? "Default: p5–p95 from the trusted indicator coverage inventory, converted to display units. These percentiles describe that inventory, not necessarily the selected region or period."
-            : "Default: configured display range; matching percentiles unavailable."}</p>
-          <ColorScaleControls
-            domain={scale.domain}
-            unit={unit}
-            value={colorRange}
-            onChange={onColorRange}
-          />
-        </details>
       )}
+      <details className="layer-source-details">
+        <summary>Source &amp; scale limits</summary>
+        <p>Display only. Original values, series and exports stay unchanged. Shared by globes showing the same variable.</p>
+        {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
+        {processingRun && <p>Displayed month processing: {processingRun}</p>}
+        {variable.processingNote && <p>{variable.processingNote}</p>}
+        <p>{variable.colorRangeSource === "indicator_coverage_p5_p95"
+          ? "Default: inventory p5–p95, converted to display units; not necessarily the selected region or period."
+          : "Default: configured display range; matching percentiles unavailable."}</p>
+      </details>
       {children && <div className="layer-analysis-content">{children}</div>}
     </article>
   );

@@ -154,6 +154,7 @@ function SelectedRealPanel({
     if (!active) setPlaying(false);
   }, [active]);
   const [playing, setPlaying] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [buffering, setBuffering] = useState(false);
   const [playbackError, setPlaybackError] = useState<string>();
@@ -373,7 +374,7 @@ function SelectedRealPanel({
   return (
     <article
       data-panel-id={instanceId}
-      className={`real-panel compact-real-panel${overview ? " is-overview" : ""}`}
+      className={`real-panel compact-real-panel${overview ? " is-overview" : ""}${filtersOpen ? "" : " filters-collapsed"}`}
       aria-label={
         overview ? "Earth data exploration" : `Earth data panel ${side}`
       }
@@ -527,8 +528,12 @@ function SelectedRealPanel({
           global series. The global map remains visible.
         </p>
       )}
-      <details className="comparison-map-controls" open>
-      <summary>Map layers · {selectedVariables.length} selected · visibility, opacity & scales</summary>
+      <details className="comparison-map-controls" open={filtersOpen}
+        onToggle={event => setFiltersOpen(event.currentTarget.open)}>
+      <summary title={filtersOpen ? "Collapse map filters" : "Expand map filters"}>
+        <span className="filter-summary-expanded">Map filters · {selectedVariables.length}</span>
+        <span className="filter-summary-collapsed">Filters</span>
+      </summary>
       <div className="layer-deck-heading">
         <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
           Map layers keep their physical units and scales. Opacity blends colors, not measurements.
