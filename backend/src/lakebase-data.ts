@@ -1,0 +1,662 @@
+import {
+  ApiError,
+  quoteIdentifier,
+  queryBudget,
+  withQueryBudget,
+} from "./core.ts";
+import type { Parameters, Provider } from "./core.ts";
+
+import { variables } from "./registry.ts";
+import { trustedColumns, trustedSources } from "./trusted-map.ts";
+import type { Variable } from "./registry.ts";
+export { variables, excludedSources } from "./registry.ts";
+export type { Variable, RenderMetadata } from "./registry.ts";
+
+export const limitations = [
+  "Dados reais derivados de produtos NASA, sem classificação automática de eventos ou atribuição causal.",
+  "A grade retornada é agregada para visualização; não adiciona resolução à fonte.",
+  "Temperatura do ar a 10 m é distinta da temperatura a 2 m e da temperatura de superfície.",
+  "IMERG Final e Late permanecem separados por terem processamento e cobertura diferentes.",
+  "Anomalias GRACE usam referência 2004–2009 e não isolam água subterrânea; não há inferência causal ou previsão climática.",
+  "Escalas de cores são faixas de visualização fixas, não limites científicos ou observações globais mínimas/máximas.",
+];
+export function variableFor(id: string): Variable {
+  const variable = variables.find((v) => v.id === id);
+  if (!variable)
+    throw new ApiError(
+      404,
+      "VARIABLE_NOT_FOUND",
+      "Variável indisponível. Consulte /v1/catalog.",
+    );
+  return variable;
+}
+export type Bounds = {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+  wrap: boolean;
+};
+export function parseBounds(input = "-180,-90,180,90"): Bounds {
+  const numbers = input.split(",").map(Number);
+  if (
+    numbers.length !== 4 ||
+    input.split(",").some((s) => !s.trim()) ||
+    numbers.some((n) => !Number.isFinite(n))
+  )
+    throw new ApiError(
+      400,
+      "INVALID_BBOX",
+      "bbox deve conter oeste,sul,leste,norte.",
+    );
+  const [west, south, east, north] = numbers;
+  if (
+    west < -180 ||
+    west > 180 ||
+    east < -180 ||
+    east > 180 ||
+    south < -90 ||
+    north > 90 ||
+    south >= north ||
+    west === east ||
+    (west === 180 && east === -180)
+  )
+    throw new ApiError(400, "INVALID_BBOX", "Limites geográficos inválidos.");
+  return {
+    west,
+    south,
+    east: east < west ? east + 360 : east,
+    north,
+    wrap: east < west,
+  };
+}
+export function parseMonth(input: string): string {
+  if (
+    !/^\d{4}-(0[1-9]|1[0-2])$/.test(input) ||
+    input < "1900-01" ||
+    input > "2100-12"
+  )
+    throw new ApiError(400, "INVALID_MONTH", "Use um mês no formato YYYY-MM.");
+  return input;
+}
+export function monthAfter(month: string) {
+  const [y, m] = month.split("-").map(Number);
+  return `${m === 12 ? y + 1 : y}-${String(m === 12 ? 1 : m + 1).padStart(2, "0")}-01`;
+}
+function numeric(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+export type MonthAvailability = {
+  month: string;
+  samples: number | null;
+  validSamples: number | null;
+};
+export type CatalogVariable = ReturnType<typeof metadataOf> & {
+  months: MonthAvailability[];
+  available: boolean;
+  firstMonth: string | null;
+  lastMonth: string | null;
+  unavailableReason: { code: string; message: string } | null;
+};
+export type DataServiceOptions = { variables?: Variable[] };
+export class DataService {
+  provider: Provider;
+  readonly variables: Variable[];
+  private sourceMemo?: { expires: number; rows: Awaited<ReturnType<Provider["query"]>> };
+  private sourcePending?: ReturnType<Provider["query"]>;
+  constructor(provider: Provider, options: DataServiceOptions = {}) {
+    this.provider = provider;
+    this.variables = options.variables ?? variables;
+    if (provider.dialect !== "postgres")
+      throw new Error("DataService requires trusted Lakebase/PostgreSQL sources.");
+  }
+  private variable(id: string) {
+    const variable = this.variables.find((v) => v.id === id);
+    if (!variable)
+      throw new ApiError(
+        404,
+        "VARIABLE_NOT_FOUND",
+        "Variável indisponível nesta fonte. Consulte /v1/catalog.",
+      );
+    return variable;
+  }
+  private q(value: string) {
+    return quoteIdentifier(value, this.provider.dialect);
+  }
+  private physical(v: Variable, column: string) {
+    const physical = trustedColumns[v.table]?.[column];
+    if (!physical)
+      throw new ApiError(503, "TRUSTED_SCHEMA_MISMATCH", "The reviewed trusted column contract is incomplete.");
+    return this.q(physical);
+  }
+  private table(v: Variable) {
+    const source = trustedSources[v.table];
+    if (!source) throw this.notSynced();
+    return [source.schema, source.table].map((part) => this.q(part)).join(".");
+  }
+  private notSynced() {
+    return new ApiError(503, "TRUSTED_SOURCE_NOT_SYNCED",
+      "This reviewed variable has no verified trusted source synchronized to Lakebase. No other source is substituted.");
+  }
+  private async sourceRows() {
+    if (this.sourceMemo && this.sourceMemo.expires > Date.now()) return this.sourceMemo.rows;
+    if (!this.sourcePending) {
+      const sources = Object.values(trustedSources);
+      const parameters: Parameters = {};
+      const predicates = sources.map((source, i) => {
+        parameters[`schema${i}`] = source.schema;
+        parameters[`table${i}`] = source.table;
+        return `(n.nspname = :schema${i} AND c.relname = :table${i})`;
+      });
+      this.sourcePending = this.provider.query(`SELECT n.nspname AS source_schema,
+        c.relname AS source_table, a.attname AS column_name,
+        has_schema_privilege(current_user,n.oid,'USAGE') AND
+        has_table_privilege(current_user,c.oid,'SELECT') AS selectable
+        FROM pg_catalog.pg_class c
+        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+        JOIN pg_catalog.pg_attribute a ON a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+        WHERE c.relkind IN ('r','p','v','m') AND (${predicates.join(" OR ") || "FALSE"})`,
+        parameters, Math.max(1, sources.length * 100));
+    }
+    try {
+      const rows = await this.sourcePending;
+      this.sourceMemo = { expires: Date.now() + 30_000, rows };
+      return rows;
+    } finally {
+      this.sourcePending = undefined;
+    }
+  }
+  private async requireSource(v: Variable) {
+    const source = trustedSources[v.table];
+    // Reject unsynchronized variables before any query or legacy table resolution.
+    if (!source) throw this.notSynced();
+    const rows = (await this.sourceRows()).filter((row) =>
+      row.source_schema === source.schema && row.source_table === source.table);
+    if (!rows.length)
+      throw new ApiError(503, "TRUSTED_SOURCE_NOT_SYNCED", "The verified trusted Lakebase table is currently absent.");
+    if (!rows.every((row) => row.selectable === true))
+      throw new ApiError(503, "TRUSTED_SOURCE_ACCESS_DENIED", "The API identity cannot read the trusted Lakebase source.");
+    const required = ["lat", "lon", "time", v.column,
+      ...(v.coverage ? [v.coverage] : []),
+      ...(v.qa === "modis_good" ? ["pixel_reliability", "vi_quality"] :
+        v.qa === "ice_valid" ? ["valid_sample"] : [])];
+    if (required.some((column) => !trustedColumns[v.table]?.[column] ||
+        !rows.some((row) => row.column_name === trustedColumns[v.table][column])))
+      throw new ApiError(503, "TRUSTED_SCHEMA_MISMATCH", "The synchronized trusted schema differs from the reviewed column contract.");
+  }
+  private month(expr = this.q("time")) {
+    return `to_char(${expr}, 'YYYY-MM')`;
+  }
+  private finite(expr: string) {
+    return `${expr} IS NOT NULL AND ${expr} > '-Infinity'::float8 AND ${expr} < 'Infinity'::float8 AND ABS(${expr}) < 1e30`;
+  }
+  private valid(variable: Variable) {
+    const value = this.physical(variable, variable.column);
+    const clauses = [this.finite(value)];
+    const [min, max] = variable.validRange ?? [null, null];
+    if (min !== null) clauses.push(`${value} >= ${min}`);
+    if (max !== null) clauses.push(`${value} <= ${max}`);
+    if (variable.qa === "modis_good")
+      clauses.push(
+        `${this.physical(variable, "pixel_reliability")} = 0`,
+        `${this.physical(variable, "vi_quality")} <> 65535`,
+      );
+    if (variable.qa === "ice_valid")
+      clauses.push(`${this.physical(variable, "valid_sample")} = 1`, `${value} IN (0,1)`);
+    if (variable.coverage) {
+      const coverage = this.physical(variable, variable.coverage);
+      clauses.push(
+        this.finite(coverage),
+        `${coverage} > 0 AND ${coverage} <= 1`,
+      );
+    }
+    return clauses.join(" AND ");
+  }
+  private converted(variable: Variable) {
+    return `(${this.physical(variable, variable.column)} * ${variable.conversion.scale} + (${variable.conversion.offset}))`;
+  }
+  private aggregate(variable: Variable) {
+    if (variable.aggregation === "sum") return "SUM(value)";
+    if (variable.aggregation === "weighted_mode") {
+      const weight = (category: number) =>
+        `SUM(CASE WHEN value = ${category} THEN coverage*area_weight ELSE 0.0 END)`;
+      return `CASE WHEN ${weight(0)} + ${weight(1)} <= 0 THEN NULL WHEN ${weight(1)} > ${weight(0)} THEN 1 ELSE 0 END`;
+    }
+    return "SUM(value*coverage*area_weight)/NULLIF(SUM(coverage*area_weight),0)";
+  }
+  private aggregationDescription(variable: Variable) {
+    return variable.aggregation === "sum"
+      ? "sum of valid source cell mass in each geographic bin / selected bbox; no extra area weighting; bbox is not a basin polygon"
+      : variable.aggregation === "weighted_mode"
+        ? "mode weighted by cos(latitude); ties choose class 0; no valid weight yields null; not regional ice extent in km²"
+        : "mean weighted by cos(latitude) and valid area coverage over source grid points; display aggregation; bbox is not a basin polygon";
+  }
+  private async availabilityGroup(group: Variable[], source: number) {
+    const validCounts = group.map(
+      (v, i) => `SUM(CASE WHEN ${this.valid(v)} THEN 1 ELSE 0 END) AS v${i}`,
+    );
+    // All layers of a table share one scan. Two valid-count columns cover every
+    // currently reviewed table; unused slots make UNION branches compatible.
+    while (validCounts.length < 2)
+      validCounts.push(`CAST(NULL AS BIGINT) AS v${validCounts.length}`);
+    return `SELECT ${source} AS source, ${this.month()} AS month, COUNT(*) AS samples,
+      ${validCounts.join(", ")} FROM ${this.table(group[0])}
+      WHERE ${this.q("time")} IS NOT NULL GROUP BY ${this.month()}`;
+  }
+  async availability(variable: Variable) {
+    await this.requireSource(variable);
+    const sql = await this.availabilityGroup([variable], 0);
+    const rows = await this.provider.query(
+      `${sql} ORDER BY month LIMIT 2400`,
+      {},
+      2400,
+    );
+    return rows.map((r) => ({
+      month: String(r.month),
+      samples: numeric(r.samples),
+      validSamples: numeric(r.v0),
+    }));
+  }
+  async catalog(): Promise<CatalogVariable[]> {
+    if (!queryBudget.getStore()) return withQueryBudget(() => this.catalog());
+    const groups: Variable[][] = [];
+    const months = new Map<string, MonthAvailability[]>();
+    const errors = new Map<string, { code: string; message: string }>();
+    for (const variable of this.variables) {
+      try {
+        await this.requireSource(variable);
+        const existing = groups.find((g) => this.table(g[0]) === this.table(variable));
+        if (existing) existing.push(variable);
+        else groups.push([variable]);
+      } catch (error) {
+        if (!(error instanceof ApiError)) throw error;
+        if (["QUERY_TIMEOUT", "UPSTREAM_BUSY"].includes(error.code))
+          throw new ApiError(503, "CATALOG_BUSY", "The catalog is temporarily busy. Please retry.");
+        errors.set(variable.id, { code: error.code, message: error.message });
+      }
+    }
+    const load = async (indices: number[]): Promise<void> => {
+      const budget = queryBudget.getStore()!;
+      try {
+        if (Date.now() >= budget.deadline || budget.signal.aborted)
+          throw new ApiError(
+            504,
+            "QUERY_TIMEOUT",
+            "Orçamento de consulta do catálogo excedido.",
+          );
+        const branches = await Promise.all(
+          indices.map((i) => this.availabilityGroup(groups[i], i)),
+        );
+        const rows = await this.provider.query(
+          branches.join(" UNION ALL "),
+          {},
+          indices.length * 2400,
+        );
+        for (const i of indices)
+          for (const v of groups[i]) months.set(v.id, []);
+        for (const row of rows) {
+          const index = numeric(row.source);
+          if (index === null || !indices.includes(index)) continue;
+          groups[index].forEach((v, i) =>
+            months.get(v.id)!.push({
+              month: String(row.month),
+              samples: numeric(row.samples),
+              validSamples: numeric(row[`v${i}`]),
+            }),
+          );
+        }
+      } catch (error) {
+        // Isolate missing/denied source tables without silently dropping them.
+        // Splitting only failed chunks keeps a healthy catalog to nine scans/requests.
+        if (
+          indices.length > 1 &&
+          Date.now() < budget.deadline - 1000 &&
+          !budget.signal.aborted &&
+          !(
+            error instanceof ApiError &&
+            ["QUERY_TIMEOUT", "UPSTREAM_BUSY"].includes(error.code)
+          )
+        ) {
+          const middle = Math.ceil(indices.length / 2);
+          await load(indices.slice(0, middle));
+          await load(indices.slice(middle));
+          return;
+        }
+        const code =
+          error instanceof ApiError ? error.code : "SOURCE_UNAVAILABLE";
+        for (const i of indices)
+          for (const v of groups[i])
+            errors.set(v.id, {
+              code,
+              message:
+                "A fonte não pôde ser consultada nesta atualização do catálogo; nenhuma observação foi substituída.",
+            });
+      }
+    };
+    const chunks = Array.from(
+      { length: Math.ceil(groups.length / 8) },
+      (_, i) => groups.slice(i * 8, i * 8 + 8).map((_, j) => i * 8 + j),
+    );
+    let next = 0;
+    const worker = async () => {
+      while (next < chunks.length) await load(chunks[next++]);
+    };
+    // Keep slots for frames/series during a cold catalog load.
+    const concurrency = Math.max(
+      1,
+      Math.min(2, Number(process.env.UPSTREAM_CONCURRENCY ?? 4)),
+    );
+    await Promise.all(Array.from({ length: concurrency }, worker));
+    // Do not cache a brief timeout/saturation as missing scientific sources.
+    if (
+      [...errors.values()].some((error) =>
+        ["QUERY_TIMEOUT", "UPSTREAM_BUSY"].includes(error.code),
+      )
+    )
+      throw new ApiError(
+        503,
+        "CATALOG_BUSY",
+        "O catálogo está temporariamente ocupado. Tente novamente.",
+      );
+    return this.variables.map((v) => {
+      const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
+        a.month.localeCompare(b.month),
+      );
+      const validMonths = availableMonths.filter(
+        (m) => (m.validSamples ?? 0) > 0,
+      );
+      return {
+        ...metadataOf(v),
+        months: availableMonths,
+        available: validMonths.length > 0,
+        firstMonth: validMonths[0]?.month ?? null,
+        lastMonth: validMonths.at(-1)?.month ?? null,
+        unavailableReason:
+          errors.get(v.id) ??
+          (validMonths.length
+            ? null
+            : {
+                code: "NO_VALID_OBSERVATIONS",
+                message:
+                  "Sem observações válidas após os filtros de qualidade nesta fonte.",
+              }),
+      };
+    });
+  }
+  private selected(
+    variable: Variable,
+    bounds: Bounds,
+    start: string,
+    endExclusive: string,
+  ) {
+    const latitude = this.physical(variable, "lat"),
+      longitude = this.physical(variable, "lon");
+    const coverage = variable.coverage ? this.physical(variable, variable.coverage) : "1.0";
+    const valid = this.valid(variable);
+    const goodCoverage = variable.coverage
+      ? `CASE WHEN ${this.finite(coverage)} AND ${coverage} BETWEEN 0 AND 1 THEN ${coverage} ELSE 0.0 END`
+      : "1.0";
+    const parameters: Parameters = {
+      west: bounds.west,
+      east: bounds.wrap ? bounds.east - 360 : bounds.east,
+      south: bounds.south,
+      north: bounds.north,
+      start,
+      end: endExclusive,
+    };
+    const sql = `SELECT ${this.q("time")} AS observed_time, ${latitude} AS lat,
+      ${bounds.wrap ? `CASE WHEN ${longitude} < :west THEN ${longitude}+360 ELSE ${longitude} END` : longitude} AS lon,
+      CASE WHEN ${valid} THEN ${this.converted(variable)} ELSE NULL END AS value,
+      CASE WHEN ${valid} THEN ${goodCoverage} ELSE 0.0 END AS coverage,
+      GREATEST(0.0, COS(RADIANS(${latitude}))) AS area_weight
+      FROM ${this.table(variable)} WHERE ${this.q("time")} >= CAST(:start AS TIMESTAMP)
+      AND ${this.q("time")} < CAST(:end AS TIMESTAMP)
+      AND ${this.finite(latitude)} AND ${this.finite(longitude)}
+      AND ${latitude} BETWEEN :south AND :north
+      AND ${bounds.wrap ? `(${longitude} >= :west OR ${longitude} <= :east)` : `${longitude} BETWEEN :west AND :east`}`;
+    return { sql, parameters };
+  }
+  async frame(
+    id: string,
+    monthInput: string,
+    bbox: string | undefined,
+    factor: number,
+    maxCells = 210_000,
+  ) {
+    const variable = this.variable(id);
+    await this.requireSource(variable);
+    const month = parseMonth(monthInput),
+      bounds = parseBounds(bbox);
+    if (![1, 2, 4, 8, 16, 32].includes(factor))
+      throw new ApiError(
+        400,
+        "INVALID_FACTOR",
+        "factor deve ser 1, 2, 4, 8, 16 ou 32.",
+      );
+    const nominalDx = variable.nativeGrid[0] * factor,
+      nominalDy = variable.nativeGrid[1] * factor;
+    const width = Math.ceil((bounds.east - bounds.west) / nominalDx),
+      height = Math.ceil((bounds.north - bounds.south) / nominalDy);
+    // Fit a regular grid exactly to the requested bounds; no short edge cells.
+    const dx = (bounds.east - bounds.west) / width,
+      dy = (bounds.north - bounds.south) / height;
+    if (width * height > maxCells)
+      throw new ApiError(
+        413,
+        maxCells === 65_000 ? "USE_BINARY" : "GRID_TOO_LARGE",
+        maxCells === 65_000
+          ? "Use format=f32 para esta grade ou aumente factor."
+          : "Grade grande demais. Aumente factor ou reduza bbox.",
+      );
+    const { sql, parameters } = this.selected(
+      variable,
+      bounds,
+      `${month}-01`,
+      monthAfter(month),
+    );
+    const rows = await this.provider.query(
+      `WITH selected AS (${sql}), binned AS (
+      -- Source coordinates contain tiny floating-point offsets near zero.
+      -- Snap within 1e-9 of a cell boundary before assigning the display bin.
+      SELECT LEAST(CAST(:width AS INT)-1, GREATEST(0, FLOOR((lon - (:west)) / (:dx) + 1e-9))) AS x,
+      LEAST(CAST(:height AS INT)-1, GREATEST(0, FLOOR(((:north) - lat) / (:dy) + 1e-9))) AS y,
+      value, coverage, area_weight FROM selected)
+      SELECT x, y, ${this.aggregate(variable)} AS value,
+      SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage, COUNT(*) AS samples
+      FROM binned GROUP BY x,y ORDER BY y,x`,
+      { ...parameters, width, height, dx, dy },
+      width * height + 1,
+    );
+    if (!rows.length)
+      throw new ApiError(
+        404,
+        "NO_DATA",
+        "Não há dados para a variável, mês e área solicitados.",
+      );
+    const count = width * height,
+      values = new Float32Array(count),
+      coverage = new Float32Array(count);
+    values.fill(NaN);
+    let validCells = 0;
+    for (const row of rows) {
+      const x = numeric(row.x),
+        y = numeric(row.y),
+        value = numeric(row.value),
+        fraction = numeric(row.coverage);
+      if (
+        x === null ||
+        y === null ||
+        !Number.isInteger(x) ||
+        !Number.isInteger(y) ||
+        x < 0 ||
+        y < 0 ||
+        x >= width ||
+        y >= height
+      )
+        throw new ApiError(
+          502,
+          "INVALID_GRID",
+          "A fonte retornou coordenadas de grade inválidas.",
+        );
+      const i = y * width + x;
+      coverage[i] = Math.min(1, Math.max(0, fraction ?? 0));
+      if (value !== null && coverage[i] > 0) {
+        values[i] = value;
+        validCells++;
+      }
+    }
+    const metadata = {
+      ...sourceMetadata(variable),
+      version: 1,
+      variable: variable.id,
+      quantity: variable.quantity,
+      unit: variable.unit,
+      product: variable.product,
+      run: variable.run,
+      month,
+      grid: {
+        width,
+        height,
+        bounds: [bounds.west, bounds.south, bounds.east, bounds.north],
+        longitudeStep: dx,
+        latitudeStep: dy,
+        nominalLongitudeStep: nominalDx,
+        nominalLatitudeStep: nominalDy,
+        orientation: "north_to_south,west_to_east",
+        antimeridian: bounds.wrap,
+      },
+      validCells,
+      totalCells: count,
+      factor,
+      nodata: "NaN",
+      dtype: "float32",
+      byteOrder: "little",
+      components: ["value", "valid_area_fraction"],
+      layout: "planar",
+      aggregation: variable.aggregation,
+      method: this.aggregationDescription(variable),
+      render: variable.render,
+      quality: variable.quality,
+      conversion: variable.conversion,
+      simulated: false,
+      limitations,
+    };
+    return { metadata, values, coverage };
+  }
+  async series(id: string, startInput: string, endInput: string, bbox: string) {
+    const variable = this.variable(id);
+    await this.requireSource(variable);
+    const start = parseMonth(startInput),
+      end = parseMonth(endInput),
+      bounds = parseBounds(bbox);
+    const months =
+      (Number(end.slice(0, 4)) - Number(start.slice(0, 4))) * 12 +
+      Number(end.slice(5)) -
+      Number(start.slice(5));
+    if (months < 0 || months >= 120)
+      throw new ApiError(
+        400,
+        "INVALID_PERIOD",
+        "Selecione um período ordenado de até 120 meses.",
+      );
+    const { sql, parameters } = this.selected(
+      variable,
+      bounds,
+      `${start}-01`,
+      monthAfter(end),
+    );
+    const rows = await this.provider.query(
+      `WITH selected AS (${sql}) SELECT ${this.month("observed_time")} AS month,
+      ${this.aggregate(variable)} AS value,
+      SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage,
+      COUNT(*) AS samples FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,
+      parameters,
+      120,
+    );
+    if (!rows.length)
+      throw new ApiError(
+        404,
+        "NO_DATA",
+        "Não há dados no período e área solicitados.",
+      );
+    return {
+      ...sourceMetadata(variable),
+      variable: variable.id,
+      quantity: variable.quantity,
+      unit: variable.unit,
+      product: variable.product,
+      run: variable.run,
+      bbox: [bounds.west, bounds.south, bounds.east, bounds.north],
+      start,
+      end,
+      simulated: false,
+      aggregation: variable.aggregation,
+      method: this.aggregationDescription(variable),
+      render: variable.render,
+      quality: variable.quality,
+      observations: rows.map((r) => ({
+        month: String(r.month),
+        value: numeric(r.value),
+        coverage: numeric(r.coverage),
+        samples: numeric(r.samples),
+      })),
+      limitations,
+    };
+  }
+}
+
+export function encodeFrame(frame: Awaited<ReturnType<DataService["frame"]>>) {
+  const header = Buffer.from(JSON.stringify(frame.metadata));
+  const offset = Math.ceil((8 + header.length) / 4) * 4;
+  const buffer = Buffer.alloc(offset + frame.values.length * 8);
+  buffer.write("KIPP", 0, "ascii");
+  buffer.writeUInt32LE(header.length, 4);
+  header.copy(buffer, 8);
+  for (let i = 0; i < frame.values.length; i++) {
+    buffer.writeFloatLE(frame.values[i], offset + i * 4);
+    buffer.writeFloatLE(
+      frame.coverage[i],
+      offset + frame.values.length * 4 + i * 4,
+    );
+  }
+  return buffer;
+}
+export function frameJson(frame: Awaited<ReturnType<DataService["frame"]>>) {
+  if (frame.values.length > 65_000)
+    throw new ApiError(
+      413,
+      "USE_BINARY",
+      "Use format=f32 para esta grade ou aumente factor.",
+    );
+  return {
+    ...frame.metadata,
+    nodata: null,
+    values: Array.from(frame.values, (v) => (Number.isFinite(v) ? v : null)),
+    coverage: Array.from(frame.coverage),
+  };
+}
+
+function sourceMetadata(variable: Variable) {
+  const source = trustedSources[variable.table];
+  return {
+    source: "lakebase-postgres" as const,
+    sourceLayer: "trusted" as const,
+    sourceTable: source ? `${source.schema}.${source.table}` : null,
+    sourceUC: source?.upstream ?? null,
+  };
+}
+
+export function metadataOf(variable: Variable) {
+  const {
+    table: _table,
+    column: _column,
+    coverage: _coverage,
+    validRange: _validRange,
+    qa: _qa,
+    ...publicMetadata
+  } = variable;
+  return { ...publicMetadata, ...sourceMetadata(variable) };
+}

@@ -87,3 +87,13 @@ Veja [dados reais e Lakebase](../docs/dados-reais-playback-lakebase.md) e
 A imagem de base é NASA Blue Marble, janeiro de 2004, e não muda com o mês.
 A camada colorida representa o campo mensal indicado. Continentes Natural Earth
 via world-atlas; fontes locais Manrope e Instrument Serif.
+
+## Multivariable layers and country flags
+
+Variable selection uses draft checkboxes and Apply. Each applied variable keeps
+its own regional/global charts, map visibility, opacity and scale. See
+[behavior and validation](../docs/multivariable-layers.md). The live map composites
+layers in one cached WebGL texture; camera movement remains one render pass.
+Country-only choices use bundled Natural Earth metadata and local flag-icons7.6.0
+SVGs ([MIT license](public/flags/LICENSE.txt)); no flag CDN or geocoder is called.
+The team's translucent space theme is preserved.

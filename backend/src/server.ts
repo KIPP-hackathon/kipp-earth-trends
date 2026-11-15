@@ -9,7 +9,6 @@ import {
   boundedEnv,
   withQueryBudget,
 } from "./core.ts";
-import type { Provider } from "./core.ts";
 import {
   DataService,
   encodeFrame,
@@ -20,10 +19,8 @@ import {
   excludedSources,
 } from "./data.ts";
 import { DatabricksProvider } from "./providers/databricks.ts";
-import { PostgresProvider } from "./providers/postgres.ts";
 import { configuration, historicalEvents, regions } from "./config.ts";
 import { eventSuggestions } from "./event-context.ts";
-import { HybridDataService } from "./routing.ts";
 
 import { createAssistant } from "./assistant.ts";
 import { TrendReferenceService } from "./trend-reference.ts";
@@ -34,20 +31,11 @@ import {
 } from "./assistant-contract.ts";
 
 const mode = process.env.DATA_PROVIDER ?? "databricks-sql";
-if (!["databricks-sql", "lakebase-postgres", "hybrid"].includes(mode))
-  throw new Error("Unsupported DATA_PROVIDER");
-const providers: Provider[] = [];
-const sql = mode !== "lakebase-postgres" ? new DatabricksProvider() : undefined;
-const postgres =
-  mode !== "databricks-sql"
-    ? new PostgresProvider(process.env.LAKEBASE_DATABRICKS_HOST)
-    : undefined;
-if (sql) providers.push(sql);
-if (postgres) providers.push(postgres);
-const data =
-  mode === "hybrid"
-    ? new HybridDataService(sql!, postgres!)
-    : new DataService(providers[0]);
+if (mode !== "databricks-sql")
+  throw new Error("Only SQL Warehouse is active. Hybrid and Lakebase require a separate future activation.");
+const warehouse = new DatabricksProvider();
+const providers = [warehouse];
+const data = new DataService(warehouse);
 const cache = new ResponseCache(
   boundedEnv("CACHE_BYTES", 64 * 1024 * 1024, 1024 * 1024, 256 * 1024 * 1024),
 );
@@ -179,7 +167,11 @@ api.get("/health", async () => ({
 api.get("/ready", async (_request, reply) => {
   await withQueryBudget(() =>
     Promise.all(
-      providers.map((provider) => provider.query("SELECT 1 AS ready", {}, 1)),
+      [
+        warehouse.query("SELECT air_temperature_at_10_meters_celsius FROM `earth-trend-data`.trusted.tb_merra2_t10m LIMIT 0", {}, 1),
+        warehouse.query("SELECT indicator_id FROM `earth-trend-data`.refined.tb_dim_indicators LIMIT 0", {}, 1),
+        warehouse.query("SELECT region_id FROM `earth-trend-data`.refined.tb_trend_merra2_ts LIMIT 0", {}, 1),
+      ],
     ),
   );
   reply.header("Cache-Control", "no-store");
@@ -234,11 +226,12 @@ async function catalogData() {
       });
   return catalogPending;
 }
-const trendReference = sql ? new TrendReferenceService(sql) : undefined;
+// Explicit reviewed Warehouse references live in refined; observations always use trusted.
+const trendReference = new TrendReferenceService(warehouse);
 const assistant = createAssistant({
   data,
   catalog: catalogData,
-  indicatorReference: sql ? new IndicatorReferenceService(sql) : undefined,
+  indicatorReference: new IndicatorReferenceService(warehouse),
   trendReference,
 });
 api.post(
@@ -270,6 +263,8 @@ api.get("/v1/catalog", async (request, reply) =>
   serve(request, reply, "catalog", 300, async () =>
     json({
       provider: mode,
+      sourceLayer: "trusted",
+      capabilities: {layeredAssistant:true},
       simulated: false,
       revision: process.env.K_REVISION ?? "local",
       variables: await catalogData(),
@@ -321,23 +316,17 @@ api.get<{
     },
   },
   async (request, reply) => {
-    // Never route trend reference reads to Lakebase or invent missing results.
-    if (!trendReference)
-      throw new ApiError(
-        503,
-        "TREND_REFERENCE_UNAVAILABLE",
-        "Stored trend evidence is unavailable in this deployment.",
-      );
+    const result = await withQueryBudget(() => trendReference.exactSelection(request.query));
+    if (result.status === "unavailable") {
+      reply.header("Cache-Control", "no-store").header("X-Data-Provider", mode);
+      return result;
+    }
     return serve(
       request,
       reply,
       `trends:${JSON.stringify(request.query)}`,
       300,
       async () => {
-        const result = await trendReference.exactSelection(request.query);
-        // Transient provider failures must not enter the success/HTTP caches.
-        if (result.status === "unavailable")
-          throw new ApiError(503, "TREND_REFERENCE_UNAVAILABLE", result.reason);
         return json(result);
       },
     );

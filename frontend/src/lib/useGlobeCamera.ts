@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GlobeView } from "./comparison";
 
-const durationMs = 900;
 const wrap = (longitude: number) =>
   ((((longitude + 180) % 360) + 360) % 360) - 180;
 
@@ -60,6 +59,11 @@ export function useGlobeCamera(initial: GlobeView) {
         return;
       }
       const started = performance.now();
+      const sameCenter = Math.abs(wrap(next.longitude - from.longitude)) < 1e-8 &&
+        Math.abs(next.latitude - from.latitude) < 1e-8;
+      const durationMs = sameCenter
+        ? Math.max(220, Math.min(650, Math.abs(Math.log(next.zoom / from.zoom)) * 450))
+        : 900;
       const tick = (now: number) => {
         const progress = Math.min(1, Math.max(0, (now - started) / durationMs));
         update(interpolateCamera(from, next, progress));

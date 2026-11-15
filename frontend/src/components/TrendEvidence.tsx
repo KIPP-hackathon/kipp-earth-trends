@@ -49,7 +49,11 @@ export function TrendEvidence({
           </span>
           <h2 id={heading}>Rate of change & statistical evidence</h2>
         </div>
-        <span className="trend-evidence-badge">Precomputed · real data</span>
+        <span className="trend-evidence-badge">
+          {data?.status === "exact"
+            ? "Precomputed · real data"
+            : "Stored reference"}
+        </span>
       </div>
       <p>
         This section checks for a stored result with exactly the selected

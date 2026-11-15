@@ -62,7 +62,6 @@ export default async function handler(
     // This identifier never changes the fixed upstream destination.
     if (query.has("deployment")) {
       if (
-        path !== "/v1/catalog" ||
         query.getAll("deployment").length !== 1 ||
         !/^[a-z0-9-]{1,100}$/.test(query.get("deployment")!)
       )

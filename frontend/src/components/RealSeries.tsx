@@ -156,6 +156,17 @@ export function RealSeries({
         viewBox="0 0 620 210"
         role="group"
         aria-label={`${title}: ${realMonth(rows[0].month)} to ${realMonth(rows.at(-1)!.month)}. Select a point to change the month.`}
+        onClick={(event) => {
+          if (event.detail === 0) return;
+          const inverse = event.currentTarget.getScreenCTM()?.inverse();
+          if (!inverse) return;
+          const point = new DOMPoint(event.clientX,event.clientY).matrixTransform(inverse);
+          if (point.x < chartLeft || point.x > 588 || point.y < 24 || point.y > 180) return;
+          const index = Math.max(0,Math.min(rows.length-1,
+            Math.round((point.x-chartLeft)/(588-chartLeft)*(rows.length-1))));
+          const row = rows[index];
+          if (row.value !== null && Number.isFinite(row.value)) onMonth(row.month);
+        }}
       >
         {eventIndices.length > 0 && (
           <rect
@@ -206,7 +217,9 @@ export function RealSeries({
               role="button"
               tabIndex={0}
               aria-label={`${realMonth(p.month)}: ${formatObservation(p.value)}`}
-              onClick={() => onMonth(p.month)}
+              onClick={(event) => {
+                if (event.detail === 0) {event.stopPropagation();onMonth(p.month);}
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();

@@ -325,9 +325,6 @@ export function InvestigationControls({
           <Share2 size={15} />
           Share
         </button>
-        <span className="investigation-local-label">
-          No login · browser-local saves
-        </span>
       </div>
       {!modal && feedback}
       {modal && (

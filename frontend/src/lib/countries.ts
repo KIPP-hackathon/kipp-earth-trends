@@ -2,12 +2,16 @@ import { geoBounds, geoCentroid, geoContains } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import type { EarthRegion } from "./earthApi";
 import countryData from "./countries.geo.json";
+import countryOptions from "./country-options.json";
 
 export type CountrySelection = {
   region: EarthRegion;
   geometry: GeoPermissibleObjects;
   countryCode: string;
   name: string;
+  flag?: string;
+  selectable: boolean;
+  searchTerms: string;
 };
 
 type CountryFeature = {
@@ -18,6 +22,8 @@ type CountryFeature = {
 
 // Natural Earth 4.1.0, via world-atlas@2.0.2, 1:110m (public domain).
 // Source and simplification/privacy limitations: docs/country-location.md.
+const portugueseNames = new Intl.DisplayNames(["pt-BR"], { type: "region" });
+const englishNames = new Intl.DisplayNames(["en"], { type: "region" });
 const countries: CountrySelection[] = (
   countryData.features as CountryFeature[]
 ).map(({ id, properties, geometry }) => {
@@ -27,9 +33,20 @@ const countries: CountrySelection[] = (
     id ?? `ne-${properties.name.toLowerCase().replace(/[^a-z]+/g, "-")}`;
   const [[west, south], [east, north]] = geoBounds(geometry);
   const [longitude, latitude] = geoCentroid(geometry);
+  const metadata = (countryOptions as Record<string, {
+    alpha2: string | null;
+    selectable: boolean;
+  }>)[countryCode];
   return {
     countryCode,
     name: properties.name,
+    flag: metadata?.selectable && metadata.alpha2
+      ? `/flags/${metadata.alpha2.toLowerCase()}.svg`
+      : undefined,
+    selectable: metadata?.selectable === true,
+    searchTerms: [countryCode, metadata?.alpha2,
+      metadata?.alpha2 ? portugueseNames.of(metadata.alpha2) : "",
+      metadata?.alpha2 ? englishNames.of(metadata.alpha2) : ""].join(" "),
     geometry,
     region: {
       id: `custom-country-${countryCode}`,

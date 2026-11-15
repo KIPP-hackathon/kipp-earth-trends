@@ -1,9 +1,27 @@
 # Backend com leitura Lakebase
 
-Atualização: o deploy usa `DATA_PROVIDER=hybrid`, preservando estas quatro
-variáveis no RT e usando SQL para as demais fontes revisadas. A seleção é
-explícita por variável, sem fallback silencioso. O modo exclusivo
-`DATA_PROVIDER=lakebase-postgres` continua disponível para operação controlada.
+> Historical integration evidence; Lakebase is **not the active backend source**.
+> The current user decision is SQL Warehouse only, with the reviewed trusted
+> observation tables. Lakebase configuration is preserved for a future migration.
+> See [the active contract](backend-warehouse.md).
+
+## Contrato atual: somente trusted
+
+A migração atual remove os modos híbrido e SQL Warehouse. A única fonte
+confirmada é `default.tb_merra2_t10m_trusted`, sincronizada de
+`merra2_shared.trusted.tb_merra2_t10m`. As demais tabelas trusted estão sendo
+sincronizadas pelo time no mesmo banco e com sufixo `_trusted`.
+
+A API não consulta tabelas sem esse contrato. Fonte ausente, permissão ausente,
+carga incompleta e schema incompatível não autorizam fallback para refined.
+As referências de indicadores/tendências ainda não existem na trusted do RT.
+Veja [o contrato e a evidência atual](lakebase-only.md).
+
+## Registro histórico da primeira integração (superado)
+
+Os dados, contagens e revisões abaixo documentam a integração anterior com
+nomes e campos refined. Não representam o estado atual da trusted e não devem
+ser usados como evidência de cobertura da nova fonte.
 
 O texto abaixo registra a validação da primeira integração Lakebase. As quatro tabelas
 usadas pela API já estavam sincronizadas no Lakebase; nenhuma cópia adicional
@@ -52,8 +70,7 @@ não simulados e quatro variáveis com meses disponíveis. Falha no smoke
 restaura a revisão anterior. O tamanho e o estado de suspensão do endpoint
 Lakebase não são modificados pelo deploy.
 
-O modo SQL permanece disponível explicitamente com `DATA_PROVIDER=databricks-sql`
-no script manual. Não há fallback silencioso entre fontes.
+O modo SQL descrito na implementação histórica foi removido pelo contrato trusted.
 
 ## Produção confirmada
 

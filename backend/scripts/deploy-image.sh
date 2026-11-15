@@ -11,19 +11,12 @@ if [[ "$task_image" != "$task_repository:"* && "$task_image" != "$task_repositor
   exit 1
 fi
 
-task_provider="${DATA_PROVIDER:-hybrid}"
-case "$task_provider" in
-  hybrid)
-    task_data_env="DATA_PROVIDER=hybrid,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259554586019913.3.gcp.databricks.com,DATABRICKS_WAREHOUSE_ID=74a8d94611137690,LAKEBASE_DATABRICKS_HOST=https://8259552519150212.2.gcp.databricks.com,PGHOST=ep-gentle-glade-g3123wa8.database.us-east4.gcp.databricks.com,PGDATABASE=databricks_postgres,PGUSER=kipp-earth-api@$task_project.iam.gserviceaccount.com,DATA_SCHEMA=refined,LAKEBASE_ENDPOINT=projects/rt-demo/branches/production/endpoints/primary"
-    ;;
-  lakebase-postgres)
-    task_data_env="DATA_PROVIDER=lakebase-postgres,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259552519150212.2.gcp.databricks.com,PGHOST=ep-gentle-glade-g3123wa8.database.us-east4.gcp.databricks.com,PGDATABASE=databricks_postgres,PGUSER=kipp-earth-api@$task_project.iam.gserviceaccount.com,DATA_SCHEMA=default,LAKEBASE_ENDPOINT=projects/rt-demo/branches/production/endpoints/primary"
-    ;;
-  databricks-sql)
-    task_data_env="DATA_PROVIDER=databricks-sql,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259554586019913.3.gcp.databricks.com,DATABRICKS_WAREHOUSE_ID=74a8d94611137690,DATA_SCHEMA=refined"
-    ;;
-  *) echo 'Unsupported DATA_PROVIDER' >&2; exit 1 ;;
-esac
+task_provider="${DATA_PROVIDER:-databricks-sql}"
+if [[ "$task_provider" != databricks-sql ]]; then
+  echo 'Only trusted SQL Warehouse is active; hybrid/Lakebase deployment is disabled.' >&2
+  exit 1
+fi
+task_data_env="DATA_PROVIDER=databricks-sql,DATABRICKS_AUTH_TYPE=google-id,DEPLOY_REGION=$task_region,DATABRICKS_HOST=https://8259554586019913.3.gcp.databricks.com,DATABRICKS_WAREHOUSE_ID=74a8d94611137690,DATA_CATALOG=earth-trend-data,DATA_SCHEMA=trusted"
 export EXPECTED_DATA_PROVIDER="$task_provider"
 
 # Deployment identities must not invoke the API or change its access policy.
@@ -50,6 +43,7 @@ gcloud run deploy "$task_service" \
   --timeout 60s --cpu-boost --no-traffic --tag candidate \
   --startup-probe "httpGet.path=/ready,httpGet.port=8080,periodSeconds=15,timeoutSeconds=15,failureThreshold=8" \
   --update-env-vars "$task_data_env" \
+  --remove-env-vars PGHOST,PGPORT,PGDATABASE,PGUSER,PGPASSWORD,LAKEBASE_ENDPOINT,LAKEBASE_DATABRICKS_HOST \
   --remove-secrets DATABRICKS_CREDENTIALS --quiet
 
 mapfile -t task_deployment < <(gcloud run services describe "$task_service" --project "$task_project" --region "$task_region" --format=json | node --input-type=module -e '

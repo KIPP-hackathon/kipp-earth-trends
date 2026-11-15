@@ -3,7 +3,6 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
-import { SpaceBackdrop } from "./SpaceBackdrop";
 import "./space-scene.css";
 import {
   frameCellIndex,
@@ -14,6 +13,7 @@ import { dragGlobe, globeProjection } from "../lib/globeProjection";
 import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
 import type { EarthColorRange, EarthFrame, EarthRegion } from "../lib/earthApi";
+import type { MapLayer } from "../lib/layers";
 import { displayScale, realMonth, realScale, realUnit } from "../lib/earthApi";
 import { countryLabels, countryBorderGeometry } from "../lib/globeLabels";
 import {
@@ -57,6 +57,7 @@ function regionBoundary(bbox: string): GeoPermissibleObjects | null {
 
 export function RealGlobe({
   frame,
+  layers,
   view,
   onView,
   onNavigate,
@@ -68,6 +69,7 @@ export function RealGlobe({
   onClearArea,
 }: {
   frame?: EarthFrame;
+  layers?: MapLayer[];
   region?: EarthRegion;
   outlineGeometry?: GeoPermissibleObjects;
   colorRange?: EarthColorRange;
@@ -90,7 +92,10 @@ export function RealGlobe({
   const pinch = useRef<{ distance: number; view: GlobeView } | null>(null);
   const pinching = useRef(false);
   const zoomBy = (factor: number) =>
-    onView({ ...view, zoom: clampGlobeZoom(view.zoom * factor) });
+    (onNavigate ?? onView)({
+      ...view,
+      zoom: clampGlobeZoom(view.zoom * factor),
+    });
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -185,17 +190,36 @@ export function RealGlobe({
       ? (geoPath(globeProjection(view)).digits(1)(boundary) ?? "")
       : "";
   }, [view.longitude, view.latitude, region?.bbox, outlineGeometry]);
-  const scale = frame ? displayScale(frame, colorRange) : null;
-  const cellIndex = frame && probe ? frameCellIndex(frame.grid, probe) : -1;
+  const scale =
+    layers === undefined && frame ? displayScale(frame, colorRange) : null;
+  const effectiveLayers = layers?.filter(
+    (layer) =>
+      layer.visible &&
+      Number.isFinite(layer.opacity) &&
+      layer.opacity > 0 &&
+      layer.frame,
+  );
+  const probeLayer = view.showLayer
+    ? layers === undefined
+      ? { frame, colorRange }
+      : effectiveLayers?.length === 1
+        ? effectiveLayers[0]
+        : undefined
+    : undefined;
+  const probeFrame = probeLayer?.frame;
+  const probeRange = probeLayer?.colorRange;
+  const probeScale = probeFrame ? displayScale(probeFrame, probeRange) : null;
+  const cellIndex =
+    probeFrame && probe ? frameCellIndex(probeFrame.grid, probe) : -1;
   const sampled =
-    frame && cellIndex >= 0 && frame.coverage[cellIndex] > 0
-      ? frame.values[cellIndex]
+    probeFrame && cellIndex >= 0 && probeFrame.coverage[cellIndex] > 0
+      ? probeFrame.values[cellIndex]
       : NaN;
   const hiddenSample =
-    scale?.kind === "continuous" &&
-    colorRange?.hideOutside &&
+    probeScale?.kind === "continuous" &&
+    probeRange?.hideOutside &&
     Number.isFinite(sampled) &&
-    (sampled < scale.domain[0] || sampled > scale.domain[1]);
+    (sampled < probeScale.domain[0] || sampled > probeScale.domain[1]);
   return (
     <div className="real-globe">
       <div className="real-globe-toolbar">
@@ -255,7 +279,6 @@ export function RealGlobe({
       <div
         className={`real-globe-scene ${drawing ? "is-drawing" : ""}${view.zoom > 1.18 ? " is-zoomed" : ""}`}
       >
-        <SpaceBackdrop />
         <svg
           ref={svgRef}
           viewBox="0 0 640 640"
@@ -371,7 +394,7 @@ export function RealGlobe({
             const start = drag.current;
             if (!start) {
               setProbe(
-                drawing
+                drawing || !probeFrame
                   ? null
                   : geographicPointer(
                       e.currentTarget,
@@ -472,7 +495,10 @@ export function RealGlobe({
             }
             if (e.key === "Home") {
               e.preventDefault();
-              onView({ ...initialGlobeView, showLayer: view.showLayer });
+              (onNavigate ?? onView)({
+                ...initialGlobeView,
+                showLayer: view.showLayer,
+              });
             }
           }}
         >
@@ -493,6 +519,7 @@ export function RealGlobe({
             longitude={view.longitude}
             latitude={view.latitude}
             frame={frame}
+            layers={layers}
             colorRange={colorRange}
             showField={view.showLayer}
             onUnavailable={() => setUnavailable(true)}
@@ -607,21 +634,24 @@ export function RealGlobe({
           <button
             aria-label="Reset camera"
             onClick={() =>
-              onView({ ...initialGlobeView, showLayer: view.showLayer })
+              (onNavigate ?? onView)({
+                ...initialGlobeView,
+                showLayer: view.showLayer,
+              })
             }
           >
             <RotateCcw size={15} />
           </button>
         </div>
       </div>
-      {probe && frame && view.showLayer && (
+      {probe && probeFrame && view.showLayer && (
         <p className="real-grid-info">
           Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
           <strong>
             {hiddenSample
               ? "Outside selected range (hidden)"
               : Number.isFinite(sampled)
-                ? `${sampled.toLocaleString("en", { maximumFractionDigits: 2 })} ${realUnit(frame.unit)}`
+                ? `${sampled.toLocaleString("en", { maximumFractionDigits: 2 })} ${realUnit(probeFrame.unit)}`
                 : "no data"}
           </strong>
         </p>

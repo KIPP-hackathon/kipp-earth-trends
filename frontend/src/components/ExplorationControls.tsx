@@ -8,7 +8,11 @@ export type SearchOption = {
   detail?: string;
   disabled?: boolean;
   suggested?: boolean;
+  icon?: string;
+  searchTerms?: string;
 };
+const normalizedSearch = (value: string) => value.normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
 
 export function SearchPicker({
   id,
@@ -17,6 +21,7 @@ export function SearchPicker({
   options,
   onChange,
   curated = false,
+  placeholder,
 }: {
   id: string;
   label: string;
@@ -24,6 +29,7 @@ export function SearchPicker({
   options: SearchOption[];
   onChange: (value: string) => void;
   curated?: boolean;
+  placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -45,11 +51,10 @@ export function SearchPicker({
     return () => document.removeEventListener("pointerdown", outside);
   }, [open]);
   const selected = options.find((option) => option.id === value);
-  const term = query.trim().toLocaleLowerCase();
+  const term = normalizedSearch(query.trim());
   const matches = options.filter((option) =>
     term
-      ? `${option.name} ${option.detail ?? ""} ${option.id}`
-          .toLocaleLowerCase()
+      ? normalizedSearch(`${option.name} ${option.detail ?? ""} ${option.id} ${option.searchTerms ?? ""}`)
           .includes(term)
       : !curated || all || option.suggested || option.id === value,
   );
@@ -86,7 +91,10 @@ export function SearchPicker({
           setOpen(!open);
         }}
       >
-        <span id={`${id}-value`}>{selected?.name ?? value}</span>
+        <span id={`${id}-value`} className="exploration-option-name">
+          {selected?.icon && <img className="country-flag" src={selected.icon} alt="" width={24} height={18} />}
+          <span>{selected?.name ?? placeholder ?? value}</span>
+        </span>
         <ChevronDown size={15} aria-hidden="true" />
       </button>
       {open && (
@@ -138,7 +146,10 @@ export function SearchPicker({
                   close(true);
                 }}
               >
-                <span>{option.name}</span>
+                <span className="exploration-option-name">
+                  {option.icon && <img className="country-flag" src={option.icon} alt="" width={24} height={18} loading="lazy" />}
+                  <span>{option.name}</span>
+                </span>
                 {option.detail && <small>{option.detail}</small>}
               </button>
             ))}

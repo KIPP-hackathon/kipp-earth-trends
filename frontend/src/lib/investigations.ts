@@ -1,6 +1,7 @@
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./globeZoom";
 import type { GlobeView } from "./comparison";
 import type { EarthColorRange, EarthRegion } from "./earthApi";
+import type { LayerSetting } from "./layers";
 
 export type InvestigationView = {
   tab: "explore" | "compare" | "analysis";
@@ -11,6 +12,7 @@ export type InvestigationView = {
     start: string;
     end: string;
     region: EarthRegion;
+    layers?: LayerSetting[];
   }[];
   camera: GlobeView;
   colorRanges: Record<string, EarthColorRange>;
@@ -28,7 +30,7 @@ export const INVESTIGATION_LIMITS = {
   records: 25,
   storageBytes: 1_048_576,
   fileBytes: 32_768,
-  shareChars: 12_000,
+  shareChars: 32_768,
   nameChars: 120,
   notesChars: 4_000,
 } as const;
@@ -119,6 +121,28 @@ function region(value: unknown): EarthRegion {
     latitude: number(r.latitude, -90, 90),
   };
 }
+function layers(value: unknown, primary: string): LayerSetting[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 96)
+    return fail("An investigation panel must have between 1 and 96 layers.");
+  const ids = new Set<string>();
+  const result = Array.from(value, (entry) => {
+    const layer = object(entry, ["variable", "visible", "opacity"]);
+    const variable = identifier(layer.variable);
+    if (ids.has(variable))
+      return fail("Duplicate investigation layer variable.");
+    if (typeof layer.visible !== "boolean")
+      return fail("Invalid investigation layer visibility.");
+    ids.add(variable);
+    return {
+      variable,
+      visible: layer.visible,
+      opacity: number(layer.opacity, 0, 1),
+    };
+  });
+  if (!ids.has(primary))
+    return fail("The primary variable must be a selected investigation layer.");
+  return result;
+}
 /** Strict schema; constructs fresh objects and never spreads untrusted keys. Catalog availability is checked by the restore callback. */
 export function validateInvestigationView(value: unknown): InvestigationView {
   const v = object(
@@ -134,14 +158,11 @@ export function validateInvestigationView(value: unknown): InvestigationView {
   )
     return fail("Invalid investigation panel count.");
   const panels = v.panels.map((value, index) => {
-    const p = object(value, [
-      "side",
-      "variable",
-      "month",
-      "start",
-      "end",
-      "region",
-    ]);
+    const p = object(
+      value,
+      ["side", "variable", "month", "start", "end", "region"],
+      ["layers"],
+    );
     if (p.side !== (index === 0 ? "A" : "B"))
       return fail("Investigation panels must be ordered A, B.");
     const start = month(p.start),
@@ -149,13 +170,17 @@ export function validateInvestigationView(value: unknown): InvestigationView {
       current = month(p.month);
     if (start > end || current < start || current > end)
       return fail("Current month must be inside the investigation period.");
+    const variable = identifier(p.variable);
     return {
       side: p.side as "A" | "B",
-      variable: identifier(p.variable),
+      variable,
       month: current,
       start,
       end,
       region: region(p.region),
+      ...(Object.hasOwn(p, "layers")
+        ? { layers: layers(p.layers, variable) }
+        : {}),
     };
   });
   const areaById = new Map<string, string>();
@@ -179,7 +204,13 @@ export function validateInvestigationView(value: unknown): InvestigationView {
     latitude: number(c.latitude, -90, 90),
     showLayer: c.showLayer,
   };
-  const rangeKeys = panels.map((p) => p.variable);
+  const rangeKeys = [
+    ...new Set(
+      panels.flatMap(
+        (p) => p.layers?.map((layer) => layer.variable) ?? [p.variable],
+      ),
+    ),
+  ];
   const ranges = object(v.colorRanges, [], rangeKeys);
   const colorRanges: Record<string, EarthColorRange> = {};
   for (const key of Object.keys(ranges)) {

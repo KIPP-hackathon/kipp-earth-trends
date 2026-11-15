@@ -8,6 +8,7 @@ import type {
   EarthRegion,
 } from "./earthApi";
 import type { GlobeView } from "./comparison";
+import type { LayerSetting } from "./layers";
 
 export type PanelSide = "A" | "B";
 export type PanelPreset = {
@@ -17,6 +18,7 @@ export type PanelPreset = {
   start?: string;
   end?: string;
   nonce?: number;
+  layers?: LayerSetting[];
 };
 export type PlaybackCommand = { playing: boolean; nonce: number };
 export type PanelSnapshot = {
@@ -29,6 +31,8 @@ export type PanelSnapshot = {
   region: EarthRegion;
   loading: boolean;
   playing: boolean;
+  layers?: LayerSetting[];
+  layerMonths?: Record<string, string | null>;
 };
 export type AssistantContext = {
   version: number;

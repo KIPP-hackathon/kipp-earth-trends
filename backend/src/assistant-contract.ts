@@ -18,6 +18,8 @@ export type AssistantRegion = {
   latitude: number;
 };
 export type AssistantPanel = {
+  layers?: {variable:string;visible:boolean;opacity:number}[];
+  layerMonths?: Record<string,string|null>;
   side: AssistantSide;
   variable: string;
   selectedMonth: string | null;
@@ -150,7 +152,12 @@ export const assistantRequestSchema = objectSchema({
         }),
         loading: bool,
         playing: bool,
-      }),
+        layers: {type:"array",minItems:1,maxItems:variables.length,items:objectSchema({
+          variable:variableSchema,visible:bool,opacity:num(0,1),
+        })},
+        layerMonths: {type:"object",maxProperties:variables.length,
+          properties:Object.fromEntries(variables.map(v=>[v.id,nullableMonth])),additionalProperties:false},
+      },["side","variable","selectedMonth","displayedMonth","start","end","region","loading","playing"]),
     },
     camera: objectSchema({
       longitude: lon,
@@ -266,18 +273,18 @@ export function assertSchema(value: unknown, schema: JsonSchema): void {
       "Invalid assistant input or unsupported fields.",
     );
 }
-export function validatePeriod(start: string, end: string): string[] {
+export function validatePeriod(start: string, end: string, maximumMonths = 120): string[] {
   parseMonth(start);
   parseMonth(end);
   const index = (m: string) =>
     Number(m.slice(0, 4)) * 12 + Number(m.slice(5)) - 1;
   const first = index(start),
     last = index(end);
-  if (last < first || last - first >= 120)
+  if (last < first || last - first >= maximumMonths)
     throw new ApiError(
       400,
       "INVALID_PERIOD",
-      "Select an ordered period of at most 120 months.",
+      `Select an ordered period of at most ${maximumMonths} months.`,
     );
   return Array.from(
     { length: last - first + 1 },
@@ -303,7 +310,13 @@ export function validateAssistantRequest(raw: unknown): AssistantRequest {
         "Panel sides must be unique.",
       );
     sides.add(panel.side);
-    validatePeriod(panel.start, panel.end);
+    validatePeriod(panel.start, panel.end, 2400);
+    if (panel.layers && (new Set(panel.layers.map(layer=>layer.variable)).size !== panel.layers.length ||
+        !panel.layers.some(layer=>layer.variable===panel.variable)))
+      throw new ApiError(400,"INVALID_ASSISTANT_INPUT","Invalid selected layer configuration.");
+    if (panel.layerMonths && Object.keys(panel.layerMonths).some(id=>
+        !panel.layers?.some(layer=>layer.variable===id)))
+      throw new ApiError(400,"INVALID_ASSISTANT_INPUT","Layer dates must match selected variables.");
     parseBounds(panel.region.bbox);
   }
   for (const [id, range] of Object.entries(request.context.colorRanges)) {

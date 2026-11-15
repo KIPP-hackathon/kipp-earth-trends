@@ -1,5 +1,6 @@
 import { validFrameBounds } from "./globeSelection";
 import { earthReadCache } from "./earthReadCache";
+import { queuedSeries } from "./seriesQueue";
 
 export const earthApi = "/api/earth";
 
@@ -84,6 +85,7 @@ export type EarthVariable = {
   months: { month: string; samples: number; validSamples: number }[];
 };
 export type EarthCatalog = {
+  capabilities?: {layeredAssistant?: boolean};
   revision?: string;
   simulated: false;
   variables: EarthVariable[];
@@ -110,6 +112,8 @@ export type EarthFrame = {
   coverage: Float32Array;
 };
 export type EarthSeries = {
+  start?: string;
+  end?: string;
   variable: string;
   unit: string;
   product: string;
@@ -234,10 +238,10 @@ async function checked(url: string, signal: AbortSignal) {
     }
     if (!response.ok) {
       const error = await response.json().catch(() => null);
-      throw new Error(
+      throw Object.assign(new Error(
         error?.error?.message ||
           `A fonte respondeu HTTP ${response.status}. Tente novamente.`,
-      );
+      ), {status: response.status, code: error?.error?.code});
     }
     return response;
   }
@@ -470,44 +474,42 @@ async function readSeries(
   signal: AbortSignal,
 ): Promise<EarthSeries> {
   const months = variable.months;
-  const query = new URLSearchParams({
-    bbox,
-    start: months[0].month,
-    end: months.at(-1)!.month,
-  });
-  const data = await (
-    await checked(
-      `/v1/series/${encodeURIComponent(variable.id)}?${query}`,
-      signal,
-    )
-  ).json();
-  if (
-    data.simulated !== false ||
-    data.variable !== variable.id ||
-    !Array.isArray(data.observations)
-  )
-    throw new Error("Série incompatível com a seleção.");
-  // Preserve absent calendar months as gaps rather than joining across missing data.
-  const byMonth = new Map(
-    data.observations.map((o: EarthSeries["observations"][number]) => [
-      o.month,
-      o,
-    ]),
-  );
   const calendar: string[] = [];
   const cursor = new Date(`${months[0].month}-01T00:00:00Z`);
-  while (
-    cursor.toISOString().slice(0, 7) <= months.at(-1)!.month &&
-    calendar.length < 120
-  ) {
+  while (cursor.toISOString().slice(0, 7) <= months.at(-1)!.month && calendar.length < 2400) {
     calendar.push(cursor.toISOString().slice(0, 7));
     cursor.setUTCMonth(cursor.getUTCMonth() + 1);
   }
-  data.observations = calendar.map(
-    (month) =>
-      byMonth.get(month) || { month, value: null, coverage: null, samples: 0 },
-  );
-  return data;
+  let first: EarthSeries | undefined;
+  const byMonth = new Map<string, EarthSeries["observations"][number]>();
+  // The private API accepts at most 120 months per request. Larger trusted
+  // histories are fetched in bounded chunks without truncating the chart.
+  for (let index = 0; index < calendar.length; index += 120) {
+    const chunk = calendar.slice(index, index + 120);
+    if (!months.some(row => row.month >= chunk[0] && row.month <= chunk.at(-1)! && row.validSamples > 0)) continue;
+    const query = new URLSearchParams({ bbox, start: chunk[0], end: chunk.at(-1)! });
+    let data: EarthSeries;
+    try {
+      data = await queuedSeries(signal, async () =>
+        (await checked(`/v1/series/${encodeURIComponent(variable.id)}?${query}`, signal)).json());
+    } catch (error) {
+      if ((error as {status?:number;code?:string})?.status === 404 &&
+          (error as {code?:string}).code === "NO_DATA") continue;
+      throw error;
+    }
+    if (data.simulated !== false || data.variable !== variable.id || !Array.isArray(data.observations))
+      throw new Error("Série incompatível com a seleção.");
+    first ??= data;
+    for (const observation of data.observations) {
+      if (observation.month >= chunk[0] && observation.month <= chunk.at(-1)!)
+        byMonth.set(observation.month, observation);
+    }
+  }
+  if (!first) throw new Error("No available months in this study period.");
+  return { ...first, start:calendar[0], end:calendar.at(-1)!,
+    observations: calendar.map(month => byMonth.get(month) ??
+      { month, value: null, coverage: null, samples: 0 }) };
+
 }
 export function aggregationLabel(aggregation?: EarthAggregation) {
   return aggregation === "sum"

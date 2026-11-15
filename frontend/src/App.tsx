@@ -143,7 +143,8 @@ function useLabWorkspace(onManualChange: () => void) {
         last.start === snapshot.start &&
         last.end === snapshot.end &&
         last.region.id === snapshot.region.id &&
-        last.region.bbox === snapshot.region.bbox
+        last.region.bbox === snapshot.region.bbox &&
+        JSON.stringify(last.layers) === JSON.stringify(snapshot.layers)
       )
         return previous;
       return { ...previous, [snapshot.side]: snapshot };
@@ -174,6 +175,13 @@ function useLabWorkspace(onManualChange: () => void) {
     },
     [onManualChange, camera.setView],
   );
+  const navigateView = useCallback(
+    (next: GlobeView) => {
+      onManualChange();
+      camera.flyTo(next);
+    },
+    [onManualChange, camera.flyTo],
+  );
   const changeColorRange = useCallback(
     (variable: string, value?: EarthColorRange) => {
       onManualChange();
@@ -189,17 +197,24 @@ function useLabWorkspace(onManualChange: () => void) {
   const live = useRef({ view: camera.view, colorRanges });
   live.current = { view: camera.view, colorRanges };
   const getContext = useCallback(
-    (tab: LabTab, version: number): AssistantContext => {
-      const panels = [
+    (tab: LabTab, version: number, includeLayers = false): AssistantContext => {
+      const snapshotsForTab = [
         snapshots.current.A,
         ...(tab === "compare" ? [snapshots.current.B] : []),
       ].filter((panel): panel is PanelSnapshot => !!panel);
+      const panels = snapshotsForTab.map(panel => {
+        if (includeLayers) return panel;
+        const {layers: _layers, layerMonths: _layerMonths, ...wire} = panel;
+        return wire;
+      });
+      const primaryIds = new Set(panels.map(panel => panel.variable));
       return structuredClone({
         version,
         tab,
         panels,
         camera: live.current.view,
-        colorRanges: live.current.colorRanges,
+        colorRanges: includeLayers ? live.current.colorRanges : Object.fromEntries(
+          Object.entries(live.current.colorRanges).filter(([id]) => primaryIds.has(id))),
       });
     },
     [],
@@ -222,6 +237,7 @@ function useLabWorkspace(onManualChange: () => void) {
     setEventContext,
     receiveSnapshot,
     changeView,
+    navigateView,
     changeColorRange,
     getContext,
   };
@@ -250,10 +266,11 @@ function App() {
     markChanged();
     setStartingCountry(country);
     exploration.setEventContext(undefined);
-    const panel = exploration.getContext("explore", version.current).panels[0];
+    const panel = exploration.getContext("explore", version.current, true).panels[0];
     if (panel)
       exploration.setPreset("A", {
         variable: panel.variable,
+        ...(panel.layers ? {layers:panel.layers} : {}),
         month: panel.selectedMonth ?? panel.end,
         start: panel.start,
         end: panel.end,
@@ -316,8 +333,9 @@ function App() {
       (tab === "compare" ? comparison : exploration).getContext(
         tab,
         version.current,
+        catalog.data?.capabilities?.layeredAssistant === true,
       ),
-    [comparison.getContext, exploration.getContext],
+    [comparison.getContext, exploration.getContext,catalog.data?.capabilities?.layeredAssistant],
   );
   const getContext = useCallback(
     () => getWorkspaceContext(activeTab.current),
@@ -398,20 +416,22 @@ function App() {
     if (tab !== "explore" && tab !== "compare" && tab !== "analysis")
       return null;
     const workspace = tab === "compare" ? comparison : exploration;
-    const context = workspace.getContext(tab, version.current);
+    const context = workspace.getContext(tab, version.current, true);
     const expected = tab === "compare" ? 2 : 1;
     if (
       context.panels.length !== expected ||
       context.panels.some((panel) => !panel.selectedMonth)
     )
       return null;
-    const ids = new Set(context.panels.map((panel) => panel.variable));
+    const ids = new Set(context.panels.flatMap(panel =>
+      panel.layers?.map(layer => layer.variable) ?? [panel.variable]));
     return {
       tab,
       panels: context.panels.map((panel) => ({
         side: panel.side,
         variable: panel.variable,
         month: panel.selectedMonth,
+        ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
         start: panel.start,
         end: panel.end,
         region: structuredClone(panel.region),
@@ -444,8 +464,13 @@ function App() {
       const variable = catalog.data.variables.find(
         (entry) => entry.id === panel.variable && entry.available !== false,
       );
+      const layerIds = panel.layers?.map(layer => layer.variable) ?? [panel.variable];
+      const layerVariables = layerIds.map(id => catalog.data!.variables.find(entry =>
+        entry.id === id && entry.available !== false && entry.months.some(row => row.validSamples > 0)));
+      if (layerVariables.some(entry => !entry))
+        throw new Error("A saved variable is unavailable in the current catalog. No filters were changed.");
       const months = new Set(
-        variable?.months
+        layerVariables.flatMap(entry => entry?.months ?? [])
           .filter((row) => row.validSamples > 0)
           .map((row) => row.month),
       );
@@ -517,6 +542,7 @@ function App() {
           panel.side,
           {
             variable: panel.variable,
+            ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
             month: panel.month,
             start: panel.start,
             end: panel.end,
@@ -985,14 +1011,6 @@ function App() {
                     : `Started with ${startingCountry.name}. Choose any country or draw an area below.`}
             </p>
             <div>
-              {location.status === "detected" && (
-                <button
-                  type="button"
-                  onClick={() => applyCountry(location.country)}
-                >
-                  Use {location.country.name}
-                </button>
-              )}
               {location.status !== "locating" && (
                 <button
                   type="button"
@@ -1041,7 +1059,7 @@ function App() {
                   side="A"
                   view={exploration.camera.view}
                   onView={exploration.changeView}
-                  onNavigate={exploration.camera.flyTo}
+                  onNavigate={exploration.navigateView}
                   preset={exploration.presets.A}
                   active={isExploration}
                   colorRanges={exploration.colorRanges}
@@ -1095,7 +1113,7 @@ function App() {
                     side={side}
                     view={comparison.camera.view}
                     onView={comparison.changeView}
-                    onNavigate={comparison.camera.flyTo}
+                    onNavigate={comparison.navigateView}
                     preset={comparison.presets[side]}
                     active={active === "compare"}
                     colorRanges={comparison.colorRanges}

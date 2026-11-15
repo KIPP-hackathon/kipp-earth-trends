@@ -1,8 +1,15 @@
 # Stored trend and significance reference
 
-`TrendReferenceService` reads the existing Databricks SQL table
-`earth-trend-data.refined.tb_trend_merra2_ts`. It returns precomputed results and
-does not calculate a new trend for the current application view.
+`TrendReferenceService` only uses Lakebase/PostgreSQL and never falls back to SQL
+Warehouse. The physical Lakebase inventory currently contains no
+`tb_trend_merra2_ts`. A reference must have verified **trusted** source lineage
+before it can be enabled. Historical stored results cannot be returned through
+the current API until the approved reference is available in Lakebase. This
+service does not calculate a new trend for the current application view.
+Reads default to disabled (`trustedSourceVerified: false`); existence of a
+refined-source sync alone cannot enable them. Its fixed Lakebase target is
+`default.tb_trend_merra2_ts`, currently absent. Enable only after verifying that
+exact target's trusted source lineage.
 
 The service accepts `TrendReferenceArguments`: required `query` (1–200
 characters), optional exact `regionId`, `method` and `variable` filters (1–100
@@ -14,16 +21,27 @@ Unknown regions or variables are not replaced with the nearest stored result.
 A fixed SELECT of the table's 30 explicit columns, ordered by region, method and
 period, fetches at most 501 records. A shared coalesced five-minute cache retains
 at most 500; an oversized reference has `referenceTruncated: true`. No user text
-or source-row identifier enters SQL. Errors expose generic unavailability. Text
+or source-row identifier enters SQL. Errors expose redacted unavailability. Text
 is bounded to 250 characters, except aggregation (1,200) and notes (2,000).
 Numeric precision, nullable statistics, boolean significance, stored dates,
 region bounds, product, data type, units, aggregation and method notes are
 preserved. Results include actual available regions/methods/variables/periods and
 explicit result/reference truncation flags.
 
+Missing/unavailable references return `status: "unavailable"`, empty `results`,
+code `REFERENCE_NOT_AVAILABLE_IN_LAKEBASE`, and the explicit reason that the
+reference is not yet synchronized or available in Lakebase. The exact-selection
+response also includes the requested selection, empty `supportedContexts` and
+scientific warnings. Unavailability must bypass successful response caches and
+use `Cache-Control: no-store`; it is not `unsupported` or evidence of no trend.
+Failed reads do not populate the five-minute snapshot cache. SQL formats period
+dates as ISO `YYYY-MM-DD`; Date-valued records are normalized too, preserving
+exact numeric bbox/variable/month matching. An explicit non-Postgres provider is
+rejected before any query.
+
 ## Scope and scientific caveats
 
-Read-only inspection on November 14, 2026 found 35 records: seven regions times
+Historical Warehouse inspection on November 14, 2026 found 35 records: seven regions times
 five methods for surface skin temperature, in degrees Celsius, from NASA GMAO
 MERRA-2 M2TMNXSLV v5.12.4 (TS), a reanalysis. Each record covers 33 monthly values
 from January 2024 through September 2026, computed at
@@ -54,7 +72,16 @@ hide a material method limitation. Stored significance uses p < alpha without
 multiple-comparison correction. It is not importance, causality or prediction.
 No stored result establishes an arbitrary requested region, variable or period.
 
-## Verification and provenance
+## Current verification and provenance
+
+Node.js 24 backend build passed. Ephemeral checks exercised fixed PostgreSQL SQL,
+shared successful snapshots, ISO date conversion, exact period/bbox selection,
+nullable statistics and false significance, redacted missing-table results and
+retry after failure. No new test suite or database writes were added. The
+Lakebase inventory contains no trend reference; a missing reference is an
+availability limitation, not a scientific result.
+
+## Historical evidence before Lakebase-only access
 
 Node.js 24 backend build passed. An ephemeral read-only M2M smoke checked the
 actual 35 rows, seven regions, five methods, coalescing of concurrent queries,
@@ -66,7 +93,8 @@ added by this work. Production service-account access was subsequently verified 
 assistant at source `dcfe85a1b847c4d2300bd3fe1f679b94f6000f0f`: HTTP 200, five
 Amazon-box method records in the evidence, correct fixed period/variable and an
 explanation of the OLS/AR(1) disagreement. No new grant was required. M2M success
-alone was not treated as proof of production access.
+alone was not treated as proof of production access. This historical
+Warehouse-backed behavior is not used by the current API.
 
 OpenAI Codex assisted this service and documentation. Exact model identifier was
 not verified; team review remains pending. Access to stored results alone does

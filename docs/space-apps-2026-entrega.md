@@ -335,3 +335,29 @@ produção confirmou fonte Manrope carregada, menus escuros, céu local quase pr
 movimento das estrelas, preferência de movimento reduzido e layout mobile sem
 overflow ou exceções JavaScript. Bundle publicado: `index-ByxD8o4r.js`, CSS
 `index-CSXaHGP5.css`. A publicação é visual; não altera observações científicas.
+
+## Evidência incremental — camadas e fonte exclusiva (14/11/2026)
+
+OpenAI Codex assistiu seleção múltipla com Apply/Cancel, cartões com visibilidade,
+opacidade e escala própria, gráficos regionais/globais por variável em scroll,
+composição WebGL em um contexto e salvamento/compartilhamento das camadas.
+O tema translúcido do time (`cd8611e`) foi integrado; países/bandeiras locais,
+transições de zoom e remoções de texto/botão foram incorporados. Ver
+[método e limites](multivariable-layers.md) e [créditos cartográficos](country-location.md).
+
+A decisão final do usuário mantém somente SQL Warehouse ativo, com observações
+nas68tabelas trusted para72variáveis e duas referências revisadas explícitas no
+mesmo Warehouse. Lakebase fica preservado e inativo para o futuro. Leituras M2M
+reais confirmaram72/72variáveis,321meses de temperatura e quatro pares de
+frame/série, além das referências. O catálogo frio levou42,236s; isso é evidência
+operacional local e ainda exige conferência da identidade Google em produção.
+
+Node24:46 verificações preexistentes do frontend, seis da API e builds passaram;
+smokes efêmeros cobriram composição/alpha,72camadas,321meses com lacunas,
+proveniência completa e dois painéis/72camadas em link limitado. Navegador local
+confirmou Apply/Cancel, três variáveis reais, opacidades100/55/65%, salvar/reabrir,
+link sem notas e seleção de72variáveis com gráficos próximos ao viewport.
+Bandeiras: flag-icons7.6.0, MIT;168SVGs locais com licença e inspeção de conteúdo.
+Isso não encerra revisão humana, investigação científica, significância ou entrega
+Space Apps. Publicação e conferência da revisão Cloud Run/Vercel ficam registradas
+separadamente após o CI.

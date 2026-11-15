@@ -1,33 +1,37 @@
 # KIPP Earth Data API
 
 Backend de leitura para o globo e séries regionais. Node.js 24, TypeScript,
-Fastify e Cloud Run em `us-east4`. A produção lê as quatro tabelas pelo
-Lakebase/PostgreSQL; Databricks SQL permanece como modo explícito de rollback.
-Não usa `kipp/serving`, GCS ou credenciais no navegador.
+Fastify e Cloud Run em `us-east4`. A fonte ativa é **somente SQL Warehouse**.
+Lakebase permanece preparado para migração futura, sem execução híbrida ou
+fallback automático. Credenciais ficam exclusivamente no servidor.
 
 ## Dados e comportamento
 
-Tabelas permitidas no schema PostgreSQL `default` do Lakebase `rt-demo`
-(origem: `earth-trend-data.refined`):
+O catálogo mantém 72 IDs revisados, apoiados em 68 tabelas
+`earth-trend-data.trusted`. O inventário de metadados confirmou a presença de
+todas as tabelas e colunas necessárias, incluindo coordenadas `latitude`/
+`longitude`, QA/cobertura e `time` DATE. O runtime usa esse contrato trusted
+explicitamente e não redireciona observações à refined.
 
-| ID HTTP | Tabela | Campo | Unidade |
-|---|---|---|---|
-| temperature | tb_merra2_t10m | T10M_C | °C, ar a 10 m |
-| surface_temperature | tb_merra2_ts | TS_C | °C, superfície |
-| rainfall | tb_gpm_imerg_precipitation | precipitation_mm_month | mm/mês, Final |
-| rainfall_late | tb_gpm_imerg_late_precipitation | precipitation_mm_month | mm/mês, Late |
+`src/registry.ts` preserva IDs, unidades, conversões e critérios científicos;
+`src/trusted-map.ts` contém os nomes físicos padronizados. Temperatura de ar a
+10 m usa `air_temperature_at_10_meters_celsius`, sem subtrair Kelvin novamente.
+A grade HTTP agrega para visualização sem criar resolução; séries usam bbox,
+não máscaras poligonais exatas. Ausências permanecem ausentes.
 
-SPEED com conversão inválida permanece bloqueado; componentes U/V são
-seleções distintas. NDVI/EVI aplica QA conservador. GRACE preserva sua referência
-2004–2009 e soma massa em Gt; classes de gelo usam moda ponderada. Final/Late
-continuam separados. Não há detecção de eventos, inferência causal ou previsão.
+Dicionário e tendências pré-calculadas usam suas duas referências revisadas e
+fixas no mesmo SQL Warehouse: `earth-trend-data.refined.tb_dim_indicators` e
+`earth-trend-data.refined.tb_trend_merra2_ts`. Essa escolha explícita não é um
+fallback de observações nem usa Lakebase. As tendências armazenadas preservam
+seu período de 33 meses e método; não são recalculadas para os 321 meses do
+histórico trusted. O contrato de seleção exata continua exigindo correspondência
+de variável, bbox e período.
 
-As tabelas atuais têm 576 × 361 amostras espaciais por mês, totalizando
-20.793.600 registros conferidos no Lakebase. A grade HTTP agrupa amostras em
-bins de visualização, com passos nominais de 0,625° × 0,5° multiplicados por `factor`. Os passos efetivos são ajustados à extensão e ao número inteiro de células para manter a grade uniforme; ambos constam nos metadados.
-Os limites polares são agrupados nos bins de borda. Resoluções mais finas que a
-fonte não são criadas. Médias usam cos(latitude) e cobertura válida como pesos.
-Séries usam as amostras originais em um bbox, não polígonos exatos de bacias.
+`src/lakebase-data.ts`, `src/providers/postgres.ts`, os adaptadores de referência
+Lakebase, a allowlist trusted e a configuração comentada em `.env.example`
+permanecem preservados para o futuro. O servidor e o deploy atuais rejeitam
+`lakebase-postgres` e `hybrid`. Ver [contrato ativo](../docs/backend-warehouse.md)
+e [preparação futura Lakebase](../docs/lakebase-only.md).
 
 ## Endpoints
 
@@ -84,15 +88,14 @@ Somas e classes usam os métodos publicados nos metadados de cada variável.
 - Requisições idênticas simultâneas compartilham uma consulta.
 - ETag, respostas 304 e Cache-Control para cache do navegador/intermediário.
 - Compressão gzip/deflate, inclusive para frames binários.
-- Até quatro consultas SQL simultâneas por instância; excesso retorna 503 com
-  Retry-After. Timeout e cancelamento de consultas pendentes no Databricks.
-- Paginação do Statement API até completar o resultado, sem truncamento silencioso.
+- Até quatro consultas SQL Warehouse simultâneas por instância; excesso retorna 503
+  com Retry-After. Conexões e consultas possuem timeout e orçamento limitado.
 - Em produção, Google ID token da SA anexada ao Cloud Run, obtido do metadata
   server com audience do workspace e renovado antes de expirar.
   OAuth M2M continua disponível para desenvolvimento e revisões antigas.
   Logs não incluem credenciais ou erros SQL detalhados.
 - Cloud Run: mínimo zero, máximo três instâncias, 1 CPU / 512 MiB, concorrência 32.
-  Cada instância tem cache próprio. Cold start do warehouse é distinto do da API.
+  Cada instância tem cache próprio; o Warehouse tem seu próprio ciclo de inicialização.
 
 ## Desenvolvimento e publicação
 
@@ -125,30 +128,17 @@ trocar a conta padrão do gcloud. Projeto `nasa-earth-trends-lab`.
 O Dockerfile compila TypeScript; a imagem final executa Node 24 sem privilégios.
 Detalhes de IAM, operação e rollback em `docs/backend-cicd.md`.
 
-## Leitura Lakebase/PostgreSQL
+## Configuração Lakebase preservada para o futuro
 
-Configure `DATA_PROVIDER=lakebase-postgres`, `PGHOST`, `PGDATABASE`, `PGUSER` e
-`DATA_SCHEMA`. Mantenha as tabelas/colunas do contrato ou ajuste os mapeamentos
-configurados. PostgreSQL exige nomes de colunas com caixa compatível com a origem.
-`TABLE_TEMPERATURE`, `TABLE_SURFACE_TEMPERATURE`, `TABLE_RAINFALL` e
-`TABLE_RAINFALL_LATE` podem mudar os nomes de tabela sem mudar endpoints.
+Os exemplos comentados em `.env.example`, o provider PostgreSQL, o adaptador
+`lakebase-data.ts`, o manifesto de sincronizações e o helper de descoberta
+permanecem disponíveis para revisão futura. Alterar apenas `DATA_PROVIDER` não
+ativa essa migração: servidor e deploy atuais aceitam exclusivamente
+`databricks-sql`. Ver [contrato futuro](../docs/lakebase-only.md).
 
-Em produção, `DATABRICKS_AUTH_TYPE=google-id` usa a SA do Cloud Run, audience
-do workspace Lakebase `https://8259552519150212.2.gcp.databricks.com` e
-`LAKEBASE_ENDPOINT=projects/rt-demo/branches/production/endpoints/primary`.
-O CI configura `PGHOST`, `PGDATABASE=databricks_postgres`, `PGUSER` da SA e
-`DATA_SCHEMA=default`. Não há segredo M2M na revisão.
-A credencial Postgres é solicitada a cada nova conexão, com
-pool limitado e rotação das conexões antes de expirar. Alternativamente use
-PGPASSWORD via Secret Manager para um papel Postgres somente leitura.
-O pool usa TLS com verificação de certificado; não desabilite a validação.
-
-As quatro tabelas foram conferidas online, com schemas e cobertura temporal
-compatíveis. Catálogo, frames e séries foram exercitados contra o banco real.
-Veja [a validação e as permissões](../docs/backend-lakebase.md).
-Para publicar explicitamente com SQL Warehouse, use
-`DATA_PROVIDER=databricks-sql bash scripts/deploy.sh`; para rollback imediato,
-direcione tráfego para uma revisão saudável anterior conforme o runbook CI/CD.
+O deploy ativo usa Google ID token da SA do Cloud Run com audience do workspace
+SQL Warehouse e remove envs PostgreSQL ativos da revisão candidata. Continua
+sem segredo M2M montado, com Cloud Run privado e smoke pelo proxy Vercel.
 
 ## Publicação atual
 

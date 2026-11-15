@@ -8,30 +8,62 @@ if [[ -n "${EXPECTED_REVISION:-}" ]]; then
   [[ "$EXPECTED_REVISION" =~ ^[a-z0-9-]{1,100}$ ]]
   task_query="?deployment=$EXPECTED_REVISION"
 fi
-for task_path in v1/catalog; do
-  curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 \
-    --header 'Cache-Control: no-cache' --header 'Pragma: no-cache' \
-    --connect-timeout 10 --max-time 60 "$task_url/$task_path$task_query" -o "$task_tmp/response.json"
-  node --input-type=module - "$task_path" "$task_tmp/response.json" <<'JS'
+curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 \
+  --header 'Cache-Control: no-cache' --header 'Pragma: no-cache' \
+  --connect-timeout 10 --max-time 60 "$task_url/v1/catalog$task_query" -o "$task_tmp/catalog.json"
+node --input-type=module - "$task_tmp/catalog.json" "$task_tmp/month" <<'JS'
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-const [path, file] = process.argv.slice(2);
+const [file, monthFile] = process.argv.slice(2);
 const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-if (path === 'ready') {
-  assert.equal(data.status, 'ready');
-  assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'hybrid');
+assert.equal(data.simulated, false);
+assert.equal(data.provider, 'databricks-sql');
+assert.equal(data.sourceLayer, 'trusted');
+if (process.env.EXPECTED_REVISION) assert.equal(data.revision, process.env.EXPECTED_REVISION);
+assert.equal(data.variables.length, 72, 'All reviewed IDs must remain explicit');
+for (const variable of data.variables) {
+  assert.equal(variable.source, 'databricks-sql');
+  assert.equal(variable.sourceLayer, 'trusted');
+  assert.equal(variable.available, true, `Trusted source unavailable: ${variable.id}`);
+  assert.match(variable.sourceUC, /^earth-trend-data\.trusted\./);
+  assert.ok(variable.months.some(m => m.validSamples > 0), `No valid months: ${variable.id}`);
 }
-if (path === 'v1/catalog') {
-  assert.equal(data.simulated, false);
-  if (process.env.EXPECTED_REVISION) assert.equal(data.revision, process.env.EXPECTED_REVISION);
-  for (const variable of data.variables ?? []) assert.notEqual(variable.available, false, `Unavailable source ${variable.id}`);
-  assert.equal(data.provider, process.env.EXPECTED_DATA_PROVIDER ?? 'hybrid');
-  assert.ok(Array.isArray(data.variables) && data.variables.length >= 4, 'Expected the real data catalog');
-  for (const id of ['temperature', 'surface_temperature', 'rainfall', 'rainfall_late']) {
-    assert.ok(data.variables.some(variable => variable.id === id && variable.months.length > 0), `Missing real data for ${id}`);
-  }
-  for (const variable of data.variables) assert.ok(variable.months.length > 0, 'Expected real table availability');
-}
-console.log(`Smoke OK: ${path}`);
+const temperature = data.variables.find(v => v.id === 'temperature');
+assert.equal(temperature.available, true, 'Confirmed trusted temperature must work');
+assert.equal(temperature.sourceTable, 'earth-trend-data.trusted.tb_merra2_t10m');
+assert.equal(temperature.sourceUC, 'earth-trend-data.trusted.tb_merra2_t10m');
+fs.writeFileSync(monthFile, temperature.lastMonth);
+console.log(`Smoke OK: trusted catalog (${data.variables.filter(v => v.available).length} available reviewed variables)`);
 JS
-done
+task_month="$(cat "$task_tmp/month")"
+[[ "$task_month" =~ ^[0-9]{4}-[0-9]{2}$ ]]
+curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
+  "$task_url/v1/frames/temperature/$task_month?factor=8&format=json${task_query/\?/\&}" -o "$task_tmp/frame.json"
+curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
+  "$task_url/v1/series/temperature?start=$task_month&end=$task_month&bbox=-60,-22,-54,-16${task_query/\?/\&}" -o "$task_tmp/series.json"
+node --input-type=module - "$task_tmp/frame.json" "$task_tmp/series.json" <<'JS'
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const [frame, series] = process.argv.slice(2).map(p => JSON.parse(fs.readFileSync(p, 'utf8')));
+for (const result of [frame, series]) {
+  assert.equal(result.source, 'databricks-sql');
+  assert.equal(result.sourceLayer, 'trusted');
+  assert.equal(result.sourceTable, 'earth-trend-data.trusted.tb_merra2_t10m');
+}
+assert.ok(frame.values.some(v => Number.isFinite(v)), 'Trusted globe needs valid observations');
+assert.ok(series.observations.some(p => Number.isFinite(p.value)), 'Trusted regional series needs valid observations');
+console.log('Smoke OK: trusted frame and regional series');
+JS
+
+curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
+  "$task_url/v1/trends?variable=surface_temperature&bbox=-80,-20,-45,5&start=2024-01&end=2026-09${task_query/\?/\&}" -o "$task_tmp/trends.json"
+node --input-type=module - "$task_tmp/trends.json" <<'JS'
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const data=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+assert.equal(data.status,'exact');
+assert.equal(data.referenceTable,'earth-trend-data.refined.tb_trend_merra2_ts');
+assert.ok(data.results.length>0);
+assert.ok(data.results.every(row=>row.n_obs===33));
+console.log('Smoke OK: runtime stored trend reference (exact original 33-month period)');
+JS

@@ -202,13 +202,13 @@ export class TrendReferenceService {
       start > end ||
       (Number(end.slice(0, 4)) - Number(start.slice(0, 4))) * 12 +
         Number(end.slice(5)) -
-        Number(start.slice(5)) >
-        119
+        Number(start.slice(5)) >=
+        2400
     )
       throw new ApiError(
         400,
         "INVALID_TREND_PERIOD",
-        "Use an ordered period of at most 120 calendar months.",
+        "Use an ordered period of at most 2400 calendar months.",
       );
     const bbox = [
       bounds.west,

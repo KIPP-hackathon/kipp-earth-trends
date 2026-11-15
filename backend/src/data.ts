@@ -7,6 +7,7 @@ import {
 import type { Parameters, Provider } from "./core.ts";
 
 import { variables } from "./registry.ts";
+import { trustedColumns } from "./trusted-map.ts";
 import type { Variable } from "./registry.ts";
 export { variables, excludedSources } from "./registry.ts";
 export type { Variable, RenderMetadata } from "./registry.ts";
@@ -108,7 +109,9 @@ export class DataService {
   constructor(provider: Provider, options: DataServiceOptions = {}) {
     this.provider = provider;
     this.variables = options.variables ?? variables;
-    this.schema = options.schema ?? process.env.DATA_SCHEMA ?? "refined";
+    this.schema = "trusted";
+    if (provider.dialect !== "databricks")
+      throw new Error("The active DataService requires SQL Warehouse. Lakebase remains a separate future adapter.");
   }
   private variable(id: string) {
     const variable = this.variables.find((v) => v.id === id);
@@ -123,14 +126,14 @@ export class DataService {
   private q(value: string) {
     return quoteIdentifier(value, this.provider.dialect);
   }
+  private physical(variable: Variable, column: string) {
+    const name = trustedColumns[variable.table]?.[column];
+    if (!name) throw new Error("Unreviewed trusted source column");
+    return this.q(name);
+  }
   private table(v: Variable) {
-    const override = process.env[`TABLE_${v.id.toUpperCase()}`] ?? v.table;
-    const schema = this.schema;
-    const parts =
-      this.provider.dialect === "databricks"
-        ? [process.env.DATA_CATALOG ?? "earth-trend-data", schema, override]
-        : [schema, override];
-    return parts.map((p) => this.q(p)).join(".");
+    // Fixed reviewed trusted contract. Never route to refined or a Lakebase table.
+    return ["earth-trend-data", this.schema, v.table].map((part) => this.q(part)).join(".");
   }
   private month(expr = this.q("time")) {
     return this.provider.dialect === "databricks"
@@ -143,20 +146,20 @@ export class DataService {
       : `${expr} IS NOT NULL AND ${expr} > '-Infinity'::float8 AND ${expr} < 'Infinity'::float8 AND ABS(${expr}) < 1e30`;
   }
   private valid(variable: Variable) {
-    const value = this.q(variable.column);
+    const value = this.physical(variable, variable.column);
     const clauses = [this.finite(value)];
     const [min, max] = variable.validRange ?? [null, null];
     if (min !== null) clauses.push(`${value} >= ${min}`);
     if (max !== null) clauses.push(`${value} <= ${max}`);
     if (variable.qa === "modis_good")
       clauses.push(
-        `${this.q("pixel_reliability")} = 0`,
-        `${this.q("vi_quality")} <> 65535`,
+        `${this.physical(variable, "pixel_reliability")} = 0`,
+        `${this.physical(variable, "vi_quality")} <> 65535`,
       );
     if (variable.qa === "ice_valid")
-      clauses.push(`${this.q("valid_sample")} = 1`, `${value} IN (0,1)`);
+      clauses.push(`${this.physical(variable, "valid_sample")} = 1`, `${value} IN (0,1)`);
     if (variable.coverage) {
-      const coverage = this.q(variable.coverage);
+      const coverage = this.physical(variable, variable.coverage);
       clauses.push(
         this.finite(coverage),
         `${coverage} > 0 AND ${coverage} <= 1`,
@@ -165,7 +168,7 @@ export class DataService {
     return clauses.join(" AND ");
   }
   private converted(variable: Variable) {
-    return `(${this.q(variable.column)} * ${variable.conversion.scale} + (${variable.conversion.offset}))`;
+    return `(${this.physical(variable, variable.column)} * ${variable.conversion.scale} + (${variable.conversion.offset}))`;
   }
   private aggregate(variable: Variable) {
     if (variable.aggregation === "sum") return "SUM(value)";
@@ -303,7 +306,7 @@ export class DataService {
         "CATALOG_BUSY",
         "O catálogo está temporariamente ocupado. Tente novamente.",
       );
-    if (errors.size === variables.length)
+    if (errors.size === this.variables.length)
       throw new ApiError(
         502,
         "CATALOG_UNAVAILABLE",
@@ -340,9 +343,9 @@ export class DataService {
     start: string,
     endExclusive: string,
   ) {
-    const latitude = this.q("lat"),
-      longitude = this.q("lon");
-    const coverage = variable.coverage ? this.q(variable.coverage) : "1.0";
+    const latitude = this.physical(variable, "lat"),
+      longitude = this.physical(variable, "lon");
+    const coverage = variable.coverage ? this.physical(variable, variable.coverage) : "1.0";
     const valid = this.valid(variable);
     const goodCoverage = variable.coverage
       ? `CASE WHEN ${this.finite(coverage)} AND ${coverage} BETWEEN 0 AND 1 THEN ${coverage} ELSE 0.0 END`
@@ -456,6 +459,7 @@ export class DataService {
       }
     }
     const metadata = {
+      ...sourceMetadata(variable),
       version: 1,
       variable: variable.id,
       quantity: variable.quantity,
@@ -528,6 +532,7 @@ export class DataService {
         "Não há dados no período e área solicitados.",
       );
     return {
+      ...sourceMetadata(variable),
       variable: variable.id,
       quantity: variable.quantity,
       unit: variable.unit,
@@ -583,6 +588,12 @@ export function frameJson(frame: Awaited<ReturnType<DataService["frame"]>>) {
   };
 }
 
+function sourceMetadata(variable: Variable) {
+  const source = `earth-trend-data.trusted.${variable.table}`;
+  return { source: "databricks-sql" as const, sourceLayer: "trusted" as const,
+    sourceTable: source, sourceUC: source };
+}
+
 export function metadataOf(variable: Variable) {
   const {
     table: _table,
@@ -592,5 +603,5 @@ export function metadataOf(variable: Variable) {
     qa: _qa,
     ...publicMetadata
   } = variable;
-  return publicMetadata;
+  return { ...publicMetadata, ...sourceMetadata(variable) };
 }
