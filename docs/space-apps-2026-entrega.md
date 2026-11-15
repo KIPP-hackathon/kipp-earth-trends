@@ -1031,12 +1031,14 @@ ao trocar a mensagem, abrir modal ou desmontar o componente.
 90 testes frontend e builds frontend/API aprovados. Chrome isolado com fixture
 do componente conferiu expiração real após seis segundos, fechamento manual
 e persistência de erro, sem dados observados ou salvamentos alterados.
-Correção na main em `2f61fcc`. A Vercel recusou a publicação com
-`build-rate-limit` (status GitHub/Vercel failure); o domínio público ainda não
-entregou `index-DSbXRVIr.js`. Correção disponível no preview local; publicação
-em produção pendente da liberação do limite. Sem alteração de plano/cobrança,
-API, dados ou submissão. Este registro permanece local para não disparar outra
-tentativa de build enquanto o limite está ativo.
+Correção na main em `2f61fcc`. A primeira tentativa foi recusada pela Vercel com
+`build-rate-limit`. A publicação posterior do time em `a3e0239` já inclui a
+correção, com [deploy concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/44GNEkpXv71oDUeZ7HmuHuiW2sLe)
+e bundle público `index-BzknWmfV.js`. Chrome isolado em produção abriu uma
+configuração compartilhada válida, confirmou o botão de fechar e o aviso
+desaparecendo após seis segundos. Nenhum salvo foi criado. Sem alteração de
+plano/cobrança, API, dados ou submissão nesta tarefa. Evidência mantida local
+para evitar uma publicação adicional somente de documentação.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
