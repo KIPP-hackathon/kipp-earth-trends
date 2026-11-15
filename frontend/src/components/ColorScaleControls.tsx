@@ -7,26 +7,30 @@ export function ColorScaleControls({
   unit,
   value,
   onChange,
+  colors,
 }: {
   domain: [number, number];
+  colors?: string[];
   unit: string;
   value?: EarthColorRange;
   onChange: (value?: EarthColorRange) => void;
 }) {
   const id = useId();
+  const appliedMinimum = value?.domain[0] ?? domain[0];
+  const appliedMaximum = value?.domain[1] ?? domain[1];
   const [minimum, setMinimum] = useState(String(value?.domain[0] ?? domain[0]));
   const [maximum, setMaximum] = useState(String(value?.domain[1] ?? domain[1]));
-  const [hideOutside, setHideOutside] = useState(value?.hideOutside ?? true);
+  const [hideOutside, setHideOutside] = useState(value?.hideOutside ?? !colors);
   const [error, setError] = useState("");
   useEffect(() => {
-    setMinimum(String(value?.domain[0] ?? domain[0]));
-    setMaximum(String(value?.domain[1] ?? domain[1]));
-    setHideOutside(value?.hideOutside ?? true);
+    setMinimum(String(appliedMinimum));
+    setMaximum(String(appliedMaximum));
     setError("");
-  }, [value, domain[0], domain[1]]);
+  }, [appliedMinimum, appliedMaximum]);
+  useEffect(() => setHideOutside(value?.hideOutside ?? !colors), [value?.hideOutside, !!colors]);
   return (
     <form
-      className="color-range-controls"
+      className={`color-range-controls${colors ? " inline-color-range" : ""}`}
       aria-label="Map color range"
       onSubmit={(event) => {
         event.preventDefault();
@@ -41,7 +45,7 @@ export function ColorScaleControls({
     >
       <div className="color-range-fields">
         <label htmlFor={`${id}-minimum`}>
-          Minimum ({unit})
+          <span className={colors ? "sr-only" : undefined}>Minimum ({unit})</span>
           <input
             id={`${id}-minimum`}
             type="number"
@@ -55,9 +59,10 @@ export function ColorScaleControls({
               setError("");
             }}
           />
+          {colors && <span aria-hidden="true">{unit}</span>}
         </label>
         <label htmlFor={`${id}-maximum`}>
-          Maximum ({unit})
+          <span className={colors ? "sr-only" : undefined}>Maximum ({unit})</span>
           <input
             id={`${id}-maximum`}
             type="number"
@@ -71,25 +76,32 @@ export function ColorScaleControls({
               setError("");
             }}
           />
+          {colors && <span aria-hidden="true">{unit}</span>}
         </label>
-        <button type="submit">Apply range</button>
+        {colors && <span className="layer-legend-gradient" style={{ background: `linear-gradient(90deg,${colors.join(",")})` }} aria-hidden="true" />}
+        <button type="submit">{colors ? "Apply" : "Apply range"}</button>
         <button
           type="button"
-          disabled={!value}
-          onClick={() => onChange(undefined)}
+          onClick={() => {
+            setMinimum(String(domain[0]));
+            setMaximum(String(domain[1]));
+            setHideOutside(!colors);
+            setError("");
+            onChange(undefined);
+          }}
         >
-          Reset scale
+          {colors ? "Reset" : "Reset scale"}
         </button>
       </div>
-      <label className="color-range-mask">
+      {!colors && <label className="color-range-mask">
         <input
           type="checkbox"
           checked={hideOutside}
           onChange={(event) => setHideOutside(event.target.checked)}
         />
-        Hide values outside this range
-      </label>
-      <small id={`${id}-help`}>
+        {colors ? "Hide outside range" : "Hide values outside this range"}
+      </label>}
+      <small id={`${id}-help`} className={colors ? "sr-only" : undefined}>
         Display only. Original values, series and exports stay unchanged. Shared
         by globes showing the same variable.
       </small>

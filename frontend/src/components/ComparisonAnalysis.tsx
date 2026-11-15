@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from "react";
-import { loadComparison, variableDataKey } from "../lib/earthApi";
+import { loadComparisons, variableDataKey } from "../lib/earthApi";
 import type {
   ComparisonMode,
   EarthComparison,
@@ -7,6 +7,7 @@ import type {
   EarthVariable,
 } from "../lib/earthApi";
 import { ComparisonChart } from "./ComparisonChart";
+import { LoadingStatus } from "./Loading";
 import { adjustTrendFamily } from "../lib/runtimeTrends";
 import "./comparison-analysis.css";
 
@@ -62,47 +63,37 @@ function ComparisonAnalysisComponent({
     if (!active || !available || !hasArea) return;
     const controller = new AbortController();
     setResult({ key, entries: {} });
-    for (const variable of variables) {
-      void loadComparison(
-        variable,
-        start,
-        end,
-        region.bbox,
-        controller.signal,
-        runtimeTrends,
-      ).then(
-        (data) => {
-          if (!controller.signal.aborted)
-            setResult((previous) =>
-              previous.key === key
-                ? {
-                    ...previous,
-                    entries: { ...previous.entries, [variable.id]: { data } },
-                  }
-                : previous,
-            );
-        },
-        (error) => {
-          if (!controller.signal.aborted)
-            setResult((previous) =>
-              previous.key === key
-                ? {
-                    ...previous,
-                    entries: {
-                      ...previous.entries,
-                      [variable.id]: {
-                        error:
-                          error instanceof Error
-                            ? error.message
-                            : "Could not load comparison.",
-                      },
-                    },
-                  }
-                : previous,
-            );
-        },
-      );
-    }
+    // One request for all selected variables; failures stay per variable.
+    void loadComparisons(
+      variables,
+      start,
+      end,
+      region.bbox,
+      controller.signal,
+      runtimeTrends,
+    ).then(
+      (entries) => {
+        if (!controller.signal.aborted)
+          setResult((previous) =>
+            previous.key === key ? { key, entries } : previous,
+          );
+      },
+      (error) => {
+        if (controller.signal.aborted) return;
+        const message =
+          error instanceof Error ? error.message : "Could not load comparison.";
+        setResult((previous) =>
+          previous.key === key
+            ? {
+                key,
+                entries: Object.fromEntries(
+                  variables.map((variable) => [variable.id, { error: message }]),
+                ),
+              }
+            : previous,
+        );
+      },
+    );
     return () => controller.abort();
     // Mode, camera, opacity and selected month never reload a study series.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,11 +187,10 @@ function ComparisonAnalysisComponent({
           after the API update; reload this page.
         </p>
       )}
-      {available && completed < entries.length && (
-        <p role="status" className="comparison-notice">
-          Loading variables · {completed}/{entries.length}. Remaining sources
-          are queued.
-        </p>
+      {available && active && completed < entries.length && (
+        <LoadingStatus className="comparison-notice">
+          Loading {entries.length} {entries.length === 1 ? "variable" : "variables"} for {region.name}…
+        </LoadingStatus>
       )}
       {entries.some((entry) => entry.error) && (
         <div className="comparison-notice" role="alert">
@@ -231,7 +221,7 @@ function ComparisonAnalysisComponent({
         noArea={!hasArea}
         adjustedP={adjustedP}
         familySize={familySize}
-        loading={completed < entries.length}
+        loading={available && active && completed < entries.length}
       />
       {countryOutline && (
         <p className="comparison-explainer">

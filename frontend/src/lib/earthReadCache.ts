@@ -29,6 +29,8 @@ export class EarthReadCache {
     signal: AbortSignal,
     ttl: number,
     load: (signal: AbortSignal) => Promise<T>,
+    // Lets a caller keep partial results (some sources failed) out of the cache.
+    shouldStore: (value: T) => boolean = () => true,
   ): Promise<T> {
     signal.throwIfAborted();
     for (const [id, entry] of this.entries) {
@@ -58,7 +60,11 @@ export class EarthReadCache {
           controller.signal.throwIfAborted();
           const json = JSON.stringify(value);
           const bytes = new TextEncoder().encode(json).byteLength;
-          if (generation === this.generation && bytes <= this.maxBytes) {
+          if (
+            generation === this.generation &&
+            bytes <= this.maxBytes &&
+            shouldStore(value)
+          ) {
             this.remove(key);
             while (
               this.entries.size &&

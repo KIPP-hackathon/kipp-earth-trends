@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { Modal } from "./Modal";
+import { LoadingIcon, LoadingStatus } from "./Loading";
 import {
   INVESTIGATION_LIMITS,
   deleteInvestigation,
@@ -67,6 +68,8 @@ export function InvestigationControls({
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [copying, setCopying] = useState(false);
   const initialHash = useRef(window.location.hash);
   const hashHandled = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -270,6 +273,8 @@ export function InvestigationControls({
     }
   };
   const copyLink = async () => {
+    if (copying) return;
+    setCopying(true);
     try {
       await navigator.clipboard.writeText(link);
       setStatus("Share link copied. Name and notes are excluded.");
@@ -278,10 +283,13 @@ export function InvestigationControls({
       setError(
         "Clipboard access is unavailable. Select and copy the link below.",
       );
+    } finally {
+      setCopying(false);
     }
   };
   const importFile = async (file: File | undefined) => {
-    if (!file) return;
+    if (!file || importing) return;
+    setImporting(true);
     clearMessages();
     setImported(null);
     try {
@@ -294,6 +302,8 @@ export function InvestigationControls({
       setStatus("File validated. Review it before opening or saving a copy.");
     } catch (cause) {
       reportError(cause);
+    } finally {
+      setImporting(false);
     }
   };
   const feedback = (
@@ -308,6 +318,11 @@ export function InvestigationControls({
         </p>
       )}
       {status && <p role="status">{status}</p>}
+      {(busy || importing) && (
+        <LoadingStatus>
+          {busy ? "Opening investigation…" : "Reading investigation file…"}
+        </LoadingStatus>
+      )}
       {!modal && (status || error) && (
         <button
           type="button"
@@ -465,6 +480,7 @@ export function InvestigationControls({
                 <div className="investigation-actions">
                   <button
                     className="button"
+                    disabled={busy || importing}
                     onClick={() => fileInput.current?.click()}
                   >
                     <Upload size={15} />
@@ -584,10 +600,11 @@ export function InvestigationControls({
                 <div className="investigation-actions">
                   <button
                     className="button primary"
+                    disabled={copying}
                     onClick={() => void copyLink()}
                   >
-                    <LinkIcon size={15} />
-                    Copy share link
+                    {copying ? <LoadingIcon /> : <LinkIcon size={15} />}
+                    {copying ? "Copying link…" : "Copy share link"}
                   </button>
                   <button
                     className="button"

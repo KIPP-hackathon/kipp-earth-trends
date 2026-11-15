@@ -9,6 +9,8 @@ import {
   boundedEnv,
   withQueryBudget,
 } from "./core.ts";
+import type { PersistPolicy } from "./core.ts";
+import { persistentStoreFromEnvironment } from "./persistent-cache.ts";
 import {
   DataService,
   encodeFrame,
@@ -24,6 +26,8 @@ import { validateInvestigation } from "./investigation.ts";
 import { configuration, historicalEvents, regions } from "./config.ts";
 import { eventSuggestions } from "./event-context.ts";
 import { trustedColumns } from "./trusted-map.ts";
+import { assembleBatch, runBounded } from "./comparison-batch.ts";
+import type { BatchPart } from "./comparison-batch.ts";
 
 import { createAssistant } from "./assistant.ts";
 import { TrendReferenceService } from "./trend-reference.ts";
@@ -39,9 +43,22 @@ if (mode !== "databricks-sql")
 const warehouse = new DatabricksProvider();
 const providers = [warehouse];
 const data = new DataService(warehouse);
+// Second tier is opt-in (PERSISTENT_CACHE=firestore) and only used by routes that pass a policy.
 const cache = new ResponseCache(
   boundedEnv("CACHE_BYTES", 64 * 1024 * 1024, 1024 * 1024, 256 * 1024 * 1024),
+  256,
+  persistentStoreFromEnvironment(),
 );
+// Catalog-like documents can change when a month is ingested; observations for a
+// given month, region and revision are effectively immutable.
+const referenceCache = {
+  persist: { softMs: 3_600_000, hardMs: 86_400_000 } satisfies PersistPolicy,
+  http: "public, max-age=300, s-maxage=300, stale-while-revalidate=3600",
+};
+const observationCache = {
+  persist: { softMs: 86_400_000, hardMs: 3 * 86_400_000 } satisfies PersistPolicy,
+  http: "public, max-age=3600, s-maxage=21600, stale-while-revalidate=86400",
+};
 const api = Fastify({
   ajv: { customOptions: { removeAdditional: false } },
   logger: {
@@ -61,7 +78,7 @@ await api.register(cors, {
   origin: origins,
   methods: ["GET", "HEAD", "OPTIONS"],
   maxAge: 3600,
-  exposedHeaders: ["ETag", "X-Cache", "X-Data-Provider", "X-Request-Id"],
+  exposedHeaders: ["ETag", "X-Cache", "X-Cache-Layer", "X-Data-Provider", "X-Request-Id"],
 });
 await api.register(compress, {
   threshold: 1024,
@@ -129,28 +146,43 @@ const variableMonth = {
     month: { type: "string", pattern: "^\\d{4}-(0[1-9]|1[0-2])$" },
   },
 };
+const cached = (
+  key: string,
+  seconds: number,
+  load: () => Promise<{ body: Buffer; type: string }>,
+  policy?: { persist: PersistPolicy; http: string },
+) =>
+  cache.get(
+    key,
+    seconds * 1000,
+    async () => {
+      const result = await withQueryBudget(load);
+      return {
+        ...result,
+        etag: `W/"${createHash("sha256").update(result.body).digest("hex")}"`,
+        headers: {},
+      };
+    },
+    policy?.persist,
+  );
 const serve = async (
   request: { headers: Record<string, unknown> },
   reply: FastifyReply,
   key: string,
   seconds: number,
   load: () => Promise<{ body: Buffer; type: string }>,
+  policy?: { persist: PersistPolicy; http: string },
 ) => {
-  const { response, hit } = await cache.get(key, seconds * 1000, async () => {
-    const result = await withQueryBudget(load);
-    return {
-      ...result,
-      etag: `W/"${createHash("sha256").update(result.body).digest("hex")}"`,
-      headers: {},
-    };
-  });
+  const { response, hit, layer } = await cached(key, seconds, load, policy);
   reply
     .header("X-Cache", hit ? "HIT" : "MISS")
+    .header("X-Cache-Layer", layer)
     .header("X-Data-Provider", mode)
     .header("ETag", response.etag)
     .header(
       "Cache-Control",
-      `public, max-age=${seconds}, s-maxage=${seconds}, stale-while-revalidate=60`,
+      policy?.http ??
+        `public, max-age=${seconds}, s-maxage=${seconds}, stale-while-revalidate=60`,
     );
   if (request.headers["if-none-match"] === response.etag)
     return reply.code(304).send();
@@ -208,13 +240,14 @@ api.get("/v1", async () => ({
     binary:
       "KIPP magic(4 bytes), headerLength uint32 LE(4), UTF-8 JSON header, zero padding to next multiple of 4, float32 LE values[width*height], float32 LE coverage[width*height]",
   },
-  cache: { ttlSeconds: 300, scope: "per-instance bounded LRU plus HTTP cache" },
+  cache: { ttlSeconds: 300, scope: "per-instance bounded LRU, optional shared Firestore tier, and HTTP cache" },
   investigation: {route:"/v1/investigation",method:"relationships-v1",maxVariables:2,maxCalendarSpan:600,
     views:["trend","anomalies","relationships"],lags:[0,1,2,3,4,5,6],
     reference:{defaultStart:"2003-01",defaultEnd:"2020-12",minimumYearsPerMonth:10}},
   comparison: {route:"/v1/comparison/:variable?start=2024-01&end=2024-12&bbox=-60,-22,-54,-16",
     modes:["standardized","minmax"],reference:{start:"2001-01",end:"2020-12",minimumYearsPerMonth:10},
-    scope:"Separate global and regional monthly aggregates; normalized at runtime with original values retained.",maxMonths:2400},
+    scope:"Separate global and regional monthly aggregates; normalized at runtime with original values retained.",maxMonths:2400,
+    batch:{route:"/v1/comparisons?variables=a,b,c&start=2024-01&end=2024-12&bbox=-60,-22,-54,-16",maxVariables:6}},
   limitations,
 }));
 // Share the catalog between the dataset and event endpoints during cold starts.
@@ -294,10 +327,11 @@ api.get("/v1/catalog", async (request, reply) =>
       unavailable: excludedSources,
       limitations,
     }),
+    referenceCache,
   ),
 );
 api.get("/v1/config", async (request, reply) =>
-  serve(request, reply, "config", 300, async () => json(configuration)),
+  serve(request, reply, "config", 300, async () => json(configuration), referenceCache),
 );
 api.get("/v1/events", async (request, reply) =>
   serve(request, reply, "events", 300, async () => {
@@ -317,7 +351,7 @@ api.get("/v1/events", async (request, reply) =>
       }),
       limitations: configuration.limitations,
     });
-  }),
+  }, referenceCache),
 );
 api.get<{
   Querystring: { variable: string; bbox: string; start: string; end: string };
@@ -374,6 +408,7 @@ api.get<{ Params: { variable: string } }>(
         simulated: false,
         months: await data.availability(variable),
       }),
+      referenceCache,
     );
   },
 );
@@ -407,6 +442,7 @@ api.get<{
               type: "application/vnd.kipp.grid+octet-stream",
             };
       },
+      observationCache,
     );
   },
 );
@@ -444,6 +480,7 @@ api.get<{
       300,
       async () =>
         json(await data.series(request.params.variable, start, end, bbox)),
+      observationCache,
     );
   },
 );
@@ -454,7 +491,41 @@ api.get<{Params:{variable:string};Querystring:{start:string;end:string;bbox:stri
     variableFor(request.params.variable);
     const {start,end,bbox}=request.query;
     return serve(request,reply,`comparison:v2:${request.params.variable}:${start}:${end}:${bbox}`,300,
-      async()=>json(await data.comparison(request.params.variable,start,end,bbox)));
+      async()=>json(await data.comparison(request.params.variable,start,end,bbox)),observationCache);
+  });
+// One round trip for every selected variable. Each variable still has its own
+// source table, so it keeps its own cache entry (shared with the single route);
+// the batch only bounds how many scans run at once and leaves a warehouse slot free.
+const maxBatch = 6, batchConcurrency = 3;
+api.get<{Querystring:{variables:string;start:string;end:string;bbox:string;analysis?:"trend-v1"}}>(
+  "/v1/comparisons", {schema:{querystring:{type:"object",additionalProperties:false,required:["variables","start","end","bbox"],
+    properties:{variables:{type:"string",pattern:"^[a-z0-9_]{1,60}(,[a-z0-9_]{1,60}){0,5}$",maxLength:400},start:{type:"string",maxLength:7},
+      end:{type:"string",maxLength:7},bbox:{type:"string",maxLength:100},analysis:{type:"string",enum:["trend-v1"]}}}}},
+  async(request,reply)=> {
+    const ids=[...new Set(request.query.variables.split(","))];
+    if (ids.length>maxBatch) throw new ApiError(400,"TOO_MANY_VARIABLES",`Select at most ${maxBatch} variables per request.`);
+    ids.forEach(id=>variableFor(id));
+    const {start,end,bbox}=request.query;
+    const parts=new Map<string,BatchPart>();
+    let hits=0;
+    await runBounded(ids,batchConcurrency,async id=> {
+      try {
+        const {response,hit}=await cached(`comparison:v2:${id}:${start}:${end}:${bbox}`,300,
+          async()=>json(await data.comparison(id,start,end,bbox)),observationCache);
+        if (hit) hits++;
+        parts.set(id,{body:response.body});
+      } catch (error) {
+        const code=error instanceof ApiError?error.code:"UPSTREAM_ERROR";
+        parts.set(id,{error:{code,message:error instanceof ApiError?error.message:"Could not query this variable. Try again."}});
+        request.log.warn({variable:id,code},"comparison batch member failed");
+      }
+    });
+    const {body,complete}=assembleBatch(ids,parts);
+    const etag=`W/"${createHash("sha256").update(body).digest("hex")}"`;
+    reply.header("X-Cache",hits===ids.length?"HIT":"MISS").header("X-Data-Provider",mode).header("ETag",etag)
+      .header("Cache-Control",complete?observationCache.http:"no-store");
+    if (complete && request.headers["if-none-match"]===etag) return reply.code(304).send();
+    return reply.type("application/json; charset=utf-8").send(body);
   });
 api.get<{Querystring: InvestigationRequest}>("/v1/investigation", {
   schema:{querystring:{type:'object',additionalProperties:false,
@@ -466,7 +537,7 @@ api.get<{Querystring: InvestigationRequest}>("/v1/investigation", {
   validateInvestigation(request.query);
   const q=request.query;
   const key=JSON.stringify(['investigation-v1',q.x,q.y??null,q.bbox,q.start,q.end,q.baselineStart,q.baselineEnd,q.method]);
-  return serve(request,reply,key,300,async()=>json(await data.investigation(q)));
+  return serve(request,reply,key,300,async()=>json(await data.investigation(q)),observationCache);
 });
 api.addHook("onClose", async () => {
   await Promise.all(providers.map((provider) => provider.close()));

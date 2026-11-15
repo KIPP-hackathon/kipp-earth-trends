@@ -1,10 +1,10 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import {
   ArrowRight,
+  Compass,
   FlaskConical,
   MapPin,
   Play,
-  RefreshCw,
 } from "lucide-react";
 import type {
   EarthCatalog,
@@ -27,6 +27,9 @@ import { RealGlobe } from "./RealGlobe";
 import { SearchPicker } from "./ExplorationControls";
 import { MonthPicker } from "./MonthPicker";
 import { InvestigationResults } from "./InvestigationResults";
+import { GuidedTour } from "./GuidedTour";
+import { LoadingIcon, LoadingState } from "./Loading";
+import { trendLabTourSteps } from "./trendLabTour";
 import "./trend-lab.css";
 
 type Study = {
@@ -188,6 +191,7 @@ export function TrendLab({
     });
   };
   const drawRegion = (bbox: string) => {
+    mark("area");
     const bounds = parseStudyBbox(bbox);
     if (!bounds) return;
     const [west, south, east, north] = bounds;
@@ -206,7 +210,7 @@ export function TrendLab({
       !available.some((v) => v.id === y)
     ) {
       setSavedMessage("A preset indicator is not available in this catalog.");
-      return;
+      return false;
     }
     setSelectedVariable(x);
     setSecondId(y);
@@ -219,7 +223,67 @@ export function TrendLab({
       latitude: -19,
     });
     setSavedMessage("Preset loaded. Generate to apply it.");
+    return true;
   };
+  const submit = () => {
+    if (!variable || !validPeriod || !supported) return;
+    setSubmitted({
+      variable,
+      region: { ...region },
+      second,
+      request: { ...request },
+      key,
+    });
+    if (submitted?.key === key) series.retry();
+  };
+  // Which setup steps the person has actively chosen during the tour.
+  const [chosen, setChosen] = useState({
+    area: false,
+    indicators: false,
+    period: false,
+  });
+  const mark = (step: keyof typeof chosen) =>
+    setChosen((c) => (c[step] ? c : { ...c, [step]: true }));
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const hasResults = !!data && !!submitted;
+  const tourSteps = trendLabTourSteps({
+    hasResults,
+    hasSecond: (data?.series.length ?? 0) > 1,
+    loading: series.loading,
+    chosen,
+    current: {
+      area: region.name,
+      indicators: variable
+        ? `${variable.name}${second ? ` vs ${second.name}` : ""}`
+        : "",
+      period: !period.start && !period.end ? "all months" : `${start} – ${end}`,
+    },
+    onKeep: mark,
+  });
+  // After the tour, stay in Trend Lab: swallow stray clicks for a moment
+  // (the footer logo would open Explore) and return to the top of the lab.
+  const [afterTour, setAfterTour] = useState(false);
+  const endTour = () => {
+    setTourStep(null);
+    setAfterTour(true);
+    window.setTimeout(() => setAfterTour(false), 450);
+    document
+      .querySelector(".trend-lab")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const startTour = (step = 0) => {
+    if (step === 0)
+      setChosen({ area: false, indicators: false, period: false });
+    setTourStep(step);
+  };
+  const runStep = tourSteps.findIndex((s) => s.id === "run");
+  const resultsStep = tourSteps.findIndex((s) => s.id === "tabs");
+  // Move on to the results automatically once they arrive during the tour.
+  useEffect(() => {
+    if (tourStep === runStep && hasResults && !series.loading)
+      setTourStep(resultsStep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasResults, series.loading]);
   return (
     <div className="trend-lab">
       <header className="trend-header">
@@ -234,6 +298,15 @@ export function TrendLab({
             Choose a place. Discover trends, unusual months, and relationships.
           </p>
         </div>
+        <button
+          type="button"
+          className="investigation-tour-start"
+          aria-expanded={tourStep !== null}
+          onClick={() => (tourStep === null ? startTour() : endTour())}
+        >
+          <Compass size={15} />{" "}
+          {tourStep === null ? "Take the guided tour" : "End tour"}
+        </button>
       </header>
       <div className="trend-layout">
         <section className="trend-setup" aria-label="Trend setup">
@@ -259,7 +332,10 @@ export function TrendLab({
                 }))}
                 onChange={(value) => {
                   const next = regions.find((entry) => entry.id === value);
-                  if (next) selectRegion(next);
+                  if (next) {
+                    selectRegion(next);
+                    mark("area");
+                  }
                 }}
               />
               <p className="trend-small">
@@ -278,7 +354,10 @@ export function TrendLab({
                     region={region}
                     outlineGeometry={country?.geometry}
                     onSelectArea={drawRegion}
-                    onClearArea={() => selectRegion(globalRegion)}
+                    onClearArea={() => {
+                      selectRegion(globalRegion);
+                      mark("area");
+                    }}
                   />
                 </div>
                 <p className="trend-small">
@@ -302,6 +381,7 @@ export function TrendLab({
                 variables={available.filter(numeric)}
                 selected={variable ? [variable.id] : []}
                 onApply={([value]) => {
+                  mark("indicators");
                   setSelectedVariable(value);
                   if (value === secondId) setSecondId("");
                   setPeriod({ start: "", end: "" });
@@ -317,6 +397,7 @@ export function TrendLab({
                 )}
                 selected={secondId ? [secondId] : []}
                 onApply={([value]) => {
+                  mark("indicators");
                   setSecondId(value ?? "");
                   setPeriod({ start: "", end: "" });
                 }}
@@ -325,17 +406,19 @@ export function TrendLab({
                 <span>Try an example</span>
                 <button
                   type="button"
-                  onClick={() =>
-                    preset("temperature", "merra2_flx_prectotcorr")
-                  }
+                  onClick={() => {
+                    if (preset("temperature", "merra2_flx_prectotcorr"))
+                      mark("indicators");
+                  }}
                 >
                   Pantanal · heat & precipitation
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    preset("merra2_flx_prectotcorr", "merra2_qv2m")
-                  }
+                  onClick={() => {
+                    if (preset("merra2_flx_prectotcorr", "merra2_qv2m"))
+                      mark("indicators");
+                  }}
                 >
                   Pantanal · precipitation & humidity
                 </button>
@@ -352,7 +435,10 @@ export function TrendLab({
                   type="button"
                   className="trend-step-action"
                   disabled={!period.start && !period.end}
-                  onClick={() => setPeriod({ start: "", end: "" })}
+                  onClick={() => {
+                    setPeriod({ start: "", end: "" });
+                    mark("period");
+                  }}
                 >
                   Use all data
                 </button>
@@ -363,18 +449,20 @@ export function TrendLab({
                   label="From"
                   value={start}
                   months={months}
-                  onChange={(value) =>
-                    setPeriod((previous) => ({ ...previous, start: value }))
-                  }
+                  onChange={(value) => {
+                    setPeriod((previous) => ({ ...previous, start: value }));
+                    mark("period");
+                  }}
                 />
                 <MonthPicker
                   id={`${id}-end`}
                   label="To"
                   value={end}
                   months={months}
-                  onChange={(value) =>
-                    setPeriod((previous) => ({ ...previous, end: value }))
-                  }
+                  onChange={(value) => {
+                    setPeriod((previous) => ({ ...previous, end: value }));
+                    mark("period");
+                  }}
                 />
               </div>
               <p className="trend-small">
@@ -451,23 +539,15 @@ export function TrendLab({
               <button
                 className="trend-run"
                 type="button"
-                disabled={!validPeriod || !supported}
-                onClick={() => {
-                  if (variable && validPeriod) {
-                    setSubmitted({
-                      variable,
-                      region: { ...region },
-                      second,
-                      request: { ...request },
-                      key,
-                    });
-                    if (submitted?.key === key) series.retry();
-                  }
-                }}
+                disabled={!validPeriod || !supported || (series.loading && !dirty)}
+                data-loading={series.loading && !dirty || undefined}
+                onClick={submit}
               >
-                <Play size={16} fill="currentColor" />{" "}
+                {series.loading ? <LoadingIcon /> : <Play size={16} fill="currentColor" />}{" "}
                 {series.loading
-                  ? "Generate new investigation"
+                  ? dirty
+                    ? "Generate new investigation"
+                    : "Generating investigation…"
                   : "Generate investigation"}
               </button>
             </div>
@@ -491,6 +571,13 @@ export function TrendLab({
                 Select one or two indicators and a period to explore seasonal
                 trends, anomalies, and relationships with statistical evidence.
               </p>
+              <button
+                type="button"
+                className="investigation-tour-start"
+                onClick={() => startTour()}
+              >
+                <Compass size={15} /> New here? Take the guided tour
+              </button>
               <div>
                 <span>Region + data</span>
                 <ArrowRight size={16} />
@@ -501,14 +588,10 @@ export function TrendLab({
             </div>
           )}
           {series.loading && (
-            <div className="trend-empty" role="status">
-              <RefreshCw size={26} />
-              <h3>Loading regional monthly values…</h3>
-              <p>
-                The API will compute all views from the same regional series.
-                Missing months remain missing.
-              </p>
-            </div>
+            <LoadingState
+              title="Loading regional monthly values…"
+              detail="Preparing trends, anomalies and relationships from the same regional series. Missing months remain missing."
+            />
           )}
           {series.error && (
             <div className="trend-empty" role="alert">
@@ -532,10 +615,23 @@ export function TrendLab({
                 data={data}
                 regionName={submitted.region.name}
                 onGuide={onGuide}
+                tourView={
+                  tourStep === null ? undefined : tourSteps[tourStep]?.view
+                }
+                onTour={() => startTour(resultsStep)}
               />
             )}
         </div>
       </div>
+      {tourStep !== null && (
+        <GuidedTour
+          steps={tourSteps}
+          step={tourStep}
+          onStep={setTourStep}
+          onClose={endTour}
+        />
+      )}
+      {afterTour && <div className="guided-tour-shield" aria-hidden="true" />}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
+import { LoadingStatus } from "./Loading";
 import { WindArrows } from "./WindArrows";
 import { pairWindFrames, sampleWind, windComponents } from "../lib/wind";
 import "./wind-arrows.css";
@@ -89,10 +90,16 @@ export function RealGlobe({
 }) {
   const [land, setLand] = useState<GeoPermissibleObjects | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [surfaceReady, setSurfaceReady] = useState(false);
+  const [landLoading, setLandLoading] = useState(true);
   const [probe, setProbe] = useState<[number, number] | null>(null);
   const id = useId();
   const svgRef = useRef<SVGSVGElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportPixels, setViewportPixels] = useState(440);
+  const [viewportAspect, setViewportAspect] = useState(1);
+  const viewportWidth = 640 * viewportAspect;
+  const viewportBox = `${320 - viewportWidth / 2} 0 ${viewportWidth} 640`;
   const live = useRef({ view, onView });
   live.current = { view, onView };
   const touches = useRef(new Map<number, [number, number]>());
@@ -105,10 +112,20 @@ export function RealGlobe({
     });
   useEffect(() => {
     const svg = svgRef.current;
-    if (!svg) return;
-    const observer = new ResizeObserver(() =>
-      setViewportPixels(svg.getBoundingClientRect().width || 440),
-    );
+    const viewport = viewportRef.current;
+    if (!svg || !viewport) return;
+    // Safari also needs the HTML surface to own touch gestures. Keep page
+    // scrolling available everywhere outside this viewport.
+    const preventPagePan = (event: TouchEvent) => {
+      if (event.cancelable) event.preventDefault();
+    };
+    viewport.addEventListener("touchmove", preventPagePan, { passive: false });
+    const observer = new ResizeObserver(() => {
+      const bounds = viewport.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      setViewportPixels(bounds.height);
+      setViewportAspect(bounds.width / bounds.height);
+    });
     observer.observe(svg);
     const wheel = (event: WheelEvent) => {
       if (!event.ctrlKey && !event.metaKey) return;
@@ -134,6 +151,7 @@ export function RealGlobe({
     return () => {
       observer.disconnect();
       svg.removeEventListener("wheel", wheel);
+      viewport.removeEventListener("touchmove", preventPagePan);
     };
   }, []);
   const labels = useMemo(
@@ -174,7 +192,8 @@ export function RealGlobe({
       .then((data) => {
         if (mounted) setLand(data.default as GeoPermissibleObjects);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (mounted) setLandLoading(false); });
     return () => {
       mounted = false;
     };
@@ -239,54 +258,6 @@ export function RealGlobe({
   }))];
   return (
     <div className="real-globe">
-      <div className="real-globe-toolbar">
-        <div className="globe-area-controls" role="group" aria-label="Globe data and area controls">
-          <button
-            type="button"
-            aria-pressed={dataAvailable && view.showLayer}
-            disabled={!dataAvailable}
-            title={!dataAvailable ? "Choose variables to display data" : undefined}
-            onClick={() => onView({ ...view, showLayer: !view.showLayer })}
-          >
-            <Layers3 size={14} /> Data layer
-          </button>
-          {onSelectArea && (
-            <>
-              <button
-                type="button"
-                aria-pressed={drawing}
-                onKeyDown={(event) => {
-                  if (event.key === "Escape") {
-                    event.preventDefault();
-                    cancelDrawing();
-                  }
-                }}
-                onClick={() => {
-                  clearDraft();
-                  setDrawing(!drawing);
-                  setAreaNotice("");
-                }}
-              >
-                <Scan size={15} />
-                {drawing ? "Cancel drawing" : "Draw area"}
-              </button>
-              {region && onClearArea && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    cancelDrawing();
-                    setAreaNotice("");
-                    onClearArea();
-                  }}
-                >
-                  <X size={14} />
-                  Clear area
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      </div>
       {onSelectArea && (drawing || areaNotice) && (
         <p className="globe-area-hint" role="status">
           {areaNotice || "Drag between two points on the globe. Release to analyze this area. Esc cancels."}
@@ -295,10 +266,10 @@ export function RealGlobe({
       <div
         className={`real-globe-scene ${drawing ? "is-drawing" : ""}${view.zoom > 1.18 ? " is-zoomed" : ""}`}
       >
-        <div className="real-globe-viewport">
+        <div className="real-globe-viewport" ref={viewportRef}>
           <svg
             className="real-globe-base"
-            viewBox="0 0 640 640"
+            viewBox={viewportBox}
             aria-hidden="true"
           >
             <g
@@ -311,6 +282,7 @@ export function RealGlobe({
           </svg>
           <GlobeSurface
             viewportZoom={view.zoom}
+            viewportAspect={viewportAspect}
             longitude={view.longitude}
             latitude={view.latitude}
             frame={frame && !windComponents(frame.variable) ? frame : undefined}
@@ -318,10 +290,11 @@ export function RealGlobe({
             colorRange={colorRange}
             showField={view.showLayer}
             onUnavailable={() => setUnavailable(true)}
+            onReady={() => setSurfaceReady(true)}
           />
         <svg
           ref={svgRef}
-          viewBox="0 0 640 640"
+          viewBox={viewportBox}
           className="real-globe-svg"
           tabIndex={0}
           role="group"
@@ -623,13 +596,60 @@ export function RealGlobe({
         </div>
       </div>
       <div className="real-globe-actions">
-        <div>
+        <div className="globe-area-controls" role="group" aria-label="Globe data and area controls">
+          <button
+            type="button"
+            aria-pressed={dataAvailable && view.showLayer}
+            disabled={!dataAvailable}
+            title={!dataAvailable ? "Choose variables to display data" : undefined}
+            onClick={() => onView({ ...view, showLayer: !view.showLayer })}
+          >
+            <Layers3 size={14} /> Data layer
+          </button>
+          {onSelectArea && (
+            <>
+              <button
+                type="button"
+                aria-pressed={drawing}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelDrawing();
+                  }
+                }}
+                onClick={() => {
+                  clearDraft();
+                  setDrawing(!drawing);
+                  setAreaNotice("");
+                }}
+              >
+                <Scan size={15} />
+                {drawing ? "Cancel drawing" : "Draw area"}
+              </button>
+              {region && onClearArea && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    cancelDrawing();
+                    setAreaNotice("");
+                    onClearArea();
+                  }}
+                >
+                  <X size={14} />
+                  Clear area
+                </button>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="globe-zoom-controls">
           <output
             className="globe-zoom-level"
             aria-live="off"
             aria-label="Globe zoom"
           >
-            {view.zoom.toFixed(1)}×
+            Zoom {view.zoom.toFixed(1)}×
           </output>
           <button
             aria-label="Zoom in"
@@ -680,9 +700,12 @@ export function RealGlobe({
           </> : " · no paired wind direction for this cell")}
         </p>
       )}
+      {!unavailable && (!surfaceReady || landLoading) && (
+        <LoadingStatus className="globe-assets-loading">Preparing Earth basemap…</LoadingStatus>
+      )}
       {unavailable && (
         <p role="alert">
-          WebGL is unavailable. The image basemap and color fields could not be drawn;
+          Globe rendering is unavailable. The image basemap or color fields could not be drawn;
           wind arrows and monthly series remain available when their data is loaded.
         </p>
       )}

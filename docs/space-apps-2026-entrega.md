@@ -1,5 +1,171 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Indicadores de carregamento — implementação local (15/11/2026)
+
+OpenAI Codex assistiu componentes compartilhados com animação orbital,
+mensagens de espera e placeholders decorativos para a entrada do app,
+catálogo, localização, assets do globo, camadas, buffer de reprodução,
+séries/comparações, resultados do Trend Lab, Events, assistente e ações
+assíncronas de investigações salvas/importadas/compartilhadas. Estados de erro
+ou indisponibilidade não mantêm mensagens de carregamento indefinidamente.
+O Trend Lab impede reenvio da mesma investigação enquanto ela está em curso;
+uma seleção alterada continua permitindo iniciar a nova investigação.
+
+Mensagens em inglês, ícones decorativos com status acessível e animações
+desativadas por `prefers-reduced-motion`. Não foram adicionados dependências,
+imagens externas, dados, estimativas de progresso ou métodos científicos.
+Verificação local com Node.js 24: testes frontend e builds frontend/API
+aprovados. Chromium com respostas locais deliberadamente atrasadas conferiu
+entrada antes do JavaScript, catálogo, assets do globo, Events e Trend Lab,
+incluindo falha, retry e sucesso; larguras 1440/390/360 px e redução de movimento.
+Globo/comparações removem o loader em falha da fonte; cancelamento do assistente
+remove o status imediatamente, sem exceções JavaScript nesses cenários.
+Replay de medições previamente obtidas apenas para testar a interface; não é
+nova investigação nem validação de produção. Capturas e roteiro em `/tmp`,
+fora do Git. Implementação local, sem publicação ou submissão Project.
+
+Preparação para publicação: release isolado `feat/loading-states`, sobre a
+main `e4d15e0`, preserva o layout Explore em três colunas, os seletores nativos, o viewport retangular e os controles em cascata.
+125 testes frontend e builds frontend/API aprovados com Node.js 24; Chromium
+repetiu os cenários de espera/falha/retry/cancelamento em 1440/390/360 px,
+sem exceções JavaScript. O usuário autorizou explicitamente `c0ffex` para esta
+publicação e solicitou rebase sobre as mudanças remotas; autoria Git pessoal
+Lucas Henrique preservada. Publicação será conferida após integração.
+
+### Publicação dos indicadores de carregamento — verificada em 15/11/2026
+
+[PR #41](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/41), merge
+`8265218`, publicado pela
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/), com
+[workflow aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43749532568).
+Rebase sobre `e4d15e0` preservou viewport retangular, cascata de camadas,
+seletores nativos e layout em três colunas. Conta `c0ffex` autorizada pelo
+usuário; autoria Git pessoal Lucas Henrique mantida.
+
+A main recebeu em seguida o merge `c4d46b5`, incluindo a release acima;
+[publicação seguinte aprovada](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43749543385).
+136 testes frontend e build aprovados nesse estado com Node.js 24;
+build da API aprovado na release de carregamento. Bundle público
+`index-CQVWALBB.js` corresponde ao build local dessa main.
+
+Chromium no site público, com respostas reais apenas retidas temporariamente
+para observar a espera, conferiu entrada antes do JavaScript, catálogo,
+redução de movimento, loader do mapa e conclusão bem-sucedida de frame real.
+Catálogo respondeu `databricks-sql`, `simulated=false`, com 224 definições.
+1440/390/360 px sem overflow horizontal ou exceções JavaScript; canvas e SVG
+do viewport retangular alinhados. Evidências locais em
+`/tmp/kipp-loading-production-check.json` e capturas correspondentes, fora do Git.
+
+Vercel recusou os dois deploys automáticos com
+`Deployment rate limited — retry in 24 hours`; seu endereço mantém uma versão
+anterior. A URL Cloudflare contém a release verificada. Sem mudança de plano,
+dados, método científico ou submissão Project nesta publicação de carregamento.
+
+## Viewport retangular e configuração por cascata — 15/11/2026
+
+OpenAI Codex assistiu os ajustes solicitados pelo usuário: globo ocupa toda a
+largura central, em viewport retangular. Removido o limite CSS de 440px de
+largura; canvas WebGL e viewBox SVG acompanham a mesma proporção para manter
+relevo, campos, contornos e interação alinhados. Zoom continua ampliando o
+planeta dentro desse viewport. Data layer, Draw area e Clear area ficam abaixo
+do mapa, à esquerda dos controles de zoom.
+
+O painel configura uma camada por vez, com cascata grupo → variável entre as
+variáveis já selecionadas. As outras camadas, gráficos e configurações são
+preservados. Cabeçalho do cartão mostra grupo e ícone; proveniência completa
+continua nos detalhes da fonte. Opacidade ocupa uma linha inteira sob o rótulo.
+O controle de ocultar valores fora da escala virou botão ScanEye, distinto da
+visibilidade da camada, com tooltip e estado acessível. Alterná-lo não apaga
+limites ainda em edição; Apply e Reset permanecem. Recorte é apenas visual.
+
+Validação após integrar a main com cache: 125 testes frontend, 43 backend e
+builds frontend/API aprovados com Node.js 24. Chromium desktop e WebKit emulando
+iPhone confirmaram proporções canvas/SVG, controles inferiores, cascata,
+recorte/Reset, preservação de rascunho e slider de opacidade em largura total.
+Sem erros de página ou overflow horizontal nessas verificações; sem teste
+em iPhone físico. Publicado em `a9864f2` na
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/):
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43748425519)
+concluído com sucesso; bundle público `index-Dg3ccfiI.js` conferido.
+Verificações de navegador repetidas no site público aprovaram cascata, recorte,
+rascunho, opacidade e proporções; Chromium também desenhou uma área no novo
+viewport. Vercel segue bloqueando builds por limite de publicações.
+Sem alteração científica.
+
+## Explore em três colunas e datas nativas — 15/11/2026
+
+Por solicitação do usuário, OpenAI Codex assistiu a reorganização desktop do
+Explore: filtros de mapa em coluna de 220px à esquerda, globo central e gráfico
+à direita. Recolher os filtros reduz a coluna a 44px e libera espaço ao globo.
+Mantidos leitura das fontes, visibilidade, opacidade e controles analíticos.
+Limites da escala são editados diretamente nos números acima da barra, com
+Apply, Reset e validação de limites; eliminadas as caixas de mínimo/máximo
+separadas. Fonte e explicações da escala ficam em detalhes expansíveis.
+Ajustes visuais não modificam observações, séries, exportações ou inferência.
+
+Após novo relato de falha no iPhone, removido o calendário modal do componente
+compartilhado. Início, fim e mês da linha do tempo usam os mesmos selects nativos
+de mês/ano. Somente meses disponíveis são oferecidos; trocar o ano preserva o
+mês quando há dados e escolhe um mês disponível caso contrário. Abrir o período
+foca o diálogo sem acionar um seletor automaticamente.
+
+Validação após integrar a main: 105 testes frontend e build com Node.js 24; Chromium desktop em
+1440px e 1024px confirmou ordem das colunas, recolhimento, aplicação de escala,
+limites inválidos e reset. WebKit emulando iPhone alterou período para
+2001-02–2025-04 e mês exibido para 2002-06. Sem overflow horizontal ou erros
+de página nessas verificações; sem teste em iPhone físico.
+Publicado em `d06041e`, [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43746367806)
+concluído com sucesso e bundle público `index-nCfufUDG.js` conferido.
+Testes de navegador repetidos no site público confirmaram layout, escala,
+recolhimento e datas nativas. Vercel continua bloqueando novos builds por limite
+de publicações; o endereço Cloudflare contém esta versão. Alteração anterior
+com calendário modal fica substituída.
+
+## Calendário da linha do tempo e velocidade — 15/11/2026
+
+Relato posterior do usuário mostrou que a validação anterior não cobria o
+calendário abaixo do globo. OpenAI Codex assistiu a substituição dos calendários
+flutuantes por `dialog.showModal()`, na camada superior do navegador, com seleção
+direta de ano, meses disponíveis e cancelamento. Início/fim e mês exibido usam
+o mesmo componente, sem dependência de recorte ou rolagem dos pais.
+
+Novas seleções iniciam no primeiro mês; alteração do período volta ao início;
+Play no último mês reinicia no primeiro. Reprodução de dados reais ganhou
+controle explícito Speed (0.5×, 1×, 2×, 4×), ligado à cadência e atualizável
+durante reprodução. Zoom está identificado como Zoom. Aguardar dados do mês
+continua obrigatório; velocidade não inventa quadros nem garante latência de rede.
+
+102 testes frontend e build aprovados com Node.js 24. WebKit emulando iPhone
+confirmou mudança do mês pelo calendário abaixo do globo e dos limites do
+período. Com três quadros reais em cache, mudança 0.5× → 4× reduziu a transição
+medida de 3494 para 1368 ms no WebKit e de 2866 para 1114 ms no Chromium desktop.
+As medidas incluem renderização e automação; não constituem SLA. Ambos
+confirmaram início e reinício na posição zero. Sem teste em iPhone físico.
+Publicado em `a4d2169` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/):
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43744869579)
+concluído e bundle público `index-DCw1A9kR.js` conferido. Vercel bloqueou este
+build por limite de publicações (retry in 24 hours); seu endereço mantém a
+versão anterior. Nenhum dado ou método científico alterado.
+
+## Toque e seletores no iPhone — 15/11/2026
+
+OpenAI Codex assistiu a correção de interação solicitada pelo usuário:
+seletores de variáveis e país focam o diálogo, abrindo o teclado apenas quando
+a busca é tocada. Calendários do período integram a área rolável do diálogo;
+perda de foco sem destino no Safari não cancela o toque no mês. Gestos do globo
+são contidos no viewport HTML, preservando a rolagem fora dele.
+
+Validação local com Node.js 24: 102 testes frontend e build aprovados.
+WebKit com emulação de iPhone e Chromium com emulação Android confirmaram
+busca manual e mudança de início/fim, inclusive ano. Gesto nativo via protocolo
+Chromium girou o globo sem mudar `scrollY`; evento de toque fora do globo
+permanece livre. Sem teste em iPhone físico.
+Publicado em `492ccf9`: Vercel confirmou sucesso e bundle `index-B8Uw-U5H.js`;
+[workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43743769007)
+concluído com sucesso. WebKit repetiu busca manual, datas inicial/final e
+contenção de toque no site público da Cloudflare, sem erros de página.
+Sem alteração de dados ou métodos científicos.
+
 ## Publicação do catálogo ampliado e IMERG — 15/11/2026
 
 Alterações publicadas na `main` em `25802bb`, com verificação de deploy

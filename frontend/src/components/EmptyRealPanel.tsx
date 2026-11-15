@@ -85,7 +85,7 @@ export function EmptyRealPanel({
       region: region.id,
       start: months[0],
       end: months.at(-1)!,
-      month: side === "A" ? months.at(-1)! : months[0],
+      month: months[0],
       nonce: Date.now(),
     });
   };

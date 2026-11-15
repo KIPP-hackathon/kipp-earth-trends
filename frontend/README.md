@@ -47,8 +47,14 @@ animações e consultas; as escolhas permanecem ao retornar.
 Contorno regional identifica o bbox da série, sem representar área atingida
 por evento. Arraste, use as setas ou os controles de zoom para navegar.
 
-Cache de frames de 32 MiB e cinco minutos, até dois downloads, deduplicação e
-prefetch. O quadro compatível permanece até o próximo estar pronto; a data sobre
+Cache de frames de 64 MiB e cinco minutos, até quatro downloads (a
+pré-busca usa no máximo dois), deduplicação e prefetch. Ao tocar em Play, o
+globo enche primeiro um buffer de `playback.initialBuffer` meses (limitado a 24
+frames em cache, somando as camadas visíveis) e depois mantém `playback.lookAhead`
+meses à frente; a animação só avança quando o mês seguinte já está carregado.
+Todas as camadas do mês são baixadas em paralelo, e as séries de estudo das
+variáveis selecionadas vão em uma única requisição `/v1/comparisons`, com
+retorno automático à rota por variável se a API ainda não a tiver. O quadro compatível permanece até o próximo estar pronto; a data sobre
 o globo identifica o mês visível. Catálogo, eventos e séries têm cache em memória
 de um minuto; configuração, cinco minutos. O cache JSON limita o conteúdo
 serializado a 4 MiB/80 entradas, deduplica requisições e entrega cópias separadas
@@ -58,6 +64,13 @@ da mesma consulta. Chaves de dados incluem produto, unidade, política e revisã
 publicada pelo catálogo; a expiração limita a reutilização quando a revisão não
 muda. Atualizar o catálogo invalida ambos os caches e refaz as consultas sem
 apagar os filtros.
+Entre recarregamentos, o reaproveitamento vem do cache HTTP do navegador, regido
+pelo Cache-Control da API (sem armazenamento próprio). O `index.html` pré-carrega
+catálogo e configuração para que as primeiras requisições comecem junto do
+download do bundle. O Worker da Cloudflare mantém no edge as rotas públicas de
+leitura (`cloudflare/edgeCache.mjs`) respeitando `s-maxage`; o cabeçalho
+`X-Edge-Cache` indica `HIT` ou `MISS`. O Cache API só armazena em domínio
+próprio, não em `workers.dev`.
 Séries preservam lacunas; classes discretas não são interpoladas. CSV e JSON
 incluem produto, unidade, método e proveniência.
 

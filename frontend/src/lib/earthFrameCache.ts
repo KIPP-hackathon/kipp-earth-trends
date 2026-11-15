@@ -1,9 +1,13 @@
 import { loadFrame, variableDataKey } from "./earthApi";
 import type { EarthFrame, EarthVariable } from "./earthApi";
 
-// Shared by both comparison panels. Cached arrays stay below 32 MiB; only two
-// downloads can run, and a foreground seek can interrupt speculative work.
-const budget = 32 * 1024 * 1024;
+// Shared by both comparison panels. Cached arrays stay below 64 MiB so a few
+// months of every selected layer can be buffered ahead of playback. Four
+// downloads can run (the API admits four warehouse scans); speculative work may
+// use only two of them and a foreground request can interrupt it.
+const budget = 64 * 1024 * 1024;
+const maxActive = 4;
+const maxBackground = 2;
 const lifetimeMs = 5 * 60 * 1000;
 const cache = new Map<string, { frame: EarthFrame; expiresAt: number }>();
 let cacheBytes = 0;
@@ -77,7 +81,7 @@ function pump() {
     (job) => !active.has(job) && job.consumers.size,
   );
   queued.sort((a, b) => Number(foreground(b)) - Number(foreground(a)));
-  if (active.size >= 2 && queued.some(foreground)) {
+  if (active.size >= maxActive && queued.some(foreground)) {
     const speculative = [...active].find(
       (job) => !foreground(job) && !job.interrupted,
     );
@@ -86,46 +90,54 @@ function pump() {
       speculative.controller?.abort();
     }
   }
-  while (active.size < 2 && queued.length) {
-    const job = queued.shift()!;
-    active.add(job);
-    job.interrupted = false;
-    const controller = new AbortController();
-    job.controller = controller;
-    void loadFrame(
-      job.variable.id,
-      job.month,
-      controller.signal,
-      job.variable.render,
-      job.bbox,
-    )
-      .then(
-        (frame) => {
-          if (controller.signal.aborted) return;
-          remember(job.key, frame);
-          for (const consumer of job.consumers.values()) {
-            consumer.detach();
-            consumer.resolve(frame);
-          }
-          job.consumers.clear();
-        },
-        (error: unknown) => {
-          if (job.interrupted) return;
-          for (const consumer of job.consumers.values()) {
-            consumer.detach();
-            consumer.reject(error);
-          }
-          job.consumers.clear();
-        },
-      )
-      .finally(() => {
-        active.delete(job);
-        job.controller = undefined;
-        if (!job.consumers.size && jobs.get(job.key) === job)
-          jobs.delete(job.key);
-        pump();
-      });
+  let background = [...active].filter((job) => !foreground(job)).length;
+  for (const job of queued) {
+    if (active.size >= maxActive) break;
+    if (!foreground(job)) {
+      if (background >= maxBackground) continue;
+      background++;
+    }
+    start(job);
   }
+}
+function start(job: Job) {
+  active.add(job);
+  job.interrupted = false;
+  const controller = new AbortController();
+  job.controller = controller;
+  void loadFrame(
+    job.variable.id,
+    job.month,
+    controller.signal,
+    job.variable.render,
+    job.bbox,
+  )
+    .then(
+      (frame) => {
+        if (controller.signal.aborted) return;
+        remember(job.key, frame);
+        for (const consumer of job.consumers.values()) {
+          consumer.detach();
+          consumer.resolve(frame);
+        }
+        job.consumers.clear();
+      },
+      (error: unknown) => {
+        if (job.interrupted) return;
+        for (const consumer of job.consumers.values()) {
+          consumer.detach();
+          consumer.reject(error);
+        }
+        job.consumers.clear();
+      },
+    )
+    .finally(() => {
+      active.delete(job);
+      job.controller = undefined;
+      if (!job.consumers.size && jobs.get(job.key) === job)
+        jobs.delete(job.key);
+      pump();
+    });
 }
 export function requestFrame(
   variable: EarthVariable,
@@ -190,4 +202,17 @@ export function followingMonths(
     (_, offset) =>
       variable.months[(index + offset + 1) % variable.months.length].month,
   );
+}
+
+/** The months that follow `index`, wrapping like playback does; never the current month. */
+export function upcomingMonths(months: string[], index: number, count: number) {
+  const length = Math.max(0, Math.min(Math.floor(count), months.length - 1));
+  return Array.from({ length }, (_, offset) => months[(index + offset + 1) % months.length]);
+}
+/**
+ * How many months to buffer before playback starts. `configured` months, but never
+ * so many that the layers of the window outgrow the shared frame cache.
+ */
+export function bufferWindow(configured: number, layers: number, maxFrames = 24) {
+  return Math.max(1, Math.min(Math.floor(configured), Math.floor(maxFrames / Math.max(1, layers))));
 }

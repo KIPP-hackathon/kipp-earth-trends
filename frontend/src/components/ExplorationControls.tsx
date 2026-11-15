@@ -73,7 +73,7 @@ export function SearchPicker({
   };
   useEffect(() => {
     if (!open) return;
-    search.current?.focus();
+    dialog.current?.focus({ preventScroll: true });
     const outside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
@@ -133,6 +133,7 @@ export function SearchPicker({
           className="exploration-popover exploration-search-popover"
           ref={dialog}
           role="dialog"
+          tabIndex={-1}
           aria-label={`Choose ${label.toLowerCase()}`}
           id={`${id}-dialog`}
         >
@@ -231,9 +232,7 @@ export function PeriodPicker({
   const dialog = usePopoverPosition(open);
   useEffect(() => {
     if (!open) return;
-    root.current
-      ?.querySelector<HTMLButtonElement>(".month-picker-trigger")
-      ?.focus();
+    dialog.current?.focus({ preventScroll: true });
     const outside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
@@ -281,6 +280,7 @@ export function PeriodPicker({
           ref={dialog}
           role="dialog"
           aria-label="Choose study period"
+          tabIndex={-1}
           id={`${id}-dialog`}
         >
           <MonthPicker

@@ -7,6 +7,7 @@ import type {
 } from "../lib/assistant";
 import { parseAssistantResponse, safeEvidenceUrl } from "../lib/assistant";
 import { KippMascot } from "./KippMascot";
+import { LoadingStatus } from "./Loading";
 import "../assistant.css";
 
 type Message = {
@@ -241,10 +242,10 @@ export function Assistant({
               </article>
             ))}
             {pending && (
-              <p className="assistant-notice" role="status">
+              <LoadingStatus className="assistant-notice">
                 Checking the catalog and observations… View commands are
                 pending.
-              </p>
+              </LoadingStatus>
             )}
             {notice && (
               <p className="assistant-notice" role="status">

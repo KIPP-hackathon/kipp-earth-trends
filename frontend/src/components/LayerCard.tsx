@@ -1,10 +1,13 @@
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ScanEye } from "lucide-react";
 import type { EarthColorRange, EarthVariable } from "../lib/earthApi";
 import { realScale, realUnit, validColorDomain } from "../lib/earthApi";
 import type { LayerSetting } from "../lib/layers";
 import { ColorScaleControls } from "./ColorScaleControls";
+import { DomainIcon } from "../lib/domains";
+import { groupVariables } from "../lib/variableGroups";
+import { LoadingStatus } from "./Loading";
 import { windComponents } from "../lib/wind";
 import "./multivariable-layers.css";
 
@@ -44,6 +47,7 @@ export function LayerCard({
       ? colorRange.domain
       : scale.domain;
   const unit = realUnit(variable.unit);
+  const group = groupVariables([variable])[0];
   const wind = windComponents(variable.id);
   const opacity = Number.isFinite(setting.opacity)
     ? Math.max(0, Math.min(1, setting.opacity))
@@ -67,14 +71,18 @@ export function LayerCard({
       <div className="layer-card-heading">
         <div>
           <h3 id={`${id}-title`}>{variable.name}</h3>
-          <p>
-            {variable.product}
-            {variable.run ? ` · ${variable.run}` : ""} · {unit}
-          </p>
-          {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
-          {processingRun && <p>Displayed month processing: {processingRun}</p>}
-          {variable.processingNote && <p>{variable.processingNote}</p>}
+          <p className="layer-group-label"><DomainIcon domain={group.key} size={13} />{group.label}</p>
         </div>
+        <div className="layer-card-actions">
+        {scale.kind === "continuous" && <button type="button" className="layer-visibility layer-range-visibility"
+          aria-label={`Hide values outside color range for ${variable.name}`}
+          aria-pressed={!!colorRange?.hideOutside}
+          title={colorRange?.hideOutside
+            ? "Values outside the scale are hidden. Click to show them; original data and charts stay unchanged."
+            : "Hide values outside the scale on the map; original data and charts stay unchanged."}
+          onClick={() => onColorRange({ domain: colorRange?.domain ?? scale.domain, hideOutside: !colorRange?.hideOutside })}>
+          <ScanEye size={17} aria-hidden="true" />
+        </button>}
         <button
           type="button"
           className="layer-visibility"
@@ -93,6 +101,7 @@ export function LayerCard({
             <EyeOff size={19} aria-hidden="true" />
           )}
         </button>
+        </div>
       </div>
       <div className="layer-opacity">
         <label htmlFor={`${id}-opacity`}>Map opacity</label>
@@ -120,8 +129,8 @@ export function LayerCard({
             ? "Visible layer · fully transparent"
             : "Shown on map"
           : "Charts only · hidden on map"}
-        {loading ? " · loading observations…" : ""}
       </p>
+      {loading && <LoadingStatus className="layer-map-loading">Loading observations…</LoadingStatus>}
       {onSolo && <button type="button" className="layer-solo" onClick={onSolo}>
         Show only this layer
       </button>}
@@ -135,6 +144,10 @@ export function LayerCard({
           {error}
         </p>
       )}
+      {scale.kind === "continuous" ? (
+        <ColorScaleControls domain={scale.domain} unit={unit} value={colorRange}
+          colors={scale.colors} onChange={onColorRange} />
+      ) : (
       <div className="layer-legend" aria-label={`${variable.name} map scale`}>
         <div>
           <span>
@@ -167,20 +180,17 @@ export function LayerCard({
           </small>
         )}
       </div>
-      {scale.kind === "continuous" && (
-        <details className="layer-range-controls">
-          <summary>Color range · {colorRange ? "custom" : "default"}</summary>
-          <p>{variable.colorRangeSource === "indicator_coverage_p5_p95"
-            ? "Default: p5–p95 from the trusted indicator coverage inventory, converted to display units. These percentiles describe that inventory, not necessarily the selected region or period."
-            : "Default: configured display range; matching percentiles unavailable."}</p>
-          <ColorScaleControls
-            domain={scale.domain}
-            unit={unit}
-            value={colorRange}
-            onChange={onColorRange}
-          />
-        </details>
       )}
+      <details className="layer-source-details">
+        <summary>Source &amp; scale limits</summary>
+        <p>Display only. Original values, series and exports stay unchanged. Shared by globes showing the same variable.</p>
+        {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
+        {processingRun && <p>Displayed month processing: {processingRun}</p>}
+        {variable.processingNote && <p>{variable.processingNote}</p>}
+        <p>{variable.colorRangeSource === "indicator_coverage_p5_p95"
+          ? "Default: inventory p5–p95, converted to display units; not necessarily the selected region or period."
+          : "Default: configured display range; matching percentiles unavailable."}</p>
+      </details>
       {children && <div className="layer-analysis-content">{children}</div>}
     </article>
   );

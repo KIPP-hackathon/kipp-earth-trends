@@ -54,7 +54,7 @@ export function createEarthHandler(
         query.delete("path");
       // No arbitrary upstream URLs, SQL, methods, paths or browser authorization headers.
       if (
-        !/^\/v1\/(catalog|config|events|trends|investigation|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|(?:series|comparison)\/[a-z0-9_]{1,60})$/.test(
+        !/^\/v1\/(catalog|config|events|trends|investigation|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|comparisons|(?:series|comparison)\/[a-z0-9_]{1,60})$/.test(
           path,
         )
       )
@@ -83,8 +83,10 @@ export function createEarthHandler(
             ]
           : path === "/v1/trends"
             ? ["variable", "bbox", "start", "end"]
-            : path.startsWith("/v1/comparison/")
-              ? ["bbox", "start", "end", "analysis"]
+            : path === "/v1/comparisons"
+              ? ["variables", "bbox", "start", "end", "analysis"]
+              : path.startsWith("/v1/comparison/")
+                ? ["bbox", "start", "end", "analysis"]
               : ["bbox", "factor", "format", "start", "end"],
       );
       for (const [key, value] of query)
@@ -92,7 +94,7 @@ export function createEarthHandler(
           !allowed.has(key) ||
           (key === "analysis" && value !== "trend-v1") ||
           (key === "method" && value !== "relationships-v1") ||
-          value.length > 200 ||
+          value.length > (key === "variables" ? 400 : 200) ||
           query.getAll(key).length !== 1
         ) {
           console.warn(
@@ -140,6 +142,7 @@ export function createEarthHandler(
         "etag",
         "x-data-provider",
         "x-cache",
+        "x-cache-layer",
         "x-request-id",
         "retry-after",
       ]) {

@@ -1,11 +1,12 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Investigation } from "../lib/earthApi";
 import { formatTrendP } from "../lib/runtimeTrends";
 import { formatTrendValue, monthIndex, trendUnit } from "../lib/trendLab";
 import { TrendChart } from "./TrendChart";
 import { CombinedSeriesChart } from "./CombinedSeriesChart";
 import { ChartInfo } from "./ChartInfo";
-import { InvestigationTour, tourSteps } from "./InvestigationTour";
+import { TwoLayerRegression } from "./TwoLayerRegression";
+import { LayeredTrend } from "./LayeredTrend";
 import { Compass } from "lucide-react";
 import { downloadInvestigation, investigationCsv } from "../lib/investigation";
 
@@ -19,20 +20,24 @@ export function InvestigationResults({
   regionName,
   onGuide,
   initialView = "Anomalies",
+  tourView,
+  onTour,
 }: {
   data: Investigation;
   regionName: string;
   onGuide: () => void;
   initialView?: "Trend" | "Anomalies" | "Relationships";
+  /** View requested by the guided tour; switching tabs stays possible. */
+  tourView?: "Trend" | "Anomalies" | "Relationships";
+  /** Starts the guided tour at the results steps. */
+  onTour?: () => void;
 }) {
   const [view, setView] = useState<"Trend" | "Anomalies" | "Relationships">(
     initialView,
   );
-  const [tourStep, setTourStep] = useState<number | null>(null);
-  const tourView =
-    tourStep === null
-      ? undefined
-      : tourSteps(data.series.length > 1)[tourStep]?.view;
+  useEffect(() => {
+    if (tourView) setView(tourView);
+  }, [tourView]);
   const [representation, setRepresentation] = useState<
     "raw" | "anomaly" | "standardized"
   >("anomaly");
@@ -115,43 +120,28 @@ export function InvestigationResults({
             {data.request.bbox}
           </p>
         </div>
-        <button
-          type="button"
-          className="investigation-tour-start"
-          aria-expanded={tourStep !== null}
-          onClick={() => setTourStep(tourStep === null ? 0 : null)}
-        >
-          <Compass size={15} /> {tourStep === null ? "Take a tour" : "End tour"}
-        </button>
+        {onTour && (
+          <button
+            type="button"
+            className="investigation-tour-start"
+            onClick={onTour}
+          >
+            <Compass size={15} /> Tour the results
+          </button>
+        )}
       </div>
-      <nav
-        className="investigation-tabs"
-        aria-label="Investigation view"
-        data-tour={tourStep === 0 ? "focus" : undefined}
-      >
+      <nav className="investigation-tabs" aria-label="Investigation view">
         {(["Anomalies", "Trend", "Relationships"] as const).map((tab) => (
           <button
             key={tab}
             type="button"
             aria-pressed={view === tab}
-            data-tour={tourView === tab ? "focus" : undefined}
             onClick={() => setView(tab)}
           >
             {tab}
           </button>
         ))}
       </nav>
-      {tourStep !== null && (
-        <InvestigationTour
-          step={tourStep}
-          hasRelationships={data.series.length > 1}
-          onStep={(next, nextView) => {
-            setTourStep(next);
-            if (nextView) setView(nextView);
-          }}
-          onClose={() => setTourStep(null)}
-        />
-      )}
       {!(view === "Relationships" && rel) && (
         <div className="investigation-toolbar">
           {inspectMonth}
@@ -374,6 +364,7 @@ export function InvestigationResults({
                 />
               </div>
             </div>
+            <TwoLayerRegression data={data} lag={lag} />
             <p className="trend-small">
               {pair
                 ? `${pair.xMonth} X = ${fmt(pair.x)} ${trendUnit(data.series[0].unit)} → ${pair.yMonth} Y = ${fmt(pair.y)} ${trendUnit(data.series[1].unit)}`
@@ -495,6 +486,9 @@ export function InvestigationResults({
                 />
               </FittedChange>
             )}
+            {view === "Trend" && index === 1 && (
+              <LayeredTrend data={data} lag={lag} onLag={setLag} />
+            )}
             {view === "Anomalies" && (
               <details className="trend-provenance">
                 <summary>
@@ -532,7 +526,7 @@ export function InvestigationResults({
       <button type="button" className="trend-guide-link" onClick={onGuide}>
         Read the statistical interpretation in Guide
       </button>
-      <details className="trend-provenance">
+      <details className="trend-provenance trend-data-methods">
         <summary>Data, coverage & methods</summary>
         {data.series.map((s) => (
           <div key={s.variable}>

@@ -424,7 +424,7 @@ function ComparisonChartComponent({
                     ? trendsOnly
                       ? "No trend lines for this mode"
                       : "No comparable values for this mode"
-                    : "Loading selected variables…"}
+                    : loading ? "Loading selected variables…" : "No values available for the selected variables"}
               </text>
             )}
           </svg>

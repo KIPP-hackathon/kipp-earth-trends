@@ -587,3 +587,31 @@
 
 .layer-analysis-placeholder { display: grid; place-items: center; box-sizing: border-box; min-height: 0; overflow: hidden; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); background: #79aaff04; }
 .layer-analysis-placeholder > p { max-width: 28ch; margin: 0; font-size: 10px; line-height: 1.7; text-align: center; }
+
+/* Edit the scale endpoints directly above the palette. */
+.layer-card .inline-color-range { margin-top: 14px; padding-top: 0; border-top: 0; }
+.layer-card .inline-color-range .color-range-fields { gap: 6px; }
+.layer-card .inline-color-range .color-range-fields label {
+  display: flex; flex-direction: row; align-items: baseline; gap: 3px; font-size: 11px;
+}
+.layer-card .inline-color-range .color-range-fields label:nth-child(2) { justify-content: flex-end; }
+.layer-card .inline-color-range .color-range-fields input {
+  width: 100%; padding: 3px 0; border: 0; border-bottom: 1px dotted #92b5e260;
+  border-radius: 0; background: transparent; color: #dfeafa; font-size: 12px;
+  appearance: textfield; font-variant-numeric: tabular-nums;
+}
+.layer-card .inline-color-range .color-range-fields label:nth-child(2) input { text-align: right; }
+.inline-color-range input::-webkit-inner-spin-button,
+.inline-color-range input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.layer-card .inline-color-range .layer-legend-gradient { grid-column: 1 / -1; width: 100%; margin: 0 0 4px; }
+.layer-source-details { margin-top: 10px; font-size: 10px; color: var(--muted); overflow-wrap: anywhere; }
+.layer-source-details summary { cursor: pointer; }
+.layer-source-details p { margin: 7px 0; line-height: 1.5; }
+.filter-summary-collapsed { display: none; }
+.layer-card-actions { display: flex; align-items: flex-start; gap: 4px; flex-shrink: 0; }
+.layer-card-actions .layer-visibility { width: 28px; height: 30px; }
+.layer-group-label { display: flex; align-items: center; gap: 5px; }
+.layer-opacity { grid-template-columns: minmax(0, 1fr) auto; gap: 5px; }
+.layer-opacity label { grid-column: 1; grid-row: 1; }
+.layer-opacity output { grid-column: 2; grid-row: 1; }
+.layer-opacity input[type="range"] { grid-column: 1 / -1; grid-row: 2; width: 100%; margin: 3px 0; }
