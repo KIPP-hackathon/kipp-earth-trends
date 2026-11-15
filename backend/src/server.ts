@@ -19,6 +19,8 @@ import {
   excludedSources,
 } from "./data.ts";
 import { DatabricksProvider } from "./providers/databricks.ts";
+import type { InvestigationRequest } from "./investigation.ts";
+import { validateInvestigation } from "./investigation.ts";
 import { configuration, historicalEvents, regions } from "./config.ts";
 import { eventSuggestions } from "./event-context.ts";
 
@@ -188,6 +190,7 @@ api.get("/", async () => ({
     "/v1/availability/:variable",
     "/v1/frames/:variable/:month?factor=4&format=f32",
     "/v1/series/:variable?start=2024-01&end=2024-12&bbox=-60,-22,-54,-16",
+    "/v1/investigation?x=temperature&y=rainfall&bbox=-60,-22,-54,-16&start=2000-01&end=2025-09&baselineStart=2003-01&baselineEnd=2020-12&method=relationships-v1",
   ],
 }));
 api.get("/v1", async () => ({
@@ -205,6 +208,9 @@ api.get("/v1", async () => ({
       "KIPP magic(4 bytes), headerLength uint32 LE(4), UTF-8 JSON header, zero padding to next multiple of 4, float32 LE values[width*height], float32 LE coverage[width*height]",
   },
   cache: { ttlSeconds: 300, scope: "per-instance bounded LRU plus HTTP cache" },
+  investigation: {route:"/v1/investigation",method:"relationships-v1",maxVariables:2,maxCalendarSpan:600,
+    views:["trend","anomalies","relationships"],lags:[0,1,2,3,4,5,6],
+    reference:{defaultStart:"2003-01",defaultEnd:"2020-12",minimumYearsPerMonth:10}},
   comparison: {route:"/v1/comparison/:variable?start=2024-01&end=2024-12&bbox=-60,-22,-54,-16",
     modes:["standardized","minmax"],reference:{start:"2001-01",end:"2020-12",minimumYearsPerMonth:10},
     scope:"Separate global and regional monthly aggregates; normalized at runtime with original values retained.",maxMonths:2400},
@@ -277,7 +283,7 @@ api.get("/v1/catalog", async (request, reply) =>
     json({
       provider: mode,
       sourceLayer: "trusted",
-      capabilities: {layeredAssistant:true,comparisonCharts:true,runtimeTrends:true},
+      capabilities: {layeredAssistant:true,comparisonCharts:true,runtimeTrends:true,investigations:true},
       simulated: false,
       revision: process.env.K_REVISION ?? "local",
       variables: await catalogData(),
@@ -446,6 +452,18 @@ api.get<{Params:{variable:string};Querystring:{start:string;end:string;bbox:stri
     return serve(request,reply,`comparison:v2:${request.params.variable}:${start}:${end}:${bbox}`,300,
       async()=>json(await data.comparison(request.params.variable,start,end,bbox)));
   });
+api.get<{Querystring: InvestigationRequest}>("/v1/investigation", {
+  schema:{querystring:{type:'object',additionalProperties:false,
+    required:['x','bbox','start','end','baselineStart','baselineEnd','method'],properties:{
+      x:{type:'string',pattern:'^[a-z0-9_]{1,60}$'},y:{type:'string',pattern:'^[a-z0-9_]{1,60}$'},
+      bbox:{type:'string',maxLength:100},start:{type:'string',maxLength:7},end:{type:'string',maxLength:7},
+      baselineStart:{type:'string',maxLength:7},baselineEnd:{type:'string',maxLength:7},method:{type:'string',enum:['relationships-v1']}}}}
+}, async(request, reply)=>{
+  validateInvestigation(request.query);
+  const q=request.query;
+  const key=JSON.stringify(['investigation-v1',q.x,q.y??null,q.bbox,q.start,q.end,q.baselineStart,q.baselineEnd,q.method]);
+  return serve(request,reply,key,300,async()=>json(await data.investigation(q)));
+});
 api.addHook("onClose", async () => {
   await Promise.all(providers.map((provider) => provider.close()));
 });

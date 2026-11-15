@@ -2,6 +2,8 @@ import { validFrameBounds } from "./globeSelection";
 import { earthReadCache } from "./earthReadCache";
 import { queuedSeries } from "./seriesQueue";
 import type {RuntimeTrend} from "./runtimeTrends";
+import type { Investigation, InvestigationRequest } from '../../../backend/src/investigation.ts';
+export type { Investigation, InvestigationRequest } from '../../../backend/src/investigation.ts';
 
 export const earthApi = "/api/earth";
 
@@ -87,7 +89,7 @@ export type EarthVariable = {
   months: { month: string; samples: number; validSamples: number }[];
 };
 export type EarthCatalog = {
-  capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean;runtimeTrends?:boolean};
+  capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean;runtimeTrends?:boolean;investigations?:boolean};
   revision?: string;
   simulated: false;
   variables: EarthVariable[];
@@ -167,6 +169,20 @@ export function loadComparison(variable:EarthVariable,start:string,end:string,bb
     if (data.simulated!==false || data.variable!==variable.id || data.start!==start || data.end!==end ||
       !Array.isArray(data.global?.observations) || !Array.isArray(data.regional?.observations))
       throw new Error("Comparison data does not match this selection.");
+    return data;
+  });
+}
+export function loadInvestigation(request: InvestigationRequest, variables: EarthVariable[], signal: AbortSignal): Promise<Investigation> {
+  const key=JSON.stringify(['investigation-v1',request,variables.map(variableDataKey)]);
+  return earthReadCache.read(key,signal,60_000,async budget=>{
+    const query=new URLSearchParams(Object.entries(request).filter(([,v])=>v!==undefined) as [string,string][]);
+    const data:Investigation=await queuedSeries(budget,async()=>(await checked(`/v1/investigation?${query}`,budget)).json());
+    if(data.version!==1 || data.method!=='relationships-v1' || data.simulated!==false ||
+      Object.entries(request).some(([k,v])=>data.request?.[k as keyof InvestigationRequest]!==v) ||
+      !Array.isArray(data.series) || data.series.map(s=>s.variable).join(',')!==[request.x,request.y].filter(Boolean).join(',') ||
+      data.series.some(s=>!Array.isArray(s.observations)||s.observations.length>600||!Array.isArray(s.reference)||s.reference.length!==12) ||
+      !Array.isArray(data.family) || !Array.isArray(data.lags) || data.lags.length!==(request.y?7:0))
+      throw new Error('Investigation data does not match this selection.');
     return data;
   });
 }

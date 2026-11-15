@@ -1,4 +1,14 @@
-# Trend Lab — runtime monthly regression
+# Trend Lab
+
+## Current local implementation — relationships-v1 (15/11/2026)
+
+The first relationships release replaces the browser's raw monthly OLS view with
+backend seasonal trends, anomalies and two-variable lag analysis. See
+[methods, API, validation and limitations](trend-lab-relationships.md).
+This implementation is local and has not been deployed. The original publication
+history below describes the earlier version, not the new analysis method.
+
+## Earlier release — runtime monthly regression
 
 Implementação local de 15/11/2026. A aba **Trend Lab** tem seleção independente
 de indicador, região, câmera e período; não altera Explore/Compare.
