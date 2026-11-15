@@ -638,7 +638,7 @@ export function RealGlobe({
             aria-live="off"
             aria-label="Globe zoom"
           >
-            {view.zoom.toFixed(1)}×
+            Zoom {view.zoom.toFixed(1)}×
           </output>
           <button
             aria-label="Zoom in"

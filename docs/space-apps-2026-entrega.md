@@ -1,5 +1,60 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Explore em três colunas e datas nativas — 15/11/2026
+
+Por solicitação do usuário, OpenAI Codex assistiu a reorganização desktop do
+Explore: filtros de mapa em coluna de 220px à esquerda, globo central e gráfico
+à direita. Recolher os filtros reduz a coluna a 44px e libera espaço ao globo.
+Mantidos leitura das fontes, visibilidade, opacidade e controles analíticos.
+Limites da escala são editados diretamente nos números acima da barra, com
+Apply, Reset e validação de limites; eliminadas as caixas de mínimo/máximo
+separadas. Fonte e explicações da escala ficam em detalhes expansíveis.
+Ajustes visuais não modificam observações, séries, exportações ou inferência.
+
+Após novo relato de falha no iPhone, removido o calendário modal do componente
+compartilhado. Início, fim e mês da linha do tempo usam os mesmos selects nativos
+de mês/ano. Somente meses disponíveis são oferecidos; trocar o ano preserva o
+mês quando há dados e escolhe um mês disponível caso contrário. Abrir o período
+foca o diálogo sem acionar um seletor automaticamente.
+
+Validação após integrar a main: 105 testes frontend e build com Node.js 24; Chromium desktop em
+1440px e 1024px confirmou ordem das colunas, recolhimento, aplicação de escala,
+limites inválidos e reset. WebKit emulando iPhone alterou período para
+2001-02–2025-04 e mês exibido para 2002-06. Sem overflow horizontal ou erros
+de página nessas verificações; sem teste em iPhone físico.
+Publicado em `d06041e`, [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43746367806)
+concluído com sucesso e bundle público `index-nCfufUDG.js` conferido.
+Testes de navegador repetidos no site público confirmaram layout, escala,
+recolhimento e datas nativas. Vercel continua bloqueando novos builds por limite
+de publicações; o endereço Cloudflare contém esta versão. Alteração anterior
+com calendário modal fica substituída.
+
+## Calendário da linha do tempo e velocidade — 15/11/2026
+
+Relato posterior do usuário mostrou que a validação anterior não cobria o
+calendário abaixo do globo. OpenAI Codex assistiu a substituição dos calendários
+flutuantes por `dialog.showModal()`, na camada superior do navegador, com seleção
+direta de ano, meses disponíveis e cancelamento. Início/fim e mês exibido usam
+o mesmo componente, sem dependência de recorte ou rolagem dos pais.
+
+Novas seleções iniciam no primeiro mês; alteração do período volta ao início;
+Play no último mês reinicia no primeiro. Reprodução de dados reais ganhou
+controle explícito Speed (0.5×, 1×, 2×, 4×), ligado à cadência e atualizável
+durante reprodução. Zoom está identificado como Zoom. Aguardar dados do mês
+continua obrigatório; velocidade não inventa quadros nem garante latência de rede.
+
+102 testes frontend e build aprovados com Node.js 24. WebKit emulando iPhone
+confirmou mudança do mês pelo calendário abaixo do globo e dos limites do
+período. Com três quadros reais em cache, mudança 0.5× → 4× reduziu a transição
+medida de 3494 para 1368 ms no WebKit e de 2866 para 1114 ms no Chromium desktop.
+As medidas incluem renderização e automação; não constituem SLA. Ambos
+confirmaram início e reinício na posição zero. Sem teste em iPhone físico.
+Publicado em `a4d2169` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/):
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43744869579)
+concluído e bundle público `index-DCw1A9kR.js` conferido. Vercel bloqueou este
+build por limite de publicações (retry in 24 hours); seu endereço mantém a
+versão anterior. Nenhum dado ou método científico alterado.
+
 ## Toque e seletores no iPhone — 15/11/2026
 
 OpenAI Codex assistiu a correção de interação solicitada pelo usuário:

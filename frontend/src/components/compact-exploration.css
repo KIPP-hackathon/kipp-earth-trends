@@ -284,10 +284,6 @@
   min-height: 34px;
   padding: 7px 9px;
 }
-.compact-real-panel .real-time-controls .month-calendar {
-  left: auto;
-  right: 0;
-}
 .compact-real-panel .real-provenance {
   margin-top: 12px;
   overflow-wrap: anywhere;
@@ -398,10 +394,6 @@
     left: auto;
     right: 0;
   }
-  .exploration-period-popover .month-calendar {
-    left: auto;
-    right: 0;
-  }
   .compact-real-panel .real-globe-scene {
     max-width: 400px;
   }
@@ -447,3 +439,53 @@
     max-height: clamp(120px, calc((100dvh - 480px) / 2), 190px);
   }
 }
+
+.compact-real-panel .real-time-controls { flex-wrap: wrap; }
+.compact-real-panel label.real-playback-speed {
+  display: flex; flex-direction: row; align-items: center; gap: 6px;
+  color: var(--muted); font-size: 12px;
+}
+.real-playback-speed select { min-height: 36px; width: auto; padding: 5px; }
+.real-playback-buffering { color: var(--muted); font-size: 11px; }
+
+/* Native month/year controls stay identical in the period and timeline. */
+.compact-real-panel .real-time-controls > .month-picker { flex-basis: 220px; }
+.compact-real-panel .month-picker-selects select { padding: 7px; color: #e7edf7; background: var(--panel); }
+@media (min-width: 1000px) {
+  .real-panels:not(.is-comparing) .real-panel.compact-real-panel.is-overview {
+    grid-template-columns: 220px minmax(260px, 1fr) minmax(300px, 1.05fr);
+    gap: 12px 16px;
+  }
+  .real-panels:not(.is-comparing) .real-panel.compact-real-panel.is-overview.filters-collapsed {
+    grid-template-columns: 44px minmax(260px, 1fr) minmax(300px, 1.05fr);
+  }
+  .real-panels:not(.is-comparing) .compact-real-panel.is-overview > .real-globe-container { grid-column: 2; grid-row: 3; }
+  .real-panels:not(.is-comparing) .compact-real-panel.is-overview > .real-time-controls { grid-column: 2; grid-row: 4; margin: 0; }
+  .real-panels:not(.is-comparing) .compact-real-panel.is-overview > .real-notice { grid-column: 2; grid-row: 5; }
+  .real-panels:not(.is-comparing) .compact-real-panel.is-overview > .real-series-comparison { grid-column: 3; grid-row: 3 / span 6; }
+  .real-panels:not(.is-comparing) .compact-real-panel.is-overview > .comparison-map-controls {
+    grid-column: 1; grid-row: 3 / span 6; min-width: 0; margin: 0;
+    max-height: calc(100dvh - 150px); overflow-y: auto; overscroll-behavior: contain;
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+    background: #091326b3;
+  }
+  .is-overview .comparison-map-controls > summary { font-size: 12px; cursor: pointer; }
+  .is-overview .comparison-map-controls .layer-deck-heading { display: block; margin: 10px 0; }
+  .is-overview .comparison-map-controls .layer-deck-heading h2,
+  .is-overview .comparison-map-controls .layer-deck-heading .real-series-comparison-note { display: none; }
+  .is-overview .comparison-map-controls .layer-deck-actions { gap: 6px; }
+  .is-overview .comparison-map-controls .layer-stack { max-height: none; overflow: visible; padding: 0; }
+  .is-overview .comparison-map-controls .layer-card { padding: 10px; }
+  .is-overview .comparison-map-controls .layer-card h3 { font-size: 12px; }
+  .is-overview .comparison-map-controls .layer-opacity { gap: 5px; }
+  .is-overview.filters-collapsed .comparison-map-controls { padding: 10px 6px; overflow: hidden; }
+  .is-overview.filters-collapsed .filter-summary-expanded { display: none; }
+  .is-overview.filters-collapsed .filter-summary-collapsed { display: inline; writing-mode: vertical-rl; }
+  .is-overview .real-globe { max-width: none; }
+  .is-overview .real-globe-scene { padding: 0; margin-top: 0; }
+}
+@media (max-width: 999px) {
+  .compact-real-panel .real-time-controls > .month-picker { flex-basis: 100%; margin-left: 0; }
+}
+
+.compact-real-panel .real-time-controls > input[type="range"] { width: auto; flex: 1 1 80px; }

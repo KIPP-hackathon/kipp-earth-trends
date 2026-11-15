@@ -156,6 +156,8 @@ function SelectedRealPanel({
     if (!active) setPlaying(false);
   }, [active]);
   const [playing, setPlaying] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [buffering, setBuffering] = useState(false);
   const [bufferProgress, setBufferProgress] = useState<{ready:number;total:number}>();
   const [playbackError, setPlaybackError] = useState<string>();
@@ -197,9 +199,7 @@ function SelectedRealPanel({
   const months = useMemo(() => allMonths.filter(m => m.month >= start && m.month <= end),[allMonths,start,end]);
   const month = months.some((m) => m.month === selection.month)
     ? selection.month
-    : side === "A"
-      ? months.at(-1)!.month
-      : months[0].month;
+    : months[0].month;
   const region =
     (drawnRegion?.id === regionId ? drawnRegion : undefined) ??
     config.regions.find((entry) => entry.id === regionId) ??
@@ -374,7 +374,7 @@ function SelectedRealPanel({
     const layers = Math.max(1, neededFor(next).length);
     const loadMonth = (target: string, signal: AbortSignal, priority: "foreground" | "background") =>
       Promise.all(neededFor(target).map(v => requestFrame(v,target,signal,priority)));
-    const deadline = Date.now() + config.playback.cadenceMs;
+    const deadline = Date.now() + config.playback.cadenceMs / playbackSpeed;
     const fail = (error: unknown) => {
       if (controller.signal.aborted) return;
       setPlaybackError(error instanceof Error ? error.message : "Could not prepare playback.");
@@ -410,11 +410,11 @@ function SelectedRealPanel({
     return () => {controller.abort();clearTimeout(timer);};
     // Batch commits preserve a coherent displayed month while the next layers load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[playing,active,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end]);
+  },[playing,active,playbackKey,frame.loading,frame.error,layerFrames.displayedMonth,start,end,playbackSpeed,config.playback.cadenceMs]);
   return (
     <article
       data-panel-id={instanceId}
-      className={`real-panel compact-real-panel${overview ? " is-overview" : ""}`}
+      className={`real-panel compact-real-panel${overview ? " is-overview" : ""}${filtersOpen ? "" : " filters-collapsed"}`}
       aria-label={
         overview ? "Earth data exploration" : `Earth data panel ${side}`
       }
@@ -461,6 +461,7 @@ function SelectedRealPanel({
             setPlaying(false);
             setPlaybackError(undefined);
             setPeriod(value);
+            setSelection({ variable: variable.id, month: value.start });
           }}
         />
       </div>
@@ -525,6 +526,8 @@ function SelectedRealPanel({
           onClick={() => {
             onManualChange();
             setPlaybackError(undefined);
+            if (!playing && index === months.length - 1)
+              setSelection({ variable: variable.id, month: months[0].month });
             setPlaying((v) => !v);
           }}
         >
@@ -545,6 +548,14 @@ function SelectedRealPanel({
         >
           <ChevronRight size={18} />
         </button>
+        <label className="real-playback-speed">
+          <span>Speed</span>
+          <select aria-label={`Playback speed for panel ${side}`} value={playbackSpeed}
+            onChange={(event) => setPlaybackSpeed(Number(event.target.value))}>
+            {[0.5, 1, 2, 4].map(speed => <option key={speed} value={speed}>{speed}×</option>)}
+          </select>
+        </label>
+        {playing && buffering && <span className="real-playback-buffering" role="status">Loading next month…</span>}
         <MonthPicker
           id={`${id}-month`}
           label="Selected month"
@@ -559,8 +570,12 @@ function SelectedRealPanel({
           global series. The global map remains visible.
         </p>
       )}
-      <details className="comparison-map-controls" open>
-      <summary>Map layers · {selectedVariables.length} selected · visibility, opacity & scales</summary>
+      <details className="comparison-map-controls" open={filtersOpen}
+        onToggle={event => setFiltersOpen(event.currentTarget.open)}>
+      <summary title={filtersOpen ? "Collapse map filters" : "Expand map filters"}>
+        <span className="filter-summary-expanded">Map filters · {selectedVariables.length}</span>
+        <span className="filter-summary-collapsed">Filters</span>
+      </summary>
       <div className="layer-deck-heading">
         <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
           Map layers keep their physical units and scales. Opacity blends colors, not measurements.

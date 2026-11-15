@@ -232,9 +232,7 @@ export function PeriodPicker({
   const dialog = usePopoverPosition(open);
   useEffect(() => {
     if (!open) return;
-    root.current
-      ?.querySelector<HTMLButtonElement>(".month-picker-trigger")
-      ?.focus();
+    dialog.current?.focus({ preventScroll: true });
     const outside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
@@ -282,12 +280,12 @@ export function PeriodPicker({
           ref={dialog}
           role="dialog"
           aria-label="Choose study period"
+          tabIndex={-1}
           id={`${id}-dialog`}
         >
           <MonthPicker
             id={`${id}-start`}
             label="Period start"
-            inline
             value={start}
             months={months}
             onChange={(value) =>
@@ -297,7 +295,6 @@ export function PeriodPicker({
           <MonthPicker
             id={`${id}-end`}
             label="Period end"
-            inline
             value={end}
             months={months}
             onChange={(value) =>
