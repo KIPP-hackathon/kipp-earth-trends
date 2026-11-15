@@ -61,3 +61,7 @@ Conferência do catálogo desta rodada:205variáveis,87disponíveis, temperatura
 Revisão independente encontrou foco de teclado e divergência do contrato antigo de gráficos; ambos tratados. Testes/builds e deploy final desta rodada serão registrados abaixo. OpenAI Codex assistiu conteúdo, código, CSS, testes e documentação; sem nova geração de imagens. Revisão humana da equipe e submissão Space Apps permanecem pendentes.
 
 Validação antes da publicação da segunda rodada:103testes frontend sob `VERCEL_ENV=preview`, build frontend e build backend aprovados em Node24. Teste de teclado confirmou foco no destino, retorno ao topo ao clicar novamente na seção ativa e Escape revertendo o rascunho. O arquivo JS de entrada tem aproximadamente533kB, ainda com o aviso de chunk maior que500kB; não é uma medição do custo frio de dados.
+
+Conferência fria adicional detectou deslocamento do explorador quando os cards anteriores terminavam de carregar. A navegação explícita agora mantém foco/âncora por ResizeObserver até a próxima interação manual (roda, toque, ponteiro ou teclado); scroll normal continua livre. O teste completo passou novamente com API real e sem exceções.
+
+O push `f5f19de` recebeu status GitHub/Vercel failure: “Deployment rate limited — retry in 24 hours.” O código foi enviado à branch, mas esse status não comprova publicação. Tentativa explícita de preview e teste real do agente ficam pendentes até sua evidência; nenhum plano pago, quota ou produção foi alterado.
