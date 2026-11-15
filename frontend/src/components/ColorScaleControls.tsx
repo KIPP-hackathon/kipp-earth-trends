@@ -18,13 +18,13 @@ export function ColorScaleControls({
   const id = useId();
   const appliedMinimum = value?.domain[0] ?? domain[0];
   const appliedMaximum = value?.domain[1] ?? domain[1];
-  const [minimum, setMinimum] = useState(String(value?.domain[0] ?? domain[0]));
-  const [maximum, setMaximum] = useState(String(value?.domain[1] ?? domain[1]));
+  const [minimum, setMinimum] = useState(appliedMinimum.toFixed(2));
+  const [maximum, setMaximum] = useState(appliedMaximum.toFixed(2));
   const [hideOutside, setHideOutside] = useState(value?.hideOutside ?? !colors);
   const [error, setError] = useState("");
   useEffect(() => {
-    setMinimum(String(appliedMinimum));
-    setMaximum(String(appliedMaximum));
+    setMinimum(appliedMinimum.toFixed(2));
+    setMaximum(appliedMaximum.toFixed(2));
     setError("");
   }, [appliedMinimum, appliedMaximum]);
   useEffect(() => setHideOutside(value?.hideOutside ?? !colors), [value?.hideOutside, !!colors]);
@@ -83,8 +83,8 @@ export function ColorScaleControls({
         <button
           type="button"
           onClick={() => {
-            setMinimum(String(domain[0]));
-            setMaximum(String(domain[1]));
+            setMinimum(domain[0].toFixed(2));
+            setMaximum(domain[1].toFixed(2));
             setHideOutside(!colors);
             setError("");
             onChange(undefined);
