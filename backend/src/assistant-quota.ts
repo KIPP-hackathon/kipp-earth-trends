@@ -1,6 +1,6 @@
 import { ApiError } from "./core.ts";
 import { googleRequest } from "./google-auth.ts";
-const database = "projects/nasa-earth-trends-lab/databases/(default)";
+const database = "projects/kipp-space-apps-2026/databases/(default)";
 const endpoint = `https://firestore.googleapis.com/v1/${database}/documents`;
 export const assistantLimits = {
   daily: 120,
