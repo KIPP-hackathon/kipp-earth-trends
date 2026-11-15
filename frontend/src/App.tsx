@@ -11,6 +11,7 @@ import {
 import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
 import { EventExplorer } from "./components/EventExplorer";
+import { TrendLab } from "./components/TrendLab";
 import { RealPanel } from "./components/RealDataView";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { useCountryLocation } from "./lib/useCountryLocation";
@@ -871,6 +872,19 @@ function App() {
                 significance or causality.
               </p>
             </section>
+            <section
+              hidden={active !== "trend"}
+              role="tabpanel"
+              id="panel-trend"
+              aria-labelledby="tab-trend"
+            >
+              <TrendLab
+                catalog={catalog.data}
+                config={config.data!}
+                initialCountry={startingCountry}
+                active={active === "trend"}
+              />
+            </section>
             {active === "events" && (
               <section
                 role="tabpanel"
@@ -933,15 +947,18 @@ function App() {
           </div>
         </footer>
       </main>
-      <Assistant
-        ready={
-          !!catalog.data &&
-          !!config.data &&
-          (active === "compare" ? comparison.ready : exploration.ready)
-        }
-        getContext={getContext}
-        applyResponse={applyAssistantResponse}
-      />
+      <div hidden={active === "trend"}>
+        <Assistant
+          ready={
+            !!catalog.data &&
+            !!config.data &&
+            active !== "trend" &&
+            (active === "compare" ? comparison.ready : exploration.ready)
+          }
+          getContext={getContext}
+          applyResponse={applyAssistantResponse}
+        />
+      </div>
       {modal && (
         <Modal
           title={
