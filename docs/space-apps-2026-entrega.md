@@ -1,5 +1,17 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Assistente seleciona a investigação — 15/11/2026
+
+Por solicitação do usuário, o assistente passa a tratar pedidos de análise como
+permissão para selecionar variável, região e período, configurar Explore/Compare
+e consultar a mesma série antes de explicar resultados. Seleções delegadas usam
+cobertura verificada e defaults explícitos; períodos solicitados não são trocados
+silenciosamente. Chat disponível após catálogo/configuração mesmo sem camada
+selecionada. Trend Lab continua sem ferramenta/contexto próprios. Implementação
+assistida por OpenAI Codex; publicação autorizada com a conta c0ffex. Validação
+local: 139 testes frontend, 46 testes backend e builds frontend/API aprovados
+com Node.js 24. Publicação será registrada após conferência.
+
 ## Prompt e conhecimento do assistente — 15/11/2026
 
 OpenAI Codex revisou o contexto efetivamente enviado ao assistente e suas oito

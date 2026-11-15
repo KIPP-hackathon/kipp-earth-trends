@@ -1200,8 +1200,7 @@ function App() {
           ready={
             !!catalog.data &&
             !!config.data &&
-            active !== "trend" &&
-            (active === "compare" ? comparison.ready : exploration.ready)
+            active !== "trend"
           }
           getContext={getContext}
           applyResponse={applyAssistantResponse}
