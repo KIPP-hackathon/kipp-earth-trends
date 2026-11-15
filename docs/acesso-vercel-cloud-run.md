@@ -1,5 +1,11 @@
 # Vercel para Cloud Run autenticado
 
+> Migração em preparação em 15/11/2026: o destino é `kipp-space-apps-2026`
+> (696766216489), com runtime, invoker e CI próprios. Ver
+> [estado e operação atuais](gcp-migration.md). As seções abaixo preservam
+> a configuração e evidências históricas do projeto anterior.
+
+
 O navegador chama `/api/earth` na aplicação KIPP da Vercel. Uma função server-side
 obtém o OIDC token da execução, troca-o no Google STS e gera um ID token com
 audience igual à URL do Cloud Run. Não há chave privada Google nem token de

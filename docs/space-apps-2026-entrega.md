@@ -376,3 +376,18 @@ verificação temporária de matemática/save e navegação com dados reais. Rev
 independente identificou preservação do modo e pontos isolados; corrigidos e
 conferidos. Publicação conferida: release f17753a, bundle index-0MHaCikx.js, CI43671645405 aprovado e Cloud Run kipp-earth-api-00039-yiy com100% do tráfego. Browser em produção: dois gráficos com três curvas, restauração de Scale0–100 e troca para desvio histórico com lacunas explícitas. Acesso anônimo direto403; scan do bundle sem credencial privada/token.
 Isso não conclui a investigação científica nem a submissão ao Space Apps.
+
+## Evidência incremental — migração GCP em preparação (15/11/2026)
+
+A equipe autorizou mover a API e dependências Google para `kipp-space-apps-2026`
+(696766216489), conta `kipp.nasa@gmail.com`. Serviço novo privado, com identidades
+runtime/invoker/deployer separadas, WIF restrita e sem chaves JSON. Revisão
+`kipp-earth-api-00001-pb8` passou por consultas reais de catálogo72, frame, série,
+comparação, tendência armazenada e chat. Vertex e Firestore novos foram conferidos
+com a SA runtime. [Runbook e estado](gcp-migration.md).
+
+Troca do proxy Vercel, preservação da quota, CI novo e limpeza das permissões
+administrativas temporárias ainda pendentes nesta evidência. O serviço antigo
+permanece disponível para reversão. OpenAI Codex assistiu a migração e os registros;
+revisão técnica independente apontou proteção adicional da reversão de contadores,
+corrigida antes do corte. Não comprova nova análise científica nem submissão oficial.

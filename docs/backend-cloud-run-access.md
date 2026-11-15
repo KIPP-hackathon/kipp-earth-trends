@@ -1,5 +1,11 @@
 # Acesso e publicação da API
 
+> Migração em preparação em 15/11/2026: o destino é `kipp-space-apps-2026`
+> (696766216489), com runtime, invoker e CI próprios. Ver
+> [estado e operação atuais](gcp-migration.md). As seções abaixo preservam
+> a configuração e evidências históricas do projeto anterior.
+
+
 Atualização: o acesso público descrito no histórico abaixo foi substituído por
 [IAM restrito ao proxy Vercel](acesso-vercel-cloud-run.md).
 O CI/CD e o acesso por Google SA são descritos em
