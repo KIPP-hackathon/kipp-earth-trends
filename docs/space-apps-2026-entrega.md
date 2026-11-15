@@ -1,5 +1,31 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Filtro estável no Play e mais espaço para comparação — 15/11/2026
+
+OpenAI Codex assistiu o ajuste solicitado: indicadores transitórios de loading
+ou Preparing dentro do filtro são suprimidos enquanto o Play está ativo; o
+carregamento continua indicado no mapa. A camada e seus controles permanecem
+montados e com tamanho estável. No desktop, o cartão preenche a altura restante
+do painel, mantendo escala/opacidade acessíveis na parte inferior.
+
+A coluna de comparação ganhou largura e altura; SVG usa toda a área horizontal,
+sem margens laterais de preservação de aspecto. Gráficos estão na ordem país →
+Global. Tabelas têm espaço mínimo maior e mantêm os cabeçalhos fixos; listas de
+motivos de indisponibilidade continuam roláveis, com detalhes por variável.
+Removidos o parágrafo genérico abaixo da área de trabalho e os dizeres
+INDEPENDENT LAB/NASA SPACE APPS/Explore questions do rodapé. Credits & data,
+guia e atualização do catálogo permanecem disponíveis. Não muda dados, unidades,
+normalização, inferência ou proveniência nas exportações e detalhes.
+
+139 testes frontend e build aprovados com Node.js 24 após integrar a main.
+Chromium em 1440/1024px e WebKit emulando iPhone reproduziram os quatro meses
+do intervalo sem loading no cartão e sem oscilação de altura. Na verificação
+final em 1440px, curvas usam 586px de largura e 160px de altura; tabela dispõe
+de aproximadamente 147px. Cartão termina a 11px da borda inferior, dentro do
+padding do painel. Sem erros de página/overflow horizontal nas checagens;
+sem teste em iPhone físico. Publicação em acompanhamento; assistência IA
+registrada nesta entrada.
+
 ## Assistente seleciona a investigação — 15/11/2026
 
 Por solicitação do usuário, o assistente passa a tratar pedidos de análise como
@@ -20,6 +46,7 @@ Jan–Dez 2024; a UI confirmou comandos aceitos e apresentou a explicação com
 cobertura de 12/12 meses e limites descritivos. Renderização do globo indisponível
 no navegador de verificação; controles, gráficos e resposta foram conferidos.
 Este smoke com modelo real não substitui a avaliação completa de qualidade.
+
 
 ## Prompt e conhecimento do assistente — 15/11/2026
 
