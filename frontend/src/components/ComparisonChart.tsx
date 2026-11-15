@@ -21,7 +21,9 @@ function calendar(start: string, end: string) {
   );
 }
 const number = (value: number) =>
-  value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  Math.abs(value) > 0 && (Math.abs(value) < 0.01 || Math.abs(value) >= 1e6)
+    ? value.toExponential(2)
+    : value.toLocaleString("en-US", { maximumFractionDigits: 2 });
 const monthLabel = (month: string) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -70,6 +72,16 @@ function ComparisonChartComponent({
   const id = useId();
   const [preview, setPreview] = useState(false);
   const [trendsOnly, setTrendsOnly] = useState(false);
+  const valueKey = mode === "raw" ? "value" : mode;
+  const nativeUnit = realUnit(
+    entries[0]?.data?.unit ?? entries[0]?.variable.unit ?? "",
+  );
+  const modeLabel =
+    mode === "raw"
+      ? `Original values · ${nativeUnit}`
+      : mode === "standardized"
+        ? "Historical deviation"
+        : "Scale 0–100";
   const plotEntries = useMemo(
     () => entries.filter((entry) => !hiddenVariables.has(entry.variable.id)),
     [entries, hiddenVariables],
@@ -90,14 +102,14 @@ function ComparisonChartComponent({
       );
       const points: { x: number; y: number }[] = [];
       months.forEach((month, index) => {
-        const value = byMonth.get(month)?.[mode];
+        const value = byMonth.get(month)?.[valueKey];
         if (value === null || value === undefined || !Number.isFinite(value)) {
           connected = false;
           return;
         }
         path += `${connected ? "L" : "M"}${x(index).toFixed(2)},${y(value).toFixed(2)} `;
         const neighbor = (offset: number) => {
-          const n = byMonth.get(months[index + offset])?.[mode];
+          const n = byMonth.get(months[index + offset])?.[valueKey];
           return n !== null && n !== undefined && Number.isFinite(n);
         };
         if (!neighbor(-1) && !neighbor(1))
@@ -107,7 +119,7 @@ function ComparisonChartComponent({
       return { entry, path, byMonth, points };
     });
     return { x, y, series };
-  }, [plotEntries, months, scope, mode, domain]);
+  }, [plotEntries, months, scope, valueKey, domain]);
   const activeIndex = months.indexOf(month);
   const activeMonth = activeIndex >= 0 ? month : months.at(-1)!;
   const index = activeIndex >= 0 ? activeIndex : Math.max(0, months.length - 1);
@@ -138,18 +150,23 @@ function ComparisonChartComponent({
                 <Info size={16} aria-hidden="true" />
               </summary>
               <p className="comparison-explainer">
-                {mode === "standardized"
-                  ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
-                  : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
-                The selected area has its own reference. Hover for original
-                units. Map opacity does not affect this chart.
+                {mode === "raw"
+                  ? `Monthly regional values in ${nativeUnit}, before chart normalization. Source aggregation and quality rules still apply.`
+                  : mode === "standardized"
+                    ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
+                    : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
+                {mode !== "raw" && "The selected area has its own reference. "}
+                Hover for original units. Map opacity does not affect this
+                chart.
               </p>
             </details>
           </div>
           <p>
-            {mode === "standardized"
-              ? "Deviation · standard deviations (σ)"
-              : "Relative position · 0–100"}
+            {mode === "raw"
+              ? `Original values · ${nativeUnit}`
+              : mode === "standardized"
+                ? "Deviation · standard deviations (σ)"
+                : "Relative position · 0–100"}
           </p>
         </div>
         <div
@@ -157,6 +174,22 @@ function ComparisonChartComponent({
           role="group"
           aria-label="Chart display controls"
         >
+          <button
+            type="button"
+            disabled={entries.length !== 1}
+            aria-pressed={mode === "raw"}
+            title={
+              entries.length === 1
+                ? "Show values in the variable’s own unit"
+                : "Default is available with one selected variable"
+            }
+            onClick={() => {
+              onMode("raw");
+              setTrendsOnly(false);
+            }}
+          >
+            Default
+          </button>
           <button
             type="button"
             aria-pressed={mode === "standardized"}
@@ -261,7 +294,7 @@ function ComparisonChartComponent({
                 />
               </clipPath>
             </defs>
-            <title>{`${title} · ${mode === "standardized" ? "Historical deviation" : "Scale 0–100"}`}</title>
+            <title>{`${title} · ${modeLabel}`}</title>
             {eventIndices.length > 0 && (
               <rect
                 x={chart.x(eventIndices[0])}
@@ -275,7 +308,15 @@ function ComparisonChartComponent({
                 opacity=".13"
               />
             )}
-            {[domain[0], mode === "minmax" ? 50 : 0, domain[1]]
+            {[
+              domain[0],
+              mode === "raw"
+                ? (domain[0] + domain[1]) / 2
+                : mode === "minmax"
+                  ? 50
+                  : 0,
+              domain[1],
+            ]
               .filter((value, index, all) => all.indexOf(value) === index)
               .map((value) => (
                 <g key={value}>
@@ -406,9 +447,10 @@ function ComparisonChartComponent({
                       {row?.value !== null && row?.value !== undefined
                         ? `${number(row.value)} ${realUnit(entry.data!.unit)}`
                         : "No data"}
-                      {row?.[mode] !== null && row?.[mode] !== undefined
-                        ? ` · ${number(row[mode])}${mode === "standardized" ? " σ" : " /100"}`
-                        : " · unavailable"}
+                      {mode !== "raw" &&
+                        (row?.[mode] !== null && row?.[mode] !== undefined
+                          ? ` · ${number(row[mode])}${mode === "standardized" ? " σ" : " /100"}`
+                          : " · unavailable")}
                     </span>
                   </div>
                 );

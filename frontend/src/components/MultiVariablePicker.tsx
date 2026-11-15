@@ -83,10 +83,10 @@ export function MultiVariablePicker({
   const term = normalize(query.trim());
   const matches = variables.filter(
     (variable) =>
-      !term ||
+      variable.coverageFlag !== false && (!term ||
       normalize(
         `${variable.name} ${variable.id} ${variable.product} ${variable.category ?? ""} ${variable.domain ?? ""} ${variable.unit} ${realUnit(variable.unit)}`,
-      ).includes(term),
+      ).includes(term)),
   );
   const matchingIds = new Set(matches.map((variable) => variable.id));
   const groups = groupVariables(variables);

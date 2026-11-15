@@ -1,5 +1,26 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Configuração de indicadores trusted — implementação preparada em 15/11/2026
+
+Consulta somente de leitura à `earth-trend-data.trusted.tb_indicator_coverage`
+retornou 458 linhas `trusted`: 190 com `valid_flag=true` e 268 com `false`.
+Por decisão do usuário, variáveis com coluna física correspondente e flag falso
+ficam ocultas dos seletores; ausência de linha não significa falso. Falha de
+leitura da configuração impede carregar o catálogo. A disponibilidade mensal
+continua verificada nas tabelas de observação. Consultas de referência do
+assistente usam tabelas `refined`, distintas das observações `trusted`.
+
+Os limites padrão das cores contínuas usam p5–p95 do indicador correspondente,
+convertidos à unidade exibida; percentis ausentes, duplicados ou inválidos usam
+a faixa configurada. As estatísticas do inventário não necessariamente refletem
+a região ou o período selecionados. Código e testes assistidos por OpenAI Codex;
+revisão humana pendente. Publicação e leitura pela identidade da API ainda
+precisam ser verificadas.
+Primeira tentativa de publicação: o catálogo candidato leu o inventário, mas
+o smoke test anterior exigia disponibilidade de todos os 72 indicadores e
+provocou rollback automático. O smoke test foi ajustado para verificar o flag e
+os percentis mantendo as verificações de observações e proveniência trusted.
+
 > **Estado consolidado em 15/11/2026:** o KIPP atende ao núcleo técnico do desafio com dados reais, análise regional/temporal, taxa de mudança e significância reproduzidas. A entrega formal ainda não está comprovada. O checklist atual abaixo substitui o diagnóstico inicial de frontend simulado; os registros incrementais preservam o contexto e a data de cada verificação.
 
 Registro técnico de 15/11/2026: configurações locais para ampliar as extrações de
@@ -872,6 +893,28 @@ e pelo bundle público `index-DZtDWBmn.js`, idêntico ao validado. Chrome em
 produção confirmou zero variáveis/gráficos e zero consultas de dados de
 variáveis na entrada, com Saved acessível e Save aguardando seleção.
 
+### Explore: Default na unidade original — 15/11/2026
+
+OpenAI Codex assistiu a visão Default com uma variável aplicada em Explore:
+valores mensais regionais antes da normalização do gráfico, unidade do produto,
+reta sazonal e taxa/p correspondentes a `trends.raw`, já retornados pela API.
+Não significa dado bruto sem agregação/QA. Domínio vertical usa valores e reta,
+com margem inclusive para séries constantes; lacunas continuam vazias.
+Default fica desabilitado com mais de uma variável aplicada, mesmo ocultando
+curvas. Adicionar outra variável à visão nativa ativa Historical deviation;
+uma escala normalizada já escolhida permanece. Voltar a uma variável em Explore
+restaura Default. O padrão da aba Compare continua normalizado.
+Visão escolhida permanece em salvos/links; registros legados são aceitos.
+O modo nativo não é enviado no campo opcional do contrato legado do assistente,
+que aceita somente os modos normalizados. Sem alteração no backend ou nas bases.
+85 testes frontend e build aprovados. Chrome isolado com fixtures sintéticas
+identificadas, calculadas por `transformComparison` existente, conferiu as três
+representações, taxa/p, ausência de novas consultas ao alternar, estados do botão,
+persistência e 1440/390/360 px sem overflow. Não são observações ou descobertas.
+A API pública tinha 72 indicadores com meses, mas todos `available=false` na
+verificação; a interface com dados reais não pôde ser validada nesse estado.
+Disponibilidade real não foi forçada. Publicação do frontend em verificação.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 
@@ -983,3 +1026,59 @@ O ajuste sazonal da API e suas estatisticas permanecem como fonte dos valores.
 
 Validacao local com Node.js 24, testes frontend e builds frontend/API.
 Conferencia visual em navegador pendente. Alteracao local, sem publicacao.
+
+
+## Evidência incremental — Events, estudo visual local (15/11/2026)
+
+OpenAI Codex assistiu uma proposta local para análise humana: capas vetoriais
+conceituais por categoria (incêndio, El Niño, furacão e tsunami), ícones Lucide
+nas variáveis, cores decorativas, busca e filtros por fenômeno. As ilustrações
+SVG são geradas em código no componente `EventArtwork.tsx`, identificadas como
+"CONCEPTUAL ILLUSTRATION"; não são imagens de satélite, medições, trajetórias ou
+áreas atingidas. Lucide React já era dependência do projeto (licença ISC).
+Não foram incorporadas fotografias nem fontes externas de imagens.
+
+A tela mantém os eventos/fontes históricos da API, meses sobrepostos e unidades,
+variáveis sem cobertura desabilitadas e as limitações de interpretação. Não
+altera dados, cálculos de tendência, significância ou causalidade. Datas e unidades
+da tela Events são apresentadas em inglês; o restante do checkout não foi traduzido
+por esta proposta.
+
+Preview em `http://localhost:5182/`, aba Events, usando o proxy público já existente.
+Navegador com catálogo real confirmou filtros, busca sem resultado, caso Tōhoku
+sem camada apropriada e ações desabilitadas, abertura de temperatura do Pantanal
+em Explore e contexto Beryl em Compare. Layouts 1440, 390 e 360 px sem overflow
+horizontal; limitações expansíveis conferidas. 69 testes frontend e builds
+frontend/backend aprovados com Node.js 24. Captura de revisão local fora do Git.
+
+Estudo visual local para discussão, sem commit, push, publicação ou alteração da
+página Project. Revisão humana da proposta, investigação científica final e
+submissão permanecem pendentes; não declara elegibilidade ou conformidade completa.
+
+Preparação de publicação autorizada em 15/11/2026: grade com altura uniforme
+para todos os cards e ações alinhadas na base. Integração limitada aos três
+arquivos de Events e a este registro, sobre a main atual. Deploy pendente.
+
+Validação sobre a main `a24acb8`: 85 testes frontend e builds frontend/backend
+aprovados em Node.js24. Navegador mediu os sete cards disponíveis com767,98px
+e ações com o mesmo deslocamento vertical no desktop1440px. Incluindo o oitavo
+caso sem cobertura, os oito cards mediram955,33px no mobile390px, sem overflow.
+
+
+### Publicação de Events conferida — 15/11/2026
+
+Versão visual publicada na main pelo commit `aeb92f0`, exclusivamente com Events,
+capas vetoriais, CSS e registro deste trabalho. [Deploy Vercel aprovado](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/7sz2h1gvPnDAbxBWNwoZgvQz15xo),
+status GitHub/Vercel success. Site público carregou o bundle `index-Da2U7flF.js`.
+Navegador em produção mediu os sete cards com782,48px e ações com o mesmo
+deslocamento685,98px no desktop1440px. Incluindo Tōhoku, os oito cards mediram
+972,83px no mobile390px, sem overflow horizontal ou erros JavaScript registrados.
+85 testes frontend e builds frontend/backend aprovados antes do envio, Node.js24.
+A captura de produção permanece fora do Git. A publicação visual não conclui
+as pendências científicas, revisão humana e submissão da página Project.
+
+
+Integracao dos controles do Trend Lab em 15/11/2026: conflito de anexos no
+checklist resolvido preservando os registros do Trend Lab e Events. Main
+`19dc594` integrada com 87 testes frontend e builds frontend/API aprovados
+em Node.js 24. Conta `Marcelo-Kenji-Noda` autorizada pelo usuario nesta sessao.

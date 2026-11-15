@@ -69,5 +69,6 @@ GRANT SELECT ON TABLE `earth-trend-data`.`trusted`.`tb_sea_ice_antarctic` TO `ki
 GRANT SELECT ON TABLE `earth-trend-data`.`trusted`.`tb_sea_ice_concentration_antarctic` TO `kipp-earth-api@kipp-space-apps-2026.iam.gserviceaccount.com`;
 
 -- Explicit reviewed reference sources; observations never fall back to refined.
+GRANT SELECT ON TABLE `earth-trend-data`.`trusted`.`tb_indicator_coverage` TO `kipp-earth-api@kipp-space-apps-2026.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_dim_indicators` TO `kipp-earth-api@kipp-space-apps-2026.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_trend_merra2_ts` TO `kipp-earth-api@kipp-space-apps-2026.iam.gserviceaccount.com`;
