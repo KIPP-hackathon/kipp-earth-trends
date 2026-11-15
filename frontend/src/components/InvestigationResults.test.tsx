@@ -94,10 +94,60 @@ it("opens on seasonal departures with both indicators in one combined chart", ()
   expect(html).not.toMatch(/(?:NaN|Infinity)/);
 });
 
-it("offers a tour button and explains every view in the tour steps", async () => {
-  const { tourSteps } = await import("./InvestigationTour");
-  expect(render()).toContain("Take a tour");
-  const views = tourSteps(true).flatMap((s) => (s.view ? [s.view] : []));
-  expect(views).toEqual(["Anomalies", "Trend", "Relationships"]);
-  expect(tourSteps(false)[3].body.join(" ")).toContain("second indicator");
+it("guides from setup through every result view, waiting for each choice", async () => {
+  const { trendLabTourSteps } = await import("./trendLabTour");
+  const none = { area: false, indicators: false, period: false };
+  const all = { area: true, indicators: true, period: true };
+  const kept: string[] = [];
+  const steps = (chosen: typeof none, hasResults: boolean) =>
+    trendLabTourSteps({
+      hasResults,
+      hasSecond: true,
+      loading: false,
+      chosen,
+      current: {
+        area: "Brazil",
+        indicators: "Temperature",
+        period: "all months",
+      },
+      onKeep: (step) => kept.push(step),
+    });
+  expect(
+    steps(none, false)
+      .slice(0, 5)
+      .map((s) => s.id),
+  ).toEqual(["welcome", "area", "indicators", "period", "run"]);
+  expect(steps(none, false).flatMap((s) => (s.view ? [s.view] : []))).toEqual([
+    "Anomalies",
+    "Anomalies",
+    "Trend",
+    "Relationships",
+  ]);
+  const at = (id: string, chosen: typeof none, results = false) =>
+    steps(chosen, results).find((s) => s.id === id)!;
+  for (const id of ["area", "indicators", "period"]) {
+    expect(at(id, none).canNext).toBe(false);
+    expect(at(id, all).canNext).toBe(true);
+  }
+  const keep = renderToStaticMarkup(
+    createElement("div", null, at("area", none).actions),
+  );
+  expect(keep).toContain("Keep Brazil");
+  expect(at("run", all).canNext).toBe(false);
+  expect(at("run", all, true).canNext).toBe(true);
+  expect(at("run", all).actions).toBeUndefined();
+});
+
+it("offers a results tour entry only when a handler is provided", () => {
+  expect(render()).not.toContain("Tour the results");
+  const html = renderToStaticMarkup(
+    createElement(InvestigationResults, {
+      data,
+      regionName: "Synthetic QA box",
+      onGuide: () => {},
+      onTour: () => {},
+    }),
+  );
+  expect(html).toContain("Tour the results");
+  expect(html).toContain('class="trend-provenance trend-data-methods"');
 });
