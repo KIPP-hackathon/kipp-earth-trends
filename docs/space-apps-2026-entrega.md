@@ -72,6 +72,34 @@ Preparação para publicação: release isolado sobre `main` `ae24cf0`, branch
 os builds aprovados em Node.js 24. O usuário autorizou explicitamente `c0ffex`
 para esta publicação após a conferência de identidade; autoria Git pessoal do
 projeto preservada. Verificação de produção será registrada após o pipeline.
+## Correção local — extensão gráfica do Trend Lab (15/11/2026)
+
+OpenAI Codex assistiu a reconexão dos controles Project ahead/Explore past change
+ao gráfico da investigação sazonal. O domínio inclui o ponto B, com marcadores
+A/B, divisor do último mês válido e extensão âmbar tracejada quando B ultrapassa
+os dados. Mantidos cálculo sazonal, proveniência, inferência, exportações e aviso
+de extrapolação linear sem previsão. Não são geradas observações futuras nem
+intervalos de previsão. Implementação isolada na branch `fix/trend-ahead-chart`,
+preservando o checkout original com alterações locais.
+
+Node.js 24: 88 testes frontend e builds frontend/backend aprovados. Três novos
+testes de regressão conferem extensão em dois indicadores, último mês válido
+anterior ao fim solicitado e ausência de extensão quando não há ajuste.
+Chromium conferiu o componente com replay de dados reais já medidos do Pantanal:
+duração de 12/60 meses, troca histórica/projetada, independência dos indicadores,
+persistência ao mudar de vista e ausência de extensão em anomalias/relações.
+1440/390/360 px sem overflow horizontal ou exceções JavaScript; marcadores dentro
+do SVG e capturas inspecionadas. Replay focado no componente, sem nova consulta
+científica ou validação integral da API publicada. Evidências locais em
+`/tmp/kipp-ahead-browser-check.json` e `/tmp/kipp-ahead-*.png` (fora do Git).
+Preview local em `http://localhost:5198/`. Sem publicação ou submissão.
+
+Preparação autorizada para publicação: rebase sobre main `7d3e1ae`, preservando
+o TrendChart restaurado em `7282ead` e as mudanças recentes de seletores/fontes.
+Integração mantém estado dos controles entre vistas e restaura gráfico da fonte
+quando não há ajuste. 90 testes frontend e ambos os builds aprovados em Node.js 24.
+Conta efetiva `c0ffex`, conforme autorização anterior da sessão; autoria pessoal
+Lucas Henrique preservada. Conferência final da publicação pendente.
 
 ## Configuração de indicadores trusted — implementação preparada em 15/11/2026
 
