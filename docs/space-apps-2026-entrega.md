@@ -23,7 +23,15 @@ do intervalo sem loading no cartão e sem oscilação de altura. Na verificaçã
 final em 1440px, curvas usam 586px de largura e 160px de altura; tabela dispõe
 de aproximadamente 147px. Cartão termina a 11px da borda inferior, dentro do
 padding do painel. Sem erros de página/overflow horizontal nas checagens;
-sem teste em iPhone físico. Publicação em acompanhamento; assistência IA
+sem teste em iPhone físico.
+Publicado em `44fb990`: [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43756385917)
+e Vercel concluíram com sucesso; ambos servem `index-BxUk58TO.js`.
+Verificação pública no WebKit repetiu quatro meses com cartão fixo em 237px;
+Chromium repetiu com oito variáveis e cartão fixo em 657px. Na consulta principal,
+as oito fontes retornaram sem erro. Durante alterações rápidas de período e
+checagens concorrentes ocorreram respostas parciais `UPSTREAM_BUSY` por limite
+de capacidade; essa condição permanece reportada pela UI, sem inventar dados.
+Estes ajustes visuais não aumentam a capacidade do Warehouse. Assistência IA
 registrada nesta entrada.
 ## Assistente no Trend Lab — 15/11/2026
 
