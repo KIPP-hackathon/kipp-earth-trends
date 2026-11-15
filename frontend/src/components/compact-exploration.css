@@ -524,3 +524,33 @@
 .layer-cascade { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .layer-cascade > label { min-width: 0; }
 .layer-variable-select { width: 100%; max-width: 100%; overflow: hidden; }
+/* Reserve an outside readout line so hover never changes the playback position. */
+.globe-probe-slot { height: 40px; flex: 0 0 40px; overflow: auto; overscroll-behavior: contain; }
+.globe-probe-readout { margin: 0; padding: 5px 0; font-size: 11px; line-height: 1.5; }
+.exploration-map-column { min-width: 0; }
+.comparison-charts { display: grid; gap: 12px; min-height: 0; }
+@media (min-width: 1000px) {
+  #panel-explore .real-panel.is-overview { --explore-content-height: clamp(620px, calc(100dvh - 260px), 900px); }
+  #panel-explore .real-panel.is-overview > .exploration-map-column {
+    grid-column: 2; grid-row: 3; height: var(--explore-content-height);
+    display: flex; flex-direction: column; gap: 10px; min-height: 0;
+  }
+  #panel-explore .real-panel.is-overview > .comparison-map-controls,
+  #panel-explore .real-panel.is-overview > .real-series-comparison {
+    grid-row: 3; height: var(--explore-content-height); max-height: none; min-height: 0; align-self: stretch;
+  }
+  #panel-explore .exploration-map-column > .real-globe-container { flex: 1; min-height: 0; }
+  #panel-explore .exploration-map-column .real-globe { height: 100%; display: flex; flex-direction: column; position: relative; }
+  #panel-explore .exploration-map-column .real-globe-scene { flex: 1; min-height: 0; }
+  #panel-explore .exploration-map-column .real-globe-viewport { height: 100%; }
+  #panel-explore .exploration-map-column .real-globe-actions { flex-shrink: 0; }
+  #panel-explore .exploration-map-column .real-wind-note { flex-shrink: 0; max-height: 44px; overflow: auto; margin: 4px 0; }
+  #panel-explore .exploration-map-column .globe-assets-loading { position: absolute; top: 10px; left: 10px; }
+  #panel-explore .exploration-map-column > .real-time-controls { flex-shrink: 0; margin: 0; }
+  #panel-explore .real-series-comparison .comparison-analysis { height: 100%; min-height: 0; }
+  #panel-explore .comparison-charts { flex: 1; min-height: 0; grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  #panel-explore .comparison-charts .comparison-chart { min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  #panel-explore .comparison-charts .comparison-plot { flex: 0 0 clamp(90px, 12dvh, 135px); min-height: 90px; }
+  #panel-explore .comparison-charts .runtime-trend-results { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  #panel-explore .comparison-charts .runtime-trend-table-scroll { flex: 1; min-height: 0; max-height: none; }
+}

@@ -50,14 +50,14 @@ function TrendResultsComponent({
       </p>
       <div className="runtime-trend-table-scroll">
         <table>
-          <caption>
+          <caption className="sr-only">
             Trend and significance ·{" "}
             {mode === "raw"
               ? `original values · ${nativeUnit}`
               : mode === "standardized"
                 ? "historical deviation"
                 : "scale 0–100"}{" "}
-            · {familySize} selected-area tests
+            · {familySize} global/regional tests
           </caption>
           <thead>
             <tr>

@@ -84,7 +84,7 @@ export function GlobeSurface({
   const canvas = useRef<HTMLCanvasElement>(null);
   const draw = useRef<(() => void) | null>(null);
   const center = useRef([longitude, latitude]);
-  const pointScale = useRef<[number, number]>(viewportMode ? [320 / 270 / zoom * viewportAspect, 320 / 270 / zoom] : [1, 1]);
+  const pointScale = useRef<[number, number]>(viewportMode ? [320 / 270 / zoom * Math.max(1, viewportAspect), 320 / 270 / zoom * Math.max(1, 1 / viewportAspect)] : [1, 1]);
   const updateField = useRef<(() => void) | null>(null);
   const currentField = useRef({ frame, layers, showField, colorRange });
   const failure = useRef(onUnavailable);
@@ -401,7 +401,7 @@ export function GlobeSurface({
     center.current = [longitude, latitude];
     // In viewport mode the 270-unit globe radius is projected into a 640-unit
     // window, keeping raster and SVG geometry aligned without magnifying a bitmap.
-    pointScale.current = viewportMode ? [320 / 270 / zoom * viewportAspect, 320 / 270 / zoom] : [1, 1];
+    pointScale.current = viewportMode ? [320 / 270 / zoom * Math.max(1, viewportAspect), 320 / 270 / zoom * Math.max(1, 1 / viewportAspect)] : [1, 1];
     draw.current?.();
   }, [longitude, latitude, viewportMode, zoom, viewportAspect]);
   useEffect(() => {

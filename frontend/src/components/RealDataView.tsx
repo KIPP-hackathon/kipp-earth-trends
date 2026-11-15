@@ -479,6 +479,7 @@ function SelectedRealPanel({
           }}
         />
       </div>
+      <div className="exploration-map-column">
       <div className="real-globe-container" aria-busy={frame.loading || buffering}>
         <RealGlobe
           frame={frame.data}
@@ -498,11 +499,9 @@ function SelectedRealPanel({
           <LoadingStatus
             className={`real-loading ${frame.data ? "has-frame" : ""}`}
           >
-            {frame.loading
-              ? `Loading ${realMonth(month)}…`
-              : bufferProgress
-                ? `Buffering playback · ${bufferProgress.ready}/${bufferProgress.total} months ready…`
-                : "Preparing next months…"}
+            {frame.loading ? `Loading ${realMonth(month)}…` : bufferProgress
+              ? `Buffering playback · ${bufferProgress.ready}/${bufferProgress.total} months ready…`
+              : "Loading…"}
             {frame.data &&
               frame.data.month !== month &&
               ` Showing ${realMonth(frame.data.month)}.`}
@@ -568,7 +567,6 @@ function SelectedRealPanel({
             {[0.5, 1, 2, 4].map(speed => <option key={speed} value={speed}>{speed}×</option>)}
           </select>
         </label>
-        {playing && buffering && <span className="real-playback-buffering" role="status">Loading next month…</span>}
         <MonthPicker
           id={`${id}-month`}
           label="Selected month"
@@ -576,6 +574,7 @@ function SelectedRealPanel({
           months={months.map((entry) => entry.month)}
           onChange={selectMonth}
         />
+      </div>
       </div>
       {overview && !spatialBbox && (
         <p className="real-notice">
