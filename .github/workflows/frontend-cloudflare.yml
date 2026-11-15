@@ -1,0 +1,65 @@
+name: Frontend Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-cloudflare.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Preserve hackathon submission freeze
+        env:
+          # Provisional America/Sao_Paulo deadline documented in AGENTS.md.
+          KIPP_FREEZE_AT: "2026-11-16T02:59:00Z"
+        run: |
+          node --input-type=module -e 'if(Date.now() >= Date.parse(process.env.KIPP_FREEZE_AT)) { console.error("Production is frozen for hackathon review. Publish subsequent work to a separate Worker and URL."); process.exit(1); }'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:cloudflare
+      - name: Deploy Worker and public assets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_SEND_METRICS: "false"
+        run: npm run deploy:cloudflare
+      - name: Verify deployed application and private backend
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const origin = 'https://kipp-earth-trends.lucas-henrique-tai.workers.dev';
+          const site = await fetch(origin, { signal: AbortSignal.timeout(15000) });
+          assert.equal(site.status, 200);
+          assert((await site.text()).includes('KIPP'));
+          const response = await fetch(`${origin}/api/earth/v1/catalog`, { signal: AbortSignal.timeout(60000) });
+          assert.equal(response.status, 200);
+          const catalog = await response.json();
+          assert.equal(catalog.provider, 'databricks-sql');
+          assert.equal(catalog.simulated, false);
+          assert(catalog.variables.length > 0);
+          const direct = await fetch('https://kipp-earth-api-adsg5m6pua-uk.a.run.app/v1/catalog', { signal: AbortSignal.timeout(15000) });
+          assert([401, 403].includes(direct.status));
+          console.log('Application and real catalog available; anonymous Cloud Run blocked.');
+          JS

@@ -5,8 +5,14 @@
 OpenAI Codex assistiu a preparação de uma segunda hospedagem solicitada pelo
 usuário, preservando a Vercel, Cloud Run privado, fonte Warehouse e cálculos.
 [Configuração, identidade dedicada, limites e operação](cloudflare-deploy.md).
-95 testes frontend, build frontend e verificações locais do Worker aprovados;
-publicação e DNS em andamento. Os brilhos decorativos em forma de “+” foram
+95 testes frontend, builds frontend/API e verificações locais do Worker aprovados.
+Cloudflare publicada com dados reais em [workers.dev](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/).
+Catálogo, frame e comparação regional HTTP 200; origem externa do assistente
+e Cloud Run anônimo rejeitados (403). Proximidade `gcp:us-east4` aceita,
+com `cf-placement: remote-IAD`. Credencial de invocação somente em secret
+servidor; token de deploy limitado em secret GitHub, ambos autorizados pelo
+usuário. Workflow automático em verificação e domínio personalizado aguardando
+DNS da Spaceship. Sem upgrade pago. Os brilhos decorativos em forma de “+” foram
 removidos do fundo, preservando estrelas em pontos e o controle de zoom.
 Não altera conclusões científicas nem comprova submissão da página Project.
 

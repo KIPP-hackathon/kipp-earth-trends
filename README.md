@@ -4,6 +4,9 @@ Repositório do time KIPP para explorar o desafio **Be An Earth System Trend Det
 
 **[Abrir o protótipo publicado](https://kipp-earth-trends-lab.vercel.app/)**
 
+[Versão Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/) ·
+[operação e deploy nas duas hospedagens](docs/cloudflare-deploy.md).
+
 ## Estrutura
 
 - [`frontend/`](frontend/): protótipo React, assets, testes e configuração de publicação na Vercel.

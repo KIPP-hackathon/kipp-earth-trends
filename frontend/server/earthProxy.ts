@@ -120,9 +120,17 @@ export function createEarthHandler(
       const result = await fetch(`${upstreamOrigin}${path}?${query}`, {
         method: request.method,
         headers,
-        redirect: "error",
+        redirect: "manual",
         signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())),
       });
+      if (
+        result.status >= 300 &&
+        result.status < 400 &&
+        result.status !== 304
+      ) {
+        await result.body?.cancel();
+        return fail(502, "UPSTREAM_REDIRECT_BLOCKED");
+      }
       if (result.status === 401 || result.status === 403)
         return fail(503, "BACKEND_AUTH_UNAVAILABLE");
       response.statusCode = result.status;

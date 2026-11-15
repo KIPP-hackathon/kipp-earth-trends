@@ -86,7 +86,7 @@ export function createAssistantHandler(
       const token = await cloudRunIdentityToken();
       const result = await fetch(`${cloudRunOrigin}/v1/assistant`, {
         method: "POST",
-        redirect: "error",
+        redirect: "manual",
         signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())),
         headers: {
           authorization: `Bearer ${token}`,
@@ -95,6 +95,10 @@ export function createAssistantHandler(
         },
         body,
       });
+      if (result.status >= 300 && result.status < 400) {
+        await result.body?.cancel();
+        return fail(502, "UPSTREAM_REDIRECT_BLOCKED");
+      }
       if ([401, 403].includes(result.status))
         return fail(503, "ASSISTANT_AUTH_UNAVAILABLE");
       response.statusCode = result.status;

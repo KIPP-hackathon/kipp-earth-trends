@@ -7,6 +7,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": false,
+  "placement": { "region": "gcp:us-east4" },
+  "vars": {
+    "WORKER_ORIGIN": "https://kipp-earth-trends.lucas-henrique-tai.workers.dev"
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
