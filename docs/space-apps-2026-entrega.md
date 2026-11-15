@@ -527,7 +527,7 @@ Séries curtas/lacunas/variância degenerada não recebem significância inventa
 tendências contém bbox, datas, unidades, fontes e todos os testes selecionados.
 47checks existentes de frontend,6de autenticação e builds Node24 aprovados.
 Revisão independente e navegador conferiram clipping SVG, ajuste Holm,
-exportação e layout móvel. Publicação em produção será registrada após o deploy.
+exportação e layout móvel. Publicação6c97ac0 verificada por Vercel (bundle index-B8EFD-eQ.js), CI43680007057 aprovado e Cloud Run kipp-earth-api-00006-hiz a100%. API de produção conferida contra cálculo independente; acesso anônimo direto403. A conexão do navegador parou durante a conferência visual final; evidência local e validação API/artefatos publicadas são distintas.
 Esta análise condicional não estabelece causalidade, previsão ou normalidade
 climática nem comprova submissão/aderência completa ao desafio. Revisão
 científica humana do caso, recursos NASA e submissão permanecem separados.

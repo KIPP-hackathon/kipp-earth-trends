@@ -47,7 +47,9 @@ temporary numerical comparison and browser checks still run before publishing.
       fix important issues and verify.
 - [x] Browser-check both modes/scopes with real sources, short-source labels,
       map independence and responsive layout.
-- [ ] Commit/publish latest main, follow CI and verify production/private API;
+- [x] Commit/publish latest main, follow CI and verify production/private API;
       update method/evidence/AI record without unrelated root edits.
 
 Execution notes: managed worktree at origin/main f7de47b, branch feat/trend-significance; root active brand/architecture work untouched. User-authorized hackathon workflow continues without new persistent tests. OLS/HAC and p/CI independently matched statsmodels/SciPy for five seasonal AR fixtures and six real-temperature fits. Reviewer found SVG clip outside SVG and missing study coordinates in Trend CSV; fixed, verified real SVG namespace and downloaded CSV with exact bbox/request dates and full six-test family (including hidden sources). Local UI also verified both modes, surface temperature33months as descriptive-only, and390px width. Existing47frontend and6auth checks and both Node24 builds passed.
+
+Production:6c97ac0; CI43680007057 success; Vercel bundle index-B8EFD-eQ.js; Cloud Run kipp-earth-api-00006-hiz100%. API matched independent p/slope references and direct anonymous access403. Final production browser unavailable after initial new UI loaded; recorded verification limitation. Team readability805d694 was merged, preserving both AI entries. Effective Git identity was isolated in worktree config (Luckstai / Lucas Henrique / lucas.henrique.tai@gmail.com), without replacing the root checkout’s concurrent identity.

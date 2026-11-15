@@ -77,7 +77,8 @@ Synthetic fixtures are software checks, not observations. Temporary guard checks
 covered short/gapped/constant/perfect/duplicate/missing data.
 
 Real input: `earth-trend-data.trusted.tb_merra2_t10m`, MERRA-2 M2TMNXSLV5.12.4,
-air temperature at10m (°C),2000-01–2026-09; regional bbox
+air temperature at10m (°C), atmospheric reanalysis rather than in-situ
+thermometer observations,2000-01–2026-09; regional bbox
 `-73.98614,-33.76766,-34.73135,5.24412` (Brazil's rectangular extent, not a
 country polygon mask). Source monthly means are weighted by cos(latitude) and
 valid coverage; no causal claim. Independent calculation on the API's real data:
@@ -99,7 +100,19 @@ temperature as descriptive only, unchanged six-test family after hiding a curve,
 and a390px viewport without horizontal overflow. Its data came from actual
 public Warehouse API reads with the new local postprocessing helper. Downloaded
 Trend CSV retained all six selected tests, exact coordinates/period and matched
-statsmodels' Holm correction. Production evidence is recorded after publication.
+statsmodels' Holm correction. Production release6c97ac0 is published. Vercel serves bundle
+`index-B8EFD-eQ.js`/`index-HeWjSp1n.css`; Backend CI43680007057 succeeded,
+including all-source/data checks and the321-month runtime trend check. Cloud Run
+`kipp-earth-api-00006-hiz` is ready at100% in `kipp-space-apps-2026`.
+The production comparison API's six fitted results matched the independently
+verified source calculations (slope tolerance1e-8, p tolerance1e-11); direct
+anonymous Cloud Run access returned403. Published bundle exact-credential and
+token-pattern checks passed. The initial production browser loaded the new
+trend tables, but the browser connection stopped responding during the final
+visual review, including attempts to recover its inventory. The final combined
+large-font layout was therefore not visually certified in production; earlier
+local functional/mobile review and production API/artifact checks are distinct.
+No claim of successful final browser verification is made.
 
 OpenAI Codex assisted implementation/docs; an independent code review identified
 SVG clip placement and missing CSV study coordinates. Both were fixed and
