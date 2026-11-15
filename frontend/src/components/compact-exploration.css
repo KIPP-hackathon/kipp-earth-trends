@@ -194,6 +194,8 @@
   grid-template-columns: 1fr;
   gap: 12px;
   width: min(300px, calc(100vw - 48px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .exploration-period-done {
   justify-self: end;

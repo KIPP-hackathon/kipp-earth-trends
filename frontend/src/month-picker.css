@@ -103,3 +103,10 @@
   left: auto;
   right: 0;
 }
+
+/* A calendar inside the period dialog participates in its scrollable layout. */
+.month-picker-inline .month-calendar {
+  position: static;
+  width: 100%;
+  transform: none;
+}

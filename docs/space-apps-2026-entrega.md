@@ -1,5 +1,20 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Toque e seletores no iPhone — 15/11/2026
+
+OpenAI Codex assistiu a correção de interação solicitada pelo usuário:
+seletores de variáveis e país focam o diálogo, abrindo o teclado apenas quando
+a busca é tocada. Calendários do período integram a área rolável do diálogo;
+perda de foco sem destino no Safari não cancela o toque no mês. Gestos do globo
+são contidos no viewport HTML, preservando a rolagem fora dele.
+
+Validação local com Node.js 24: 102 testes frontend e build aprovados.
+WebKit com emulação de iPhone e Chromium com emulação Android confirmaram
+busca manual e mudança de início/fim, inclusive ano. Gesto nativo via protocolo
+Chromium girou o globo sem mudar `scrollY`; evento de toque fora do globo
+permanece livre. Sem teste em iPhone físico. Publicação em acompanhamento;
+sem alteração de dados ou métodos científicos.
+
 ## Publicação do catálogo ampliado e IMERG — 15/11/2026
 
 Alterações publicadas na `main` em `25802bb`, com verificação de deploy

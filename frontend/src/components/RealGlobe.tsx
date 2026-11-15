@@ -92,6 +92,7 @@ export function RealGlobe({
   const [probe, setProbe] = useState<[number, number] | null>(null);
   const id = useId();
   const svgRef = useRef<SVGSVGElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportPixels, setViewportPixels] = useState(440);
   const live = useRef({ view, onView });
   live.current = { view, onView };
@@ -105,7 +106,14 @@ export function RealGlobe({
     });
   useEffect(() => {
     const svg = svgRef.current;
-    if (!svg) return;
+    const viewport = viewportRef.current;
+    if (!svg || !viewport) return;
+    // Safari also needs the HTML surface to own touch gestures. Keep page
+    // scrolling available everywhere outside this viewport.
+    const preventPagePan = (event: TouchEvent) => {
+      if (event.cancelable) event.preventDefault();
+    };
+    viewport.addEventListener("touchmove", preventPagePan, { passive: false });
     const observer = new ResizeObserver(() =>
       setViewportPixels(svg.getBoundingClientRect().width || 440),
     );
@@ -134,6 +142,7 @@ export function RealGlobe({
     return () => {
       observer.disconnect();
       svg.removeEventListener("wheel", wheel);
+      viewport.removeEventListener("touchmove", preventPagePan);
     };
   }, []);
   const labels = useMemo(
@@ -295,7 +304,7 @@ export function RealGlobe({
       <div
         className={`real-globe-scene ${drawing ? "is-drawing" : ""}${view.zoom > 1.18 ? " is-zoomed" : ""}`}
       >
-        <div className="real-globe-viewport">
+        <div className="real-globe-viewport" ref={viewportRef}>
           <svg
             className="real-globe-base"
             viewBox="0 0 640 640"

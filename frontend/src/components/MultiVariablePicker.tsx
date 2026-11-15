@@ -74,7 +74,7 @@ export function MultiVariablePicker({
   };
   useEffect(() => {
     if (!open) return;
-    search.current?.focus();
+    dialog.current?.focus({ preventScroll: true });
     const outside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
@@ -165,6 +165,7 @@ export function MultiVariablePicker({
           className={`multi-variable-popover${rightAligned ? " align-right" : ""}`}
           ref={dialog}
           role="dialog"
+          tabIndex={-1}
           id={`${id}-dialog`}
           aria-label="Choose investigation variables"
         >

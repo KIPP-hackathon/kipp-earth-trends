@@ -29,6 +29,9 @@
 /* Share one CSS viewport between the HTML canvas and SVG interaction layer.
    Avoid composited canvas content inside SVG foreignObject on mobile WebKit. */
 .real-globe-viewport {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
   position: relative;
   z-index: 1;
   isolation: isolate;

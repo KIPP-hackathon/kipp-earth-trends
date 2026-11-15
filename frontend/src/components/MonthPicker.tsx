@@ -19,12 +19,14 @@ export function MonthPicker({
   value,
   months,
   onChange,
+  inline = false,
 }: {
   id: string;
   label: string;
   value: string;
   months: string[];
   onChange: (month: string) => void;
+  inline?: boolean;
 }) {
   const available = [
     ...new Set(months.filter((month) => monthPattern.test(month))),
@@ -42,7 +44,7 @@ export function MonthPicker({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const monthButtons = useRef<(HTMLButtonElement | null)[]>([]);
-  const calendar = usePopoverPosition(open);
+  const calendar = usePopoverPosition(open && !inline);
   const close = (restoreFocus: boolean) => {
     setOpen(false);
     if (restoreFocus) trigger.current?.focus();
@@ -62,13 +64,13 @@ export function MonthPicker({
     (focus && !focus.disabled
       ? focus
       : monthButtons.current.find((button) => button && !button.disabled)
-    )?.focus();
+    )?.focus({ preventScroll: true });
   }, [open, year]);
   useEffect(() => setOpen(false), [value]);
   const yearIndex = years.indexOf(year);
   return (
     <div
-      className="month-picker"
+      className={`month-picker${inline ? " month-picker-inline" : ""}`}
       ref={root}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -78,8 +80,10 @@ export function MonthPicker({
         }
       }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          setOpen(false);
+        // Safari may blur a button with no next focus target during a tap.
+        // Outside pointerdown still dismisses the calendar in that case.
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) setOpen(false);
       }}
     >
       <span className="month-picker-label" id={`${id}-label`}>
