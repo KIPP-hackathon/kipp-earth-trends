@@ -58,6 +58,7 @@ export function GlobeSurface({
   layers,
   showField = false,
   onUnavailable,
+  onReady,
   colorRange,
   viewportZoom,
   viewportAspect = 1,
@@ -69,6 +70,7 @@ export function GlobeSurface({
   layers?: MapLayer[];
   showField?: boolean;
   onUnavailable?: () => void;
+  onReady?: () => void;
   colorRange?: EarthColorRange;
   /** Render the visible 640-unit viewport directly; omitted for the legacy SVG zoom. */
   viewportZoom?: number;
@@ -87,6 +89,8 @@ export function GlobeSurface({
   const currentField = useRef({ frame, layers, showField, colorRange });
   const failure = useRef(onUnavailable);
   failure.current = onUnavailable;
+  const ready = useRef(onReady);
+  ready.current = onReady;
   useEffect(() => {
     const gl = canvas.current?.getContext("webgl", {
       alpha: true,
@@ -111,6 +115,7 @@ export function GlobeSurface({
     const dispose = () => {
       disposed = true;
       image.onload = null;
+      image.onerror = null;
       draw.current = null;
       updateField.current = null;
       sourceTextures.forEach(({ texture }) => gl.deleteTexture(texture));
@@ -384,6 +389,10 @@ export function GlobeSurface({
         .drawImage(image, 0, 0, bitmap.width, bitmap.height);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bitmap);
       draw.current?.();
+      ready.current?.();
+    };
+    image.onerror = () => {
+      if (!disposed) failure.current?.();
     };
     image.src = "/assets/earth-texture.jpg";
     return dispose;

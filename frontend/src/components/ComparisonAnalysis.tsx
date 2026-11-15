@@ -7,6 +7,7 @@ import type {
   EarthVariable,
 } from "../lib/earthApi";
 import { ComparisonChart } from "./ComparisonChart";
+import { LoadingStatus } from "./Loading";
 import { adjustTrendFamily } from "../lib/runtimeTrends";
 import "./comparison-analysis.css";
 
@@ -186,11 +187,10 @@ function ComparisonAnalysisComponent({
           after the API update; reload this page.
         </p>
       )}
-      {available && completed < entries.length && (
-        <p role="status" className="comparison-notice">
-          Loading {entries.length === 1 ? "variable" : `${entries.length} variables`}
-          in one request…
-        </p>
+      {available && active && completed < entries.length && (
+        <LoadingStatus className="comparison-notice">
+          Loading {entries.length} {entries.length === 1 ? "variable" : "variables"} for {region.name}…
+        </LoadingStatus>
       )}
       {entries.some((entry) => entry.error) && (
         <div className="comparison-notice" role="alert">
