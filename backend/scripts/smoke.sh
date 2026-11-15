@@ -24,10 +24,17 @@ assert.equal(data.variables.length, 72, 'All reviewed IDs must remain explicit')
 for (const variable of data.variables) {
   assert.equal(variable.source, 'databricks-sql');
   assert.equal(variable.sourceLayer, 'trusted');
-  assert.equal(variable.available, true, `Trusted source unavailable: ${variable.id}`);
   assert.match(variable.sourceUC, /^earth-trend-data\.trusted\./);
   assert.ok(variable.months.some(m => m.validSamples > 0), `No valid months: ${variable.id}`);
+  if (variable.coverageFlag === false) {
+    assert.equal(variable.available, false, `Flagged indicator selectable: ${variable.id}`);
+    assert.equal(variable.unavailableReason?.code, 'HIDDEN_BY_COVERAGE_FLAG');
+  } else {
+    assert.equal(variable.available, true, `Trusted source unavailable: ${variable.id}`);
+  }
 }
+assert.ok(data.variables.some(v => v.coverageFlag === false), 'Expected hidden inventory indicators');
+assert.ok(data.variables.some(v => v.colorRangeSource === 'indicator_coverage_p5_p95'), 'Expected inventory percentile ranges');
 const temperature = data.variables.find(v => v.id === 'temperature');
 assert.equal(temperature.available, true, 'Confirmed trusted temperature must work');
 assert.equal(temperature.sourceTable, 'earth-trend-data.trusted.tb_merra2_t10m');
