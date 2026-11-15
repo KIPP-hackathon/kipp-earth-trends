@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Investigation } from "../lib/earthApi";
 import { fitLayers, gapTest, type GapBlock } from "../lib/twoLayer";
 import { formatTrendValue, monthFromIndex, trendUnit } from "../lib/trendLab";
+import { useMeasuredWidth } from "../lib/useMeasuredWidth";
 import { ChartInfo } from "./ChartInfo";
 import { LayeredTrend } from "./LayeredTrend";
 import "./two-layer.css";
@@ -10,7 +11,6 @@ const cyan = "#87dbe5";
 const coral = "#f2958a";
 const ink = "#b4c4da";
 const grid = "#a2bfe52b";
-const W = 720;
 const margin = { l: 56, r: 12, t: 18, b: 26 };
 
 const num = (v: number, signed = true) =>
@@ -54,6 +54,8 @@ function Plot({
   bands?: { from: number; to: number; title: string }[];
   unit: string;
 }) {
+  const [ref, measured] = useMeasuredWidth<HTMLDivElement>(720);
+  const W = Math.max(280, measured);
   const all = series.flatMap((s) => s.segments.flat());
   if (!all.length) return null;
   const xs = all.map((p) => p[0]);
@@ -75,79 +77,96 @@ function Plot({
   const yTicks = [0, 1, 2, 3, 4].map((i) => y0 + ((y1 - y0) * i) / 4);
   const path = (run: [number, number][]) =>
     run
-      .map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`)
+      .map(
+        (p, i) =>
+          `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`,
+      )
       .join(" ");
   return (
-    <svg
-      className="layers-plot"
-      viewBox={`0 0 ${W} ${height}`}
-      role="img"
-      aria-label={label}
-    >
-      <title>{label}</title>
-      {yTicks.map((v) => (
-        <g key={v}>
-          <line x1={margin.l} x2={W - margin.r} y1={sy(v)} y2={sy(v)} stroke={grid} />
-          <text x={margin.l - 6} y={sy(v) + 4} textAnchor="end" fill={ink} fontSize="11">
-            {formatTrendValue(Number(v.toPrecision(3)))}
-          </text>
-        </g>
-      ))}
-      <text x={margin.l} y={9} fill={ink} fontSize="10" opacity="0.8">
-        {unit}
-      </text>
-      {bands.map((b) => (
-        <g key={b.from}>
-          <rect
-            x={sx(b.from)}
-            y={margin.t}
-            width={Math.max(1, sx(b.to) - sx(b.from))}
-            height={height - margin.t - margin.b}
-            fill="#a2bfe5"
-            opacity="0.1"
-          >
-            <title>{b.title}</title>
-          </rect>
+    <div ref={ref}>
+      <svg
+        className="layers-plot"
+        viewBox={`0 0 ${W} ${height}`}
+        role="img"
+        aria-label={label}
+      >
+        <title>{label}</title>
+        {yTicks.map((v) => (
+          <g key={v}>
+            <line
+              x1={margin.l}
+              x2={W - margin.r}
+              y1={sy(v)}
+              y2={sy(v)}
+              stroke={grid}
+            />
+            <text
+              x={margin.l - 6}
+              y={sy(v) + 4}
+              textAnchor="end"
+              fill={ink}
+              fontSize="11"
+            >
+              {formatTrendValue(Number(v.toPrecision(3)))}
+            </text>
+          </g>
+        ))}
+        <text x={margin.l} y={9} fill={ink} fontSize="10" opacity="0.8">
+          {unit}
+        </text>
+        {bands.map((b) => (
+          <g key={b.from}>
+            <rect
+              x={sx(b.from)}
+              y={margin.t}
+              width={Math.max(1, sx(b.to) - sx(b.from))}
+              height={height - margin.t - margin.b}
+              fill="#a2bfe5"
+              opacity="0.1"
+            >
+              <title>{b.title}</title>
+            </rect>
+            <text
+              x={(sx(b.from) + sx(b.to)) / 2}
+              y={margin.t + 12}
+              textAnchor="middle"
+              fill={ink}
+              fontSize="10"
+              letterSpacing="0.08em"
+            >
+              HIDDEN
+            </text>
+          </g>
+        ))}
+        {ticks.map((year) => (
           <text
-            x={(sx(b.from) + sx(b.to)) / 2}
-            y={margin.t + 12}
+            key={year}
+            x={sx(year * 12)}
+            y={height - 8}
             textAnchor="middle"
             fill={ink}
-            fontSize="10"
-            letterSpacing="0.08em"
+            fontSize="11"
           >
-            HIDDEN
+            {year}
           </text>
-        </g>
-      ))}
-      {ticks.map((year) => (
-        <text
-          key={year}
-          x={sx(year * 12)}
-          y={height - 8}
-          textAnchor="middle"
-          fill={ink}
-          fontSize="11"
-        >
-          {year}
-        </text>
-      ))}
-      {series.map((s) =>
-        s.segments.map((run, i) => (
-          <path
-            key={`${s.label}-${i}`}
-            d={path(run)}
-            fill="none"
-            stroke={s.color}
-            strokeWidth={s.width}
-            strokeDasharray={s.dash}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            opacity={s.opacity ?? 1}
-          />
-        )),
-      )}
-    </svg>
+        ))}
+        {series.map((s) =>
+          s.segments.map((run, i) => (
+            <path
+              key={`${s.label}-${i}`}
+              d={path(run)}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={s.width}
+              strokeDasharray={s.dash}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              opacity={s.opacity ?? 1}
+            />
+          )),
+        )}
+      </svg>
+    </div>
   );
 }
 
@@ -188,9 +207,14 @@ function SlopeCompare({
   const hi = Math.ceil((hi0 + raw * 0.3) / step) * step;
   const at = (v: number) => `${((v - lo) / (hi - lo)) * 100}%`;
   const ticks: number[] = [];
-  for (let v = lo; v <= hi + step / 2; v += step) ticks.push(Math.abs(v) < step / 1e6 ? 0 : v);
+  for (let v = lo; v <= hi + step / 2; v += step)
+    ticks.push(Math.abs(v) < step / 1e6 ? 0 : v);
   return (
-    <div className="layers-slopes" role="group" aria-label="Trend per decade, both layers">
+    <div
+      className="layers-slopes"
+      role="group"
+      aria-label="Trend per decade, both layers"
+    >
       {rows.map((r) => {
         const crosses = r.fit.ci ? r.fit.ci[0] <= 0 && r.fit.ci[1] >= 0 : null;
         return (
@@ -241,7 +265,9 @@ function SlopeCompare({
             <span
               key={i}
               style={{ left: at(v) }}
-              data-edge={i === 0 ? "start" : i === ticks.length - 1 ? "end" : undefined}
+              data-edge={
+                i === 0 ? "start" : i === ticks.length - 1 ? "end" : undefined
+              }
             >
               {formatTrendValue(Number(v.toPrecision(3)))}
             </span>
@@ -317,7 +343,8 @@ export function TwoLayerRegression({
           <p>
             Layer 1 is the straight-line trend of Y on its own, with
             calendar-month effects removed. Layer 2 fits the same trend while
-            also using X {lag === 0 ? "in the same month" : `${lag} months earlier`}.
+            also using X{" "}
+            {lag === 0 ? "in the same month" : `${lag} months earlier`}.
           </p>
           <p>
             If the trend shrinks in layer 2, part of it moves together with X.
@@ -325,8 +352,8 @@ export function TwoLayerRegression({
             respond to Y.
           </p>
           <p>
-            The gap test hides blocks of months, refits without them, and
-            checks whether the model that includes X predicts them better.
+            The gap test hides blocks of months, refits without them, and checks
+            whether the model that includes X predicts them better.
           </p>
         </ChartInfo>
       </div>
@@ -336,7 +363,10 @@ export function TwoLayerRegression({
 
   if (!fit)
     return (
-      <section className="investigation-layers" aria-label="Two-layer regression">
+      <section
+        className="investigation-layers"
+        aria-label="Two-layer regression"
+      >
         {heading}
         <p className="layers-empty">
           This comparison needs at least 24 common month pairs with two of every
@@ -356,7 +386,9 @@ export function TwoLayerRegression({
     ? fit.withX.ci[0] > 0 || fit.withX.ci[1] < 0
     : null;
   const shareMeaningful = aloneSignificant !== false && share !== null;
-  const helps = test ? test.skill > 0.05 && test.wins > test.blocks.length / 2 : false;
+  const helps = test
+    ? test.skill > 0.05 && test.wins > test.blocks.length / 2
+    : false;
   const adjusted = (month: string, value: number) =>
     value + (offsets.get(month) ?? 0);
   const focusKey = `${lag}:${blockMonths}`;
@@ -364,14 +396,14 @@ export function TwoLayerRegression({
     test &&
     (test.blocks.find(
       (b) => shown?.key === focusKey && b.start === shown.start,
-    ) ?? test.blocks[Math.floor(test.blocks.length / 2)]);
+    ) ??
+      test.blocks[Math.floor(test.blocks.length / 2)]);
   const around = focus
     ? observed
         .flat()
         .filter(
           (p) =>
-            p[0] >= focus.rows[0].t - 36 &&
-            p[0] <= focus.rows.at(-1)!.t + 36,
+            p[0] >= focus.rows[0].t - 36 && p[0] <= focus.rows.at(-1)!.t + 36,
         )
     : [];
   const focusRmse = focus && [
@@ -379,7 +411,11 @@ export function TwoLayerRegression({
     Math.sqrt(blockSse(focus).withX / focus.rows.length),
   ];
 
-  const layerVerdict: { state: "yes" | "no" | "neutral"; title: string; text: string } =
+  const layerVerdict: {
+    state: "yes" | "no" | "neutral";
+    title: string;
+    text: string;
+  } =
     aloneSignificant === false
       ? {
           state: "neutral",
@@ -421,9 +457,15 @@ export function TwoLayerRegression({
       <div className="layers-summary" aria-label="Two-layer summary">
         {[
           { step: "1", name: "Layer test", v: layerVerdict },
-          ...(gapVerdict ? [{ step: "2", name: "Gap test", v: gapVerdict }] : []),
+          ...(gapVerdict
+            ? [{ step: "2", name: "Gap test", v: gapVerdict }]
+            : []),
         ].map(({ step, name, v }) => (
-          <div key={step} className="layers-summary-item" data-evidence={v.state}>
+          <div
+            key={step}
+            className="layers-summary-item"
+            data-evidence={v.state}
+          >
             <span className="layers-summary-step">
               {step} · {name}
             </span>
@@ -532,7 +574,12 @@ export function TwoLayerRegression({
                 <div key={e.label} className="layers-error-row">
                   <span>{e.label}</span>
                   <div className="layers-error-track">
-                    <i style={{ width: `${(e.v / maxRmse) * 100}%`, background: e.color }} />
+                    <i
+                      style={{
+                        width: `${(e.v / maxRmse) * 100}%`,
+                        background: e.color,
+                      }}
+                    />
                   </div>
                   <strong>
                     {num(e.v, false)} <small>{yUnit} RMSE</small>
@@ -557,7 +604,11 @@ export function TwoLayerRegression({
                   <i data-win="false" /> X did not help
                 </span>
               </div>
-              <div className="layers-blocks-strip" role="radiogroup" aria-label="Hidden block to display">
+              <div
+                className="layers-blocks-strip"
+                role="radiogroup"
+                aria-label="Hidden block to display"
+              >
                 {test.blocks.map((b) => {
                   const e = blockSse(b);
                   const win = e.withX < e.time;
@@ -570,7 +621,9 @@ export function TwoLayerRegression({
                       data-win={win}
                       title={`${b.start} – ${b.end}: ${win ? "time + X" : "time only"} had lower error`}
                       aria-label={`${b.start} to ${b.end}, ${win ? "X helped" : "X did not help"}`}
-                      onClick={() => setShown({ key: focusKey, start: b.start })}
+                      onClick={() =>
+                        setShown({ key: focusKey, start: b.start })
+                      }
                     />
                   );
                 })}
@@ -616,13 +669,20 @@ export function TwoLayerRegression({
                       color: cyan,
                       width: 2.2,
                       dash: "5 4",
-                      segments: [focus.rows.map((r) => [r.t, adjusted(r.month, r.time)])],
+                      segments: [
+                        focus.rows.map((r) => [r.t, adjusted(r.month, r.time)]),
+                      ],
                     },
                     {
                       label: "withX",
                       color: coral,
                       width: 2.2,
-                      segments: [focus.rows.map((r) => [r.t, adjusted(r.month, r.withX)])],
+                      segments: [
+                        focus.rows.map((r) => [
+                          r.t,
+                          adjusted(r.month, r.withX),
+                        ]),
+                      ],
                     },
                   ]}
                 />
@@ -638,8 +698,8 @@ export function TwoLayerRegression({
           </>
         ) : (
           <p className="layers-empty">
-            Not enough months remain after hiding blocks of {blockMonths} months.
-            Try a shorter block or a longer period.
+            Not enough months remain after hiding blocks of {blockMonths}{" "}
+            months. Try a shorter block or a longer period.
           </p>
         )}
       </div>
