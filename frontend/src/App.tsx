@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
   BookOpen,
+  Copy,
   Earth,
   ExternalLink,
   RefreshCw,
@@ -443,6 +444,30 @@ function App() {
       latitude: event.latitude,
     });
     showTab(compare ? "compare" : "explore");
+  };
+  const copyComparisonPanel = (from: PanelSide, to: PanelSide) => {
+    // Read the live snapshot: the summary state does not update every month.
+    const source = comparison
+      .getContext("compare", version.current, true)
+      .panels.find((panel) => panel.side === from);
+    if (!source?.selectedMonth || source.layers?.length === 0) return;
+    markChanged();
+    const nonce = ++commandNonce.current;
+    comparison.registerRegion(source.region);
+    comparison.setPreset(to, {
+      variable: source.variable,
+      month: source.selectedMonth,
+      start: source.start,
+      end: source.end,
+      region: source.region.id,
+      comparisonMode: source.comparisonMode,
+      ...(source.layers ? { layers: structuredClone(source.layers) } : {}),
+      nonce,
+    });
+    comparison.setPlaybackCommands((previous) => ({
+      ...previous,
+      [to]: { playing: false, nonce },
+    }));
   };
   const getInvestigationView = (): InvestigationView | null => {
     const tab = activeTab.current;
@@ -993,9 +1018,14 @@ function App() {
             detail="Loading real variables and study areas…"
           />
         )}
-        {isExploration && location.status === "locating" && catalog.data && config.data && (
-          <LoadingStatus>Finding your country… You can keep exploring.</LoadingStatus>
-        )}
+        {isExploration &&
+          location.status === "locating" &&
+          catalog.data &&
+          config.data && (
+            <LoadingStatus>
+              Finding your country… You can keep exploring.
+            </LoadingStatus>
+          )}
         {catalog.error && (
           <RequestFailure message={catalog.error} retry={catalog.retry} />
         )}
@@ -1047,11 +1077,43 @@ function App() {
               aria-labelledby="tab-compare"
               className="real-workspace"
             >
-              <p className="real-comparison-note">
-                Two globes share a camera, with independent filters. Matching
-                variables use the same color scale. Different products and units
-                require separate interpretation.
-              </p>
+              <div className="real-compare-header">
+                <p className="real-comparison-note">
+                  Two globes share a camera, with independent filters. Matching
+                  variables use the same color scale. Different products and
+                  units require separate interpretation.
+                </p>
+                <div
+                  className="real-compare-actions"
+                  role="group"
+                  aria-label="Copy comparison panels"
+                >
+                  <button
+                    type="button"
+                    aria-label="Copy left panel to right"
+                    title="Copy filters and layers from A (left) to B (right)"
+                    disabled={
+                      !comparison.studies.A?.selectedMonth ||
+                      comparison.studies.A?.layers?.length === 0
+                    }
+                    onClick={() => copyComparisonPanel("A", "B")}
+                  >
+                    <Copy size={14} aria-hidden="true" /> Copy A → B
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Copy right panel to left"
+                    title="Copy filters and layers from B (right) to A (left)"
+                    disabled={
+                      !comparison.studies.B?.selectedMonth ||
+                      comparison.studies.B?.layers?.length === 0
+                    }
+                    onClick={() => copyComparisonPanel("B", "A")}
+                  >
+                    <Copy size={14} aria-hidden="true" /> Copy B → A
+                  </button>
+                </div>
+              </div>
               {renderEventContext(comparison, true)}
               <div className="real-panels is-comparing">
                 {(["A", "B"] as PanelSide[]).map((side) => (

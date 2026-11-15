@@ -1,5 +1,17 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Cópia entre painéis Compare — 15/11/2026
+
+OpenAI Codex assistiu a restauração de `Copy A → B` e `Copy B → A` acima dos
+globos. A cópia usa o estado atual do painel, incluindo mês, período, região,
+variáveis, modo do gráfico e camadas/opacidades, com objetos independentes.
+O destino é pausado; câmera e escala de cores continuam compartilhadas.
+Botão desabilitado enquanto a origem não tem variáveis aplicadas.
+136 testes frontend e builds frontend/API aprovados. Navegador conferiu os
+dois sentidos, áreas diferentes, opacidade 37%, modos distintos e mudança de
+mês no destino sem alterar a origem antes de copiar. Configurações temporárias
+usaram dados reais; nenhum salvo foi criado. Publicação em verificação.
+
 ## Indicadores de carregamento — implementação local (15/11/2026)
 
 OpenAI Codex assistiu componentes compartilhados com animação orbital,
