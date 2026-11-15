@@ -498,7 +498,7 @@ async function readSeries(
   const cursor = new Date(`${months[0].month}-01T00:00:00Z`);
   while (
     cursor.toISOString().slice(0, 7) <= months.at(-1)!.month &&
-    calendar.length < 120
+    calendar.length < 360
   ) {
     calendar.push(cursor.toISOString().slice(0, 7));
     cursor.setUTCMonth(cursor.getUTCMonth() + 1);

@@ -26,7 +26,7 @@ GRANT SELECT ON TABLE
   "default"."tb_merra2_qv2m",
   "default"."tb_merra2_slp",
   "default"."tb_merra2_speed",
-  "default"."tb_merra2_t10m",
+  "default"."tb_merra2_t10m_trusted",
   "default"."tb_merra2_t250",
   "default"."tb_merra2_t2m",
   "default"."tb_merra2_t2mdew",

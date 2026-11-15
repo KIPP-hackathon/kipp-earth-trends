@@ -1,5 +1,10 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+Evidência incremental de 14/11/2026: migração da temperatura para
+`earth-trend-data.trusted.tb_merra2_t10m`, com 321 meses na origem. Ver
+[mapeamentos, IA, validações e pendências](lakebase-trusted-temperature.md).
+Isso não encerra os bloqueadores científicos ou de submissão abaixo.
+
 > Diagnóstico baseado no checkout local `9f011a8` e nas alterações presentes em 14/11/2026. A `main` remota já continha commits posteriores no momento da publicação; revalidar os estados e pendências contra a versão atual antes de tratá-los como diagnóstico do produto publicado.
 
 Revisão inicial: **14/11/2026**. Base: [requisitos e fontes](space-apps-2026-requisitos.md).

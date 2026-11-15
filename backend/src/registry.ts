@@ -17,6 +17,10 @@ export type Variable = {
   run?: string;
   description: string;
   table: string;
+  sourceSchema?: string;
+  postgresTable?: string;
+  latitudeColumn?: string;
+  longitudeColumn?: string;
   column: string;
   coverage?: string;
   nativeGrid: [number, number];
@@ -372,9 +376,13 @@ const merraDefinitions = [
     sourceUnit: "degree_Celsius",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_t10m",
-    column: "T10M_C",
+    sourceSchema: "trusted",
+    postgresTable: "tb_merra2_t10m_trusted",
+    latitudeColumn: "latitude",
+    longitudeColumn: "longitude",
+    column: "air_temperature_at_10_meters_celsius",
     description:
-      "Temperatura do ar a 10 m em graus Celsius, com conversão de Kelvin por subtração de 273,15 no exportador.",
+      "Reanálise MERRA-2: temperatura do ar a 10 m em graus Celsius (Kelvin menos 273,15), da camada trusted de earth-trend-data, deduplicada por latitude, longitude e data; arquivos e datas de origem preservados na tabela.",
     conversion: {
       scale: 1,
       offset: 0,

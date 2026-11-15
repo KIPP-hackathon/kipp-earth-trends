@@ -124,8 +124,10 @@ export class DataService {
     return quoteIdentifier(value, this.provider.dialect);
   }
   private table(v: Variable) {
-    const override = process.env[`TABLE_${v.id.toUpperCase()}`] ?? v.table;
-    const schema = this.schema;
+    const override = process.env[`TABLE_${v.id.toUpperCase()}`] ??
+      (this.provider.dialect === "postgres" ? v.postgresTable : undefined) ?? v.table;
+    const schema = this.provider.dialect === "databricks"
+      ? v.sourceSchema ?? this.schema : this.schema;
     const parts =
       this.provider.dialect === "databricks"
         ? [process.env.DATA_CATALOG ?? "earth-trend-data", schema, override]
@@ -340,8 +342,8 @@ export class DataService {
     start: string,
     endExclusive: string,
   ) {
-    const latitude = this.q("lat"),
-      longitude = this.q("lon");
+    const latitude = this.q(variable.latitudeColumn ?? "lat"),
+      longitude = this.q(variable.longitudeColumn ?? "lon");
     const coverage = variable.coverage ? this.q(variable.coverage) : "1.0";
     const valid = this.valid(variable);
     const goodCoverage = variable.coverage
@@ -501,11 +503,11 @@ export class DataService {
       (Number(end.slice(0, 4)) - Number(start.slice(0, 4))) * 12 +
       Number(end.slice(5)) -
       Number(start.slice(5));
-    if (months < 0 || months >= 120)
+    if (months < 0 || months >= 360)
       throw new ApiError(
         400,
         "INVALID_PERIOD",
-        "Selecione um período ordenado de até 120 meses.",
+        "Selecione um período ordenado de até 360 meses.",
       );
     const { sql, parameters } = this.selected(
       variable,
@@ -519,7 +521,7 @@ export class DataService {
       SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage,
       COUNT(*) AS samples FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,
       parameters,
-      120,
+      360,
     );
     if (!rows.length)
       throw new ApiError(
@@ -586,6 +588,10 @@ export function frameJson(frame: Awaited<ReturnType<DataService["frame"]>>) {
 export function metadataOf(variable: Variable) {
   const {
     table: _table,
+    sourceSchema: _sourceSchema,
+    postgresTable: _postgresTable,
+    latitudeColumn: _latitudeColumn,
+    longitudeColumn: _longitudeColumn,
     column: _column,
     coverage: _coverage,
     validRange: _validRange,
