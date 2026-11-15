@@ -1,5 +1,38 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Tour de Explore e play conjunto publicados — 15/11/2026
+
+Publicação autorizada pelo usuário e integrada pelo [PR #44](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/44),
+commit `8664b6b685e69502368496fa628e1aa9353cb0f0`. Autoria confirmada pela API:
+Lucas Henrique, `lucas.henrique.tai@gmail.com`, conta pessoal Luckstai.
+[Workflow Frontend Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43760641763)
+concluído com sucesso às 17h54 de 15/11 (America/Sao_Paulo).
+Destino público: [KIPP na Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/),
+Worker `kipp-earth-trends`, versão `7f2b2fdc-216a-432a-93f0-9504ffc95d85`.
+Bundle publicado/conferido no navegador: `index-xvrG4SPx.js`; CSS `index-qwbVnMuS.css`.
+
+148 testes frontend, 47 testes backend, builds frontend/API e dry-run Cloudflare
+aprovados em Node.js 24. O workflow repetiu teste/build/empacotamento e confirmou
+site e catálogo real HTTP 200, `simulated=false`, além do bloqueio anônimo do
+Cloud Run (401/403). A Vercel reportou `build-rate-limit`; esta release foi
+publicada na Cloudflare pelo fluxo existente, sem ampliar permissões ou alterar
+configuração de infraestrutura.
+
+Navegador no endereço público confirmou tour automático, Skip e Don’t show again,
+aplicação explícita da temperatura a 10 m e gráficos Brazil/Global carregados.
+Compare: seleção/cópia de dois painéis, Same month, avanço sincronizado de
+jan/2000 até mai/2001 e Pause both pausando ambos. Layout de 390 px sem overflow
+horizontal e sessão final sem exceções JavaScript. As preferências permanentes
+de conclusão/dispensa foram testadas localmente; não foram impostas ao usuário
+no site público. Página deixada no início do tour, com zero variáveis aplicadas
+após recarregar. Capturas ficam fora do Git.
+
+OpenAI Codex assistiu implementação, integração, testes e publicação. O registro
+comprova a interface e o deploy; não altera métodos/resultados científicos nem
+comprova revisão científica humana, elegibilidade, submissão ou congelamento
+final da página Project, que não foi alterada nesta publicação.
+
+
 ## Resumo de anomalias no assistente — 15/11/2026
 
 `run_investigation` passa a devolver, por série, um resumo compacto das
