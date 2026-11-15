@@ -7,6 +7,7 @@ import {
   Save,
   Share2,
   Upload,
+  X,
 } from "lucide-react";
 import { Modal } from "./Modal";
 import {
@@ -83,6 +84,11 @@ export function InvestigationControls({
     setError("");
     setStatus("");
   };
+  useEffect(() => {
+    if (!status || modal) return;
+    const timer = setTimeout(() => setStatus(""), 6_000);
+    return () => clearTimeout(timer);
+  }, [status, modal]);
   const read = () => {
     try {
       const saved = loadInvestigations();
@@ -302,6 +308,16 @@ export function InvestigationControls({
         </p>
       )}
       {status && <p role="status">{status}</p>}
+      {!modal && (status || error) && (
+        <button
+          type="button"
+          className="investigation-feedback-close"
+          aria-label="Dismiss notification"
+          onClick={clearMessages}
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
   return (

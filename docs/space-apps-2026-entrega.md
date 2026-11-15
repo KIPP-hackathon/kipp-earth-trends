@@ -1021,6 +1021,18 @@ Chrome em produção, sem fixtures, conferiu 321 meses reais de temperatura
 a 10 m: coordenada SVG correspondente ao valor regional original, unidade °C,
 taxa/p iguais a `trends.raw` e retorno ao Default sem novas consultas.
 
+### Confirmações temporárias no header — 15/11/2026
+
+OpenAI Codex corrigiu a confirmação de investigação compartilhada que ficava
+indefinidamente aberta. Confirmações fora de modais desaparecem após seis
+segundos e têm botão Dismiss notification. Erros permanecem até serem fechados;
+mensagens dentro de modais não expiram durante uma revisão. Timer é cancelado
+ao trocar a mensagem, abrir modal ou desmontar o componente.
+90 testes frontend e builds frontend/API aprovados. Chrome isolado com fixture
+do componente conferiu expiração real após seis segundos, fechamento manual
+e persistência de erro, sem dados observados ou salvamentos alterados.
+Publicação em verificação; não altera investigação científica ou submissão.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

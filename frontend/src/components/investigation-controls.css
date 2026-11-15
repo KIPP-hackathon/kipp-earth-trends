@@ -185,7 +185,7 @@
   top: calc(100% + 10px);
   z-index: 90;
   width: min(340px, calc(100vw - 48px));
-  padding: 10px 12px;
+  padding: 10px 42px 10px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #0c1a2e;
@@ -193,6 +193,24 @@
 }
 .site-header.has-investigation-actions .investigation-feedback p {
   margin: 0;
+}
+.investigation-feedback-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  color: #bdd8fa;
+  background: transparent;
+  cursor: pointer;
+}
+.investigation-feedback-close:hover {
+  background: #97c8ff1f;
 }
 @media (max-width: 760px) {
   .site-header.has-investigation-actions {
