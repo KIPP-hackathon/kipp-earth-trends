@@ -257,3 +257,29 @@ Builds Node.js 24, verificações preexistentes, consultas reais limitadas, revi
 de código e inspeção de fonte/bundle não encontraram novos segredos expostos.
 Isso registra implementação e conferência técnica; revisão humana e investigação
 científica reproduzível seguem pendentes. Não encerra submissão ou regras de IA.
+
+
+## Evidência incremental — explorar, salvar e investigar eventos (14/11/2026)
+
+OpenAI Codex assistiu o salvamento sem login com configuração versionada no
+localStorage, links de filtros sem notas pessoais, exportação/importação JSON,
+controles compactos, busca de países/variáveis e limpeza efetiva para Global.
+O nome só aparece ao salvar e é opcional. São configurações, não dados congelados
+ou um aplicativo offline; apagar dados do navegador remove os salvos. Ver
+[investigações locais](investigations.md).
+
+Presets sugerem variáveis revisadas cruzadas com meses válidos do catálogo,
+separam janela histórica de período de contexto e mantêm a área editável.
+Cobertura global do catálogo não garante cobertura regional. A tela Evidence
+consulta tendências armazenadas apenas para variável, bbox e período exatamente
+compatíveis; nenhuma significância é emprestada de outra região. Ver
+[eventos e métodos](event-investigations.md). Resultados pré-calculados e séries
+descritivas mantêm seus métodos/limitações distintos.
+
+Conferências locais com Node.js 24: 46 verificações preexistentes do frontend,
+seis de autenticação da API, builds, revisão independente e inspeção de segredos
+aprovados. Navegador confirmou salvar sem nome, recarregar/reabrir, link em outra
+aba, comparação com áreas distintas, exportar/importar e viewport 390 px sem
+overflow. Revisão humana, investigação científica de histórico adequado e
+submissão continuam pendentes; não se declara conformidade completa ou entrega
+científica concluída.

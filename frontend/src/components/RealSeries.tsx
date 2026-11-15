@@ -11,11 +11,13 @@ export function RealSeries({
   title = "Regional monthly series",
   context = "regional",
   domain,
+  eventWindow,
 }: {
   data: EarthSeries;
   title?: string;
   context?: "regional" | "country-extent" | "global";
   domain?: [number, number];
+  eventWindow?: [string, string];
   month: string;
   onMonth: (month: string) => void;
 }) {
@@ -74,6 +76,20 @@ export function RealSeries({
     connected = true;
   });
   const active = rows.find((p) => p.month === month);
+  const eventIndices = eventWindow
+    ? rows.flatMap((row, index) =>
+        row.month >= eventWindow[0] && row.month <= eventWindow[1]
+          ? [index]
+          : [],
+      )
+    : [];
+  const halfStep = (588 - chartLeft) / Math.max(1, rows.length - 1) / 2;
+  const eventLeft = eventIndices.length
+    ? Math.max(chartLeft, x(eventIndices[0]) - halfStep)
+    : 0;
+  const eventRight = eventIndices.length
+    ? Math.min(588, x(eventIndices.at(-1)!) + halfStep)
+    : 0;
   const exportCsv = () => {
     const csv = [
       "month,value,unit,coverage,bbox,product,run,aggregation,method,simulated",
@@ -129,11 +145,29 @@ export function RealSeries({
           <button onClick={exportJson}>JSON</button>
         </div>
       </div>
+      {eventWindow && (
+        <p className="series-event-window">
+          {eventIndices.length
+            ? `Shaded: event window · ${realMonth(eventWindow[0])} – ${realMonth(eventWindow[1])}`
+            : "Event dates are outside the selected series period."}
+        </p>
+      )}
       <svg
         viewBox="0 0 620 210"
         role="group"
         aria-label={`${title}: ${realMonth(rows[0].month)} to ${realMonth(rows.at(-1)!.month)}. Select a point to change the month.`}
       >
+        {eventIndices.length > 0 && (
+          <rect
+            x={eventLeft}
+            y="24"
+            width={Math.max(2, eventRight - eventLeft)}
+            height="150"
+            fill="#e3b253"
+            opacity=".19"
+            aria-hidden="true"
+          />
+        )}
         {ticks.map(({ value, label }) => {
           return (
             <g key={value}>

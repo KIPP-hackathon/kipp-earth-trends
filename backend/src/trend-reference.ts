@@ -1,5 +1,6 @@
 import { ApiError } from "./core.ts";
 import type { Provider, Row } from "./core.ts";
+import { parseBounds, parseMonth, variableFor } from "./data.ts";
 
 export const trendReferenceTable =
   "earth-trend-data.refined.tb_trend_merra2_ts";
@@ -185,6 +186,130 @@ export class TrendReferenceService {
         this.pending = undefined;
       });
     return this.pending;
+  }
+  async exactSelection(input: {
+    variable: string;
+    bbox: string;
+    start: string;
+    end: string;
+  }) {
+    // Only this reviewed runtime alias maps to the stored scientific variable.
+    variableFor(input.variable);
+    const bounds = parseBounds(input.bbox);
+    const start = parseMonth(input.start),
+      end = parseMonth(input.end);
+    if (
+      start > end ||
+      (Number(end.slice(0, 4)) - Number(start.slice(0, 4))) * 12 +
+        Number(end.slice(5)) -
+        Number(start.slice(5)) >
+        119
+    )
+      throw new ApiError(
+        400,
+        "INVALID_TREND_PERIOD",
+        "Use an ordered period of at most 120 calendar months.",
+      );
+    const bbox = [
+      bounds.west,
+      bounds.south,
+      bounds.wrap ? bounds.east - 360 : bounds.east,
+      bounds.north,
+    ];
+    const selection = { variable: input.variable, bbox, start, end };
+    const base = {
+      selection,
+      referenceTable: trendReferenceTable,
+      precomputed: true as const,
+      simulated: false as const,
+    };
+    let snapshot: Snapshot;
+    try {
+      snapshot = await this.snapshot();
+    } catch {
+      return {
+        ...base,
+        status: "unavailable" as const,
+        results: [],
+        supportedContexts: [],
+        contextsTruncated: false,
+        referenceTruncated: false,
+        resultsTruncated: false,
+        warnings,
+        reason: unavailableTrendReference().reason,
+      };
+    }
+    const supportedContexts = [
+      ...new Map(
+        snapshot.rows
+          .filter((row) => row.variable === "surface_skin_temperature")
+          .map((row) => {
+            const context = {
+              variable: "surface_temperature",
+              storedVariable: row.variable,
+              regionId: row.region_id,
+              regionName: row.region_name,
+              bbox: [row.lon_min, row.lat_min, row.lon_max, row.lat_max],
+              start: row.period_start.slice(0, 7),
+              end: row.period_end.slice(0, 7),
+              n_obs: row.n_obs,
+              unit: row.unit,
+            };
+            return [JSON.stringify(context), context] as const;
+          }),
+      ).values(),
+    ];
+    const matched =
+      input.variable === "surface_temperature"
+        ? snapshot.rows
+            .filter(
+              (row) =>
+                row.variable === "surface_skin_temperature" &&
+                row.lon_min === bbox[0] &&
+                row.lat_min === bbox[1] &&
+                row.lon_max === bbox[2] &&
+                row.lat_max === bbox[3] &&
+                /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(row.period_start) &&
+                /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(row.period_end) &&
+                row.period_start.slice(0, 7) === start &&
+                row.period_end.slice(0, 7) === end,
+            )
+            .sort((a, b) => {
+              const order = (method: string) => {
+                const index = preferredMethods.indexOf(method);
+                return index < 0 ? preferredMethods.length : index;
+              };
+              return (
+                order(a.method) - order(b.method) ||
+                a.method.localeCompare(b.method)
+              );
+            })
+        : [];
+    return {
+      ...base,
+      status: matched.length ? ("exact" as const) : ("unsupported" as const),
+      reason: matched.length
+        ? null
+        : snapshot.truncated
+          ? "No exact result in the bounded reference snapshot; absence cannot be established because the reference is truncated."
+          : "No stored trend matches this variable, numeric bbox and complete monthly period. This is not evidence of no change or no significance.",
+      referenceFetchedAt: snapshot.fetchedAt,
+      referenceRowCount: snapshot.rows.length,
+      referenceTruncated: snapshot.truncated,
+      supportedContexts: supportedContexts.slice(0, 100),
+      contextsTruncated: supportedContexts.length > 100,
+      matchedCount: matched.length,
+      results: matched.slice(0, 12),
+      resultsTruncated: matched.length > 12,
+      warnings: [
+        ...warnings,
+        ...(snapshot.truncated
+          ? [
+              "Reference exceeds 500 rows; only the first 500 stored records were checked. Supported contexts and matching methods may be incomplete.",
+            ]
+          : []),
+      ],
+    };
   }
   async search(args: TrendReferenceArguments) {
     if (

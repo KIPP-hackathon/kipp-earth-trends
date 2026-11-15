@@ -1,6 +1,11 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { GeoPermissibleObjects } from "d3-geo";
 import "./global-comparison.css";
+import "./compact-exploration.css";
+import { loadCountries } from "../lib/countries";
+import type { CountrySelection } from "../lib/countries";
+import { PeriodPicker, SearchPicker } from "./ExplorationControls";
 import {
   ChevronLeft,
   ChevronRight,
@@ -42,7 +47,7 @@ function Failure({ message, retry }: { message: string; retry: () => void }) {
     <div className="real-error" role="alert">
       <p>{message}</p>
       <button onClick={retry}>
-        <RefreshCw size={14} /> Tentar novamente
+        <RefreshCw size={14} /> Retry
       </button>
     </div>
   );
@@ -68,6 +73,10 @@ export function RealPanel({
   initialOutline,
   initializationKey,
   onCustomRegion,
+  onAreaChange,
+  eventWindow,
+  analysisContent,
+  onNavigate,
 }: {
   instanceId?: string;
   overview?: boolean;
@@ -75,6 +84,10 @@ export function RealPanel({
   initialOutline?: GeoPermissibleObjects;
   initializationKey?: string;
   onCustomRegion?: (region: EarthRegion) => void;
+  onAreaChange?: () => void;
+  eventWindow?: [string, string];
+  analysisContent?: ReactNode;
+  onNavigate?: (view: GlobeView) => void;
   catalog: EarthCatalog;
   config: EarthConfig;
   preset?: PanelPreset;
@@ -99,6 +112,16 @@ export function RealPanel({
   );
   const [drawnRegion, setDrawnRegion] = useState<EarthRegion>();
   const drawnSequence = useRef(0);
+  const [countries, setCountries] = useState<CountrySelection[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    void loadCountries().then((entries) => {
+      if (mounted) setCountries(entries);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
   useEffect(() => {
     if (initializationKey && initialRegion && !drawnRegion)
       setRegionId(initialRegion.id);
@@ -170,12 +193,27 @@ export function RealPanel({
   const spatialBbox =
     region.bbox === "-180,-90,180,90" ? undefined : region.bbox;
   const globalBbox = "-180,-90,180,90";
-  const regionOptions = drawnRegion
-    ? [
-        ...config.regions.filter((entry) => entry.id !== drawnRegion.id),
-        drawnRegion,
-      ]
-    : config.regions;
+  const selectedCountry = countries.find(
+    (entry) => entry.region.id === region.id,
+  );
+  const countryOutline =
+    selectedCountry?.geometry ??
+    (region.id === initialRegion?.id ? initialOutline : undefined);
+  const applyArea = (next: EarthRegion, center = false) => {
+    onManualChange();
+    onAreaChange?.();
+    setPlaying(false);
+    setPlaybackError(undefined);
+    setDrawnRegion(next);
+    setRegionId(next.id);
+    onCustomRegion?.(next);
+    if (center)
+      (onNavigate ?? onView)({
+        ...view,
+        longitude: next.longitude,
+        latitude: next.latitude,
+      });
+  };
   const selectArea = (bbox: string) => {
     const parts = bbox.split(",");
     if (parts.length !== 4 || parts.some((part) => !part.trim())) return;
@@ -202,25 +240,53 @@ export function RealPanel({
       longitude: ((((west + width / 2 + 180) % 360) + 360) % 360) - 180,
       latitude: (south + north) / 2,
     };
-    onManualChange();
-    setPlaying(false);
-    setPlaybackError(undefined);
-    setDrawnRegion(next);
-    setRegionId(next.id);
-    onCustomRegion?.(next);
+    applyArea(next);
   };
-  const clearArea = () => {
-    onManualChange();
-    setPlaying(false);
-    setPlaybackError(undefined);
-    setDrawnRegion(undefined);
-    setRegionId((initialRegion ?? config.regions[0]).id);
-  };
-  const groups = [
-    ...new Set(
-      catalog.variables.map((entry) => entry.category ?? entry.product),
-    ),
+  const clearArea = () =>
+    applyArea({
+      id: "custom-global",
+      name: "Global",
+      bbox: globalBbox,
+      longitude: 0,
+      latitude: 0,
+    });
+  const countryIds = new Set(countries.map((entry) => entry.region.id));
+  const areaOptions = [
+    { id: "custom-global", name: "Global", detail: "All available grid cells" },
+    ...countries.map((entry) => ({
+      id: entry.region.id,
+      name: entry.name,
+      detail: "Country extent · bbox-based series",
+    })),
+    ...config.regions
+      .filter((entry) => entry.bbox !== globalBbox && !countryIds.has(entry.id))
+      .map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        detail: "Configured study region",
+      })),
+    ...(!countryIds.has(region.id) &&
+    region.bbox !== globalBbox &&
+    !config.regions.some((entry) => entry.id === region.id)
+      ? [{ id: region.id, name: region.name, detail: "Selected study area" }]
+      : []),
   ];
+  const variableOptions = catalog.variables.map((entry) => {
+    const available =
+      entry.available !== false &&
+      entry.months.some((month) => month.validSamples > 0);
+    return {
+      id: entry.id,
+      name: entry.name,
+      detail: `${entry.product} · ${realUnit(entry.unit)}${available ? "" : " · no available months"}`,
+      disabled: !available,
+      suggested:
+        available &&
+        /temperature|precipitation|vegetation|ndvi|evi|soil moisture|sea.?ice|snow cover/i.test(
+          `${entry.id} ${entry.name}`,
+        ),
+    };
+  });
   const frame = useEarthFrame(
     { ...variable, months: allMonths },
     month,
@@ -357,7 +423,7 @@ export function RealPanel({
         setPlaybackError(
           error instanceof Error
             ? error.message
-            : "Falha ao preparar a reprodução.",
+            : "Could not prepare playback.",
         );
         setPlaying(false);
       });
@@ -369,103 +435,81 @@ export function RealPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, active, playbackKey, frame.data, frame.error, start, end]);
   return (
-    <article className="real-panel" aria-label={`Painel real ${side}`}>
-      <div className="real-panel-title">
-        <span className="real-panel-letter">{side}</span>
-        <span>DADOS REAIS · {variable.product}</span>
-      </div>
-      <div className="real-panel-filters">
-        <label htmlFor={`${id}-variable`}>
-          Variável
-          <select
-            id={`${id}-variable`}
-            value={variable.id}
-            onChange={(e) => {
-              onManualChange();
-              setPlaying(false);
-              setPlaybackError(undefined);
-              setPeriod({ start: "", end: "" });
-              setSelection({ variable: e.target.value, month });
-            }}
-          >
-            {groups.map((group) => (
-              <optgroup key={group} label={group}>
-                {catalog.variables
-                  .filter(
-                    (entry) => (entry.category ?? entry.product) === group,
-                  )
-                  .map((v) => (
-                    <option
-                      key={v.id}
-                      value={v.id}
-                      disabled={
-                        v.available === false ||
-                        !v.months.some((entry) => entry.validSamples > 0)
-                      }
-                    >
-                      {v.name}
-                      {v.available === false ||
-                      !v.months.some((entry) => entry.validSamples > 0)
-                        ? " · sem meses disponíveis"
-                        : ""}
-                    </option>
-                  ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
-        <MonthPicker
-          id={`${id}-month`}
-          label="Selected month"
-          value={month}
-          months={months.map((entry) => entry.month)}
-          onChange={selectMonth}
-        />
-      </div>
-      <div
-        className="real-period-controls"
-        role="group"
-        aria-label={`Study period for panel ${side}`}
-      >
-        <MonthPicker
-          id={`${id}-start`}
-          label="Period start"
-          value={start}
-          months={allMonths.map((entry) => entry.month)}
+    <article
+      className={`real-panel compact-real-panel${overview ? " is-overview" : ""}`}
+      aria-label={
+        overview ? "Earth data exploration" : `Earth data panel ${side}`
+      }
+    >
+      {!overview && (
+        <div className="real-panel-title">
+          <span className="real-panel-letter">{side}</span>
+          <span>REAL DATA · {variable.product}</span>
+        </div>
+      )}
+      <div className="compact-exploration-controls">
+        <SearchPicker
+          id={`${id}-variable`}
+          label="Variable"
+          value={variable.id}
+          options={variableOptions}
+          curated
           onChange={(value) => {
             onManualChange();
             setPlaying(false);
             setPlaybackError(undefined);
-            setPeriod({ start: value, end: value > end ? value : end });
+            setSelection({ variable: value, month });
           }}
         />
-        <MonthPicker
-          id={`${id}-end`}
-          label="Period end"
-          value={end}
+        <SearchPicker
+          id={`${id}-country`}
+          label="Country or area"
+          value={spatialBbox ? region.id : "custom-global"}
+          options={areaOptions}
+          onChange={(value) => {
+            if (value === "custom-global") {
+              clearArea();
+              return;
+            }
+            const next =
+              countries.find((entry) => entry.region.id === value)?.region ??
+              config.regions.find((entry) => entry.id === value);
+            if (next) applyArea(next, true);
+          }}
+        />
+        <PeriodPicker
+          id={`${id}-period`}
+          start={start}
+          end={end}
           months={allMonths.map((entry) => entry.month)}
           onChange={(value) => {
             onManualChange();
             setPlaying(false);
             setPlaybackError(undefined);
-            setPeriod({ start: value < start ? value : start, end: value });
+            setPeriod(value);
           }}
         />
       </div>
       <p className="real-source">
         {variable.product}
         {variable.run ? ` · ${variable.run}` : ""} · {realUnit(variable.unit)} ·{" "}
-        {months.length} meses disponíveis
+        {months.length} available months
+        {((period.start && period.start !== start) ||
+          (period.end && period.end !== end)) && (
+          <span className="compact-period-coverage-note" role="status">
+            Study period adjusted to available coverage: {start} – {end}. Choose
+            a new period to revise.
+          </span>
+        )}
       </p>
+      {analysisContent}
       <div className="real-globe-container" aria-busy={frame.loading}>
         <RealGlobe
           frame={frame.data}
           view={view}
           onView={onView}
           region={spatialBbox ? region : undefined}
-          outlineGeometry={
-            region.id === initialRegion?.id ? initialOutline : undefined
-          }
+          outlineGeometry={countryOutline}
           onSelectArea={selectArea}
           onClearArea={spatialBbox ? clearArea : undefined}
           colorRange={colorRanges[variable.id]}
@@ -477,11 +521,11 @@ export function RealPanel({
             role="status"
           >
             {frame.loading
-              ? `Consultando ${realMonth(month)}…`
-              : "Preparando próximos meses…"}
+              ? `Loading ${realMonth(month)}…`
+              : "Preparing next months…"}
             {frame.data &&
               frame.data.month !== month &&
-              ` Exibindo ${realMonth(frame.data.month)}.`}
+              ` Showing ${realMonth(frame.data.month)}.`}
           </div>
         )}
       </div>
@@ -496,27 +540,20 @@ export function RealPanel({
           }}
         />
       )}
-      {frame.data && (
-        <p className="real-grid-info">
-          {frame.data.grid.width} × {frame.data.grid.height} células de exibição
-          · {((frame.data.validCells / frame.data.totalCells) * 100).toFixed(1)}
-          % com valor · global frame · area selection affects series only
-        </p>
-      )}
       <div
         className="real-time-controls"
         role="group"
-        aria-label={`Navegar pelos meses do painel ${side}`}
+        aria-label={`Monthly playback for panel ${side}`}
       >
         <button
-          aria-label={`Mês anterior do painel ${side}`}
+          aria-label={`Previous month for panel ${side}`}
           disabled={index === 0}
           onClick={() => selectMonth(months[index - 1].month)}
         >
           <ChevronLeft size={18} />
         </button>
         <button
-          aria-label={`${playing ? "Pausar" : "Reproduzir"} meses do painel ${side}`}
+          aria-label={`${playing ? "Pause" : "Play"} months for panel ${side}`}
           aria-pressed={playing}
           disabled={months.length < 2}
           onClick={() => {
@@ -528,7 +565,7 @@ export function RealPanel({
           {playing ? <Pause size={16} /> : <Play size={16} />}
         </button>
         <input
-          aria-label={`Linha do tempo do painel ${side}`}
+          aria-label={`Timeline for panel ${side}`}
           type="range"
           min="0"
           max={months.length - 1}
@@ -536,43 +573,20 @@ export function RealPanel({
           onChange={(e) => selectMonth(months[Number(e.target.value)].month)}
         />
         <button
-          aria-label={`Próximo mês do painel ${side}`}
+          aria-label={`Next month for panel ${side}`}
           disabled={index === months.length - 1}
           onClick={() => selectMonth(months[index + 1].month)}
         >
           <ChevronRight size={18} />
         </button>
+        <MonthPicker
+          id={`${id}-month`}
+          label="Selected month"
+          value={month}
+          months={months.map((entry) => entry.month)}
+          onChange={selectMonth}
+        />
       </div>
-      {!overview && (
-        <label className="real-region-filter" htmlFor={`${id}-region`}>
-          Região da série
-          <select
-            id={`${id}-region`}
-            value={region.id}
-            onChange={(event) => {
-              const next = regionOptions.find(
-                (entry) => entry.id === event.target.value,
-              );
-              if (!next) return;
-              onManualChange();
-              setPlaying(false);
-              setPlaybackError(undefined);
-              setRegionId(next.id);
-              onView({
-                ...view,
-                longitude: next.longitude,
-                latitude: next.latitude,
-              });
-            }}
-          >
-            {regionOptions.map((entry) => (
-              <option value={entry.id} key={entry.id}>
-                {entry.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
       {overview && !spatialBbox && (
         <p className="real-notice">
           Draw an area on the globe to compare its monthly series with the
@@ -580,11 +594,18 @@ export function RealPanel({
         </p>
       )}
       <details className="real-provenance">
-        <summary>Fonte, qualidade & limites</summary>
+        <summary>Source, quality & coordinates</summary>
         <p>{variable.description}</p>
+        {frame.data && (
+          <p>
+            {frame.data.grid.width} × {frame.data.grid.height} display cells ·{" "}
+            {((frame.data.validCells / frame.data.totalCells) * 100).toFixed(1)}
+            % with values · global frame
+          </p>
+        )}
         <p>
-          Produto: {variable.product}
-          {variable.run ? ` · ${variable.run}` : ""} · unidade:{" "}
+          Product: {variable.product}
+          {variable.run ? ` · ${variable.run}` : ""} · unit:{" "}
           {realUnit(variable.unit)}
         </p>
         <p>
@@ -594,15 +615,13 @@ export function RealPanel({
           The map always displays the global field. Area selection affects the
           regional series only.
         </p>
-        {region.id === initialRegion?.id && initialOutline && (
+        {countryOutline && (
           <p>
             The country outline is a visual reference; series values use its
             rectangular extent, including cells outside the border.
           </p>
         )}
-        {variable.quality?.rule && (
-          <p>Critério de qualidade: {variable.quality.rule}</p>
-        )}
+        {variable.quality?.rule && <p>Quality rule: {variable.quality.rule}</p>}
         {variable.quality?.notes.map((note) => (
           <p key={note}>{note}</p>
         ))}
@@ -627,14 +646,11 @@ export function RealPanel({
           <RealSeries
             data={series.data}
             title={region.name}
-            context={
-              region.id === initialRegion?.id && initialOutline
-                ? "country-extent"
-                : "regional"
-            }
+            context={countryOutline ? "country-extent" : "regional"}
             domain={sharedDomain}
             month={frame.data?.month ?? ""}
             onMonth={selectMonth}
+            eventWindow={eventWindow}
           />
         )}
         {globalSeries.loading && spatialBbox && (
@@ -653,6 +669,7 @@ export function RealPanel({
             domain={sharedDomain}
             month={frame.data?.month ?? ""}
             onMonth={selectMonth}
+            eventWindow={eventWindow}
           />
         )}
       </div>

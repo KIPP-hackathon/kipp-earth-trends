@@ -22,6 +22,7 @@ import {
 import { DatabricksProvider } from "./providers/databricks.ts";
 import { PostgresProvider } from "./providers/postgres.ts";
 import { configuration, historicalEvents, regions } from "./config.ts";
+import { eventSuggestions } from "./event-context.ts";
 import { HybridDataService } from "./routing.ts";
 
 import { createAssistant } from "./assistant.ts";
@@ -233,11 +234,12 @@ async function catalogData() {
       });
   return catalogPending;
 }
+const trendReference = sql ? new TrendReferenceService(sql) : undefined;
 const assistant = createAssistant({
   data,
   catalog: catalogData,
   indicatorReference: sql ? new IndicatorReferenceService(sql) : undefined,
-  trendReference: sql ? new TrendReferenceService(sql) : undefined,
+  trendReference,
 });
 api.post(
   "/v1/assistant",
@@ -287,33 +289,59 @@ api.get("/v1/events", async (request, reply) =>
       detected: false,
       events: historicalEvents.map((event) => {
         const region = regions.find((r) => r.id === event.region)!;
-        const variable = catalog.find((v) => v.id === event.variable);
-        const months = (variable?.months ?? [])
-          .filter(
-            (m) =>
-              m.month >= event.window[0] &&
-              m.month <= event.window[1] &&
-              (m.validSamples ?? 0) > 0,
-          )
-          .map((m) => m.month);
-        const available = months.length > 0 && event.category !== "Tsunamis";
         return {
           ...event,
           bbox: region.bbox,
           longitude: region.longitude,
           latitude: region.latitude,
-          available,
-          months: available ? months : [],
-          unavailableReason: available
-            ? null
-            : event.category === "Tsunamis"
-              ? "Sem fonte de nível do mar ou dados sísmicos para este fenômeno."
-              : "Sem sobreposição entre o período histórico do evento e os meses válidos da variável sugerida.",
+          ...eventSuggestions(event, catalog),
         };
       }),
       limitations: configuration.limitations,
     });
   }),
+);
+api.get<{
+  Querystring: { variable: string; bbox: string; start: string; end: string };
+}>(
+  "/v1/trends",
+  {
+    schema: {
+      querystring: {
+        type: "object",
+        additionalProperties: false,
+        required: ["variable", "bbox", "start", "end"],
+        properties: {
+          variable: { type: "string", pattern: "^[a-z0-9_]{1,40}$" },
+          bbox: { type: "string", maxLength: 100 },
+          start: { type: "string", pattern: "^\\d{4}-(0[1-9]|1[0-2])$" },
+          end: { type: "string", pattern: "^\\d{4}-(0[1-9]|1[0-2])$" },
+        },
+      },
+    },
+  },
+  async (request, reply) => {
+    // Never route trend reference reads to Lakebase or invent missing results.
+    if (!trendReference)
+      throw new ApiError(
+        503,
+        "TREND_REFERENCE_UNAVAILABLE",
+        "Stored trend evidence is unavailable in this deployment.",
+      );
+    return serve(
+      request,
+      reply,
+      `trends:${JSON.stringify(request.query)}`,
+      300,
+      async () => {
+        const result = await trendReference.exactSelection(request.query);
+        // Transient provider failures must not enter the success/HTTP caches.
+        if (result.status === "unavailable")
+          throw new ApiError(503, "TREND_REFERENCE_UNAVAILABLE", result.reason);
+        return json(result);
+      },
+    );
+  },
 );
 api.get<{ Params: { variable: string } }>(
   "/v1/availability/:variable",

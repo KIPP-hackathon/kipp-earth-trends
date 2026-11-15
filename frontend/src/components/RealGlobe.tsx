@@ -139,12 +139,12 @@ export function RealGlobe({
   return (
     <div className="real-globe">
       <div className="real-globe-toolbar">
-        <span>{frame ? realMonth(frame.month) : "Campo mensal"}</span>
+        <span>{frame ? realMonth(frame.month) : "Monthly field"}</span>
         <button
           aria-pressed={view.showLayer}
           onClick={() => onView({ ...view, showLayer: !view.showLayer })}
         >
-          <Layers3 size={14} /> Camada real
+          <Layers3 size={14} /> Data layer
         </button>
       </div>
       {onSelectArea && (
@@ -188,8 +188,8 @@ export function RealGlobe({
             (drawing
               ? "Drag between two points on the globe. Release to analyze this area. Esc cancels."
               : region
-                ? `Selected coordinates: ${region.bbox}`
-                : "Draw an area to compare its monthly series with the global series.")}
+                ? `Selected area: ${region.name}`
+                : "Global view · choose a country or draw a study area.")}
         </p>
       )}
       <div className={`real-globe-scene ${drawing ? "is-drawing" : ""}`}>
@@ -198,7 +198,7 @@ export function RealGlobe({
           className="real-globe-svg"
           tabIndex={0}
           role="group"
-          aria-label="Globo de dados reais. Arraste para girar. Use as setas ou Home."
+          aria-label="Earth data globe. Drag to rotate, or use arrow keys and Home."
           onPointerDown={(e) => {
             if (e.button !== 0 || drag.current || areaDrag.current) return;
             if (drawing) {
@@ -361,7 +361,7 @@ export function RealGlobe({
                 <path d={draftOutline} className="globe-draft-outline" />
               )}
               {region && (
-                <g aria-label={`Recorte da série: ${region.name}`}>
+                <g aria-label={`Series area: ${region.name}`}>
                   <path
                     d={outline}
                     fill="none"
@@ -391,10 +391,10 @@ export function RealGlobe({
         </p>
       )}
       <div className="real-globe-actions">
-        <small>Arraste para girar · setas no teclado</small>
+        <small>Drag to rotate · arrow keys</small>
         <div>
           <button
-            aria-label="Aproximar globo real"
+            aria-label="Zoom in"
             onClick={() =>
               onView({ ...view, zoom: Math.min(1.8, view.zoom + 0.2) })
             }
@@ -402,7 +402,7 @@ export function RealGlobe({
             <Plus size={17} />
           </button>
           <button
-            aria-label="Afastar globo real"
+            aria-label="Zoom out"
             onClick={() =>
               onView({ ...view, zoom: Math.max(0.8, view.zoom - 0.2) })
             }
@@ -410,7 +410,7 @@ export function RealGlobe({
             <Minus size={17} />
           </button>
           <button
-            aria-label="Restaurar globo real"
+            aria-label="Reset camera"
             onClick={() =>
               onView({ ...initialGlobeView, showLayer: view.showLayer })
             }
@@ -421,20 +421,20 @@ export function RealGlobe({
       </div>
       {probe && frame && view.showLayer && (
         <p className="real-grid-info">
-          Célula de exibição em {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
+          Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
           <strong>
             {hiddenSample
               ? "Outside selected range (hidden)"
               : Number.isFinite(sampled)
-                ? `${sampled.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${realUnit(frame.unit)}`
-                : "sem dado"}
+                ? `${sampled.toLocaleString("en", { maximumFractionDigits: 2 })} ${realUnit(frame.unit)}`
+                : "no data"}
           </strong>
         </p>
       )}
       {unavailable && (
         <p role="alert">
-          WebGL indisponível neste navegador. A camada de dados não pôde ser
-          desenhada; a série permanece disponível.
+          WebGL is unavailable. The map data layer could not be drawn; the
+          monthly series remains available.
         </p>
       )}
       {scale && frame && (
@@ -463,7 +463,7 @@ export function RealGlobe({
           />
           <small>
             {scale.kind === "categorical"
-              ? "Classes discretas"
+              ? "Discrete classes"
               : colorRange
                 ? colorRange.hideOutside
                   ? "Custom range · outside values hidden"
@@ -484,13 +484,16 @@ export function RealGlobe({
             </div>
           )}
           {scale.kind === "continuous" && onColorRange && (
-            <ColorScaleControls
-              key={frame.variable}
-              domain={realScale(frame).domain}
-              unit={realUnit(frame.unit)}
-              value={colorRange}
-              onChange={onColorRange}
-            />
+            <details className="compact-color-settings">
+              <summary>Adjust color range</summary>
+              <ColorScaleControls
+                key={frame.variable}
+                domain={realScale(frame).domain}
+                unit={realUnit(frame.unit)}
+                value={colorRange}
+                onChange={onColorRange}
+              />
+            </details>
           )}
         </div>
       )}

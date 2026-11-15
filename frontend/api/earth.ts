@@ -53,7 +53,7 @@ export default async function handler(
       query.delete("path");
     // No arbitrary upstream URLs, SQL, methods, paths or browser authorization headers.
     if (
-      !/^\/v1\/(catalog|config|events|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|series\/[a-z0-9_]{1,60})$/.test(
+      !/^\/v1\/(catalog|config|events|trends|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|series\/[a-z0-9_]{1,60})$/.test(
         path,
       )
     )
@@ -69,7 +69,11 @@ export default async function handler(
         return fail(400, "INVALID_PARAMETERS");
       query.delete("deployment");
     }
-    const allowed = new Set(["bbox", "factor", "format", "start", "end"]);
+    const allowed = new Set(
+      path === "/v1/trends"
+        ? ["variable", "bbox", "start", "end"]
+        : ["bbox", "factor", "format", "start", "end"],
+    );
     for (const [key, value] of query)
       if (
         !allowed.has(key) ||

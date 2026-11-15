@@ -7,11 +7,11 @@ import {
 } from "lucide-react";
 
 export const labTabs = [
-  { id: "explore", label: "Explorar", icon: Earth },
-  { id: "compare", label: "Comparar", icon: Columns2 },
-  { id: "events", label: "Eventos", icon: MapPinned },
-  { id: "analysis", label: "Análise", icon: ChartNoAxesCombined },
-  { id: "learn", label: "Como funciona", icon: BookOpen },
+  { id: "explore", label: "Explore", icon: Earth },
+  { id: "compare", label: "Compare", icon: Columns2 },
+  { id: "events", label: "Events", icon: MapPinned },
+  { id: "analysis", label: "Evidence", icon: ChartNoAxesCombined },
+  { id: "learn", label: "Guide", icon: BookOpen },
 ] as const;
 export type LabTab = (typeof labTabs)[number]["id"];
 
@@ -23,7 +23,7 @@ export function LabTabs({
   onChange: (tab: LabTab) => void;
 }) {
   return (
-    <div className="lab-tabs" role="tablist" aria-label="Áreas do laboratório">
+    <div className="lab-tabs" role="tablist" aria-label="Lab workspaces">
       {labTabs.map(({ id, label, icon: Icon }, index) => (
         <button
           key={id}

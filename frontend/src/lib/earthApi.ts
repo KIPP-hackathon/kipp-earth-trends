@@ -53,6 +53,13 @@ export type EarthEvent = {
   available: boolean;
   months: string[];
   unavailableReason: string | null;
+  suggestedVariables?: {
+    id: string;
+    reason: string;
+    months: string[];
+    available: boolean;
+  }[];
+  coverageNote?: string;
 };
 export type EarthEvents = {
   curated: true;
@@ -118,6 +125,65 @@ export type EarthSeries = {
     value: number | null;
     coverage: number | null;
     samples: number;
+  }[];
+};
+
+export type EarthTrendRecord = {
+  region_id: string;
+  region_name: string;
+  region_type: string;
+  source_table: string;
+  variable: string;
+  unit: string;
+  aggregation: string;
+  period_start: string;
+  period_end: string;
+  method: string;
+  trend_direction: string;
+  source_dataset: string;
+  data_type: string;
+  notes: string;
+  computed_at: string;
+  lat_min: number | null;
+  lat_max: number | null;
+  lon_min: number | null;
+  lon_max: number | null;
+  n_obs: number | null;
+  statistic: number | null;
+  z_score: number | null;
+  tau: number | null;
+  slope_per_month: number | null;
+  slope_per_decade: number | null;
+  slope_ci_low_per_decade: number | null;
+  slope_ci_high_per_decade: number | null;
+  p_value: number | null;
+  alpha: number | null;
+  is_significant: boolean | null;
+};
+export type EarthTrendEvidence = {
+  status: "exact" | "unsupported" | "unavailable";
+  precomputed: true;
+  simulated: false;
+  selection: { variable: string; bbox: number[]; start: string; end: string };
+  referenceTable: string;
+  referenceFetchedAt?: string;
+  referenceRowCount?: number;
+  referenceTruncated: boolean;
+  resultsTruncated: boolean;
+  contextsTruncated: boolean;
+  reason: string | null;
+  results: EarthTrendRecord[];
+  warnings: string[];
+  supportedContexts: {
+    variable: string;
+    storedVariable: string;
+    regionId: string;
+    regionName: string;
+    bbox: (number | null)[];
+    start: string;
+    end: string;
+    n_obs: number | null;
+    unit: string;
   }[];
 };
 
@@ -231,6 +297,76 @@ async function readEvents(signal: AbortSignal): Promise<EarthEvents> {
   )
     throw new Error("O catálogo de eventos históricos não está disponível.");
   return data;
+}
+export function loadTrendEvidence(
+  variable: string,
+  bbox: string,
+  start: string,
+  end: string,
+  signal: AbortSignal,
+): Promise<EarthTrendEvidence> {
+  const key = JSON.stringify(["trends", variable, bbox, start, end]);
+  return earthReadCache.read(key, signal, 60_000, async (requestSignal) => {
+    const query = new URLSearchParams({ variable, bbox, start, end });
+    const data: EarthTrendEvidence = await (
+      await checked(`/v1/trends?${query}`, requestSignal)
+    ).json();
+    const bounds = bbox.split(",").map(Number);
+    if (
+      data.precomputed !== true ||
+      data.simulated !== false ||
+      !["exact", "unsupported", "unavailable"].includes(data.status) ||
+      data.selection?.variable !== variable ||
+      data.selection.start !== start ||
+      data.selection.end !== end ||
+      !Array.isArray(data.selection.bbox) ||
+      data.selection.bbox.length !== 4 ||
+      bounds.length !== 4 ||
+      bounds.some(
+        (value, index) =>
+          !Number.isFinite(value) || data.selection.bbox[index] !== value,
+      ) ||
+      !Array.isArray(data.results) ||
+      data.results.length > 12 ||
+      !Array.isArray(data.supportedContexts) ||
+      data.supportedContexts.length > 100 ||
+      !Array.isArray(data.warnings) ||
+      data.warnings.some((warning) => typeof warning !== "string") ||
+      typeof data.referenceTruncated !== "boolean" ||
+      typeof data.resultsTruncated !== "boolean" ||
+      typeof data.contextsTruncated !== "boolean" ||
+      (data.status === "exact"
+        ? !data.results.length
+        : data.results.length > 0) ||
+      data.results.some(
+        (row) =>
+          variable !== "surface_temperature" ||
+          row.variable !== "surface_skin_temperature" ||
+          row.lon_min !== bounds[0] ||
+          row.lat_min !== bounds[1] ||
+          row.lon_max !== bounds[2] ||
+          row.lat_max !== bounds[3] ||
+          row.period_start?.slice(0, 7) !== start ||
+          row.period_end?.slice(0, 7) !== end ||
+          typeof row.method !== "string" ||
+          typeof row.notes !== "string" ||
+          typeof row.aggregation !== "string" ||
+          [
+            row.n_obs,
+            row.slope_per_month,
+            row.slope_per_decade,
+            row.slope_ci_low_per_decade,
+            row.slope_ci_high_per_decade,
+            row.p_value,
+            row.alpha,
+          ].some((value) => value !== null && !Number.isFinite(value)) ||
+          (row.is_significant !== null &&
+            typeof row.is_significant !== "boolean"),
+      )
+    )
+      throw new Error("Stored trend evidence does not match this selection.");
+    return data;
+  });
 }
 export async function loadFrame(
   variable: string,
