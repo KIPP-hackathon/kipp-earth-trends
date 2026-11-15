@@ -235,3 +235,16 @@ builder. Joint playback started and paused with displayed dates. Player measured
 overflow. No console errors/warnings in exercised paths. Scoped review found no
 important issues. Existing main-chunk size advisory remains. Codex assisted
 design, TSX/CSS, copy, review and verification. Local only; no publication.
+
+
+## Publication —15/11/2026
+
+Published after main d5e2337 through PR49, main commit56bc36c. Both
+https://kipp-nasa.space/ and the existing Vercel address served index-BHtSO-oE.js.
+Cloudflare workflow43768999461 succeeded; Worker version
+043a417f-dd65-4ed2-a41e-afa035d05099.178frontend and49backend tests, both builds
+and Cloudflare dry-run passed; public browser confirmed the ten ecosystems,
+both tours, grouped search, El Niño before/during presets and joint play/pause.
+Real catalog:224variables, databricks-sql/trusted, simulated=false. Full release
+evidence is recorded in space-apps-2026-entrega.md. Codex assisted publication;
+no scientific results, submission or eligibility claims follow from this deploy.

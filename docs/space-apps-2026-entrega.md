@@ -2137,3 +2137,32 @@ Bundles equivalentes aos verificados localmente; aviso de chunk principal
 acima de500kB permanece. Deploy seguirá o workflow existente da main, com
 congelamento automático no prazo; conclusão e smoke público ainda pendentes.
 OpenAI Codex assistiu integração, revisão, testes e preparação da publicação.
+
+
+### Catalog, Study context e tours publicados —15/11/2026
+
+Publicação autorizada integrada pelo [PR49](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/49),
+commit56bc36c779db28f27e612adb3445b36b51b29f54, após atualizar da main d5e2337.
+Autoria confirmada pela API: Lucas Henrique, lucas.henrique.tai@gmail.com,
+conta pessoal Luckstai. Arquivos locais alheios de marca/vídeo preservados.
+
+[Workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43768999461)
+concluído às19h23 de15/11 America/Sao_Paulo. Worker kipp-earth-trends, versão
+043a417f-dd65-4ed2-a41e-afa035d05099. Domínio [kipp-nasa.space](https://kipp-nasa.space/)
+e [Vercel](https://kipp-earth-trends-lab.vercel.app/) serviram o bundle
+index-BHtSO-oE.js, igual ao build validado. Catálogo público do domínio retornou
+provider=databricks-sql, sourceLayer=trusted, simulated=false e224variáveis.
+Workflow confirmou aplicação/API disponíveis e Cloud Run anônimo bloqueado.
+
+178testes frontend,49backend, builds frontend/API e dry-run Cloudflare aprovados
+no Node24; CI repetiu teste/build/empacotamento/deploy/smoke. Aviso de tamanho
+do chunk principal permanece. Navegador no domínio confirmou dez ecossistemas,
+tour Catalog com Next, Compare com player compacto e tour, busca Brasil apenas
+com nome/bandeira e grupos Countries/Places/Events, busca El Niño em Events,
+preset histórico antes/durante aplicado aos dois painéis, Play both e Pause both
+controlando ambos, e navegação por teclado no tour. Sem salvar investigação ou
+fazer pedido de IA. Capturas locais fora do Git.
+
+OpenAI Codex assistiu implementação, revisão, integração, testes e publicação.
+Esta evidência confirma interface e deploy; não comprova revisão científica
+humana, elegibilidade, submissão da página Project ou congelamento final.
