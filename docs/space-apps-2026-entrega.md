@@ -1,5 +1,14 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Tabelas compactas com poucas variáveis — 15/11/2026
+
+OpenAI Codex removeu a reserva mínima de altura nas tabelas do Explore quando
+há até três variáveis selecionadas. Os cartões usam a altura real das linhas,
+e o Global aparece logo após o país, sem vazio intermediário. Seleções maiores
+mantêm a área de rolagem ampliada e os cabeçalhos fixos. Sem alterar dados,
+inferência, escala ou período. 141 testes frontend e build aprovados com
+Node.js 24; publicação em acompanhamento.
+
 ## Ações do rodapé removidas — 15/11/2026
 
 Por solicitação do usuário, OpenAI Codex removeu Credits & data, Field guide
@@ -1859,3 +1868,15 @@ layout atualizado; card e página cabem em360px. Capturas locais fora do Git.
 Preview preservado em `http://127.0.0.1:5188/` para revisão humana, reaberto no
 início do tour sem persistir conclusão. Codex assistiu integração e conferência.
 Commits somente locais: sem push, deploy ou alteração da página Project.
+
+
+### Preparação autorizada da publicação do tour/Compare — 15/11/2026
+
+O usuário autorizou publicar os ajustes avaliados localmente. Integrada a main
+`1ed0265`, preservando as tabelas compactas com poucas variáveis. O destino
+confirmado é o Worker `kipp-earth-trends`, na conta Cloudflare já configurada
+no repositório, pelo workflow Frontend Cloudflare. Sem alterações na pipeline,
+permissões, dados, backend ou materiais da página Project. Conta GitHub pessoal
+Luckstai verificada conforme política do diretório. Resultado da publicação
+e smoke público serão registrados após a conclusão; não estão comprovados
+por esta preparação.

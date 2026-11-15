@@ -709,7 +709,7 @@ function SelectedRealPanel({
       </div>
       </div>
       </details>
-      <section className="real-series-comparison multivariable-analysis" aria-label="Selected variable charts">
+      <section className={`real-series-comparison multivariable-analysis${selectedVariables.length <= 3 ? " compact-comparison-tables" : ""}`} aria-label="Selected variable charts">
         <ComparisonAnalysis variables={selectedVariables} region={region} start={start} end={end}
           month={month} onMonth={selectMonth} active={active} mode={comparisonMode}
           onMode={mode=> {onManualChange();setComparisonMode(mode);}}
