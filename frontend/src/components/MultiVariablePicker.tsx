@@ -68,10 +68,6 @@ export function MultiVariablePicker({
     <div
       className="multi-variable-picker"
       ref={root}
-      onBlur={(event) => {
-        const next = event.relatedTarget as Node | null;
-        if (next && !event.currentTarget.contains(next)) close();
-      }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
           event.preventDefault();
@@ -193,16 +189,6 @@ export function MultiVariablePicker({
                 <label
                   key={variable.id}
                   className={available ? "" : "is-unavailable"}
-                  onClick={(event) => {
-                    if ((event.target as HTMLElement).closest("input")) return;
-                    event.preventDefault();
-                    if (!available) return;
-                    setDraft((previous) =>
-                      previous.includes(variable.id)
-                        ? previous.filter((id) => id !== variable.id)
-                        : [...previous, variable.id],
-                    );
-                  }}
                 >
                   <input
                     type="checkbox"
