@@ -9,6 +9,14 @@ checkbox e bloco de texto; lista continua com rolagem. Atualização do Trend La
 da main `ced5d3c` integrada. 96 testes frontend e build aprovados. Publicação
 em verificação; sem alteração de dados, método estatístico ou seleção.
 
+Ajuste posterior solicitado: removidos seleção de todas as variáveis e checkbox
+de seleção do grupo; grupos continuam expansíveis com contagem e seleção
+individual. Placeholder `Search variables`; explicação do rodapé removida.
+Clear, Cancel e Apply preservados, com navegação por teclado para grupos
+fechados. Navegador confirmou ausência dos controles removidos, fontes
+14/13px e alinhamento central do ícone com o texto. 96 testes e build aprovados;
+envio desta simplificação em andamento.
+
 ## Hospedagem alternativa Cloudflare — 15/11/2026
 
 OpenAI Codex assistiu a preparação de uma segunda hospedagem solicitada pelo

@@ -150,11 +150,6 @@
   padding-left: 10px;
   background: #75aaff09;
 }
-.multi-variable-options .multi-variable-group-heading > input {
-  margin: 0;
-  width: 16px;
-  height: 16px;
-}
 .multi-variable-group-toggle {
   flex: 1;
   min-width: 0;
@@ -279,14 +274,10 @@
   opacity: 0.5;
   cursor: default;
 }
-.multi-variable-options > p,
-.multi-variable-note {
+.multi-variable-options > p {
   color: var(--muted);
   font-size: 10px;
   line-height: 1.6;
-}
-.multi-variable-note {
-  margin: 11px 0;
 }
 .multi-variable-footer {
   justify-content: flex-end;
