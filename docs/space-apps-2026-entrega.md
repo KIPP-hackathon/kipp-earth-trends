@@ -22,7 +22,14 @@ builds frontend/API aprovados com Node.js 24. Chromium desktop e WebKit emulando
 iPhone confirmaram proporções canvas/SVG, controles inferiores, cascata,
 recorte/Reset, preservação de rascunho e slider de opacidade em largura total.
 Sem erros de página ou overflow horizontal nessas verificações; sem teste
-em iPhone físico. Publicação em acompanhamento; sem alteração científica.
+em iPhone físico. Publicado em `a9864f2` na
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/):
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43748425519)
+concluído com sucesso; bundle público `index-Dg3ccfiI.js` conferido.
+Verificações de navegador repetidas no site público aprovaram cascata, recorte,
+rascunho, opacidade e proporções; Chromium também desenhou uma área no novo
+viewport. Vercel segue bloqueando builds por limite de publicações.
+Sem alteração científica.
 
 ## Explore em três colunas e datas nativas — 15/11/2026
 
