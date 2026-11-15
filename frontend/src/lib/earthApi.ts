@@ -72,6 +72,10 @@ export type EarthEvents = {
   limitations?: string[];
 };
 export type EarthVariable = {
+  sourceLayer?: string;
+  sourceTable?: string | null;
+  colorRangeSource?: "indicator_coverage_p5_p95" | "configured_default";
+  coverageFlag?: boolean | null;
   sourceRevision?: string;
   id: string;
   name: string;

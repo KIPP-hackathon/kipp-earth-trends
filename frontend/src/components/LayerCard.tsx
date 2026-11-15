@@ -69,6 +69,7 @@ export function LayerCard({
             {variable.product}
             {variable.run ? ` · ${variable.run}` : ""} · {unit}
           </p>
+          {variable.sourceTable && <p>Source: {variable.sourceTable}</p>}
         </div>
         <button
           type="button"
@@ -165,6 +166,9 @@ export function LayerCard({
       {scale.kind === "continuous" && (
         <details className="layer-range-controls">
           <summary>Color range · {colorRange ? "custom" : "default"}</summary>
+          <p>{variable.colorRangeSource === "indicator_coverage_p5_p95"
+            ? "Default: p5–p95 from the trusted indicator coverage inventory, converted to display units. These percentiles describe that inventory, not necessarily the selected region or period."
+            : "Default: configured display range; matching percentiles unavailable."}</p>
           <ColorScaleControls
             domain={scale.domain}
             unit={unit}

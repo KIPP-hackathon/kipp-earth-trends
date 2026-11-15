@@ -1,5 +1,22 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Configuração de indicadores trusted — implementação preparada em 15/11/2026
+
+Consulta somente de leitura à `earth-trend-data.trusted.tb_indicator_coverage`
+retornou 458 linhas `trusted`: 190 com `valid_flag=true` e 268 com `false`.
+Por decisão do usuário, variáveis com coluna física correspondente e flag falso
+ficam ocultas dos seletores; ausência de linha não significa falso. Falha de
+leitura da configuração impede carregar o catálogo. A disponibilidade mensal
+continua verificada nas tabelas de observação. Consultas de referência do
+assistente usam tabelas `refined`, distintas das observações `trusted`.
+
+Os limites padrão das cores contínuas usam p5–p95 do indicador correspondente,
+convertidos à unidade exibida; percentis ausentes, duplicados ou inválidos usam
+a faixa configurada. As estatísticas do inventário não necessariamente refletem
+a região ou o período selecionados. Código e testes assistidos por OpenAI Codex;
+revisão humana pendente. Publicação e leitura pela identidade da API ainda
+precisam ser verificadas.
+
 > **Estado consolidado em 15/11/2026:** o KIPP atende ao núcleo técnico do desafio com dados reais, análise regional/temporal, taxa de mudança e significância reproduzidas. A entrega formal ainda não está comprovada. O checklist atual abaixo substitui o diagnóstico inicial de frontend simulado; os registros incrementais preservam o contexto e a data de cada verificação.
 
 Registro técnico de 15/11/2026: configurações locais para ampliar as extrações de

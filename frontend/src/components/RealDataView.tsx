@@ -269,13 +269,19 @@ function SelectedRealPanel({
     (v.id === variable.id || (view.showLayer && effectiveSettings.some(setting => setting.variable === v.id && setting.visible && setting.opacity > 0)))), availableVariables, month);
   const selectedFrameVariables = windFrameVariables(selectedVariables, availableVariables);
   const layerFrames = useLayerFrames(frameVariables, month, active, selectedFrameVariables);
-  const primaryFrame = layerFrames.frames[variable.id];
-  const displayedFrame = primaryFrame ?? Object.values(layerFrames.frames)[0];
+  const renderedFrames = useMemo(() => Object.fromEntries(
+    Object.entries(layerFrames.frames).map(([id, source]) => {
+      const definition = availableVariables.find((entry) => entry.id === id);
+      return [id, definition?.render ? { ...source, render: definition.render } : source];
+    }),
+  ), [layerFrames.frames, availableVariables]);
+  const primaryFrame = renderedFrames[variable.id];
+  const displayedFrame = primaryFrame ?? Object.values(renderedFrames)[0];
   const frame = {data:displayedFrame,loading:layerFrames.loading,
     error:Object.values(layerFrames.errors)[0],retry:layerFrames.retry};
   const mapLayers: MapLayer[] = effectiveSettings.map(setting => ({
     id: setting.variable, visible:setting.visible, opacity:setting.opacity,
-    frame:layerFrames.frames[setting.variable],colorRange:colorRanges[setting.variable],
+    frame:renderedFrames[setting.variable],colorRange:colorRanges[setting.variable],
   }));
   const changeLayer = (next:LayerSetting) => {
     onManualChange();

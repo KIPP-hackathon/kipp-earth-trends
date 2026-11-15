@@ -21,7 +21,7 @@ export const limitations = [
   "Air temperature at 10 m differs from air temperature at 2 m and surface temperature.",
   "IMERG Final and Late remain separate because their processing and coverage differ.",
   "GRACE anomalies use a 2004–2009 reference and do not isolate groundwater; no causal inference or climate forecast is provided.",
-  "Color scales are fixed display ranges, not scientific limits or global observed minima/maxima.",
+  "Color scales are display ranges, not scientific limits or global observed minima/maxima.",
 ];
 export function variableFor(id: string): Variable {
   const variable = variables.find((v) => v.id === id);
@@ -103,7 +103,43 @@ export type CatalogVariable = ReturnType<typeof metadataOf> & {
   firstMonth: string | null;
   lastMonth: string | null;
   unavailableReason: { code: string; message: string } | null;
+  colorRangeSource: "indicator_coverage_p5_p95" | "configured_default";
+  coverageFlag: boolean | null;
 };
+
+export function coverageFlags(rows: Record<string, unknown>[], entries: Variable[]) {
+  const flags = new Map<string, boolean | null>();
+  for (const v of entries) {
+    const column = trustedColumns[v.table]?.[v.column];
+    const matching = rows.filter((row) => column &&
+      row.full_table_name === `earth-trend-data.trusted.${v.table}` && row.indicator === column);
+    const values = matching.map((row) => row.valid_flag);
+    flags.set(v.id, values.some((value) => value === false || value === "false")
+      ? false : values.some((value) => value === true || value === "true") ? true : null);
+  }
+  return flags;
+}
+
+export function percentileDomains(rows: Record<string, unknown>[], entries: Variable[]) {
+  const matches = new Map<string, Record<string, unknown>[]>();
+  for (const row of rows) {
+    const key = `${row.full_table_name}.${row.indicator}`;
+    matches.set(key, [...(matches.get(key) ?? []), row]);
+  }
+  const domains = new Map<string, [number, number]>();
+  for (const v of entries) {
+    if (v.render.kind !== "continuous") continue;
+    const column = trustedColumns[v.table]?.[v.column];
+    const candidates = matches.get(`earth-trend-data.trusted.${v.table}.${column}`);
+    if (!column || candidates?.length !== 1) continue;
+    const low = numeric(candidates[0].p5), high = numeric(candidates[0].p95);
+    if (low === null || high === null || low >= high) continue;
+    const converted = [low * v.conversion.scale + v.conversion.offset, high * v.conversion.scale + v.conversion.offset].sort((a, b) => a - b);
+    if (converted.every(Number.isFinite) && converted[0] < converted[1])
+      domains.set(v.id, [converted[0], converted[1]]);
+  }
+  return domains;
+}
 export type DataServiceOptions = { schema?: string; variables?: Variable[] };
 export class DataService {
   provider: Provider;
@@ -315,6 +351,19 @@ export class DataService {
         "CATALOG_UNAVAILABLE",
         "Could not query the real-data catalog.",
       );
+    let rows: Record<string, unknown>[];
+    try {
+      rows = await this.provider.query(
+        "SELECT full_table_name, indicator, valid_flag, p5, p95 FROM `earth-trend-data`.`trusted`.`tb_indicator_coverage` WHERE catalogo = 'earth-trend-data' AND schema = 'trusted' LIMIT 10001",
+        {}, 10001,
+      );
+    } catch {
+      throw new ApiError(503, "COVERAGE_INVENTORY_UNAVAILABLE", "The indicator visibility configuration is unavailable. Please try again.");
+    }
+    if (rows.length > 10000)
+      throw new ApiError(503, "COVERAGE_INVENTORY_TOO_LARGE", "The indicator visibility configuration exceeds the supported size.");
+    const domains = percentileDomains(rows, this.variables);
+    const flags = coverageFlags(rows, this.variables);
     return this.variables.map((v) => {
       const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
         a.month.localeCompare(b.month),
@@ -324,12 +373,15 @@ export class DataService {
       );
       return {
         ...metadataOf(v),
+        render: domains.has(v.id) ? { ...v.render, domain: domains.get(v.id)! } : v.render,
+        colorRangeSource: domains.has(v.id) ? "indicator_coverage_p5_p95" : "configured_default",
+        coverageFlag: flags.get(v.id) ?? null,
         months: availableMonths,
-        available: validMonths.length > 0,
+        available: flags.get(v.id) !== false && validMonths.length > 0,
         firstMonth: validMonths[0]?.month ?? null,
         lastMonth: validMonths.at(-1)?.month ?? null,
         unavailableReason:
-          errors.get(v.id) ??
+          (flags.get(v.id) === false ? { code: "HIDDEN_BY_COVERAGE_FLAG", message: "Hidden by indicator coverage configuration." } : null) ?? errors.get(v.id) ??
           (validMonths.length
             ? null
             : {
