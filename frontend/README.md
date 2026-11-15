@@ -26,6 +26,16 @@ Execute também o backend local na porta 8080 com suas próprias credenciais.
 O proxy Vite encaminha `/api/earth` para ele. Nunca coloque credenciais em
 variáveis `VITE_*`. O build verifica frontend e função TypeScript da Vercel.
 
+Para revisar apenas a interface localmente, usando a API pública já publicada:
+
+```sh
+KIPP_PREVIEW_PRODUCTION_API=1 npm run dev -- --port 5180
+```
+
+Abra `http://localhost:5180`. Essa opção afeta apenas o proxy do servidor de
+desenvolvimento; as observações vêm da aplicação pública, sem credenciais locais
+e sem publicar as alterações da interface. O modo padrão continua usando 8080.
+
 ## Visualização
 
 Frames Float32 são texturas WebGL, com ausências transparentes e escala fixa
@@ -54,6 +64,11 @@ incluem produto, unidade, método e proveniência.
 O céu decorativo usa estrelas SVG com deslocamento em três camadas e variação
 suave de brilho. Respeita `prefers-reduced-motion`; não representa observações
 astronômicas nem interfere na camada científica.
+
+A interface usa fundo espacial contínuo e painéis azuis escuros translúcidos.
+Campos, calendário, chat e modais seguem a mesma paleta; gráficos têm uma
+superfície mais opaca e cores de linha/texto próprias para leitura em fundo
+escuro. As escalas científicas do globo não são modificadas pelo tema.
 
 Módulos antigos de simulação e suas verificações foram preservados como material
 histórico, mas não são usados pelo fluxo operacional do App.

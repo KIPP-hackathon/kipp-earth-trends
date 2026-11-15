@@ -3,6 +3,7 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
+import { SpaceBackdrop } from "./SpaceBackdrop";
 import "./space-scene.css";
 import {
   frameCellIndex,
@@ -254,6 +255,7 @@ export function RealGlobe({
       <div
         className={`real-globe-scene ${drawing ? "is-drawing" : ""}${view.zoom > 1.18 ? " is-zoomed" : ""}`}
       >
+        <SpaceBackdrop />
         <svg
           ref={svgRef}
           viewBox="0 0 640 640"
