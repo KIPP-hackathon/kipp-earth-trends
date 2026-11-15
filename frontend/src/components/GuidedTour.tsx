@@ -40,6 +40,14 @@ export function GuidedTour({
   const card = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<Box | null>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  // The card moves and the page scrolls on every step; briefly swallow
+  // clicks so a quick second click cannot land on the page underneath.
+  const [shield, setShield] = useState(true);
+  useEffect(() => {
+    setShield(true);
+    const timer = window.setTimeout(() => setShield(false), 450);
+    return () => window.clearTimeout(timer);
+  }, [step]);
 
   // Scroll the target into view when the step changes (or it appears later).
   useEffect(() => {
@@ -138,6 +146,7 @@ export function GuidedTour({
   const canNext = current.canNext !== false;
   return (
     <div className="guided-tour" aria-live="polite">
+      {shield && <div className="guided-tour-shield" aria-hidden="true" />}
       {box ? (
         <div
           className="guided-tour-spotlight"

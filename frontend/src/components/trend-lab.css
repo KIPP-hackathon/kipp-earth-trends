@@ -871,3 +871,4 @@
 .guided-tour-secondary {padding:7px 13px;border:1px solid #a2bfe566;border-radius:999px;background:transparent;color:#c4d5e9;font-size:12px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .guided-tour-secondary:hover {border-color:#87dbe5;color:#87dbe5}
 .guided-tour-done {display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#87dbe51f;color:#87dbe5;font-size:12px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guided-tour-shield {position:fixed;inset:0;z-index:1003;background:transparent}

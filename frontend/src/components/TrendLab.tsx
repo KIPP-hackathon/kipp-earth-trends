@@ -260,6 +260,17 @@ export function TrendLab({
     },
     onKeep: mark,
   });
+  // After the tour, stay in Trend Lab: swallow stray clicks for a moment
+  // (the footer logo would open Explore) and return to the top of the lab.
+  const [afterTour, setAfterTour] = useState(false);
+  const endTour = () => {
+    setTourStep(null);
+    setAfterTour(true);
+    window.setTimeout(() => setAfterTour(false), 450);
+    document
+      .querySelector(".trend-lab")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const startTour = (step = 0) => {
     if (step === 0)
       setChosen({ area: false, indicators: false, period: false });
@@ -291,7 +302,7 @@ export function TrendLab({
           type="button"
           className="investigation-tour-start"
           aria-expanded={tourStep !== null}
-          onClick={() => (tourStep === null ? startTour() : setTourStep(null))}
+          onClick={() => (tourStep === null ? startTour() : endTour())}
         >
           <Compass size={15} />{" "}
           {tourStep === null ? "Take the guided tour" : "End tour"}
@@ -618,9 +629,10 @@ export function TrendLab({
           steps={tourSteps}
           step={tourStep}
           onStep={setTourStep}
-          onClose={() => setTourStep(null)}
+          onClose={endTour}
         />
       )}
+      {afterTour && <div className="guided-tour-shield" aria-hidden="true" />}
     </div>
   );
 }
