@@ -9,11 +9,13 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
+from google.cloud import storage
 
 from config import (
     SHORT_NAME,
     VERSION,
     VARIABLE,
+    VARIABLES,
     START_DATE,
     END_DATE,
     RAW_DIR,
@@ -227,49 +229,31 @@ def find_name(names, target):
 # ==========================================================
 
 def calculate_time_average(ds):
-
     logger.info("Selecionando dados mensais.")
 
-    variable_name = find_name(
-        ds.data_vars, VARIABLE
-    )
-
     time_name = find_name(ds.coords, "time")
-
     start, end = validate_period()
 
-    # Seleciona o período solicitado
-    ds = ds.sel(
-        {time_name: slice(
-            start,
-            end
-        )}
-    )
+    # Seleciona o período solicitado, mantendo todas as variáveis
+    ds = ds.sel({time_name: slice(start, end)})
 
     if ds.sizes[time_name] == 0:
         raise RuntimeError("Nenhum dado encontrado.")
 
-    # Preserva a dimensão temporal!
-    result = ds[variable_name]
-
-    # Normaliza longitude
-    lon_name = find_name(result.coords, "lon")
-
-    longitude = (
-        (result[lon_name] + 180) % 360
-    ) - 180
+    # Normaliza longitude no dataset todo
+    lon_name = find_name(ds.coords, "lon")
+    longitude = ((ds[lon_name] + 180) % 360) - 180
 
     result = (
-        result.assign_coords({lon_name: longitude})
+        ds.assign_coords({lon_name: longitude})
         .sortby(lon_name)
     )
 
-    logger.info(
-        "Meses encontrados: %s",
-        result.sizes[time_name]
-    )
+    logger.info("Meses encontrados: %s", result.sizes[time_name])
+    logger.info("Variáveis encontradas: %s", list(result.data_vars))
 
     return result
+
 
 
 # ==========================================================
@@ -367,42 +351,44 @@ def save_csv(result):
     return path
 
 def save_monthly_csv(result):
-
     time_name = find_name(result.coords, "time")
 
-    for i in range(result.sizes[time_name]):
+    bucket_name = "nasa-earth-trends-lab-raw"
+    gcs_prefix = "transient"
 
-        monthly = result.isel(
-            {time_name: i}
-        )
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
 
-        date = pd.Timestamp(
-            result[time_name].values[i]
-        )
+    uploaded_paths = []
 
-        year_month = date.strftime("%Y_%m")
-        year = date.strftime("%Y")
+    for variable_name in (name for name in VARIABLES if name):
+        variable = result[variable_name]
+        variable_folder = str(variable_name)
 
-        df = monthly.to_dataframe(
-            name=f"{VARIABLE}_K"
-        ).reset_index()
+        for i in range(result.sizes[time_name]):
+            monthly = variable.isel({time_name: i})
+            date = pd.Timestamp(result[time_name].values[i])
 
-        df[f"{VARIABLE}_C"] = (
-            df[f"{VARIABLE}_K"] - 273.15
-        )
+            year_month = date.strftime("%Y_%m")
+            year = date.strftime("%Y")
 
-        filename = (
-            f"{SHORT_NAME}_{VARIABLE}_{year_month}.csv"
-        )
+            df = monthly.to_dataframe(name=variable_folder).reset_index()
 
-        if os.path.exists(CSV_DIR / SHORT_NAME / year) is False:
-            os.makedirs(CSV_DIR / SHORT_NAME / year)
+            filename = f"{SHORT_NAME}_{variable_folder}_{year_month}.csv"
+            blob_name = (
+                f"{gcs_prefix}/{SHORT_NAME}_{variable_folder}/{year}/{filename}"
+            )
 
-        path = CSV_DIR / SHORT_NAME / year / filename
+            bucket.blob(blob_name).upload_from_string(
+                df.to_csv(index=False),
+                content_type="text/csv"
+            )
 
-        df.to_csv(path, index=False)
+            gcs_path = f"gs://{bucket_name}/{blob_name}"
+            uploaded_paths.append(gcs_path)
+            logger.info("CSV mensal salvo no GCS: %s", gcs_path)
 
-        logger.info("CSV mensal salvo: %s", path)
+    return uploaded_paths
 # ==========================================================
 # 11. GERAR MAPA GLOBAL
 # ==========================================================
@@ -482,6 +468,7 @@ def generate_map(result):
 def main():
 
     logger.info("===== PIPELINE INICIADO =====")
+    print(f"===== {SHORT_NAME} =====")
 
     try:
 
@@ -498,7 +485,7 @@ def main():
 
             # netcdf_path = save_netcdf(result)
 
-            csv_path = save_monthly_csv(result)
+            csv_paths = save_monthly_csv(result)
 
             # map_path = generate_map(result)
 
@@ -508,7 +495,8 @@ def main():
 
             print("Arquivos gerados:")
             # print(netcdf_path)
-            print(csv_path)
+            for path in csv_paths:
+                print(path)
             # print(map_path)
 
         finally:
