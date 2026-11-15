@@ -755,3 +755,24 @@ Holm confirmou exclusão dos testes globais. A main posterior9c5c9c7 manteve
 apenas um ComparisonChart regional e o bundle público index-CeqgUBWO.js
 confirmou os controles alinhados e ausência de Trend CSV. Navegação visual
 automatizada não foi declarada; publicação conferida por código e artefatos.
+
+
+### Ajustes do Trend Lab - 15/11/2026
+
+OpenAI Codex assistiu o fluxo horizontal acima dos resultados, com quatro
+etapas de area, indicador, periodo e execucao. O globo fica em painel
+expansivel na etapa de area para reduzir a altura inicial. Em telas menores,
+as etapas se reorganizam em duas colunas ou uma coluna.
+
+A mudanca ajustada em X meses passa a preceder o grafico, com modos de
+projecao linear e exploracao historica. O modo historico limita os dois pontos
+ao intervalo com dados validos; a projecao inicia no ultimo mes valido.
+Metodologia abre por hover, foco ou toque. Significancia, intervalos,
+inclinacao, amostras, lacunas, R quadrado e graus de liberdade aparecem no
+relatorio estatistico final. Interpretacao e pressupostos ficam no Guide,
+acessivel diretamente pelo resultado. Calculo OLS existente reutilizado.
+
+Validacao local com Node.js 24.22.1, 80 testes frontend e builds frontend/API
+aprovados. Build mantem aviso de bundle acima de 500 kB. Conferencia visual
+em navegador pendente nesta revisao. Revisao humana e submissao permanecem
+pendentes. Alteracoes locais registradas neste checkout.

@@ -62,6 +62,18 @@ function RequestFailure({
 }
 const guide = [
   {
+    title: "Explore change in Trend Lab",
+    text: "Choose an area, indicator and study period, then run the experiment. Project ahead starts at the last valid month. Explore past change keeps both endpoints inside the historical record. The displayed change is the fitted slope multiplied by elapsed months. Endpoints represent the fitted line. Future extensions assume that slope continues and can exceed physical bounds. The 95% interval describes fitted change, with future individual observations carrying additional uncertainty.",
+  },
+  {
+    title: "Read the statistical report",
+    text: "Trend Lab uses OLS on raw monthly values with a two-sided Student-t 95% slope interval and n−2 degrees of freedom. An interval excluding zero corresponds to significance at α = 0.05. An interval including zero leaves the direction uncertain. Degenerate residual variation makes inference unavailable. R² summarizes the fraction of sample variation explained by the line. Missing months are excluded while calendar gaps are preserved.",
+  },
+  {
+    title: "Interpret the evidence carefully",
+    text: "Trend Lab assumes linearity and independent, normally distributed, constant-variance residuals. Seasonality, autocorrelation and multiple testing are uncorrected and can distort inference. Repeated selections are exploratory. Significance alone establishes neither practical importance nor causality. Short records offer limited evidence about long-term climate change. Country areas use bounding rectangles. Inspect product type, units, coverage and provenance alongside the result.",
+  },
+  {
     title: "Start with a question",
     text: "Explore any available variable, country or drawn area. Event presets are editable starting points; no name or account is needed to begin.",
   },
@@ -196,19 +208,24 @@ function useLabWorkspace(onManualChange: () => void) {
         snapshots.current.A,
         ...(tab === "compare" ? [snapshots.current.B] : []),
       ].filter((panel): panel is PanelSnapshot => !!panel);
-      const panels = snapshotsForTab.map(panel => {
+      const panels = snapshotsForTab.map((panel) => {
         if (includeLayers) return panel;
-        const {layers: _layers, layerMonths: _layerMonths, ...wire} = panel;
+        const { layers: _layers, layerMonths: _layerMonths, ...wire } = panel;
         return wire;
       });
-      const primaryIds = new Set(panels.map(panel => panel.variable));
+      const primaryIds = new Set(panels.map((panel) => panel.variable));
       return structuredClone({
         version,
         tab,
         panels,
         camera: live.current.view,
-        colorRanges: includeLayers ? live.current.colorRanges : Object.fromEntries(
-          Object.entries(live.current.colorRanges).filter(([id]) => primaryIds.has(id))),
+        colorRanges: includeLayers
+          ? live.current.colorRanges
+          : Object.fromEntries(
+              Object.entries(live.current.colorRanges).filter(([id]) =>
+                primaryIds.has(id),
+              ),
+            ),
       });
     },
     [],
@@ -259,12 +276,13 @@ function App() {
     markChanged();
     setStartingCountry(country);
     exploration.setEventContext(undefined);
-    const panel = exploration.getContext("explore", version.current, true).panels[0];
+    const panel = exploration.getContext("explore", version.current, true)
+      .panels[0];
     if (panel)
       exploration.setPreset("A", {
         variable: panel.variable,
-        ...(panel.layers ? {layers:panel.layers} : {}),
-        comparisonMode:panel.comparisonMode,
+        ...(panel.layers ? { layers: panel.layers } : {}),
+        comparisonMode: panel.comparisonMode,
         month: panel.selectedMonth ?? panel.end,
         start: panel.start,
         end: panel.end,
@@ -323,15 +341,28 @@ function App() {
   activeTab.current = active;
   const getWorkspaceContext = useCallback(
     (tab: LabTab): AssistantContext => {
-      const context=(tab === "compare" ? comparison : exploration).getContext(
-        tab,
-        version.current,
-        catalog.data?.capabilities?.layeredAssistant === true,
-      ),
-      supportsComparison=catalog.data?.capabilities?.comparisonCharts===true;
-      return supportsComparison?context:{...context,panels:context.panels.map(({comparisonMode:_mode,...panel})=>panel)};
+      const context = (tab === "compare" ? comparison : exploration).getContext(
+          tab,
+          version.current,
+          catalog.data?.capabilities?.layeredAssistant === true,
+        ),
+        supportsComparison =
+          catalog.data?.capabilities?.comparisonCharts === true;
+      return supportsComparison
+        ? context
+        : {
+            ...context,
+            panels: context.panels.map(
+              ({ comparisonMode: _mode, ...panel }) => panel,
+            ),
+          };
     },
-    [comparison.getContext, exploration.getContext,catalog.data?.capabilities?.layeredAssistant,catalog.data?.capabilities?.comparisonCharts],
+    [
+      comparison.getContext,
+      exploration.getContext,
+      catalog.data?.capabilities?.layeredAssistant,
+      catalog.data?.capabilities?.comparisonCharts,
+    ],
   );
   const getContext = useCallback(
     () => getWorkspaceContext(activeTab.current),
@@ -518,7 +549,7 @@ function App() {
             : globalStudyRegion.id),
         start: panel?.start,
         end: panel?.end,
-        comparisonMode:panel?.comparisonMode,
+        comparisonMode: panel?.comparisonMode,
         nonce,
       };
     };
@@ -535,7 +566,7 @@ function App() {
           region: action.regionId ?? previous.region,
           start: action.start ?? (same ? previous.start : undefined),
           end: action.end ?? (same ? previous.end : undefined),
-          comparisonMode:previous.comparisonMode,
+          comparisonMode: previous.comparisonMode,
           nonce,
         };
       }
@@ -879,6 +910,7 @@ function App() {
               aria-labelledby="tab-trend"
             >
               <TrendLab
+                onGuide={() => setModal("guide")}
                 catalog={catalog.data}
                 config={config.data!}
                 initialCountry={startingCountry}
@@ -981,16 +1013,16 @@ function App() {
                 represent astronomical positions or scientific observations.
               </p>
               <p>
-                Event cards are curated and cite their historical sources.
-                A coincidence between fields and events does not establish
+                Event cards are curated and cite their historical sources. A
+                coincidence between fields and events does not establish
                 causality.
               </p>
               <p>
                 KIPP mascot: AI-generated artwork inspired by the robot in
                 Interstellar (2014), with a locally authored 3D animation.
-                Created with OpenAI ImageGen, Codex, Three.js and FFmpeg.
-                The mascot is not official film artwork; its screen graphics
-                are decorative and do not represent scientific results.
+                Created with OpenAI ImageGen, Codex, Three.js and FFmpeg. The
+                mascot is not official film artwork; its screen graphics are
+                decorative and do not represent scientific results.
               </p>
               {[
                 ...new Set([
@@ -1001,8 +1033,8 @@ function App() {
                 <p key={item}>{item}</p>
               ))}
               <p>
-                Explore provenance under “Source, quality & limitations” and export
-                the series JSON to preserve query metadata.
+                Explore provenance under “Source, quality & limitations” and
+                export the series JSON to preserve query metadata.
               </p>
               <a
                 href="https://earthdata.nasa.gov/"
