@@ -177,6 +177,7 @@ function SelectedRealPanel({
     const settings = layerSettings.filter(setting => availableVariables.some(v => v.id === setting.variable));
     return settings.length ? settings : [{variable:availableVariables[0].id,visible:true,opacity:1}];
   },[layerSettings,availableVariables]);
+  const [configuredLayer, setConfiguredLayer] = useState(preset.variable);
   const selectedIds = JSON.stringify(effectiveSettings.map(setting => setting.variable));
   const selectedVariables = useMemo(() => (JSON.parse(selectedIds) as string[])
     .map(id => availableVariables.find(v => v.id === id)!),[selectedIds,availableVariables]);
@@ -537,8 +538,13 @@ function SelectedRealPanel({
           }}>Hide all</button>
         </div>
       </div>
-      <div className="layer-stack" role="region" aria-label="Scrollable map layer controls" tabIndex={0}>
-        {selectedVariables.map(entry => {
+      {selectedVariables.length > 1 && <label className="layer-config-picker" htmlFor={`${id}-configure-layer`}>Configure variable
+        <select id={`${id}-configure-layer`} value={selectedVariables.some(entry => entry.id === configuredLayer) ? configuredLayer : variable.id} onChange={event => setConfiguredLayer(event.target.value)}>
+          {selectedVariables.map(entry => <option key={entry.id} value={entry.id}>{entry.name}</option>)}
+        </select>
+      </label>}
+      <div className="layer-stack is-single-config" role="region" aria-label="Selected map layer controls">
+        {selectedVariables.filter(entry => entry.id === (selectedVariables.some(v => v.id === configuredLayer) ? configuredLayer : variable.id)).map(entry => {
           const setting = effectiveSettings.find(layer => layer.variable === entry.id)!;
           const hasMonth = entry.months.some(row => row.month === month && row.validSamples > 0);
           const pair = windComponents(entry.id);

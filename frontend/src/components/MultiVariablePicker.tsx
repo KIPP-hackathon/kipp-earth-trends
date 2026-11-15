@@ -6,7 +6,6 @@ import { DomainIcon } from "../lib/domains";
 import { windComponents } from "../lib/wind";
 import {
   groupVariables,
-  toggleVariableGroup,
   variableAvailable as isAvailable,
 } from "../lib/variableGroups";
 import "./multivariable-layers.css";
@@ -83,10 +82,11 @@ export function MultiVariablePicker({
   const term = normalize(query.trim());
   const matches = variables.filter(
     (variable) =>
-      variable.coverageFlag !== false && (!term ||
-      normalize(
-        `${variable.name} ${variable.id} ${variable.product} ${variable.category ?? ""} ${variable.domain ?? ""} ${variable.unit} ${realUnit(variable.unit)}`,
-      ).includes(term)),
+      variable.coverageFlag !== false &&
+      (!term ||
+        normalize(
+          `${variable.name} ${variable.id} ${variable.product} ${variable.category ?? ""} ${variable.domain ?? ""} ${variable.unit} ${realUnit(variable.unit)}`,
+        ).includes(term)),
   );
   const matchingIds = new Set(matches.map((variable) => variable.id));
   const groups = groupVariables(variables);
@@ -237,30 +237,11 @@ export function MultiVariablePicker({
               const count = eligible.filter((variable) =>
                 validDraft.includes(variable.id),
               ).length;
-              const all = eligible.length > 0 && count === eligible.length;
-              const partial = count > 0 && !all;
               const isExpanded = expanded[group.key] ?? Boolean(term);
               const panelId = `${id}-group-${encodeURIComponent(group.key)}`;
               return (
                 <section className="multi-variable-group" key={group.key}>
                   <div className="multi-variable-group-heading">
-                    {!single && (
-                      <input
-                        type="checkbox"
-                        checked={all}
-                        disabled={!eligible.length}
-                        aria-label={`Select all available variables in ${group.label}`}
-                        aria-checked={partial ? "mixed" : all}
-                        ref={(element) => {
-                          if (element) element.indeterminate = partial;
-                        }}
-                        onChange={() =>
-                          setDraft((previous) =>
-                            toggleVariableGroup(previous, group.variables),
-                          )
-                        }
-                      />
-                    )}
                     <button
                       type="button"
                       className="multi-variable-group-toggle"
@@ -351,12 +332,6 @@ export function MultiVariablePicker({
             )}
           </div>
           <p className="multi-variable-note">
-            {term && !single && (
-              <>
-                Selecting a group includes all its available variables, even
-                those outside this search.{" "}
-              </>
-            )}
             Selections take effect together when you apply. Each variable keeps
             its own units and scale.
           </p>

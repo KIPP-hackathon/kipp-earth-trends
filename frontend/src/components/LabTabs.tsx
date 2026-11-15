@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 
 export const labTabs = [
-  { id: "start", label: "Start", icon: Compass },
+  { id: "start", label: "Introduction", icon: Compass },
+  { id: "events", label: "Events", icon: MapPinned },
+  { id: "trend", label: "Trend Lab", icon: FlaskConical },
   { id: "explore", label: "Explore", icon: Earth },
   { id: "compare", label: "Compare", icon: Columns2 },
-  { id: "trend", label: "Trend Lab", icon: FlaskConical },
-  { id: "events", label: "Events", icon: MapPinned },
   { id: "learn", label: "Guide", icon: BookOpen },
 ] as const;
 export type LabTab = (typeof labTabs)[number]["id"];
@@ -25,35 +25,28 @@ export function LabTabs({
   onChange: (tab: LabTab) => void;
 }) {
   return (
-    <div className="lab-tabs" role="tablist" aria-label="Lab workspaces">
+    <nav
+      className="lab-tabs journey-navigation"
+      aria-label="Investigation journey"
+    >
       {labTabs.map(({ id, label, icon: Icon }, index) => (
-        <button
+        <a
           key={id}
           id={`tab-${id}`}
-          role="tab"
-          type="button"
-          aria-selected={active === id}
-          aria-controls={`panel-${id}`}
-          tabIndex={active === id ? 0 : -1}
-          onClick={() => onChange(id)}
-          onKeyDown={(e) => {
-            let next = index;
-            if (e.key === "ArrowRight") next = (index + 1) % labTabs.length;
-            else if (e.key === "ArrowLeft")
-              next = (index + labTabs.length - 1) % labTabs.length;
-            else if (e.key === "Home") next = 0;
-            else if (e.key === "End") next = labTabs.length - 1;
-            else return;
-            e.preventDefault();
-            onChange(labTabs[next].id);
-            document.getElementById(`tab-${labTabs[next].id}`)?.focus();
+          href={`#panel-${id}`}
+          aria-current={active === id ? "step" : undefined}
+          onClick={(event) => {
+            event.preventDefault();
+            onChange(id);
           }}
         >
-          <Icon size={17} strokeWidth={1.5} />
-          <span>{label}</span>
-          {id === "compare" && <small>A / B</small>}
-        </button>
+          <Icon size={16} strokeWidth={1.5} />
+          <span>
+            {index < 4 && <small>0{index + 1} </small>}
+            {label}
+          </span>
+        </a>
       ))}
-    </div>
+    </nav>
   );
 }

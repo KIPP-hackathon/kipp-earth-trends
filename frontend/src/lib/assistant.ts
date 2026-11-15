@@ -13,7 +13,7 @@ import type { LayerSetting } from "./layers";
 
 export type PanelSide = "A" | "B";
 export type PanelPreset = {
-  comparisonMode?:ComparisonMode;
+  comparisonMode?: ComparisonMode;
   variable: string;
   month: string;
   region: string;
@@ -24,7 +24,7 @@ export type PanelPreset = {
 };
 export type PlaybackCommand = { playing: boolean; nonce: number };
 export type PanelSnapshot = {
-  comparisonMode?:ComparisonMode;
+  comparisonMode?: ComparisonMode;
   side: PanelSide;
   variable: string;
   selectedMonth: string;
@@ -76,6 +76,7 @@ export type AssistantResponse = {
   evidence: AssistantEvidence[];
   requestId: string;
   contextVersion: number;
+  interfaceGuide?: boolean;
 };
 
 export function safeEvidenceUrl(value?: string) {
@@ -124,6 +125,7 @@ export function parseAssistantResponse(value: unknown): AssistantResponse {
     };
   });
   return {
+    interfaceGuide: data.interfaceGuide === true,
     reply: data.reply,
     actions: data.actions,
     evidence,

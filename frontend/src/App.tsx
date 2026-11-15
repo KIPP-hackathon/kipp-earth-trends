@@ -1,3 +1,6 @@
+import { JourneyGuide, JourneyStepHeading } from "./components/JourneyGuide";
+import { agentStudyContext, journeyGuidance } from "./lib/journeyGuidance";
+import { useJourneyNavigation } from "./lib/useJourneyNavigation";
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./lib/globeZoom";
 import {
   lazy,
@@ -289,13 +292,19 @@ function App() {
   const markChanged = useCallback(() => {
     version.current++;
   }, []);
-  const [active, setActive] = useState<LabTab>("start");
-  const [opened, setOpened] = useState<Set<LabTab>>(() => new Set(["start"]));
-  useEffect(() => {
-    setOpened((previous) =>
-      previous.has(active) ? previous : new Set([...previous, active]),
-    );
-  }, [active]);
+  const catalog = useEarthResource("catalog", loadCatalog);
+  const config = useEarthResource("configuration", loadConfig);
+  const {
+    active,
+    opened,
+    navigate: showTab,
+  } = useJourneyNavigation(!!catalog.data && !!config.data, markChanged);
+  const [agentRequest, setAgentRequest] = useState<{
+    nonce: number;
+    prompt?: string;
+  }>();
+  const askGuide = (prompt?: string) =>
+    setAgentRequest({ nonce: Date.now(), prompt });
   const exploration = useLabWorkspace(markChanged);
   const comparison = useLabWorkspace(markChanged);
   const location = useCountryLocation();
@@ -344,8 +353,6 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.status, location.country]);
   const [modal, setModal] = useState<"sources" | "guide" | null>(null);
-  const catalog = useEarthResource("catalog", loadCatalog);
-  const config = useEarthResource("configuration", loadConfig);
   const configFor = (
     workspace: ReturnType<typeof useLabWorkspace>,
     country?: EarthRegion,
@@ -397,17 +404,14 @@ function App() {
     ],
   );
   const getContext = useCallback(
-    () => getWorkspaceContext(activeTab.current),
+    () =>
+      agentStudyContext(
+        activeTab.current,
+        getWorkspaceContext(activeTab.current),
+      ),
     [getWorkspaceContext],
   );
   const isExploration = active === "explore";
-  const showTab = (tab: LabTab) => {
-    markChanged();
-    setActive(tab);
-    requestAnimationFrame(() =>
-      document.getElementById(`tab-${tab}`)?.focus({ preventScroll: true }),
-    );
-  };
   const eventMonths = (event: EarthEvent, variable: EarthVariable) => {
     const months = variable.months
       .filter((row) => row.validSamples > 0)
@@ -635,7 +639,7 @@ function App() {
       ),
     );
     workspace.camera.flyTo(view.camera);
-    setActive(view.tab);
+    showTab(view.tab);
   };
   const applyAssistantResponse = (
     response: AssistantResponse,
@@ -845,7 +849,7 @@ function App() {
       )
     )
       workspace.setEventContext(undefined);
-    setActive(finalTab);
+    showTab(finalTab);
     return [
       "View commands accepted. Panels will show loading status while observations are fetched.",
       snapshotNotice,
@@ -999,6 +1003,13 @@ function App() {
           </span>
         </a>
         <LabTabs active={active} onChange={showTab} />
+        <button
+          type="button"
+          className="header-ask-kipp"
+          onClick={() => askGuide(journeyGuidance(active).prompt)}
+        >
+          Ask KIPP
+        </button>
         <InvestigationControls
           getView={getInvestigationView}
           onRestore={restoreInvestigation}
@@ -1013,11 +1024,31 @@ function App() {
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
-        {active === "start" && (
-          <section role="tabpanel" id="panel-start" aria-labelledby="tab-start">
-            <JourneyStart onNavigate={showTab} />
-          </section>
-        )}
+        <JourneyGuide
+          stage={active}
+          panel={
+            active === "compare"
+              ? comparison.studies.A
+              : active === "explore"
+                ? exploration.studies.A
+                : undefined
+          }
+          onAsk={askGuide}
+          onNavigate={showTab}
+        />
+        <section
+          id="panel-start"
+          aria-labelledby="heading-start"
+          data-journey-section
+        >
+          <h2 id="heading-start" className="sr-only">
+            Introduction
+          </h2>
+          <JourneyStart
+            onNavigate={showTab}
+            onAsk={() => askGuide(journeyGuidance("start").prompt)}
+          />
+        </section>
         {(catalog.loading || config.loading) && (
           <DataLoading
             catalogReady={!!catalog.data}
@@ -1033,15 +1064,90 @@ function App() {
         {catalog.data && explorationConfig && comparisonConfig && (
           <>
             <section
-              hidden={!isExploration}
-              role="tabpanel"
+              role="region"
+              id="panel-events"
+              aria-labelledby="heading-events"
+              data-journey-section
+            >
+              <h2 id="heading-events" className="sr-only">
+                Historical events
+              </h2>
+              <JourneyStepHeading
+                number="02"
+                title="Start with a historical event"
+                detail="Choose an event, inspect available variables and take a question into the data."
+                onAsk={() => askGuide(journeyGuidance("events").prompt)}
+              />
+              {active === "events" || opened.has("events") ? (
+                <Suspense
+                  fallback={<p role="status">Opening historical events…</p>}
+                >
+                  <EventExplorer
+                    catalog={catalog.data}
+                    onOpen={applyEvent}
+                    onExplore={() => showTab("explore")}
+                  />
+                </Suspense>
+              ) : (
+                <p className="journey-section-placeholder">
+                  Explore historical Earth events and their available data.
+                </p>
+              )}
+            </section>
+            <section
+              role="region"
+              id="panel-trend"
+              aria-labelledby="heading-trend"
+              data-journey-section
+            >
+              <h2 id="heading-trend" className="sr-only">
+                Trend Lab
+              </h2>
+              <JourneyStepHeading
+                number="03"
+                title="Trend Lab"
+                detail="Quantify change, check uncertainty and explore conditional scenarios. Keep interpretation tied to method and coverage."
+                onAsk={() => askGuide(journeyGuidance("trend").prompt)}
+              />
+              {active === "trend" || opened.has("trend") ? (
+                <Suspense fallback={<p role="status">Opening Trend Lab…</p>}>
+                  <TrendLab
+                    onGuide={() => setModal("guide")}
+                    catalog={catalog.data}
+                    config={config.data!}
+                    initialCountry={startingCountry}
+                    active={active === "trend"}
+                  />
+                </Suspense>
+              ) : (
+                <p className="journey-section-placeholder">
+                  Prepare a regional trend investigation.
+                </p>
+              )}
+            </section>
+            <section
+              role="region"
               id="panel-explore"
-              aria-labelledby="tab-explore"
+              aria-labelledby="heading-explore"
+              data-journey-section
               className="real-workspace"
             >
+              <h2 id="heading-explore" className="sr-only">
+                Explore the data
+              </h2>
+              <JourneyStepHeading
+                number="04"
+                title="Explore the data"
+                detail="Follow a variable across the globe and your selected area. Build your own question from the patterns."
+                onAsk={() =>
+                  askGuide(
+                    journeyGuidance("explore", exploration.studies.A).prompt,
+                  )
+                }
+              />
               {renderEventContext(exploration, false)}
               <div className="real-panels">
-                {(isExploration || opened.has("explore")) && (
+                {isExploration || opened.has("explore") ? (
                   <Suspense
                     fallback={<p role="status">Opening the explorer…</p>}
                   >
@@ -1073,16 +1179,29 @@ function App() {
                       eventWindow={exploration.eventContext?.window}
                     />
                   </Suspense>
+                ) : (
+                  <p className="journey-section-placeholder">
+                    Explore a variable, region and monthly period.
+                  </p>
                 )}
               </div>
             </section>
             <section
-              hidden={active !== "compare"}
-              role="tabpanel"
+              role="region"
               id="panel-compare"
-              aria-labelledby="tab-compare"
+              aria-labelledby="heading-compare"
+              data-journey-section
               className="real-workspace"
             >
+              <h2 id="heading-compare" className="sr-only">
+                Compare studies
+              </h2>
+              <JourneyStepHeading
+                number="EXTRA"
+                title="Compare two studies"
+                detail="Keep regions and periods independent, with consistent colors for matching variables."
+                onAsk={() => askGuide(journeyGuidance("compare").prompt)}
+              />
               <p className="real-comparison-note">
                 Two globes share a camera, with independent filters. Matching
                 variables use the same color scale. Different products and units
@@ -1128,58 +1247,19 @@ function App() {
                 significance or causality.
               </p>
             </section>
-            <section
-              hidden={active !== "trend"}
-              role="tabpanel"
-              id="panel-trend"
-              aria-labelledby="tab-trend"
-            >
-              {(active === "trend" || opened.has("trend")) && (
-                <Suspense
-                  fallback={
-                    <p className="real-notice" role="status">
-                      Opening Trend Lab…
-                    </p>
-                  }
-                >
-                  <TrendLab
-                    onGuide={() => setModal("guide")}
-                    catalog={catalog.data}
-                    config={config.data!}
-                    initialCountry={startingCountry}
-                    active={active === "trend"}
-                  />
-                </Suspense>
-              )}
-            </section>
-            {active === "events" && (
-              <section
-                role="tabpanel"
-                id="panel-events"
-                aria-labelledby="tab-events"
-              >
-                <Suspense
-                  fallback={
-                    <p className="real-notice" role="status">
-                      Opening historical events…
-                    </p>
-                  }
-                >
-                  <EventExplorer
-                    catalog={catalog.data}
-                    onOpen={applyEvent}
-                    onExplore={() => showTab("explore")}
-                  />
-                </Suspense>
-              </section>
-            )}
           </>
         )}
-        {active === "learn" && (
-          <section role="tabpanel" id="panel-learn" aria-labelledby="tab-learn">
+        {
+          <section
+            role="region"
+            id="panel-learn"
+            aria-labelledby="heading-learn"
+            data-journey-section
+          >
+            <h2 id="heading-learn">Field guide</h2>
             <Guide config={config.data} />
           </section>
-        )}
+        }
         <p className="workspace-data-note">
           Real data derived from NASA products. The base image is static; the
           data layer represents its displayed month. Descriptive comparisons do
@@ -1222,20 +1302,13 @@ function App() {
           </div>
         </footer>
       </main>
-      <div hidden={active === "trend" || active === "start"}>
-        <Assistant
-          preview={import.meta.env.KIPP_PREVIEW}
-          ready={
-            !!catalog.data &&
-            !!config.data &&
-            active !== "trend" &&
-            active !== "start" &&
-            (active === "compare" ? comparison.ready : exploration.ready)
-          }
-          getContext={getContext}
-          applyResponse={applyAssistantResponse}
-        />
-      </div>
+      <Assistant
+        ready={!!catalog.data && !!config.data}
+        request={agentRequest}
+        stage={active}
+        getContext={getContext}
+        applyResponse={applyAssistantResponse}
+      />
       {modal && (
         <Modal
           title={

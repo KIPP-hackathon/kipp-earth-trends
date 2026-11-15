@@ -28,8 +28,10 @@ const steps = [
 
 export function JourneyStart({
   onNavigate,
+  onAsk,
 }: {
   onNavigate: (tab: LabTab) => void;
+  onAsk: () => void;
 }) {
   return (
     <section className="journey-start" aria-labelledby="journey-title">
@@ -45,12 +47,8 @@ export function JourneyStart({
             variables. Follow real data from a place and time to a rate of
             change — and the evidence behind it.
           </p>
-          <button
-            type="button"
-            className="journey-primary"
-            onClick={() => onNavigate("events")}
-          >
-            Start with an event <ArrowUpRight size={18} />
+          <button type="button" className="journey-primary" onClick={onAsk}>
+            Explore with KIPP <ArrowUpRight size={18} />
           </button>
         </div>
         <div className="journey-orbit" aria-hidden="true">

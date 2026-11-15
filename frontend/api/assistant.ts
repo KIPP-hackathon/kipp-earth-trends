@@ -1,3 +1,7 @@
+import {
+  previewInterfaceGuide,
+  previewAssistantScope,
+} from "../server/previewGuide.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
@@ -29,7 +33,22 @@ export default async function handler(
     response.setHeader("Allow", "POST");
     return fail(405, "METHOD_NOT_ALLOWED");
   }
-  if (request.headers.origin !== "https://kipp-earth-trends-lab.vercel.app")
+  const productionOrigin = "https://kipp-earth-trends-lab.vercel.app";
+  const preview = process.env.VERCEL_ENV === "preview";
+  // Deployment/branch hosts are Vercel-provided environment values, never
+  // request headers or client-supplied URLs. Unknown origins fail closed.
+  const allowedOrigins = preview
+    ? [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
+        .filter(
+          (host): host is string =>
+            !!host && /^[a-z0-9.-]+\.vercel\.app$/.test(host),
+        )
+        .map((host) => `https://${host}`)
+    : [productionOrigin];
+  if (
+    typeof request.headers.origin !== "string" ||
+    !allowedOrigins.includes(request.headers.origin)
+  )
     return fail(403, "ORIGIN_NOT_ALLOWED");
   if (
     request.headers["sec-fetch-site"] &&
@@ -81,16 +100,57 @@ export default async function handler(
     } catch {
       return fail(400, "INVALID_JSON");
     }
-    const token = await cloudRunIdentityToken();
-    const result = await fetch(`${cloudRunOrigin}/v1/assistant`, {
+    if (preview) {
+      const payload = JSON.parse(body);
+      if (
+        !payload ||
+        typeof payload.message !== "string" ||
+        payload.message.length > 1500
+      )
+        return fail(400, "INVALID_PREVIEW_MESSAGE");
+      const guide = previewInterfaceGuide(payload.message);
+      if (guide) {
+        response.end(
+          JSON.stringify({
+            reply: guide,
+            actions: [],
+            evidence: [],
+            requestId: "preview-interface-guide",
+            contextVersion: Number.isSafeInteger(payload.context?.version)
+              ? payload.context.version
+              : 0,
+            interfaceGuide: true,
+          }),
+        );
+        return;
+      }
+      payload.message = previewAssistantScope + payload.message;
+      body = JSON.stringify(payload);
+      if (Buffer.byteLength(body) > 32768)
+        return fail(413, "REQUEST_TOO_LARGE");
+    }
+    // Preview uses the fixed public service already available to visitors.
+    // No Google token, browser cookie or caller-supplied auth is relayed.
+    // Its users share the public service's quota for the preview egress IP.
+    const upstream = preview
+      ? `${productionOrigin}/api/assistant`
+      : `${cloudRunOrigin}/v1/assistant`;
+    const headers: Record<string, string> = preview
+      ? {
+          "content-type": "application/json",
+          origin: productionOrigin,
+          "sec-fetch-site": "same-origin",
+        }
+      : {
+          authorization: `Bearer ${await cloudRunIdentityToken()}`,
+          "content-type": "application/json",
+          "x-kipp-agent-client": client,
+        };
+    const result = await fetch(upstream, {
       method: "POST",
       redirect: "error",
       signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())),
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        "x-kipp-agent-client": client,
-      },
+      headers,
       body,
     });
     if ([401, 403].includes(result.status))

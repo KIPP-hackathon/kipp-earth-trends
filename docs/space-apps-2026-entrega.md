@@ -1121,3 +1121,25 @@ link sem login; catálogo real retorna72variáveis, todas ocultas na fonte.
 Produção manteve exatamente o deploy`dpl_2kVo1FMEdxY9UUioYznn2Yk7jQeD`.
 94testes passaram com o mesmo ambiente preview da Vercel; builds frontend e
 backend aprovados. Não houve merge, publicação backend ou submissão Space Apps.
+
+
+## Jornada contínua e agente em destaque — segunda rodada do preview (15/11/2026)
+
+Na mesma `feat/guided-user-journey`, OpenAI Codex assistiu navegação contínua
+por header, dicas contextuais do KIPP e entrada para perguntas reais à IA.
+Orientações locais de interface são identificadas separadamente de respostas
+do modelo; contexto de Trend Lab nunca herda o estudo de Explore.
+O preview consulta o serviço público existente sem alterar IAM ou produção;
+usuários compartilham sua quota pelo IP de saída. Métodos atuais de gráficos
+são explicados por guia local para evitar instruções antigas do serviço.
+
+Controles de domínio inteiro removidos, configuração de uma camada por dropdown,
+Solo ao lado do olho e edição validada dos limites diretamente na legenda,
+aplicada ao sair do campo. Máscara/reset e categorias preservados; não altera
+estatística ou dados. [Comportamento e evidências](guided-user-journey.md).
+Catálogo real desta rodada:205variáveis/87disponíveis, inclusive temperatura.
+Browser1440/390/360px com dados reais conferiu controles e fluxo sem overflow
+ou exceções; teste local do chat usou fixture declarada para conferir isolamento.
+Revisão independente gerou correções de foco e de escopo da explicação do agente.
+Validação/publicação final ficam registradas após os respectivos resultados.
+Sem submissão ou mudança dos materiais avaliados por promoção de produção.

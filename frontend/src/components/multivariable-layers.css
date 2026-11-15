@@ -571,12 +571,169 @@
     background: #0a172a;
   }
 }
-.layer-deck-heading {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
-.layer-deck-heading h2 {font-size:14px;margin:0 0 6px;}
-.layer-deck-actions {display:flex;gap:6px;flex-shrink:0;}
-.layer-deck-actions button,.layer-solo {font-size:10px;color:#b9dcff;border:1px solid var(--line);border-radius:6px;padding:6px 8px;}
-.layer-solo {align-self:flex-start;margin:0 0 10px;}
-@media(max-width:600px){.layer-deck-heading{flex-direction:column;}.layer-deck-actions{align-self:flex-end;}}
+.layer-deck-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.layer-deck-heading h2 {
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+.layer-deck-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.layer-deck-actions button,
+.layer-solo {
+  font-size: 10px;
+  color: #b9dcff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.layer-solo {
+  align-self: flex-start;
+  margin: 0 0 10px;
+}
+@media (max-width: 600px) {
+  .layer-deck-heading {
+    flex-direction: column;
+  }
+  .layer-deck-actions {
+    align-self: flex-end;
+  }
+}
 
-.layer-analysis-placeholder { display: grid; place-items: center; box-sizing: border-box; min-height: 0; overflow: hidden; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); background: #79aaff04; }
-.layer-analysis-placeholder > p { max-width: 28ch; margin: 0; font-size: 10px; line-height: 1.7; text-align: center; }
+.layer-analysis-placeholder {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
+  padding: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: #79aaff04;
+}
+.layer-analysis-placeholder > p {
+  max-width: 28ch;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.layer-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+#root .layer-heading-actions .layer-solo {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+}
+.layer-config-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 14px 0;
+  color: #b7cce4;
+  font-size: 11px;
+}
+.layer-config-picker select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  background: #0b1a2c;
+  color: #e6f1ff;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font: inherit;
+}
+.layer-stack.is-single-config {
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+.layer-card .inline-scale-endpoints {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.inline-scale-endpoints label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  width: 45%;
+}
+.inline-scale-endpoints label:last-child {
+  justify-content: flex-end;
+}
+.inline-scale-endpoints input {
+  width: 100%;
+  min-width: 0;
+  max-width: 120px;
+  border: 1px solid #91b8e04a;
+  border-radius: 5px;
+  color: #e1efff;
+  background: #051321;
+  padding: 6px;
+  font: inherit;
+  font-size: 12px;
+}
+.inline-scale-endpoints input:focus-visible {
+  outline: 2px solid #9acaff;
+  outline-offset: 2px;
+}
+.inline-scale-endpoints input[aria-invalid="true"] {
+  border-color: #f29e93;
+}
+.inline-scale-endpoints span {
+  color: #aec3dc;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.inline-color-scale .layer-legend-gradient {
+  margin: 9px 0;
+}
+.inline-scale-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 9px 0;
+}
+.inline-scale-options label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #b8cce3;
+}
+.inline-scale-options button {
+  font-size: 10px;
+  color: #b9d7ff;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+.layer-scale-source {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.7;
+}
+.multi-variable-group-heading {
+  padding-left: 12px;
+}

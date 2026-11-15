@@ -1,3 +1,5 @@
+import type { LabTab } from "./LabTabs";
+import { journeyGuidance } from "../lib/journeyGuidance";
 import { useEffect, useId, useRef, useState } from "react";
 import { MessageCircle, Send, Square, Trash2, X } from "lucide-react";
 import type {
@@ -10,7 +12,7 @@ import { KippMascot } from "./KippMascot";
 import "../assistant.css";
 
 type Message = {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "guide";
   content: string;
   evidence?: AssistantEvidence[];
   status?: string;
@@ -20,7 +22,8 @@ export function Assistant({
   getContext,
   applyResponse,
   ready,
-  preview = false,
+  request,
+  stage = "start",
 }: {
   getContext: () => AssistantContext;
   applyResponse: (
@@ -28,9 +31,11 @@ export function Assistant({
     requested: AssistantContext,
   ) => string;
   ready: boolean;
-  preview?: boolean;
+  request?: { nonce: number; prompt?: string };
+  stage?: LabTab;
 }) {
   const id = useId();
+  const guidance = journeyGuidance(stage);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -43,10 +48,18 @@ export function Assistant({
   const sequence = useRef(0);
   useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
+    if (!request) return;
+    setOpen(true);
+    if (request.prompt) setInput(request.prompt);
+  }, [request?.nonce]);
+  useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
   useEffect(() => {
-    if (open) endRef.current?.scrollIntoView({ block: "nearest" });
+    if (open) {
+      const log = endRef.current?.parentElement;
+      if (log) log.scrollTop = log.scrollHeight;
+    }
   }, [open, messages, pending, notice]);
   const cancel = () => {
     sequence.current++;
@@ -57,18 +70,14 @@ export function Assistant({
   };
   const ask = async () => {
     const message = input.trim();
-    if (!message || message.length > 2000 || pending || !ready || preview)
-      return;
+    if (!message || message.length > 1500 || pending || !ready) return;
     const context = getContext();
-    if (!context.panels.length) {
-      setNotice("Wait for the lab view to be ready.");
-      return;
-    }
     const request = ++sequence.current;
-    const snapshot = `Request snapshot · ${new Date().toISOString()}\n${context.panels.map((panel) => `${panel.side}: ${panel.variable} · displayed ${panel.displayedMonth ?? "no frame"} · selected ${panel.selectedMonth} · series ${panel.start} to ${panel.end} · ${panel.region.name}${panel.loading ? " · loading" : ""}`).join("\n")}`;
+    const snapshot = `Request snapshot · ${new Date().toISOString()}\n${context.panels.map((panel) => `${panel.side}: ${panel.variable} · displayed ${panel.displayedMonth ?? "no frame"} · selected ${panel.selectedMonth} · series ${panel.start} to ${panel.end} · ${panel.region.name}${panel.loading ? " · loading" : ""}`).join("\n") || "General guidance; no active study or Trend Lab results supplied."}`;
     const abort = new AbortController();
     controller.current = abort;
     const history = messages
+      .filter((message) => message.role !== "guide")
       .slice(-8)
       .map(({ role, content }) => ({ role, content: content.slice(0, 3000) }));
     while (
@@ -104,7 +113,7 @@ export function Assistant({
       setMessages((previous) => [
         ...previous,
         {
-          role: "assistant",
+          role: result.interfaceGuide ? "guide" : "assistant",
           content: result.reply,
           evidence: result.evidence,
           status,
@@ -143,7 +152,7 @@ export function Assistant({
             <KippMascot animated />
             <div>
               <span className="eyebrow">KIPP · AI ASSISTANT</span>
-              <h2 id={`${id}-title`}>Explore with evidence</h2>
+              <h2 id={`${id}-title`}>Your investigation partner</h2>
             </div>
             <button
               type="button"
@@ -163,7 +172,9 @@ export function Assistant({
           </header>
           <p className="assistant-disclosure">
             AI can make mistakes. Check sources, coverage and methods. Replies
-            follow your language.
+            follow your language. Chart controls and methods use a separate
+            interface guide. The AI does not read runtime chart p-values or
+            Trend Lab results.
           </p>
           <div
             className="assistant-history"
@@ -174,14 +185,11 @@ export function Assistant({
           >
             {!messages.length && (
               <div className="assistant-welcome">
-                <p>
-                  Ask about the displayed observations, compare periods, or
-                  adjust the lab.
-                </p>
+                <p>{guidance.detail}</p>
                 <div className="assistant-suggestions">
                   {[
-                    "Explain the data currently on screen",
-                    "Compare the first and last available months",
+                    guidance.prompt,
+                    "Explain the difference between a trend, correlation and causation.",
                   ].map((suggestion) => (
                     <button
                       type="button"
@@ -207,7 +215,11 @@ export function Assistant({
                 key={index}
               >
                 <strong>
-                  {message.role === "user" ? "You" : "KIPP assistant"}
+                  {message.role === "user"
+                    ? "You"
+                    : message.role === "guide"
+                      ? "KIPP interface guide · not an AI reply"
+                      : "KIPP AI · source-data assistant"}
                 </strong>
                 <p className="assistant-message-text">{message.content}</p>
                 {!!message.evidence?.length && (
@@ -268,8 +280,7 @@ export function Assistant({
               id={`${id}-input`}
               ref={inputRef}
               value={input}
-              disabled={preview}
-              maxLength={2000}
+              maxLength={1500}
               rows={2}
               placeholder="Try: show rainfall over the Amazon…"
               onChange={(event) => setInput(event.target.value)}
@@ -287,33 +298,16 @@ export function Assistant({
             />
             <div className="assistant-form-footer">
               <small id={`${id}-help`}>
-                {preview ? (
-                  <>
-                    The AI assistant is available in the{" "}
-                    <a
-                      href="https://kipp-earth-trends-lab.vercel.app/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      production app
-                    </a>
-                    . This preview supports the data journey and charts.
-                  </>
-                ) : ready ? (
-                  `${input.length}/2000 · Enter to send`
-                ) : (
-                  "Choose variables in Explore or Compare to enable the assistant."
-                )}
+                {ready
+                  ? `${input.length}/1500 · Enter to send`
+                  : "Waiting for the data catalog. You can read KIPP’s guide above while it loads."}
               </small>
               {pending ? (
                 <button type="button" onClick={cancel}>
                   <Square size={13} /> Cancel
                 </button>
               ) : (
-                <button
-                  type="submit"
-                  disabled={preview || !ready || !input.trim()}
-                >
+                <button type="submit" disabled={!ready || !input.trim()}>
                   <Send size={14} /> Send
                 </button>
               )}
