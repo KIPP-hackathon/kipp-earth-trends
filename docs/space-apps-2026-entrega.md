@@ -1,5 +1,30 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Seletor único, isolamento da camada e hover estável — 15/11/2026
+
+OpenAI Codex assistiu o refinamento solicitado pelo usuário: removida a caixa
+separada de grupo. Um único seletor oferece todas as variáveis selecionadas,
+organizadas por grupo; o campo fechado mostra ícone, grupo e nome com reticências
+quando excede a largura. Nome completo continua no seletor nativo e no tooltip.
+
+O botão ScanEye agora executa Show only this layer, em vez de recortar valores
+fora da escala. Isola a camada no mapa, reativa Data layer quando necessário e
+preserva todas as variáveis nos gráficos. Removidos botão textual redundante,
+estado Shown on map e painel Source & scale limits. Proveniência e valores
+continuam no modelo de dados/exportações; processamento mensal de IMERG e sua
+nota permanecem identificados. Escala com Apply/Reset vem antes de Opacity,
+com slider em largura total. Nenhum dado ou método científico foi alterado.
+
+Display cell at foi movido para overlay dentro do viewport: aparecer/desaparecer
+não adiciona altura ao fluxo da página. Integradas as mudanças recentes de
+loading states e regressão de duas camadas da main, preservando indicadores de
+carregamento. 136 testes frontend e build aprovados com Node.js 24. Chromium
+confirmou seletor único com reticências, isolamento de uma entre três camadas,
+preservação das três variáveis e ordem escala/opacidade. Hover com dados reais
+manteve a posição do playback em 717.44px antes e depois. Controles também
+conferidos em WebKit emulando iPhone; sem teste em iPhone físico. Publicação
+em acompanhamento. Esta entrada substitui a função anterior do segundo olho.
+
 ## Indicadores de carregamento — implementação local (15/11/2026)
 
 OpenAI Codex assistiu componentes compartilhados com animação orbital,
