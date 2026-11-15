@@ -45,11 +45,15 @@ export function GuidedTour({
   useEffect(() => {
     let tries = 0;
     let timer = 0;
+    let lifted: HTMLElement | null = null;
     const scroll = () => {
       const el = current.target
         ? document.querySelector<HTMLElement>(current.target)
         : null;
       if (el) {
+        // Lift the target above the dim layer so its menus stay usable.
+        el.classList.add("guided-tour-target");
+        lifted = el;
         const tall = el.getBoundingClientRect().height > innerHeight * 0.6;
         el.scrollIntoView({
           block: tall ? "start" : "center",
@@ -61,7 +65,10 @@ export function GuidedTour({
     };
     scroll();
     card.current?.focus({ preventScroll: true });
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      lifted?.classList.remove("guided-tour-target");
+    };
   }, [current.id, current.target]);
 
   // Track the target and card geometry every frame while the tour is open.
@@ -89,15 +96,26 @@ export function GuidedTour({
         top = (innerHeight - h) / 2;
         left = (innerWidth - w) / 2;
       } else {
+        // Prefer beside the target so its dropdowns stay uncovered.
+        const right = next.left + next.width + gap;
+        const leftSide = next.left - gap - w;
         const below = next.top + next.height + gap;
         const above = next.top - gap - h;
-        top =
-          below + h <= innerHeight - margin
-            ? below
-            : above >= margin
-              ? above
-              : innerHeight - h - margin;
-        left = next.left;
+        if (right + w <= innerWidth - margin) {
+          left = right;
+          top = next.top;
+        } else if (leftSide >= margin) {
+          left = leftSide;
+          top = next.top;
+        } else {
+          top =
+            below + h <= innerHeight - margin
+              ? below
+              : above >= margin
+                ? above
+                : innerHeight - h - margin;
+          left = next.left;
+        }
       }
       left = Math.min(Math.max(margin, left), innerWidth - w - margin);
       top = Math.min(Math.max(margin, top), innerHeight - h - margin);
@@ -162,15 +180,15 @@ export function GuidedTour({
         {current.actions && (
           <div className="guided-tour-actions">{current.actions}</div>
         )}
+        {!canNext && current.waitHint && (
+          <small className="guided-tour-wait">{current.waitHint}</small>
+        )}
         <div className="guided-tour-nav">
           <div className="guided-tour-dots" aria-hidden="true">
             {steps.map((s, i) => (
               <i key={s.id} data-active={i === step} data-done={i < step} />
             ))}
           </div>
-          {!canNext && current.waitHint && (
-            <small className="guided-tour-wait">{current.waitHint}</small>
-          )}
           <button
             type="button"
             disabled={step === 0}

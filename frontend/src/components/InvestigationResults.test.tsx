@@ -94,34 +94,48 @@ it("opens on seasonal departures with both indicators in one combined chart", ()
   expect(html).not.toMatch(/(?:NaN|Infinity)/);
 });
 
-it("guides from setup through every result view", async () => {
+it("guides from setup through every result view, waiting for each choice", async () => {
   const { trendLabTourSteps } = await import("./trendLabTour");
-  const steps = (hasResults: boolean) =>
+  const none = { area: false, indicators: false, period: false };
+  const all = { area: true, indicators: true, period: true };
+  const kept: string[] = [];
+  const steps = (chosen: typeof none, hasResults: boolean) =>
     trendLabTourSteps({
       hasResults,
       hasSecond: true,
       loading: false,
-      onRunExample: () => {},
+      chosen,
+      current: {
+        area: "Brazil",
+        indicators: "Temperature",
+        period: "all months",
+      },
+      onKeep: (step) => kept.push(step),
     });
-  const ids = steps(false).map((s) => s.id);
-  expect(ids.slice(0, 5)).toEqual([
-    "welcome",
-    "area",
-    "indicators",
-    "period",
-    "run",
-  ]);
-  expect(steps(false).flatMap((s) => (s.view ? [s.view] : []))).toEqual([
+  expect(
+    steps(none, false)
+      .slice(0, 5)
+      .map((s) => s.id),
+  ).toEqual(["welcome", "area", "indicators", "period", "run"]);
+  expect(steps(none, false).flatMap((s) => (s.view ? [s.view] : []))).toEqual([
     "Anomalies",
     "Anomalies",
     "Trend",
     "Relationships",
   ]);
-  const run = (r: boolean) => steps(r).find((s) => s.id === "run")!;
-  expect(run(false).canNext).toBe(false);
-  expect(run(false).actions).toBeTruthy();
-  expect(run(true).canNext).toBe(true);
-  expect(run(true).actions).toBeUndefined();
+  const at = (id: string, chosen: typeof none, results = false) =>
+    steps(chosen, results).find((s) => s.id === id)!;
+  for (const id of ["area", "indicators", "period"]) {
+    expect(at(id, none).canNext).toBe(false);
+    expect(at(id, all).canNext).toBe(true);
+  }
+  const keep = renderToStaticMarkup(
+    createElement("div", null, at("area", none).actions),
+  );
+  expect(keep).toContain("Keep Brazil");
+  expect(at("run", all).canNext).toBe(false);
+  expect(at("run", all, true).canNext).toBe(true);
+  expect(at("run", all).actions).toBeUndefined();
 });
 
 it("offers a results tour entry only when a handler is provided", () => {

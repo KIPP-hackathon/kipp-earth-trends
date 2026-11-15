@@ -7,17 +7,42 @@ const card = (n: number) =>
   `.trend-setup-steps > .trend-setup-step:nth-child(${n})`;
 
 /** Guided tour of Trend Lab, from choosing an area to reading the results. */
+type SetupChoice = "area" | "indicators" | "period";
+
 export function trendLabTourSteps({
   hasResults,
   hasSecond,
   loading,
-  onRunExample,
+  chosen,
+  current,
+  onKeep,
 }: {
   hasResults: boolean;
   hasSecond: boolean;
   loading: boolean;
-  onRunExample: () => void;
+  /** Which setup steps the person has actively chosen during the tour. */
+  chosen: Record<SetupChoice, boolean>;
+  /** Short description of the current value of each setup step. */
+  current: Record<SetupChoice, string>;
+  onKeep: (step: SetupChoice) => void;
 }): TrendLabStep[] {
+  // A setup step waits until the person picks something, or explicitly
+  // keeps the current value.
+  const wait = (step: SetupChoice, verb: string) => ({
+    canNext: chosen[step],
+    waitHint: `${verb} to continue`,
+    actions: chosen[step] ? (
+      <span className="guided-tour-done">✓ {current[step]}</span>
+    ) : (
+      <button
+        type="button"
+        className="guided-tour-secondary"
+        onClick={() => onKeep(step)}
+      >
+        Keep {current[step]}
+      </button>
+    ),
+  });
   return [
     {
       id: "welcome",
@@ -43,6 +68,7 @@ export function trendLabTourSteps({
           their bounding box, not the border.
         </p>
       ),
+      ...wait("area", "Choose an area"),
     },
     {
       id: "indicators",
@@ -57,6 +83,7 @@ export function trendLabTourSteps({
           <p>Not sure? Use one of the example buttons below the pickers.</p>
         </>
       ),
+      ...wait("indicators", "Choose an indicator"),
     },
     {
       id: "period",
@@ -69,6 +96,7 @@ export function trendLabTourSteps({
           months.
         </p>
       ),
+      ...wait("period", "Choose the months"),
     },
     {
       id: "run",
@@ -76,25 +104,16 @@ export function trendLabTourSteps({
       target: ".trend-setup-run",
       body: (
         <p>
-          This bar summarises your study. Press Generate investigation to fetch
-          the regional monthly series and compute the analysis.
-          {hasResults
+          This bar summarises your study. Press{" "}
+          <strong>Generate investigation</strong> to fetch the regional monthly
+          series and compute the analysis.
+          {hasResults && !loading
             ? " Results are ready — continue to read them."
-            : " Or let the tour run a ready-made example for you."}
+            : " The tour continues when the results arrive."}
         </p>
       ),
-      actions: hasResults ? undefined : (
-        <button
-          type="button"
-          className="guided-tour-primary"
-          disabled={loading}
-          onClick={onRunExample}
-        >
-          {loading ? "Loading example…" : "Run the Pantanal example for me"}
-        </button>
-      ),
-      canNext: hasResults,
-      waitHint: loading ? "Loading results…" : "Generate to continue",
+      canNext: hasResults && !loading,
+      waitHint: loading ? "Loading results…" : "Press Generate to continue",
     },
     {
       id: "tabs",
