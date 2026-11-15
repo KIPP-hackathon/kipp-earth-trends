@@ -5,6 +5,8 @@ import { formatTrendValue, monthIndex, trendUnit } from "../lib/trendLab";
 import { TrendChart } from "./TrendChart";
 import { CombinedSeriesChart } from "./CombinedSeriesChart";
 import { ChartInfo } from "./ChartInfo";
+import { TwoLayerRegression } from "./TwoLayerRegression";
+import { LayeredTrend } from "./LayeredTrend";
 import { Compass } from "lucide-react";
 import { downloadInvestigation, investigationCsv } from "../lib/investigation";
 
@@ -362,6 +364,7 @@ export function InvestigationResults({
                 />
               </div>
             </div>
+            <TwoLayerRegression data={data} lag={lag} />
             <p className="trend-small">
               {pair
                 ? `${pair.xMonth} X = ${fmt(pair.x)} ${trendUnit(data.series[0].unit)} → ${pair.yMonth} Y = ${fmt(pair.y)} ${trendUnit(data.series[1].unit)}`
@@ -482,6 +485,9 @@ export function InvestigationResults({
                   onSelect={(_, month) => setSelected(month)}
                 />
               </FittedChange>
+            )}
+            {view === "Trend" && index === 1 && (
+              <LayeredTrend data={data} lag={lag} onLag={setLag} />
             )}
             {view === "Anomalies" && (
               <details className="trend-provenance">
