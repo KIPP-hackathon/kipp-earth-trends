@@ -19,7 +19,7 @@ export default async function handler(
         error: {
           code,
           message:
-            "Não foi possível consultar a fonte de dados. Tente novamente.",
+            "Could not query the data source. Try again.",
         },
       }),
     );
