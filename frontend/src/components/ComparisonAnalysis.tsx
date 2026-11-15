@@ -27,7 +27,6 @@ function ComparisonAnalysisComponent({
   mode,
   onMode,
   eventWindow,
-  countryOutline,
   available,
   runtimeTrends,
 }: {
@@ -60,7 +59,7 @@ function ComparisonAnalysisComponent({
     entries: Record<string, { data?: EarthComparison; error?: string }>;
   }>({ key: "", entries: {} });
   useEffect(() => {
-    if (!active || !available || !hasArea) return;
+    if (!active || !available) return;
     const controller = new AbortController();
     setResult({ key, entries: {} });
     // One request for all selected variables; failures stay per variable.
@@ -124,20 +123,18 @@ function ComparisonAnalysisComponent({
   useEffect(() => setCursor(undefined), [month, start, end, region.bbox]);
   const completed = entries.filter((entry) => entry.data || entry.error).length;
   const adjustedP = useMemo(
-    () => adjustTrendFamily(entries, mode, ["regional"]),
-    [entries, mode],
+    () => adjustTrendFamily(entries, mode, hasArea ? ["global", "regional"] : ["global"]),
+    [entries, mode, hasArea],
   );
-  const familySize = entries.length;
+  const familySize = entries.length * (hasArea ? 2 : 1);
   const domain = useMemo<[number, number]>(() => {
     if (mode === "minmax") return [0, 100];
     if (mode === "raw") {
       const values = visibleEntries
-        .flatMap((entry) => [
-          ...(entry.data?.regional.observations ?? []).map((row) => row.value),
-          ...(entry.data?.regional.trends?.raw.line ?? []).map(
-            (row) => row.value,
-          ),
-        ])
+        .flatMap((entry) => ["global", "regional"].flatMap(scope => {
+          const data = entry.data?.[scope as "global" | "regional"];
+          return [...(data?.observations ?? []).map(row => row.value), ...(data?.trends?.raw.line ?? []).map(row => row.value)];
+        }))
         .filter(
           (value): value is number => value !== null && Number.isFinite(value),
         );
@@ -154,28 +151,13 @@ function ComparisonAnalysisComponent({
     }
     let max = 2;
     for (const entry of visibleEntries)
-      for (const row of [
-        ...(entry.data?.regional.observations ?? []).map((row) => ({
-          standardized: row.standardized,
-        })),
-        ...(entry.data?.regional.trends?.standardized.line ?? []).map(
-          (row) => ({ standardized: row.value }),
-        ),
-      ])
-        if (row.standardized !== null)
-          max = Math.max(max, Math.abs(row.standardized));
+      for (const scope of ["global", "regional"] as const)
+        for (const row of [
+          ...(entry.data?.[scope].observations ?? []).map(row => row.standardized),
+          ...(entry.data?.[scope].trends?.standardized.line ?? []).map(row => row.value),
+        ]) if (row !== null && Number.isFinite(row)) max = Math.max(max, Math.abs(row));
     return [-max * 1.1, max * 1.1];
   }, [visibleEntries, mode]);
-  if (!hasArea)
-    return (
-      <section className="comparison-analysis">
-        <h2>Selected area</h2>
-        <p className="comparison-empty">
-          Choose a country or draw an area on the globe to see its variables and
-          trends.
-        </p>
-      </section>
-    );
   return (
     <div className="comparison-analysis">
       {[...new Set(variables.map(v=>v.processingNote).filter(Boolean))].map(note=>(
@@ -203,8 +185,9 @@ function ComparisonAnalysisComponent({
           </button>
         </div>
       )}
+      <div className="comparison-charts">
       <ComparisonChart
-        title={`Selected area · ${hasArea ? region.name : "no area selected"}`}
+        title={hasArea ? region.name : "Region"}
         scope="regional"
         entries={entries}
         hiddenVariables={hiddenVariables}
@@ -223,12 +206,27 @@ function ComparisonAnalysisComponent({
         familySize={familySize}
         loading={available && active && completed < entries.length}
       />
-      {countryOutline && (
-        <p className="comparison-explainer">
-          The country outline is a visual reference. Regional values use its
-          rectangular extent, including cells outside the border.
-        </p>
-      )}
+      <ComparisonChart
+        title="Global"
+        scope="global"
+        entries={entries}
+        hiddenVariables={hiddenVariables}
+        onToggleVariable={toggleVariable}
+        onMode={onMode}
+        mode={mode}
+        domain={domain}
+        start={start}
+        end={end}
+        month={cursor ?? month}
+        onCursor={setCursor}
+        onMonth={onMonth}
+        eventWindow={eventWindow}
+        noArea={false}
+        adjustedP={adjustedP}
+        familySize={familySize}
+        loading={available && active && completed < entries.length}
+      />
+      </div>
     </div>
   );
 }

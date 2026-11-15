@@ -528,6 +528,7 @@ function SelectedRealPanel({
           }}
         />
       </div>
+      <div className="exploration-map-column">
       <div className="real-globe-container" aria-busy={frame.loading || buffering}>
         <RealGlobe
           frame={frame.data}
@@ -547,11 +548,9 @@ function SelectedRealPanel({
           <LoadingStatus
             className={`real-loading ${frame.data ? "has-frame" : ""}`}
           >
-            {frame.loading
-              ? `Loading ${realMonth(month)}…`
-              : bufferProgress
-                ? `Buffering playback · ${bufferProgress.ready}/${bufferProgress.total} months ready…`
-                : "Preparing next months…"}
+            {frame.loading ? `Loading ${realMonth(month)}…` : bufferProgress
+              ? `Buffering playback · ${bufferProgress.ready}/${bufferProgress.total} months ready…`
+              : "Loading…"}
             {frame.data &&
               frame.data.month !== month &&
               ` Showing ${realMonth(frame.data.month)}.`}
@@ -618,7 +617,6 @@ function SelectedRealPanel({
             {[0.5, 1, 2, 4].map(speed => <option key={speed} value={speed}>{speed}×</option>)}
           </select>
         </label>
-        {playing && buffering && <span className="real-playback-buffering" role="status">Loading next month…</span>}
         <MonthPicker
           id={`${id}-month`}
           label="Selected month"
@@ -626,6 +624,7 @@ function SelectedRealPanel({
           months={months.map((entry) => entry.month)}
           onChange={selectMonth}
         />
+      </div>
       </div>
       {overview && !spatialBbox && (
         <p className="real-notice">
@@ -639,11 +638,12 @@ function SelectedRealPanel({
         <span className="filter-summary-expanded">Map filters · {selectedVariables.length}</span>
         <span className="filter-summary-collapsed">Filters</span>
       </summary>
+      <div className="layer-deck-content">
       <div className="layer-deck-heading">
         <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
           Map layers keep their physical units and scales. Opacity blends colors, not measurements.
-          Later color fields appear on top; wind arrows overlay them. For paired U/V at the same level,
-          the last visible component styles one shared arrow field.
+          Later color fields appear on top; wind trails overlay them. For paired U/V at the same level,
+          the last visible component styles one shared flow field.
         </p></div>
         <div className="layer-deck-actions">
           <button type="button" onClick={() => {
@@ -684,9 +684,9 @@ function SelectedRealPanel({
           const windStyle = pair && mapLayers.findLast(layer => windComponents(layer.id)?.level === pair.level &&
             layer.visible && layer.opacity > 0);
           const windStatus = pair && setting.visible && hasMonth && !layerFrames.loading && !windReady
-            ? `Wind arrows unavailable: both U and V at ${pair.level} with matching month, grid and product are required.`
+            ? `Wind trails unavailable: both U and V at ${pair.level} with matching month, grid and product are required.`
             : windStyle && windStyle.id !== entry.id
-              ? `Same-level arrows use ${selectedVariables.find(variable => variable.id === windStyle.id)?.name} styling (last visible component).`
+              ? `Same-level trails use ${selectedVariables.find(variable => variable.id === windStyle.id)?.name} styling (last visible component).`
               : undefined;
           return <LayerCard key={entry.id} variable={entry} setting={setting}
             colorRange={colorRanges[entry.id]} onChange={changeLayer}
@@ -700,12 +700,13 @@ function SelectedRealPanel({
             }}
             processingRun={entry.months.find(row=>row.month===(layerFrames.displayedMonth ?? month))?.processingRun}
             onColorRange={value => onColorRange(entry.id,value)}
-            loading={setting.visible && hasMonth && layerFrames.loading}
+            loading={!(playing || jointPlaying) && setting.visible && hasMonth && layerFrames.loading}
             error={layerFrames.errors[entry.id] ?? (pair &&
               (layerFrames.errors[pair.eastward] ?? layerFrames.errors[pair.northward]))}
-            status={layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
+            status={!(playing || jointPlaying) && layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
               !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : windStatus}/>
         })}
+      </div>
       </div>
       </details>
       <section className="real-series-comparison multivariable-analysis" aria-label="Selected variable charts">

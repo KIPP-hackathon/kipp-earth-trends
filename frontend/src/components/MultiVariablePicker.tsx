@@ -309,7 +309,7 @@ export function MultiVariablePicker({
                               {(!available || wind) && (
                                 <small className="multi-variable-meta">
                                   {!available && <span>unavailable</span>}
-                                  {wind && <span>↗ paired wind arrows</span>}
+                                  {wind && <span>↗ paired wind trails</span>}
                                 </small>
                               )}
                             </span>

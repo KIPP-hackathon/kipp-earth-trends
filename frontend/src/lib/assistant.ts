@@ -1,3 +1,8 @@
+import type {
+  TrendSelection,
+  TrendContext,
+} from "../../../backend/src/assistant-contract.ts";
+export type { TrendSelection, TrendContext };
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./globeZoom";
 import type { LabTab } from "../components/LabTabs";
 import { realScale, validColorDomain } from "./earthApi";
@@ -13,7 +18,7 @@ import type { LayerSetting } from "./layers";
 
 export type PanelSide = "A" | "B";
 export type PanelPreset = {
-  comparisonMode?:ComparisonMode;
+  comparisonMode?: ComparisonMode;
   variable: string;
   month: string;
   region: string;
@@ -24,7 +29,7 @@ export type PanelPreset = {
 };
 export type PlaybackCommand = { playing: boolean; nonce: number };
 export type PanelSnapshot = {
-  comparisonMode?:ComparisonMode;
+  comparisonMode?: ComparisonMode;
   side: PanelSide;
   variable: string;
   selectedMonth: string;
@@ -38,6 +43,7 @@ export type PanelSnapshot = {
   layerMonths?: Record<string, string | null>;
 };
 export type AssistantContext = {
+  trendLab?: TrendContext;
   version: number;
   tab: LabTab;
   panels: PanelSnapshot[];
@@ -45,6 +51,7 @@ export type AssistantContext = {
   colorRanges: Record<string, EarthColorRange>;
 };
 export type AssistantAction =
+  | { type: "run_investigation"; selection: TrendSelection; name: string }
   | { type: "set_tab"; tab: LabTab }
   | {
       type: "set_panel";
@@ -169,8 +176,37 @@ export function validateAssistantActions(
   context: AssistantContext,
 ): AssistantAction[] | undefined {
   if (!Array.isArray(raw) || raw.length > 12) return undefined;
+  if (
+    raw.some(
+      (a) =>
+        a &&
+        typeof a === "object" &&
+        (a as { type?: string }).type === "run_investigation",
+    )
+  ) {
+    if (raw.length !== 1 || !catalog.capabilities?.investigations)
+      return undefined;
+    const action = raw[0] as Record<string, unknown>;
+    if (
+      Object.keys(action).some(
+        (k) => !["type", "selection", "name"].includes(k),
+      ) ||
+      typeof action.name !== "string" ||
+      !action.name.trim() ||
+      action.name.length > 80 ||
+      !validTrendSelection(action.selection, catalog)
+    )
+      return undefined;
+    return [
+      {
+        type: "run_investigation",
+        selection: action.selection,
+        name: action.name,
+      },
+    ];
+  }
   const actions: AssistantAction[] = [];
-  const tabs = ["explore", "compare", "events", "learn"];
+  const tabs = ["explore", "compare", "trend", "events", "learn"];
   const finite = (n: unknown): n is number =>
     typeof n === "number" && Number.isFinite(n);
   const side = (s: unknown) => s === "A" || s === "B";
@@ -298,6 +334,8 @@ export function validateAssistantActions(
   }
   const tab =
     actions.filter((a) => a.type === "set_tab").at(-1)?.tab ?? context.tab;
+  if (tab === "trend" && actions.some((a) => a.type !== "set_tab"))
+    return undefined;
   if (
     tab !== "compare" &&
     actions.some(
@@ -331,4 +369,40 @@ export function validateAssistantActions(
       return undefined;
   }
   return actions;
+}
+
+export function validTrendSelection(
+  value: unknown,
+  catalog: EarthCatalog,
+): value is TrendSelection {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const s = value as Record<string, unknown>;
+  if (
+    Object.keys(s).some(
+      (k) => !["x", "y", "bbox", "start", "end"].includes(k),
+    ) ||
+    typeof s.x !== "string" ||
+    (s.y !== undefined && (typeof s.y !== "string" || s.y === s.x)) ||
+    typeof s.bbox !== "string" ||
+    !parseStudyBbox(s.bbox)
+  )
+    return false;
+  const month = (v: unknown): v is string =>
+    typeof v === "string" &&
+    /^(19[0-9]{2}|20[0-9]{2}|2100)-(0[1-9]|1[0-2])$/.test(v);
+  if (!month(s.start) || !month(s.end) || s.start > s.end) return false;
+  const index = (v: string) => Number(v.slice(0, 4)) * 12 + Number(v.slice(5));
+  if (index(s.end) - index(s.start) >= 600) return false;
+  return [s.x, s.y].filter(Boolean).every((id) => {
+    const v = catalog.variables.find((v) => v.id === id);
+    return (
+      v &&
+      v.available !== false &&
+      v.render?.kind !== "categorical" &&
+      v.aggregation !== "weighted_mode" &&
+      [s.start, s.end].every((m) =>
+        v.months.some((row) => row.month === m && row.validSamples > 0),
+      )
+    );
+  });
 }

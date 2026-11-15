@@ -1,3 +1,4 @@
+import { frameCellIndex, normalizeLongitude } from "./globeSelection";
 import type { EarthFrame, EarthVariable } from "./earthApi";
 import type { GlobeView } from "./comparison";
 
@@ -121,4 +122,38 @@ export function projectedWindDirection(
   return Number.isFinite(length) && length > 1e-8
     ? [x / length, y / length]
     : undefined;
+}
+
+/** Short streamlets through the monthly field, using spherical destinations.
+ * Fixed angular steps are visual spacing, never time or physical trajectories.
+ * Stop at missing/calm cells instead of inventing flow across gaps.
+ */
+export function traceWind(
+  field: WindField,
+  start: [number, number],
+  steps = 24,
+  stepDegrees = 0.38,
+): [number, number][] {
+  const points: [number, number][] = [];
+  const rad = Math.PI / 180;
+  const distance = stepDegrees * rad;
+  let point = start;
+  for (let step = 0; step <= steps; step++) {
+    const index = frameCellIndex(field.eastward.grid, point);
+    const wind = index < 0 ? undefined : sampleWind(field, index);
+    if (!wind || wind.bearing === null) break;
+    points.push(point);
+    const latitude = point[1] * rad;
+    const bearing = wind.bearing * rad;
+    const nextLatitude = Math.asin(Math.max(-1, Math.min(1,
+      Math.sin(latitude) * Math.cos(distance) +
+      Math.cos(latitude) * Math.sin(distance) * Math.cos(bearing),
+    )));
+    const longitudeDelta = Math.atan2(
+      Math.sin(bearing) * Math.sin(distance) * Math.cos(latitude),
+      Math.cos(distance) - Math.sin(latitude) * Math.sin(nextLatitude),
+    );
+    point = [normalizeLongitude(point[0] + longitudeDelta / rad), nextLatitude / rad];
+  }
+  return points;
 }

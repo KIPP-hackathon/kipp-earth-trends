@@ -7,8 +7,7 @@ import { globeProjection } from "../lib/globeProjection";
 import { frameCellIndex } from "../lib/globeSelection";
 import {
   pairWindFrames,
-  projectedWindDirection,
-  sampleWind,
+  traceWind,
   windComponents,
 } from "../lib/wind";
 import type { WindField } from "../lib/wind";
@@ -28,68 +27,45 @@ function WindArrowField({
     () => colorFrame(layer.frame!, layer.colorRange),
     [layer.frame, layer.colorRange],
   );
-  const arrows = useMemo(() => {
+  const trails = useMemo(() => {
     const projection = globeProjection(view).scale(270 * view.zoom);
-    const grid = field.eastward.grid;
-    const [west, south, east, north] = grid.bounds;
-    // Bounded screen sampling; glyphs stay attached to existing display cells.
-    const spacing = Math.max(30, Math.min(64, (640 * 34) / viewportPixels));
-    const seen = new Set<number>();
-    const occupied = new Set<string>();
-    const result: { shaft: string; head: string; color: string }[] = [];
-    for (let y = spacing / 2; y < 640; y += spacing) {
-      for (let x = spacing / 2; x < 640; x += spacing) {
-        if (Math.hypot(x - 320, y - 320) >= 270 * view.zoom) continue;
-        const sample = projection.invert?.([x, y]);
-        if (!sample) continue;
-        const index = frameCellIndex(grid, sample);
-        if (index < 0 || seen.has(index)) continue;
-        seen.add(index);
-        if (!pixels[index * 4 + 3]) continue;
-        const wind = sampleWind(field, index);
-        if (!wind || wind.bearing === null) continue;
-        const point: [number, number] = [
-          west + (((index % grid.width) + 0.5) * (east - west)) / grid.width,
-          north -
-            ((Math.floor(index / grid.width) + 0.5) * (north - south)) /
-              grid.height,
-        ];
-        const direction = projectedWindDirection(point, wind.u, wind.v, view);
-        const position = projection(point);
-        if (
-          !position ||
-          !direction ||
-          position.some((value) => value < 5 || value > 635)
-        )
-          continue;
-        const slot = `${Math.floor(position[0] / spacing)}:${Math.floor(position[1] / spacing)}`;
-        if (occupied.has(slot)) continue;
-        occupied.add(slot);
-        const [dx, dy] = direction;
-        const half = spacing * 0.32;
-        const tail = [position[0] - dx * half, position[1] - dy * half];
-        const tip = [position[0] + dx * half, position[1] + dy * half];
-        const head = half * 0.8,
-          wing = head * 0.48;
-        const fmt = (p: number[]) =>
-          p.map((value) => value.toFixed(1)).join(",");
-        result.push({
-          shaft: `M${fmt(tail)}L${fmt(tip)}`,
-          head: `M${fmt(tip)}L${fmt([tip[0] - dx * head - dy * wing, tip[1] - dy * head + dx * wing])}L${fmt([tip[0] - dx * head + dy * wing, tip[1] - dy * head - dx * wing])}Z`,
-          color: `rgb(${pixels[index * 4]},${pixels[index * 4 + 1]},${pixels[index * 4 + 2]})`,
-        });
+    // Geographic seeds stay anchored while rotating. Equal-area distribution
+    // avoids the dense bands a latitude/longitude lattice creates at the poles.
+    const count = Math.round(Math.max(600, Math.min(16000, viewportPixels * 2.4 * view.zoom ** 1.5)));
+    const result: { path: string; color: string; depth: number; seed: number }[] = [];
+    const radians = Math.PI / 180;
+    for (let seed = 0; seed < count; seed++) {
+      const point: [number, number] = [
+        ((seed * 137.50776405) % 360) - 180,
+        Math.asin(1 - 2 * (seed + 0.5) / count) / radians,
+      ];
+      const index = frameCellIndex(field.eastward.grid, point);
+      if (index < 0 || !pixels[index * 4 + 3]) continue;
+      const depth = (p: [number, number]) =>
+        Math.sin(p[1] * radians) * Math.sin(view.latitude * radians) +
+        Math.cos(p[1] * radians) * Math.cos(view.latitude * radians) *
+        Math.cos((p[0] - view.longitude) * radians);
+      const z = depth(point);
+      if (z < 0.04) continue;
+      const position = projection(point)!;
+      if (position.some(value => value < -60 || value > 700)) continue;
+      const points = traceWind(field, point, 24, 0.38 / Math.sqrt(view.zoom));
+      const visible: number[][] = [];
+      for (const p of points) {
+        const cell = frameCellIndex(field.eastward.grid, p);
+        if (depth(p) <= 0.025 || cell < 0 || !pixels[cell * 4 + 3]) break;
+        visible.push(projection(p)!);
       }
+      if (visible.length < 3) continue;
+      result.push({
+        path: visible.map((p, i) => `${i ? "L" : "M"}${p.map(v => v.toFixed(2)).join(",")}`).join(""),
+        color: `rgb(${pixels[index * 4]},${pixels[index * 4 + 1]},${pixels[index * 4 + 2]})`,
+        depth: Math.min(1, z * 3),
+        seed,
+      });
     }
     return result;
-  }, [
-    field.eastward,
-    field.northward,
-    pixels,
-    view.longitude,
-    view.latitude,
-    view.zoom,
-    viewportPixels,
-  ]);
+  }, [field.eastward, field.northward, pixels, view.longitude, view.latitude, view.zoom, viewportPixels]);
   return (
     <g
       className="wind-arrow-field"
@@ -99,28 +75,20 @@ function WindArrowField({
       opacity={Math.min(1, layer.opacity)}
     >
       <title>
-        Arrows point toward the monthly mean flow. Color shows the selected
-        signed component in m/s. Arrow length is fixed.
+        Trails follow the paired monthly mean wind field on the globe.
+        Motion indicates direction only, not speed or particle trajectories.
+        Color shows the selected signed component in m/s.
       </title>
-      {arrows.map((arrow, index) => (
-        <g key={index}>
-          <path
-            d={arrow.shaft}
-            fill="none"
-            stroke="#03101e"
-            strokeWidth={4.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={arrow.shaft}
-            fill="none"
-            stroke={arrow.color}
-            strokeWidth={2.2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path d={arrow.head} fill={arrow.color} stroke="#03101e" strokeWidth={1.4} strokeLinejoin="round" />
+      {trails.map(trail => (
+        <g key={trail.seed} opacity={trail.depth} fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path d={trail.path} stroke="#061724" strokeWidth={2.8} opacity={0.4} />
+          <path d={trail.path} stroke={trail.color} strokeWidth={1} opacity={0.32} />
+          <path className="wind-flow-pulse" d={trail.path} pathLength={100}
+            stroke={trail.color} strokeWidth={1.6} strokeDasharray="22 78"
+            style={{ animationDelay: `${-(trail.seed % 41) / 10}s` }} />
+          <path className="wind-flow-tip" d={trail.path} pathLength={100}
+            stroke="#e2f7ff" strokeWidth={1} strokeDasharray="2 98"
+            style={{ animationDelay: `${-(trail.seed % 41) / 10}s` }} />
         </g>
       ))}
     </g>

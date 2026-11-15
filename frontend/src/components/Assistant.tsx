@@ -58,10 +58,6 @@ export function Assistant({
     const message = input.trim();
     if (!message || message.length > 2000 || pending || !ready) return;
     const context = getContext();
-    if (!context.panels.length) {
-      setNotice("Wait for the lab view to be ready.");
-      return;
-    }
     const request = ++sequence.current;
     const snapshot = `Request snapshot · ${new Date().toISOString()}\n${context.panels.map((panel) => `${panel.side}: ${panel.variable} · displayed ${panel.displayedMonth ?? "no frame"} · selected ${panel.selectedMonth} · series ${panel.start} to ${panel.end} · ${panel.region.name}${panel.loading ? " · loading" : ""}`).join("\n")}`;
     const abort = new AbortController();

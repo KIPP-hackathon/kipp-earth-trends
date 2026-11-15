@@ -151,13 +151,13 @@ function ComparisonChartComponent({
               </summary>
               <p className="comparison-explainer">
                 {mode === "raw"
-                  ? `Monthly regional values in ${nativeUnit}, before chart normalization. Source aggregation and quality rules still apply.`
+                  ? `Monthly ${scope} values in ${nativeUnit}, before chart normalization. Source aggregation and quality rules still apply.`
                   : mode === "standardized"
                     ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
                     : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
-                {mode !== "raw" && "The selected area has its own reference. "}
+                {mode !== "raw" && "Each scope has its own reference. "}
                 Hover for original units. Map opacity does not affect this
-                chart.
+                chart. {scope === "regional" && "Regional values use the bounding rectangle; the country outline is a visual reference."}
               </p>
             </details>
           </div>
@@ -224,6 +224,7 @@ function ComparisonChartComponent({
           <svg
             className="comparison-plot"
             viewBox="0 0 640 210"
+            preserveAspectRatio="none"
             role="group"
             tabIndex={0}
             aria-label={`${title}, ${monthLabel(start)} to ${monthLabel(end)}. Left/right arrows inspect months; Enter selects that month on the globe.`}

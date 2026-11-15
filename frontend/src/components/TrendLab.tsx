@@ -1,11 +1,5 @@
-import { useEffect, useId, useMemo, useState } from "react";
-import {
-  ArrowRight,
-  Compass,
-  FlaskConical,
-  MapPin,
-  Play,
-} from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { ArrowRight, Compass, FlaskConical, MapPin, Play } from "lucide-react";
 import type {
   EarthCatalog,
   EarthConfig,
@@ -20,6 +14,8 @@ import type { CountrySelection } from "../lib/countries";
 import { useEarthResource } from "../lib/useEarthResource";
 import { useGlobeCamera } from "../lib/useGlobeCamera";
 import { initialGlobeView } from "../lib/comparison";
+import type { TrendContext, TrendSelection } from "../lib/assistant";
+import { validTrendSelection } from "../lib/assistant";
 import { parseStudyBbox } from "../lib/assistant";
 import { monthIndex } from "../lib/trendLab";
 import { MultiVariablePicker } from "./MultiVariablePicker";
@@ -54,12 +50,18 @@ export function TrendLab({
   initialCountry,
   active,
   onGuide,
+  assistantCommand,
+  onAssistantContext,
+  onManualChange,
 }: {
   catalog: EarthCatalog;
   config: EarthConfig;
   initialCountry: CountrySelection;
   active: boolean;
   onGuide: () => void;
+  assistantCommand?: { selection: TrendSelection; name: string; nonce: number };
+  onAssistantContext?: (context: TrendContext) => void;
+  onManualChange?: () => void;
 }) {
   const id = useId();
   const [methodologyOpen, setMethodologyOpen] = useState(false);
@@ -169,6 +171,88 @@ export function TrendLab({
       mounted = false;
     };
   }, []);
+  const selectionOf = (r: InvestigationRequest): TrendSelection => ({
+    x: r.x,
+    ...(r.y ? { y: r.y } : {}),
+    bbox: r.bbox,
+    start: r.start,
+    end: r.end,
+  });
+  const contextKey = JSON.stringify({
+    ...(validPeriod ? { selection: selectionOf(request) } : {}),
+    ...(submitted ? { applied: selectionOf(submitted.request) } : {}),
+    loading: series.loading,
+    ...(data ? { generatedAt: data.generatedAt } : {}),
+  });
+  useEffect(() => {
+    onAssistantContext?.(JSON.parse(contextKey));
+  }, [contextKey, onAssistantContext]);
+  useEffect(() => {
+    onManualChange?.();
+  }, [selectedVariable, secondId, region.bbox, start, end, onManualChange]);
+  const handledCommand = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (!assistantCommand || handledCommand.current === assistantCommand.nonce)
+      return;
+    handledCommand.current = assistantCommand.nonce;
+    if (
+      !supported ||
+      !validTrendSelection(assistantCommand.selection, catalog)
+    ) {
+      setSavedMessage(
+        "The assistant selection is no longer available. Please choose another investigation.",
+      );
+      return;
+    }
+    const s = assistantCommand.selection;
+    const bounds = parseStudyBbox(s.bbox)!;
+    const [west, south, east, north] = bounds;
+    const width = east >= west ? east - west : east + 360 - west;
+    const nextRegion: EarthRegion = {
+      id: "trend-assistant",
+      name: assistantCommand.name,
+      bbox: s.bbox,
+      longitude: ((west + width / 2 + 540) % 360) - 180,
+      latitude: (south + north) / 2,
+    };
+    const x = available.find((v) => v.id === s.x)!;
+    const y = available.find((v) => v.id === s.y);
+    const nextRequest: InvestigationRequest = {
+      x: s.x,
+      ...(s.y ? {y:s.y} : {}),
+      bbox: s.bbox,
+      start: s.start,
+      end: s.end,
+      baselineStart: s.start,
+      baselineEnd: s.end,
+      method: "relationships-v1",
+    };
+    const nextKey = JSON.stringify([
+      nextRequest,
+      variableDataKey(x),
+      y && variableDataKey(y),
+    ]);
+    setSelectedVariable(s.x);
+    setSecondId(s.y ?? "");
+    setRegion(nextRegion);
+    setPeriod({ start: s.start, end: s.end });
+    setSubmitted({
+      variable: x,
+      second: y,
+      region: nextRegion,
+      request: nextRequest,
+      key: nextKey,
+    });
+    if (submitted?.key === nextKey) series.retry();
+    camera.flyTo({
+      ...camera.view,
+      longitude: nextRegion.longitude,
+      latitude: nextRegion.latitude,
+    });
+    setSavedMessage(
+      "Assistant selection applied. Generating the investigation…",
+    );
+  }, [assistantCommand, supported, catalog]);
   const regions = [
     ...new Map(
       [
@@ -227,6 +311,7 @@ export function TrendLab({
   };
   const submit = () => {
     if (!variable || !validPeriod || !supported) return;
+    onManualChange?.();
     setSubmitted({
       variable,
       region: { ...region },
@@ -539,11 +624,17 @@ export function TrendLab({
               <button
                 className="trend-run"
                 type="button"
-                disabled={!validPeriod || !supported || (series.loading && !dirty)}
-                data-loading={series.loading && !dirty || undefined}
+                disabled={
+                  !validPeriod || !supported || (series.loading && !dirty)
+                }
+                data-loading={(series.loading && !dirty) || undefined}
                 onClick={submit}
               >
-                {series.loading ? <LoadingIcon /> : <Play size={16} fill="currentColor" />}{" "}
+                {series.loading ? (
+                  <LoadingIcon />
+                ) : (
+                  <Play size={16} fill="currentColor" />
+                )}{" "}
                 {series.loading
                   ? dirty
                     ? "Generate new investigation"

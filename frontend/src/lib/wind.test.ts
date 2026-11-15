@@ -6,6 +6,7 @@ import {
   pairWindFrames,
   projectedWindDirection,
   sampleWind,
+  traceWind,
   windComponents,
   windFrameVariables,
 } from "./wind";
@@ -159,5 +160,29 @@ describe("paired monthly wind", () => {
     expect(projectedWindDirection([89, 0], 1, 1, view)).toBeUndefined();
     expect(projectedWindDirection([0, 0], 0, 0, view)).toBeUndefined();
     expect(projectedWindDirection([0, 0], NaN, 1, view)).toBeUndefined();
+  });
+});
+
+
+describe("surface wind trails", () => {
+  it("crosses the dateline continuously and follows east/north directions", () => {
+    const east = pairWindFrames(frame("merra2_u10m", 1), frame("merra2_v10m", 0))!;
+    const points = traceWind(east, [179, 0], 8, 0.5);
+    expect(points).toHaveLength(9);
+    expect(points.at(-1)![0]).toBeCloseTo(-177);
+    expect(points.every(p => Math.abs(p[1]) < 1e-8)).toBe(true);
+    const north = pairWindFrames(frame("merra2_u10m", 0), frame("merra2_v10m", 1))!;
+    expect(traceWind(north, [20, 40], 8, 0.5).at(-1)).toEqual([20, expect.closeTo(44, 6)]);
+  });
+
+  it("ends before missing cells and emits no calm flow", () => {
+    const u = frame("merra2_u10m", 1), v = frame("merra2_v10m", 0);
+    for (const f of [u, v]) {
+      f.grid = { ...f.grid, width: 2 };
+      f.values = new Float32Array(f === u ? [1, 1] : [0, 0]);
+      f.coverage = new Float32Array([1, 0]);
+    }
+    expect(traceWind(pairWindFrames(u, v)!, [-1, 0], 10, 0.5)).toHaveLength(2);
+    expect(traceWind(pairWindFrames(frame("merra2_u10m", 0), frame("merra2_v10m", 0))!, [0, 0])).toEqual([]);
   });
 });

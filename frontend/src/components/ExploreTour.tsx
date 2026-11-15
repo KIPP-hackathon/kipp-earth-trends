@@ -77,7 +77,7 @@ export function ExploreTour({ ready, active, suggestion, onSuggestion, children 
     {
       id: "explore-welcome", title: "Welcome to Explore",
       target: `${panel} .compact-exploration-controls`,
-      body: <p>Choose a place, select Earth variables and explore their monthly data on the globe and chart. You can use the page while this tour is open. You choose what to apply; the tour never loads a variable without your action.</p>,
+      body: <p>Choose a place, select Earth variables and explore their monthly data on the globe and charts. You can use the page while this tour is open. You choose what to apply; the tour never loads a variable without your action.</p>,
     },
     {
       followDialog: true,
@@ -123,9 +123,9 @@ export function ExploreTour({ ready, active, suggestion, onSuggestion, children 
       body: <p>Expand Map filters to configure each variable’s visibility, opacity and color scale. Opacity blends colors, not measurements. These display filters do not recalculate the regional series or statistical evidence.</p>,
     },
     {
-      id: "explore-chart", title: "Read the regional chart",
+      id: "explore-chart", title: "Compare regional and global series",
       target: `${panel} .multivariable-analysis`,
-      body: <p>The chart uses the selected rectangle and study period. A single variable can use its physical units; multiple variables use Historical deviation or Scale 0–100. These transformations help compare patterns, but matching curves do not establish causality. Global needs a country or drawn area for regional analysis. Loading and source errors remain visible.</p>,
+      body: <p>The regional chart uses your selected rectangle; Global provides context for the same period. Both share a display scale. A single variable can use its physical units; multiple variables use Historical deviation or Scale 0–100. These transformations help compare patterns, but matching curves do not establish causality. Clear area keeps the global chart; choose a country or draw an area to restore the regional series. Loading and source errors remain visible.</p>,
     },
     {
       id: "explore-save", title: "Save and continue investigating",

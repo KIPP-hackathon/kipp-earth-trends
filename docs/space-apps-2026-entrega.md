@@ -1,5 +1,179 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Ações do rodapé removidas — 15/11/2026
+
+Por solicitação do usuário, OpenAI Codex removeu Credits & data, Field guide
+e Refresh catalog do rodapé. Mantido o link da marca KIPP. Removidos imports
+que ficaram sem uso. 141 testes frontend e build aprovados com Node.js 24.
+Sem alteração de dados ou métodos científicos. Publicado em `aa1ed4c` na
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/), com
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43758337245)
+aprovado. Checagem pública confirmou rodapé sem botões. Vercel bloqueou novo
+build por limite de publicações.
+
+## Filtro com altura natural — 15/11/2026
+
+Por decisão posterior do usuário, OpenAI Codex removeu o esticamento vertical
+do filtro desktop. Painel e cartão usam a altura do conteúdo e alinham no topo,
+sem acompanhar a base de globo/gráficos. Escala volta a ficar próxima do nome
+da variável; removidas posição absoluta do conteúdo e margem automática da
+escala. Recolhimento e estabilidade durante o Play permanecem preservados.
+
+141 testes frontend e build aprovados com Node.js 24. Checagem Chromium em
+1440px conferiu painel compacto (aproximadamente 465px) e distância de 14px
+entre cabeçalho e escala; tamanho pode variar com nome, loading ou mensagens
+da variável. Sem alteração de dados, método ou dimensões dos gráficos.
+Publicado em `46a13b2` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/),
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43757617422)
+concluído com sucesso. Checagem pública confirmou altura natural e recolhimento/
+reabertura, sem o espaço central vazio. Vercel recusou este build por limite de
+publicações e mantém a versão anterior. Assistência IA registrada nesta entrada.
+
+## Filtro estável no Play e mais espaço para comparação — 15/11/2026
+
+OpenAI Codex assistiu o ajuste solicitado: indicadores transitórios de loading
+ou Preparing dentro do filtro são suprimidos enquanto o Play está ativo; o
+carregamento continua indicado no mapa. A camada e seus controles permanecem
+montados e com tamanho estável. No desktop, o cartão preenche a altura restante
+do painel, mantendo escala/opacidade acessíveis na parte inferior.
+
+A coluna de comparação ganhou largura e altura; SVG usa toda a área horizontal,
+sem margens laterais de preservação de aspecto. Gráficos estão na ordem país →
+Global. Tabelas têm espaço mínimo maior e mantêm os cabeçalhos fixos; listas de
+motivos de indisponibilidade continuam roláveis, com detalhes por variável.
+Removidos o parágrafo genérico abaixo da área de trabalho e os dizeres
+INDEPENDENT LAB/NASA SPACE APPS/Explore questions do rodapé. Credits & data,
+guia e atualização do catálogo permanecem disponíveis. Não muda dados, unidades,
+normalização, inferência ou proveniência nas exportações e detalhes.
+
+139 testes frontend e build aprovados com Node.js 24 após integrar a main.
+Chromium em 1440/1024px e WebKit emulando iPhone reproduziram os quatro meses
+do intervalo sem loading no cartão e sem oscilação de altura. Na verificação
+final em 1440px, curvas usam 586px de largura e 160px de altura; tabela dispõe
+de aproximadamente 147px. Cartão termina a 11px da borda inferior, dentro do
+padding do painel. Sem erros de página/overflow horizontal nas checagens;
+sem teste em iPhone físico.
+Publicado em `44fb990`: [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43756385917)
+e Vercel concluíram com sucesso; ambos servem `index-BxUk58TO.js`.
+Verificação pública no WebKit repetiu quatro meses com cartão fixo em 237px;
+Chromium repetiu com oito variáveis e cartão fixo em 657px. Na consulta principal,
+as oito fontes retornaram sem erro. Durante alterações rápidas de período e
+checagens concorrentes ocorreram respostas parciais `UPSTREAM_BUSY` por limite
+de capacidade; essa condição permanece reportada pela UI, sem inventar dados.
+Estes ajustes visuais não aumentam a capacidade do Warehouse. Assistência IA
+registrada nesta entrada.
+## Assistente no Trend Lab — 15/11/2026
+
+OpenAI Codex integrou ferramenta bounded ao motor existente de investigações:
+uma/duas variáveis contínuas, bbox, período de até 600 meses e referência igual
+ao período. O assistente recebe resultados reais compactos, família Holm completa,
+cobertura e limitações, e configura/executa a mesma seleção na página. Contexto
+separa rascunho e última execução; edições manuais invalidam comandos pendentes.
+Nenhum estimador ou dado científico foi alterado. Ver [contrato e limites](assistant-trend-lab.md).
+Validação local: 141 testes frontend, 47 testes backend e builds frontend/API
+aprovados com Node.js 24. Revisão humana científica permanece pendente.
+
+## Assistente seleciona a investigação — 15/11/2026
+
+Por solicitação do usuário, o assistente passa a tratar pedidos de análise como
+permissão para selecionar variável, região e período, configurar Explore/Compare
+e consultar a mesma série antes de explicar resultados. Seleções delegadas usam
+cobertura verificada e defaults explícitos; períodos solicitados não são trocados
+silenciosamente. Chat disponível após catálogo/configuração mesmo sem camada
+selecionada. Trend Lab continua sem ferramenta/contexto próprios. Implementação
+assistida por OpenAI Codex; publicação autorizada com a conta c0ffex. Validação
+local: 139 testes frontend, 46 testes backend e builds frontend/API aprovados
+com Node.js 24. Publicado em `94e1519` com c0ffex autorizado pelo usuário.
+[Backend](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43755811463)
+e [Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43755811472)
+concluídos com sucesso. Vercel recusou novo build por limite de publicações.
+Conferência no site Cloudflare iniciou sem variável selecionada: pedido de análise
+de chuva na Amazônia em 2024 selecionou IMERG, retângulo central amazônico e
+Jan–Dez 2024; a UI confirmou comandos aceitos e apresentou a explicação com
+cobertura de 12/12 meses e limites descritivos. Renderização do globo indisponível
+no navegador de verificação; controles, gráficos e resposta foram conferidos.
+Este smoke com modelo real não substitui a avaliação completa de qualidade.
+
+
+## Prompt e conhecimento do assistente — 15/11/2026
+
+OpenAI Codex revisou o contexto efetivamente enviado ao assistente e suas oito
+ferramentas. A política de evidências, limites científicos e ações agora é
+compartilhada pelo planejamento e pela síntese final; instruções distinguem
+metadados, séries descritivas, estudos armazenados e inferência runtime que o
+chat não consegue ler. O roteamento prioriza consultas relevantes e preserva os
+limites existentes. As ferramentas mantêm notas e rótulos mensais Final/Late do
+IMERG, sem alterar valores científicos.
+
+Testes locais com fixtures sintéticas verificam proveniência/lacunas e os dois
+caminhos de síntese, preservando erros e excluindo ações inválidas. Validação
+com Node.js 24.22.3: 139 testes frontend, 46 testes backend (incluindo três
+regressões novas do assistente), builds frontend/API e `git diff --check`.
+Avaliação com modelo real e revisão humana permanecem pendentes; nenhuma
+melhoria de qualidade foi medida em produção. Ver [auditoria e casos de
+avaliação](assistant-prompt-audit.md). Este registro não encerra submissão,
+revisão científica ou regras formais de IA.
+
+Publicado na main em `c39c098`; [workflow Backend
+CI/CD](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43754973768)
+concluiu testes/build, promoveu a revisão `kipp-earth-api-00033-sep` a 100% do
+tráfego e aprovou os smoke checks de catálogo, frames, séries e referência de
+tendência; o endpoint direto continuou exigindo IAM. Isso comprova a publicação
+técnica, não a qualidade das respostas com modelo real nem revisão humana.
+
+## Comparação global/regional e alinhamento dos painéis — 15/11/2026
+
+OpenAI Codex assistiu os ajustes solicitados: Display cell at voltou para fora
+do globo, em linha com altura reservada; hover não move o playback. Removidos
+prefixo Selected area do título regional, legenda visual Trend and significance,
+parágrafo externo sobre o contorno e Loading next month duplicado. A legenda
+da tabela continua acessível a leitores de tela, e a explicação do recorte
+retangular está nos detalhes de informação do gráfico.
+
+Explore desktop tem a base de filtro, coluna globo/playback e gráficos alinhada.
+Tabelas rolam internamente, mantendo cabeçalhos opacos fixos. O viewport usa
+o menor lado como referência para preservar um planeta circular e alinhamento
+canvas/SVG também quando a coluna fica estreita e alta.
+
+Adicionado gráfico Global junto ao país/região, reutilizando séries reais já
+retornadas na mesma resposta da API. Período, escala vertical, modo, cursor e
+variáveis exibidas são compartilhados para permitir comparação. Cada escopo
+mantém sua referência histórica. A correção Holm considera a família de todas
+as variáveis selecionadas nos dois escopos (2N testes com região); a família
+inclui testes indisponíveis, sem ser reduzida por ocultar uma curva. Nenhuma
+observação ou algoritmo de inferência foi substituído.
+
+139 testes frontend e build aprovados com Node.js 24 após integrar a main.
+Teste estatístico cobre a família conjunta e valores indisponíveis. Chromium
+em 1440/1024px confirmou curvas distintas, base alinhada e cabeçalhos fixos
+após scroll de 100px nas duas tabelas. WebKit emulando iPhone confirmou os dois
+gráficos e readout externo sem mover playback. Sem erros de página/overflow
+horizontal nas checagens e sem teste em iPhone físico.
+Publicado em `45e33a0` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/),
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43753991397)
+concluído, bundle `index-BE_p8vYv.js` conferido. Testes repetidos no site público
+confirmaram curvas distintas, duas tabelas com cabeçalhos estáveis, bases em
+964.44px e playback imóvel no hover (desktop e WebKit). Vercel bloqueou este
+build por limite de publicações e mantém a versão anterior. Assistência IA
+registrada nesta entrada.
+
+## Traços de vento na superfície — implementação local (15/11/2026)
+
+OpenAI Codex substituiu as setas planas por traços curvos projetados no globo,
+com distribuição geográfica, atenuação no horizonte e pulsos de direção.
+Traços seguem os pares U/V mensais existentes, interrompendo em células sem
+cobertura ou vento resultante calmo. Cor mantém o componente selecionado;
+comprimento e animação são visuais, não velocidade física nem trajetórias.
+Redução de movimento mantém os traços estáticos. Sem novas fontes ou assets.
+
+Validação: 138 testes frontend, incluindo travessia do antimeridiano, direção,
+lacunas e calmaria; builds frontend/API com Node.js 24. Chromium conferiu
+rotação, desktop/mobile e redução de movimento com fixture sintética isolada,
+sem erros JavaScript ou overflow. Fixture não representa observações reais;
+conferência visual com os dados de produção permanece pendente. Versão integrada à main mais recente; publicação técnica autorizada pelo usuário
+via conta c0ffex nesta sessão. Sem submissão Project; confirmação do deploy pendente.
+
+
 ## Header móvel e cópia dentro dos painéis — 15/11/2026
 
 OpenAI Codex assistiu o reposicionamento de Copy A → B e Copy B → A no canto
@@ -1665,3 +1839,23 @@ com ajustes anteriores do tour preservados. Barra pausada e dados temporários
 aplicados para revisão humana, sem salvar investigação. Código/textos/testes
 assistidos por OpenAI Codex. Sem commit, push, deploy, alteração de métodos,
 submissão ou conclusão das pendências científicas/organizacionais do checklist.
+
+
+### Preview atualizado com main — 15/11/2026
+
+A pedido do usuário, a cópia local integrou `upstream/main` em `3c9fd8b`
+(footer simplificado, gráficos global/regional, ajustes de filtros/vento e
+assistente de Trend Lab), preservando o tour automático de Explore e a
+reprodução conjunta de Compare. Alterações locais foram preservadas no commit
+`3e29449` antes da integração. Um conflito apenas no final do CSS foi conciliado
+preservando ambos os conjuntos de regras. O tour agora descreve os dois gráficos;
+a supressão de loading dos filtros também considera o play conjunto. Sem novas
+dependências ou alteração do checkout original da equipe.
+
+148 testes frontend, 47 testes backend e builds frontend/API passaram com
+Node.js24.18.0. Navegador com API pública real confirmou abertura automática,
+seleção sugerida,321meses, gráficos Brazil/Global e destaque das etapas no
+layout atualizado; card e página cabem em360px. Capturas locais fora do Git.
+Preview preservado em `http://127.0.0.1:5188/` para revisão humana, reaberto no
+início do tour sem persistir conclusão. Codex assistiu integração e conferência.
+Commits somente locais: sem push, deploy ou alteração da página Project.

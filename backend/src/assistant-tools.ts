@@ -14,6 +14,8 @@ import { parseBounds, variableFor } from "./data.ts";
 import type { CatalogVariable, DataService } from "./data.ts";
 import {
   assertSchema,
+  investigationRequest,
+  trendSelectionSchema,
   assistantActionSchema,
   bboxSchema,
   monthSchema,
@@ -22,6 +24,7 @@ import {
   variableSchema,
 } from "./assistant-contract.ts";
 import type {
+  TrendSelection,
   AssistantAction,
   AssistantContext,
   AssistantEvidence,
@@ -44,7 +47,8 @@ export type AssistantToolResult = {
   evidence?: AssistantEvidence[];
 };
 export type AssistantToolOptions = {
-  data: Pick<DataService, "series">;
+  data: Pick<DataService, "series"> &
+    Partial<Pick<DataService, "investigation">>;
   catalog: () => Promise<CatalogVariable[]>;
   indicatorReference?: IndicatorReferenceService;
   trendReference?: TrendReferenceService;
@@ -60,6 +64,15 @@ const declarations: {
   description: string;
   parameters: JsonSchema;
 }[] = [
+  {
+    name: "run_investigation",
+    description:
+      "Run Trend Lab for one or two distinct continuous variables, exact bbox and period (at most 600 months). Returns real seasonal trend/relationship inference, all Holm tests and limitations, plus a validated action opening Trend Lab with that same selection and running it. Reference equals study period as in the UI. No causal interpretation. Use for Trend Lab analysis and to explain current results by rerunning the applied selection.",
+    parameters: objectSchema({
+      selection: trendSelectionSchema,
+      name: { type: "string", minLength: 1, maxLength: 80 },
+    }),
+  },
   {
     name: "search_trends",
     description:
@@ -197,6 +210,7 @@ function definition(variable: CatalogVariable) {
     sourceUnit: variable.sourceUnit,
     product: variable.product,
     run: variable.run,
+    processingNote: variable.processingNote,
     dataType: dataType(variable.product),
     source: sourceFor(variable.product),
     simulated: false,
@@ -227,6 +241,7 @@ type Observation = {
   value: number | null;
   coverage: number | null;
   samples: number | null;
+  processingRun?: string;
 };
 function summarize(
   variable: CatalogVariable,
@@ -369,6 +384,7 @@ export function createAssistantTools({
         value,
         coverage,
         samples: finite(row?.samples) && row.samples >= 0 ? row.samples : null,
+        ...(row?.processingRun ? { processingRun: row.processingRun } : {}),
       };
     });
     const nowMonth = new Date().toISOString().slice(0, 7);
@@ -377,6 +393,7 @@ export function createAssistantTools({
       unit: variable.unit,
       product: variable.product,
       run: variable.run,
+      processingNote: variable.processingNote,
       source: sourceFor(variable.product),
       dataType: dataType(variable.product),
       simulated: false,
@@ -424,9 +441,21 @@ export function createAssistantTools({
       items: assistantActionSchema,
     });
     const actions = raw as AssistantAction[];
+    if (actions.some((a) => a.type === "run_investigation"))
+      throw new ApiError(
+        400,
+        "USE_INVESTIGATION_TOOL",
+        "Use run_investigation to compute evidence and configure Trend Lab atomically.",
+      );
     const finalTab =
       actions.filter((action) => action.type === "set_tab").at(-1)?.tab ??
       context.tab;
+    if (finalTab === "trend" && actions.some((a) => a.type !== "set_tab"))
+      throw new ApiError(
+        400,
+        "USE_INVESTIGATION_TOOL",
+        "Trend Lab selections use run_investigation; globe panel actions do not control this workspace.",
+      );
     const switchesWorkspace =
       (context.tab === "compare") !== (finalTab === "compare");
     const setsArea = actions.some((action) => action.type === "set_area");
@@ -573,6 +602,82 @@ export function createAssistantTools({
           "ASSISTANT_SOURCE_UNAVAILABLE",
           "Earth data catalog is temporarily unavailable.",
         );
+      }
+      if (name === "run_investigation") {
+        if (!data.investigation)
+          throw new ApiError(
+            503,
+            "INVESTIGATION_UNAVAILABLE",
+            "Trend Lab is unavailable.",
+          );
+        const selection = args.selection as TrendSelection;
+        const request = investigationRequest(selection);
+        for (const id of [selection.x, selection.y].filter(
+          (id): id is string => !!id,
+        )) {
+          const variable = lookup(entries, id);
+          const months = validMonths(variable);
+          if (
+            !variable.available ||
+            variable.render.kind === "categorical" ||
+            variable.aggregation === "weighted_mode" ||
+            !months.includes(selection.start) ||
+            !months.includes(selection.end)
+          )
+            throw new ApiError(
+              422,
+              "INVALID_INVESTIGATION_SELECTION",
+              "Select available continuous variables with observations at both period endpoints. Internal gaps remain explicit.",
+            );
+        }
+        const result = await data.investigation(request);
+        return {
+          result: {
+            request: result.request,
+            generatedAt: result.generatedAt,
+            simulated: result.simulated,
+            series: result.series.map(
+              ({
+                observations,
+                referenceObservations: _reference,
+                ...source
+              }) => ({
+                ...source,
+                dataType: dataType(lookup(entries, source.variable).product),
+                coverage: {
+                  expectedMonths: observations.length,
+                  validMonths: observations.filter((o) => o.value !== null)
+                    .length,
+                  missingMonths: observations
+                    .filter((o) => o.value === null)
+                    .map((o) => o.month),
+                },
+                processingRuns: [
+                  ...new Set(
+                    observations.flatMap((o) =>
+                      o.processingRun ? [o.processingRun] : [],
+                    ),
+                  ),
+                ],
+              }),
+            ),
+            lags: result.lags.map(({ pairs: _pairs, ...lag }) => lag),
+            family: result.family,
+            analysis: result.analysis,
+            limitations: result.limitations,
+            viewStatus: "validated_for_frontend",
+            note: "Browser will run the same selection through the investigation endpoint. This summary is computed at generatedAt; a later refresh can reflect updated source data.",
+          },
+          actions: [
+            { type: "run_investigation", selection, name: String(args.name) },
+          ],
+          evidence: [
+            {
+              title: "Trend Lab investigation",
+              detail: `${selection.x}${selection.y ? ` / ${selection.y}` : ""}; bbox ${selection.bbox}; ${selection.start}–${selection.end}; ${result.generatedAt}. Seasonal OLS/HAC12; full Holm family; association is not causation.`,
+            },
+          ],
+        };
       }
       if (name === "list_variables") {
         const filter = String(args.filter ?? "").toLocaleLowerCase();

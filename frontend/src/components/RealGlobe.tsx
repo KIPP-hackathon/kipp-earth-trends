@@ -98,8 +98,9 @@ export function RealGlobe({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportPixels, setViewportPixels] = useState(440);
   const [viewportAspect, setViewportAspect] = useState(1);
-  const viewportWidth = 640 * viewportAspect;
-  const viewportBox = `${320 - viewportWidth / 2} 0 ${viewportWidth} 640`;
+  const viewportWidth = 640 * Math.max(1, viewportAspect);
+  const viewportHeight = 640 * Math.max(1, 1 / viewportAspect);
+  const viewportBox = `${320 - viewportWidth / 2} ${320 - viewportHeight / 2} ${viewportWidth} ${viewportHeight}`;
   const live = useRef({ view, onView });
   live.current = { view, onView };
   const touches = useRef(new Map<number, [number, number]>());
@@ -123,7 +124,7 @@ export function RealGlobe({
     const observer = new ResizeObserver(() => {
       const bounds = viewport.getBoundingClientRect();
       if (!bounds.width || !bounds.height) return;
-      setViewportPixels(bounds.height);
+      setViewportPixels(Math.min(bounds.width, bounds.height));
       setViewportAspect(bounds.width / bounds.height);
     });
     observer.observe(svg);
@@ -593,8 +594,11 @@ export function RealGlobe({
             ))}
           </g>
         </svg>
+        </div>
+      </div>
+      <div className="globe-probe-slot">
       {probe && probeFrame && view.showLayer && (
-        <p className="real-grid-info globe-probe-overlay">
+        <p className="real-grid-info globe-probe-readout">
           Display cell at {probe[1].toFixed(1)}°, {probe[0].toFixed(1)}°:{" "}
           <strong>
             {hiddenSample
@@ -611,7 +615,6 @@ export function RealGlobe({
           </> : " · no paired wind direction for this cell")}
         </p>
       )}
-        </div>
       </div>
       <div className="real-globe-actions">
         <div className="globe-area-controls" role="group" aria-label="Globe data and area controls">
@@ -697,8 +700,8 @@ export function RealGlobe({
         </div>
       </div>
       {view.showLayer && windLevels.length > 0 && <p className="real-wind-note">
-        <span aria-hidden="true">↗</span> Wind flow · {windLevels.join(" / ")} · arrows point toward flow.
-        {" "}Monthly MERRA-2 reanalysis; fixed arrow length, color = selected component (m/s).
+        <span aria-hidden="true">↗</span> Wind flow · {windLevels.join(" / ")} · trails follow monthly mean flow. Motion shows direction, not speed.
+        {" "}Monthly MERRA-2 reanalysis; color = selected component (m/s).
       </p>}
       {!unavailable && (!surfaceReady || landLoading) && (
         <LoadingStatus className="globe-assets-loading">Preparing Earth basemap…</LoadingStatus>
@@ -706,7 +709,7 @@ export function RealGlobe({
       {unavailable && (
         <p role="alert">
           Globe rendering is unavailable. The image basemap or color fields could not be drawn;
-          wind arrows and monthly series remain available when their data is loaded.
+          wind trails and monthly series remain available when their data is loaded.
         </p>
       )}
       {scale && frame && (
