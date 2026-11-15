@@ -333,3 +333,12 @@ test("anomaly summary ranks standardized departures and keeps the last 12 months
   );
   assert.deepEqual(summary.statusCounts, { available: 23, no_data: 1 });
 });
+
+test("prompt keeps answers short by default and bans causal wording", async () => {
+  const { assistantInstructions } = await import("./assistant-prompt.ts");
+  for (const text of [assistantInstructions(), assistantInstructions(true)]) {
+    assert.match(text, /at most 4 short sentences/);
+    assert.match(text, /never "drives", "causes"/);
+    assert.doesNotMatch(text, /Report supplied slopes/);
+  }
+});
