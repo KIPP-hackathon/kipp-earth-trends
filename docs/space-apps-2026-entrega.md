@@ -705,3 +705,20 @@ na main `0fcf9df`, com 80 testes frontend e builds frontend/API aprovados.
 Recursos e remoções recentes da main preservados. Por orientação explícita
 do usuário, este projeto usa exclusivamente a conta pessoal `Luckstai`,
 com a identidade Git pessoal do projeto. Confirmação de publicação pendente.
+
+## Publicação verificada — 15/11/2026 03:10 -03
+
+Publicação pela conta pessoal `Luckstai`, PR [#16](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/16),
+commit `e7c0693fb41479cf748ffccfee1386087009201d`. A Vercel informou
+[deploy concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/DZKjyHfJN6DyJLtiTPSRG1KtzLyK),
+e o [domínio público](https://kipp-earth-trends-lab.vercel.app/) entregou
+`index-Djm50shX.js`, correspondente ao build validado. Autoria do merge
+conferida pela API: Lucas Henrique, identidade pessoal do projeto.
+
+Chromium em produção confirmou Trend Lab entre Compare e Events, geração com
+321 meses reais de temperatura a 10 m no retângulo do Brasil, controles de
+24 meses, persistência entre abas e aviso de filtros alterados. Viewports
+1440/390/360 px sem overflow horizontal nem exceções JavaScript.
+80 testes frontend e builds frontend/API haviam passado na versão integrada.
+Isso comprova a publicação e o fluxo funcional; revisão científica humana
+e submissão na página Project continuam etapas distintas.
