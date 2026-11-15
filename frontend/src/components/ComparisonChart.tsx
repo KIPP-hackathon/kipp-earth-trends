@@ -3,7 +3,10 @@ import type { ComparisonMode } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
 import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { TrendResults } from "./TrendResults";
-import { comparisonColor } from "../lib/comparisonColors";
+import {
+  comparisonColor,
+  comparisonTrendColor,
+} from "../lib/comparisonColors";
 import type { TrendFamilyTest } from "../lib/runtimeTrends";
 function calendar(start: string, end: string) {
   const index = (value: string) =>
@@ -69,6 +72,7 @@ function ComparisonChartComponent({
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
+  const [trendsOnly, setTrendsOnly] = useState(false);
   const months = useMemo(() => calendar(start, end), [start, end]);
   const chart = useMemo(() => {
     const x = (index: number) =>
@@ -106,6 +110,13 @@ function ComparisonChartComponent({
   const activeMonth = activeIndex >= 0 ? month : months.at(-1)!;
   const index = activeIndex >= 0 ? activeIndex : Math.max(0, months.length - 1);
   const hasValues = !noArea && chart.series.some((series) => series.path);
+  const hasTrends =
+    !noArea &&
+    entries.some(({ data }) => {
+      const trend = data?.[scope].trends?.[mode];
+      return trend?.status === "available" && trend.line.length === 2;
+    });
+  const hasPlot = hasValues && (!trendsOnly || hasTrends);
   const exportRows = () =>
     entries.flatMap((entry) =>
       entry.data ? [{ ...entry.data, [scope]: entry.data[scope] }] : [],
@@ -229,6 +240,15 @@ function ComparisonChartComponent({
           </p>
         </div>
         <div className="real-export-actions">
+          <button
+            type="button"
+            className="comparison-trends-only"
+            aria-pressed={trendsOnly}
+            title="Hide the observed series and keep only season-adjusted trends"
+            onClick={() => setTrendsOnly((value) => !value)}
+          >
+            Trends only
+          </button>
           <button
             type="button"
             disabled={noArea || !entries.some((entry) => entry.data)}
@@ -379,7 +399,8 @@ function ComparisonChartComponent({
                   </text>
                 </g>
               ))}
-            {hasValues &&
+            {!trendsOnly &&
+              hasValues &&
               chart.series.map(({ entry, path }) =>
                 path ? (
                   <path
@@ -392,7 +413,8 @@ function ComparisonChartComponent({
                   />
                 ) : null,
               )}
-            {hasValues &&
+            {!trendsOnly &&
+              hasValues &&
               chart.series.flatMap(({ entry, points }) =>
                 points.map((point, index) => (
                   <circle
@@ -404,7 +426,7 @@ function ComparisonChartComponent({
                   />
                 )),
               )}
-            {hasValues && (
+            {hasTrends && (
               <g
                 clipPath={`url(#${id}-plot)`}
                 aria-label="Season-adjusted trend lines"
@@ -422,7 +444,7 @@ function ComparisonChartComponent({
                       key={variable.id}
                       className="runtime-trend-line"
                       d={`M${chart.x(a)},${chart.y(first.value)} L${chart.x(b)},${chart.y(last.value)}`}
-                      stroke={comparisonColor(variable.id)}
+                      stroke={comparisonTrendColor(variable.id)}
                       strokeWidth="2"
                       strokeDasharray="5 4"
                       fill="none"
@@ -437,7 +459,7 @@ function ComparisonChartComponent({
                 })}
               </g>
             )}
-            {hasValues && (
+            {hasPlot && (
               <line
                 x1={chart.x(index)}
                 x2={chart.x(index)}
@@ -454,17 +476,19 @@ function ComparisonChartComponent({
             <text x="578" y="174" textAnchor="end">
               {monthLabel(end)}
             </text>
-            {!hasValues && (
+            {!hasPlot && (
               <text x="313" y="94" textAnchor="middle">
                 {entries.length === 0
                   ? "Select a variable above to show it in the charts"
                   : entries.some((entry) => entry.data)
-                    ? "No comparable values for this mode"
+                    ? trendsOnly
+                      ? "No trend lines for this mode"
+                      : "No comparable values for this mode"
                     : "Loading selected variables…"}
               </text>
             )}
           </svg>
-          {preview && hasValues && (
+          {preview && hasPlot && (
             <div className="comparison-hover" role="tooltip">
               <strong>{monthLabel(activeMonth)}</strong>
               {chart.series.slice(0, 8).map(({ entry, byMonth }) => {

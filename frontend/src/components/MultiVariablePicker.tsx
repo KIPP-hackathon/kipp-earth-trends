@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import type { EarthVariable } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
+import { DomainIcon } from "../lib/domains";
+import { windComponents } from "../lib/wind";
 import "./multivariable-layers.css";
 
 const normalize = (text: string) =>
@@ -59,7 +61,7 @@ export function MultiVariablePicker({
     (variable) =>
       !term ||
       normalize(
-        `${variable.name} ${variable.id} ${variable.product} ${variable.category ?? ""} ${variable.unit} ${realUnit(variable.unit)}`,
+        `${variable.name} ${variable.id} ${variable.product} ${variable.category ?? ""} ${variable.domain ?? ""} ${variable.unit} ${realUnit(variable.unit)}`,
       ).includes(term),
   );
   return (
@@ -67,8 +69,8 @@ export function MultiVariablePicker({
       className="multi-variable-picker"
       ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          close();
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) close();
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -186,10 +188,21 @@ export function MultiVariablePicker({
           >
             {matches.map((variable) => {
               const available = isAvailable(variable);
+              const wind = windComponents(variable.id);
               return (
                 <label
                   key={variable.id}
                   className={available ? "" : "is-unavailable"}
+                  onClick={(event) => {
+                    if ((event.target as HTMLElement).closest("input")) return;
+                    event.preventDefault();
+                    if (!available) return;
+                    setDraft((previous) =>
+                      previous.includes(variable.id)
+                        ? previous.filter((id) => id !== variable.id)
+                        : [...previous, variable.id],
+                    );
+                  }}
                 >
                   <input
                     type="checkbox"
@@ -207,11 +220,27 @@ export function MultiVariablePicker({
                     }
                   />
                   <span>
-                    <strong>{variable.name}</strong>
-                    <small>
-                      {variable.product} · {realUnit(variable.unit)}
-                      {available ? "" : " · unavailable"}
-                    </small>
+                    <strong>
+                      {variable.name}{" "}
+                      <span className="multi-variable-unit">
+                        ({realUnit(variable.unit)})
+                      </span>
+                    </strong>
+                    {(variable.domain || !available || wind) && (
+                      <small className="multi-variable-meta">
+                        {variable.domain && (
+                          <span
+                            className="multi-variable-domain"
+                            data-domain={variable.domain}
+                          >
+                            <DomainIcon domain={variable.domain} />
+                            {variable.domain}
+                          </span>
+                        )}
+                        {!available && <span>unavailable</span>}
+                        {wind && <span>↗ paired wind arrows</span>}
+                      </small>
+                    )}
                   </span>
                 </label>
               );

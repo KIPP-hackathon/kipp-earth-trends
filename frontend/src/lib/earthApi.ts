@@ -78,6 +78,7 @@ export type EarthVariable = {
   product: string;
   run?: string;
   category?: string;
+  domain?: string;
   description?: string;
   render?: EarthRender;
   aggregation?: EarthAggregation;
@@ -113,6 +114,10 @@ export type EarthFrame = {
   coverage: Float32Array;
 };
 export type EarthSeries = {
+  source?: string;
+  sourceLayer?: string;
+  sourceTable?: string | null;
+  sourceUC?: string | null;
   start?: string;
   end?: string;
   variable: string;

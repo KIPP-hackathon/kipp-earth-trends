@@ -1,8 +1,8 @@
 # Space Apps 2026 — requisitos e contexto do KIPP
 
-> Diagnóstico baseado no checkout local `9f011a8` e nas alterações presentes em 14/11/2026. A `main` remota já continha commits posteriores no momento da publicação; revalidar os estados e pendências contra a versão atual antes de tratá-los como diagnóstico do produto publicado.
+> Estado técnico atualizado em 15/11/2026, após a auditoria do checkout `4c0281d` e da aplicação pública. O KIPP atende ao núcleo técnico do desafio; a entrega formal ainda tem pendências. O diagnóstico inicial de 14/11 sobre frontend simulado e regressão anual foi superado pelas evidências abaixo. Esta revisão não confirma inscrição, elegibilidade ou submissão.
 
-Revisado em **14/11/2026**. Desafio: **Be An Earth System Trend Detective!**
+Revisado em **15/11/2026**. Desafio: **Be An Earth System Trend Detective!**
 Este documento orienta planejamento, código, dados, conteúdo e apresentação.
 O [checklist de entrega](space-apps-2026-entrega.md) registra o que ainda precisa ser comprovado.
 
@@ -33,21 +33,25 @@ Globo 3D, catálogo de desastres, previsão, tempo real, cobertura mundial, todo
 
 ## Matriz de aderência ao repositório
 
-Inspeção estática em 14/11/2026; não comprova o estado do deploy, do bucket, do workspace ou da inscrição. “Parcial” significa que existe implementação ou documentação, mas falta evidência da entrega completa.
+Auditoria em 15/11/2026: inspeção do código, consultas anônimas à aplicação/API e reprodução independente do exemplo estatístico. O catálogo público retornou HTTP 200, 72 variáveis, `provider=databricks-sql`, `sourceLayer=trusted`, `simulated=false` e `runtimeTrends=true`, revisão `kipp-earth-api-00006-hiz`. Estados abaixo descrevem evidências técnicas, não aprovação formal do projeto.
 
 | ID | Requisito / origem | Evidência atual | Lacuna / aceite necessário |
 | --- | --- | --- | --- |
-| D1 | Escolher variável terrestre — Details | `frontend/src/App.tsx`, `frontend/src/lib/analysis.ts`; temperatura, precipitação e EVI simulados. | Selecionar ao menos uma variável real, com produto, versão, significado e unidade. |
-| D2 | Adquirir dados da região — Details | `data/`, `databricks/data-extraction/`, `docs/acompanhamento-fontes.md`; pipelines e inventário documentados. | Comprovar extração e agregação regional usadas pela aplicação. Job publicado ou tabela catalogada não prova integração no frontend. |
-| D3 | Série e recorte temporal — Details | Seleção de região/período, gráfico, player e comparação no frontend. | Alimentar o fluxo com dados reais e expor cobertura, lacunas e resolução. |
-| D4 | Quantificar taxa de mudança — Details | Regressão sobre agregados anuais em `frontend/src/lib/analysis.ts`. | Validar unidade por tempo, agregação e cálculo com uma série real reproduzível. |
-| D5 | Testar significância — Details | Intervalo de 95% com Student-t; classificação pelo intervalo da inclinação excluir zero. | Conferir pressupostos e limitações no dado real; não é obrigatório adicionar todos os testes ou valor-p se o IC estiver adequado. |
-| E1 | Recurso NASA indicado — avaliadores | Produtos NASA em estudos/pipelines; Blue Marble como imagem no frontend. | Registrar uso efetivo de recurso listado em Resources e sua contribuição. Blue Marble isolado não comprova a análise pedida nem esta condição. |
-| E2 | Principalmente inglês — avaliadores | Interface e documentação principal em português. | Entregar página Project, demonstração/slides e percurso principal avaliável em inglês; português pode ser complementar. |
-| E3 | Demo ≤30 s OU apresentação ≤7 slides — avaliadores | Não identificada entrega final nesta revisão. | Produzir uma alternativa, medir duração/contagem e conferir acesso público. |
-| E4 | Declaração de IA e créditos — avaliadores | Créditos parciais em `frontend/README.md`; declaração desta revisão no checklist. | Completar inventário de todo o projeto, identificar conteúdos gerados e conferir regras completas. |
-| E5 | Submissão e links públicos — avaliadores | README aponta protótipo e repositório. | Testar sem login; preencher e efetivamente submeter na plataforma; registrar URL e confirmação. |
-| E6 | Equipe e prazo — avaliadores / FAQ / portal | Sem comprovantes de cadastro ou submissão nesta revisão. | Conferir 2–6 membros conforme orientação recebida, mesmo evento e prazo efetivo da equipe. |
+| D1 | Escolher variável terrestre — Details | **Implementado:** catálogo público com 72 variáveis reais e metadados de produto, unidade e origem trusted. | Escolher e registrar a variável principal da candidatura; distinguir reanálise de observação e estimativa de satélite. |
+| D2 | Adquirir dados da região — Details | **Implementado:** API pública retorna séries globais e regionais; agregação ponderada por área e recorte por bbox documentados. | Explicitar que a extensão retangular de um país não é sua máscara poligonal; registrar o recorte usado no caso final. |
+| D3 | Série e recorte temporal — Details | **Implementado:** seleção de período e séries reais; T10M tem 321 meses, 2000-01–2026-09. IMERG Final, GRACE e concentração de gelo também expõem históricos ampliados. | Conferir cobertura por variável; nem todo produto tem histórico longo. Não juntar Final e Late implicitamente. |
+| D4 | Quantificar taxa de mudança — Details | **Implementado e reproduzido:** regressão mensal com efeitos sazonais; inclinação por ano/década, retas nos gráficos e exportação. Exemplo real em [runtime-trends.md](runtime-trends.md). | Revisão científica humana e narrativa do caso escolhido; taxa condicional ao modelo e período, sem atribuição causal. |
+| D5 | Testar significância — Details | **Implementado e reproduzido:** Newey–West HAC12, teste Wald normal aproximado, IC de 95% e ajuste Holm na UI para a família selecionada. Duas séries reais conferidas com statsmodels. | Preservar pressupostos, limites e critérios de amostra; p ajustado depende da família completa e não corrige todas as escolhas exploratórias. |
+| E1 | Recurso NASA indicado — avaliadores | **Parcial:** MERRA-2 e GPM são efetivamente usados na aplicação; produto e exemplo real identificados. | Explicar relação exata com Details/Resources na candidatura. Não declarar uso de Giovanni/AppEEARS sem evidência, nem dar esta condição como formalmente aprovada. |
+| E2 | Principalmente inglês — avaliadores | **Protótipo publicado em inglês:** documento HTML com `lang="en"`, interface e metadados traduzidos; evidências de produção no checklist. | Conferir inglês da página Project e da demo/slides finais, ainda não comprovadas. |
+| E3 | Demo ≤30 s OU apresentação ≤7 slides — avaliadores | **Pendente de comprovação:** material final não identificado no repositório nesta revisão. | Confirmar se existe externamente ou produzir uma alternativa, medir e testar acesso público. |
+| E4 | Declaração de IA e créditos — avaliadores | **Parcial:** créditos de dados/assets/dependências, registro Codex e identificação do assistente de IA na interface. | Consolidar inventário e declaração final em inglês, revisão humana e regras completas de identificação. |
+| E5 | Submissão e links públicos — avaliadores | **Parcial:** site/API acessíveis sem login e repositório GitHub público na auditoria. | URL Project, links finais de apresentação e confirmação de envio não comprovados. |
+| E6 | Equipe e prazo — avaliadores / FAQ / portal | **Pendente de comprovação:** sem registro de evento, integrantes, fuso efetivo ou confirmação de submissão nos documentos. | Conferir orientação de 2–6 membros, mesmo evento, responsáveis e prazo efetivo; não inferir inscrição pela existência do site. |
+
+O [exemplo real reproduzível](runtime-trends.md#verification-and-one-real-data-check) cobre o percurso variável → região → período → série → taxa → significância. Para fechar a candidatura, a equipe ainda precisa revisar sua interpretação e incorporá-lo à página Project e à apresentação. Não falta implementar outro teste estatístico para completar esse percurso técnico.
+
+Evidências locais da auditoria: `artifacts/auditoria-entrega/catalog.json`, `temperature-comparison.json` e `statistical-check.json` (duas comparações com `matched=true`). São arquivos ignorados, não anexos públicos da candidatura; a metodologia e os resultados estão versionados em `runtime-trends.md`. Catálogo e configuração foram novamente consultados ao atualizar estes documentos. As páginas oficiais não puderam ser reconfirmadas na auditoria; regras formais continuam sujeitas à conferência dos guias/evento.
 
 ### Critérios técnicos adotados pelo KIPP
 
@@ -58,7 +62,7 @@ Estas são decisões internas para tornar os objetivos verificáveis, não obrig
 - Documentar máscara regional e ponderação espacial; tratar fill, nulos, QA e escalas antes de agregar. Não equiparar ponto da grade a média de uma região.
 - Distinguir observações, estimativas de satélite, reanálises e simulações. Não renomear NDVI como EVI, TS como T2M, concentração de gelo como extensão, ou probabilidade de fase líquida como probabilidade de chuva.
 - IMERG Final e Late têm tratamentos distintos: documentar origem e eventual junção antes de calcular tendências.
-- Justificar período e número de amostras. Os recortes de cerca de 2024–2026 do inventário não comprovam, por si, tendências climáticas de longo prazo; ampliar o histórico ou limitar a conclusão ao período observado.
+- Justificar período e número de amostras. Parte dos produtos já tem histórico desde 2000; outros continuam em 2024–2026. Conferir a cobertura efetivamente retornada por variável e limitar a conclusão ao período observado; série curta não comprova tendência climática de longo prazo.
 - Explicar agregação anual/mensal, sazonalidade, baseline de anomalias, método de tendência, IC/limiar e pressupostos. Considerar autocorrelação e comparações múltiplas quando aplicáveis; registrar limitações se não tratadas.
 - Não interpretar significância como importância prática, causalidade ou previsão. Não escolher períodos só para obter significância. Não chamar um IC da média estimada de intervalo de previsão.
 - Sem cobertura ou evidência suficiente, indicar indisponibilidade/insuficiência. Presets de eventos não demonstram ocorrência, impacto ou causalidade nos dados simulados.
@@ -108,8 +112,8 @@ As dez dicas recebidas orientam a qualidade: entender o desafio; demonstrar uso 
 ## Ordem de trabalho recomendada
 
 1. **Elegibilidade:** confirmar cadastro/evento, URL Project, prazo, guias e responsáveis; começar a preencher a página oficial agora.
-2. **Demonstração científica:** escolher uma pergunta e fechar um caso real completo, com histórico adequado, proveniência, taxa e significância verificadas.
-3. **Comunicação:** disponibilizar percurso em inglês, créditos e declaração de IA; produzir demo/slides mostrando o que funciona.
+2. **Demonstração científica:** selecionar e revisar o exemplo real já reproduzido (ou outro caso conferido), registrar a pergunta, o recorte, proveniência, taxa, IC, significância e limitações; guardar CSV/JSON e aprovação humana.
+3. **Comunicação:** usar o percurso já publicado em inglês para finalizar a página Project e demo/slides; consolidar créditos e declaração de IA. Priorizar a entrega sobre novas fontes ou funcionalidades.
 4. **Entrega:** testar links sem login, conferir checklist, submeter com folga, registrar versão e congelar materiais até terminar a avaliação conforme orientação recebida.
 
-Consultar também [fontes e cargas](acompanhamento-fontes.md), [experiência e limitações](../frontend/README.md) e [estudos exploratórios](../ml_experiments/EXPERIMENTS.md). Esses estudos não substituem os requisitos atuais nem comprovam integração no produto.
+Consultar também [fontes e cargas](inventario-fontes-ingestao-reduzida.md), [experiência e limitações](../frontend/README.md) e [estudos exploratórios](../ml_experiments/EXPERIMENTS.md). Esses estudos não substituem os requisitos atuais nem comprovam integração no produto.

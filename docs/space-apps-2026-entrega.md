@@ -1,5 +1,7 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+> **Estado consolidado em 15/11/2026:** o KIPP atende ao núcleo técnico do desafio com dados reais, análise regional/temporal, taxa de mudança e significância reproduzidas. A entrega formal ainda não está comprovada. O checklist atual abaixo substitui o diagnóstico inicial de frontend simulado; os registros incrementais preservam o contexto e a data de cada verificação.
+
 Registro técnico de 15/11/2026: configurações locais para ampliar as extrações de
 concentração de gelo marinho, IMERG Final/Late e GRACE foram preparadas com
 assistência do OpenAI Codex; ver [configurações de extração](configuracoes-extracao-fontes-reduzidas.md).
@@ -38,10 +40,10 @@ estar presente. Evidência: `artifacts/imerg-final-historico-upload-validation.j
 Ingestão UC, integração na aplicação e análise científica não foram executadas
 nesta publicação de arquivos.
 
-> Diagnóstico baseado no checkout local `9f011a8` e nas alterações presentes em 14/11/2026. A `main` remota já continha commits posteriores no momento da publicação; revalidar os estados e pendências contra a versão atual antes de tratá-los como diagnóstico do produto publicado.
+> Os registros técnicos anteriores são históricos: evidência de upload não comprovava ingestão ou consumo naquela etapa. A auditoria de 15/11/2026, consolidada abaixo, verificou posteriormente o catálogo público e o exemplo estatístico real. Não atribui a esta sessão a execução dos deploys ou das ingestões intermediárias.
 
-Revisão inicial: **14/11/2026**. Base: [requisitos e fontes](space-apps-2026-requisitos.md).
-Checklist ainda **não aprovado**: itens só podem ser marcados com evidência verificável.
+Revisão inicial: **14/11/2026**; consolidação de aderência: **15/11/2026**. Base: [requisitos e fontes](space-apps-2026-requisitos.md).
+Entrega formal ainda **não aprovada**: itens técnicos marcados abaixo têm evidência; isso não equivale à revisão científica humana nem à submissão.
 A revisão do repositório não confirma inscrição, recursos privados ou submissão.
 
 ## Identificação a completar pela equipe
@@ -55,27 +57,52 @@ A revisão do repositório não confirma inscrição, recursos privados ou submi
 | Integrantes registrados e contribuições | Pendente; seguir 2–6 da orientação recebida |
 | Responsável pela submissão e substituto | Pendente |
 | Prazo efetivo e eventual prazo local anterior | Confirmar; mensagem recebida: 15/11/2026, 23h59 locais |
-| Protótipo | https://kipp-earth-trends-lab.vercel.app/ — testar sem login |
-| Código | https://github.com/KIPP-hackathon/kipp-earth-trends — confirmar visibilidade |
+| Protótipo | https://kipp-earth-trends-lab.vercel.app/ — acesso anônimo HTTP 200 conferido em 15/11/2026 |
+| Código | https://github.com/KIPP-hackathon/kipp-earth-trends — público na auditoria de 15/11/2026 |
 | Versão final: commit / deploy / arquivos | Pendente |
 | Confirmação de submissão e horário com fuso | Pendente |
 
-## Bloqueadores antes de declarar a entrega pronta
+## Núcleo técnico comprovado
 
-- [ ] **Cadastro:** cada integrante registrado, no mesmo evento; uma equipe por pessoa, um desafio por equipe; limites conferidos. Evidência: pendente.
-- [ ] **Regras:** ler guias completos de submissão, julgamento, IA e termos da edição; registrar links, versão/data e divergências com as mensagens locais. Evidência: pendente.
-- [ ] **Página oficial:** preencher todos os campos obrigatórios em inglês e atualizar a evolução durante o evento. Evidência: URL Project pendente.
-- [ ] **Uso NASA:** identificar ao menos um recurso NASA listado no desafio efetivamente utilizado, produto/versão e contribuição; linkar evidência no código, dados ou análise. Não basta lista de fontes. Evidência: pendente.
-- [ ] **Caso real completo:** variável, região, período, série temporal, taxa de mudança com unidade, significância e interpretação reproduzíveis. Frontend atual ainda simulado. Evidência: pendente.
-- [ ] **Método:** documentar QA/nulos, agregação, histórico, sazonalidade, IC ou teste, pressupostos e limitações; conferir os números com referência reproduzível. Evidência: pendente.
-- [ ] **Inglês:** página Project, demo/slides e percurso principal do protótipo compreensíveis aos jurados internacionais. Evidência: pendente.
-- [ ] **Apresentação:** vídeo ≤30 segundos OU slides ≤7; medir, testar link e mostrar resultado real sem confundir simulação com observação. Evidência: pendente.
-- [ ] **IA:** completar inventário abaixo, identificar conteúdos gerados e adaptar a declaração às regras oficiais e campos da plataforma. Evidência: pendente.
-- [ ] **Créditos:** consolidar datasets, ferramentas, código, imagens, fontes, artigos, licenças e materiais reaproveitados, com uso real identificado. Evidência: pendente.
-- [ ] **Links:** abrir Project, site, código, demo/slides e materiais em sessão sem login; nenhum deve pedir senha/permissão. Não usar links privados de jobs como única evidência pública. Evidência: pendente.
-- [ ] **Validação:** executar testes/build com Node.js 24 após mudanças funcionais; verificar manualmente o caso apresentado e correspondência com a versão publicada. Evidência: pendente.
-- [ ] **Submissão:** concluir o envio na plataforma antes do prazo efetivo e guardar confirmação/horário; rascunho não comprova envio. Evidência: pendente.
-- [ ] **Congelamento:** registrar commit, deploy e versões públicas finais antes do prazo; interromper atualizações dos materiais vinculados, inclusive publicação automática, conforme alerta recebido. Evidência: pendente.
+- [x] **Dados reais integrados:** catálogo público com 72 variáveis, `databricks-sql`, camada `trusted` e `simulated=false`; cobertura e proveniência por variável. Consulta anônima novamente conferida nesta atualização.
+- [x] **Região e período:** séries globais/regionais e seleção temporal; exemplo T10M de 321 meses, 2000-01–2026-09. Região por bbox, sem alegar máscara poligonal do país.
+- [x] **Taxa e significância:** regressão mensal com efeitos sazonais, Newey–West HAC12, IC de 95%, valor-p aproximado e ajuste Holm na interface; retas e metadados de tendência disponíveis na comparação pública.
+- [x] **Exemplo real reproduzível:** inclinação, erro-padrão e p de T10M conferidos independentemente com statsmodels para dois recortes. Método, IC e resultados versionados em [runtime-trends.md](runtime-trends.md).
+- [x] **Percurso do protótipo em inglês:** tradução publicada, `lang="en"` e evidências de navegador registradas abaixo. Não inclui automaticamente os materiais externos da candidatura.
+- [x] **Verificação técnica do checkout auditado:** 47 testes frontend e builds frontend/backend com Node.js 24 aprovados na sincronização; 60 testes Python da extração aprovados. Conferência adicional da API e do cálculo real na auditoria. Esta alteração apenas documental foi validada por revisão do diff, links locais e `git diff --check`.
+
+## Pendências antes de declarar a entrega pronta
+
+- [ ] **Cadastro:** comprovar integrantes, mesmo evento, limites e contribuições; indicar responsável pela submissão e substituto.
+- [ ] **Regras:** conferir guias completos de submissão, julgamento, IA e termos da edição; registrar divergências e confirmar evento/fuso e eventual prazo local anterior.
+- [ ] **Página oficial:** registrar URL Project e preencher campos obrigatórios em inglês; site e GitHub não substituem essa página.
+- [ ] **Uso NASA na candidatura:** apresentar produto/versão efetivamente usados e sua contribuição; explicitar a ligação com o recurso indicado no desafio. Uso real de MERRA-2/GPM comprovado tecnicamente, mas a condição formal específica ainda precisa ser conferida.
+- [ ] **Caso final revisado pela equipe:** aprovar pergunta, região, período, interpretação e limites do exemplo já reproduzido; guardar CSV/JSON e incorporar os resultados aos materiais finais. A validação numérica automatizada não substitui revisão científica humana.
+- [ ] **Inglês dos materiais finais:** conferir página Project e demo/slides; o percurso principal do protótipo já está em inglês.
+- [ ] **Apresentação:** confirmar material externo existente ou produzir vídeo ≤30 segundos OU slides ≤7; medir e testar link. Material final não encontrado no repositório nesta revisão não significa que inexista fora dele.
+- [ ] **IA e créditos:** consolidar inventário de dados, ferramentas, assets, licenças e IA; separar desenvolvimento assistido de IA executada no produto, identificar conteúdo gerado e revisar a declaração em inglês conforme o guia.
+- [ ] **Todos os links finais:** site/API e GitHub já conferidos; faltam Project, demo/slides e demais anexos sem senha/permissão.
+- [ ] **Submissão:** efetivamente enviar na plataforma e guardar confirmação com horário/fuso; rascunho não comprova envio.
+- [ ] **Congelamento:** registrar commit, deploy e arquivos finais; congelar materiais vinculados e deploys automáticos antes do prazo efetivo, conforme alerta recebido.
+
+## Consolidação da auditoria — 15/11/2026
+
+O diagnóstico antigo de frontend simulado, cálculo apenas anual com Student-t e inglês pendente foi superado. Em produção, o catálogo respondeu HTTP 200 com 72 variáveis trusted e `runtimeTrends=true`, revisão `kipp-earth-api-00006-hiz`. O site e as rotas `/api/earth/v1/catalog` e `/api/earth/v1/config` foram acessados sem login. Evidências históricas de Lakebase e versões anteriores abaixo não descrevem o provedor atual: esta auditoria observou Databricks SQL.
+
+O catálogo auditado já expunha as ampliações: T10M com 321 meses (2000-01–2026-09), IMERG Final com 309 (2000-01–2025-09), GRACE com 259 (2002-04–2026-09, com lacunas) e concentração de gelo com 322 por polo (2000-01–2026-10). Isso comprova cobertura anunciada pela API, sem afirmar que cada arquivo/célula foi cientificamente validado. IMERG Late permanece separado. Outros produtos ainda têm séries curtas.
+
+Caso candidato à apresentação: **como variou a temperatura do ar a 10 m no período 2000-01–2026-09?** Fonte: MERRA-2 M2TMNXSLV 5.12.4, tabela `earth-trend-data.trusted.tb_merra2_t10m`, 321 observações mensais por recorte. A região é o retângulo `[-73.98614, -33.76766, -34.73135, 5.24412]`, extensão do Brasil, incluindo áreas externas ao país; não deve ser anunciada como média territorial exata do Brasil.
+
+| Recorte | Taxa (°C/ano) | IC de 95% da taxa (°C/ano) | p aproximado sem ajuste |
+| --- | ---: | --- | ---: |
+| Global | 0,01982424 | 0,01248293 a 0,02716555 | 1,20574 × 10⁻⁷ |
+| Bbox do Brasil | 0,04024718 | 0,02348832 a 0,05700605 | 2,51459 × 10⁻⁶ |
+
+Esses valores são estimativas condicionais ao modelo, dados e período; não são previsão nem atribuição causal. O IC é da inclinação, não de previsão. O valor-p ajustado exibido na UI depende de todas as variáveis/recortes da família selecionada, inclusive curvas ocultas. A referência de normalização 2001–2020 não deve ser chamada de normal climatológica de 30 anos. Detalhes de sazonalidade, agregação espacial, amostra mínima, lacunas e limitações: [metodologia](runtime-trends.md).
+
+A conferência independente usou os valores reais retornados pela comparação pública e statsmodels OLS com efeitos mensais, HAC12, correção `n/(n−13)` e teste normal; inclinação, erro-padrão e p coincidiram nos dois recortes. Arquivos locais ignorados: `artifacts/auditoria-entrega/temperature-comparison.json` e `statistical-check.json`, com dois resultados `matched=true`. Os arquivos de auditoria não são anexos públicos; preservar exportações finais e links acessíveis na candidatura.
+
+**Prioridade de fechamento:** confirmar evento/fuso e cadastro; concluir Project; revisar e apresentar um caso real já reproduzido; finalizar demo/slides, créditos e IA; testar links, enviar e registrar/congelar a versão final. Novas fontes ou funcionalidades não são necessárias para demonstrar o núcleo técnico. Prazo informado: **15/11/2026 às 23h59 locais**, ainda sujeito à confirmação do evento; America/Sao_Paulo é referência provisória. As páginas oficiais não puderam ser reconfirmadas na auditoria; esta consolidação não declara elegibilidade completa.
 
 ## Qualidade da candidatura — dicas dos avaliadores
 
@@ -92,13 +119,13 @@ A revisão do repositório não confirma inscrição, recursos privados ou submi
 
 ## Registro de fontes e materiais
 
-Créditos existentes em [frontend/README.md](../frontend/README.md); inventário científico em [acompanhamento-fontes.md](acompanhamento-fontes.md). Completar e publicar as informações relevantes em inglês na entrega. Uma fonte candidata não deve aparecer como efetivamente utilizada.
+Créditos existentes em [frontend/README.md](../frontend/README.md); inventário científico em [acompanhamento-fontes.md](inventario-fontes-ingestao-reduzida.md). Completar e publicar as informações relevantes em inglês na entrega. Uma fonte candidata não deve aparecer como efetivamente utilizada.
 
 | Material | Uso identificado nesta revisão | Pendência para entrega |
 | --- | --- | --- |
 | NASA Blue Marble Next Generation, janeiro de 2004 | Textura estática do globo; link nos créditos do frontend. | Crédito público em inglês; não apresentar a textura como observação mensal ou série analisada. |
 | Natural Earth via world-atlas | Limites cartográficos; link no README do frontend. | Conferir atribuição e licença. |
-| MERRA-2 / GPM IMERG / MODIS | Estudos, extrações e pipelines documentados. | Indicar produto, versão, variáveis e arquivos efetivamente consumidos pelo caso final; distinguir reanálise e estimativas. |
+| MERRA-2 / GPM IMERG / MODIS | MERRA-2 e GPM IMERG efetivamente consumidos pela API pública; estudos e pipelines adicionais documentados. Não presumir integração de MODIS. | Indicar produto, versão, variáveis e arquivos efetivamente consumidos pelo caso final; distinguir reanálise e estimativas. |
 | Manrope / Instrument Serif / Lucide e dependências | Fontes, ícones e bibliotecas do frontend. | Consolidar ferramentas e licenças aplicáveis. |
 | Catálogo de eventos e artigos | Referências em `frontend/src/lib/events.ts` e estudos. | Conferir todos os materiais usados na narrativa final e suas atribuições. |
 | Recursos oficiais do desafio | Contexto documentado em `space-apps-2026-requisitos.md`. | Identificar qual recurso NASA listado foi efetivamente usado pela solução. |
@@ -106,6 +133,28 @@ Créditos existentes em [frontend/README.md](../frontend/README.md); inventário
 Para cada dado real entregue, preencher: **produtor; produto/versão; URL/DOI; variável/unidade; região/máscara; período/resolução; acesso; QA/nulos; transformações; arquivo público ou resultado; licença/termos; responsável pela revisão**.
 
 ## Registro de IA
+
+Preparação da publicação do mascote em 15/11/2026: integração isolada a partir
+da `main` remota `4c0281d`, preservando migração GCP, interface em inglês,
+comparação/legenda interativa, remoção de ações/aviso de localização e posição
+das camadas, legibilidade/tamanho de fonte, tendências/significância e extrações
+incrementais já publicadas pelo time. Inclui os dois mascotes animados do
+assistente, favicon GIF com PNG e alternativa de movimento reduzido, assets e
+créditos em inglês. Header/rodapé mantêm o logo original. Ver [registro de
+assets, ferramentas e IA](kipp-mascot.md). Publicação pela conta pessoal `Luckstai`,
+conforme orientação explícita da equipe registrada no AGENTS.md. Não declara
+deploy, submissão ou conclusão científica antes da verificação.
+Validação integrada: 47 testes frontend e builds frontend/API aprovados com
+Node.js 24; revisão independente sem problemas materiais. CUA conferiu desktop
+e 390 px com interface em inglês, logos originais, dois mascotes animados e
+layout atual do time preservados. Identidade pessoal configurada no escopo do
+repositório. Publicação verificada em 15/11/2026: commit `8ce8177` na `main`,
+[deploy Vercel READY em produção](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/5Es54WvvvQjsgzTT6KeHSvhWDMBR),
+assets públicos HTTP 200 e Chrome em desktop/390 px com os dois mascotes
+animados, logos originais, alternativa de movimento reduzido e sem overflow
+horizontal. Favicon GIF configurado; animação nativa da aba não foi verificada.
+Evidências detalhadas no [registro do mascote](kipp-mascot.md#verified-production-release).
+Esta publicação técnica não equivale à submissão no Space Apps.
 
 Evidência técnica adicional de 14/11/2026: a migração do backend para Lakebase
 conferiu as quatro tabelas de MERRA-2 e IMERG, nomes/tipos de colunas,
@@ -127,6 +176,7 @@ Não confundir IA usada no desenvolvimento com IA executada dentro do produto. A
 | Ferramenta/modelo | Data e finalidade | Conteúdo gerado/assistido | Revisão humana |
 | --- | --- | --- | --- |
 | OpenAI Codex; identificador exato do modelo não verificado | 14/11/2026 — leitura do repositório, consulta de páginas e organização de requisitos. | Documentos `docs/space-apps-2026-requisitos.md`, `docs/space-apps-2026-entrega.md` e seção de regras no `AGENTS.md`. | Pendente de revisão da equipe. |
+| OpenAI Codex; identificador exato do modelo não verificado | 15/11/2026 — auditoria de aderência e atualização documental solicitada pela equipe. | Consolidação destes dois documentos a partir do código, API pública e reprodução independente com statsmodels; sem alteração de observações ou métodos. | Revisão humana do caso científico e da candidatura pendente. |
 | Outras ferramentas ou usos anteriores | A completar pela equipe. | Código, textos, traduções, imagens, dados sintéticos, slides ou vídeo, se aplicável. | Pendente. |
 | OpenAI Codex; identificador exato do modelo não verificado | 14/11/2026 — migração da leitura backend para Lakebase e verificação das tabelas. | Configuração de deploy/smoke em `backend/scripts/`, exemplo de ambiente, README e documentação `docs/backend-lakebase.md` e plano/spec associados. | Validação automatizada e consultas reais executadas; revisão da equipe pendente. |
 
@@ -595,3 +645,95 @@ quebram de linha sem sobreposição em áreas estreitas. Controles, dados e
 cálculos preservados.47checks existentes e build frontend Node24 aprovados.
 A conexão de automação do navegador estava indisponível nesta conferência;
 não se declara verificação visual final nem publicação deste ajuste.
+
+
+### Ajuste solicitado — remoção da página Evidence (15/11/2026)
+
+OpenAI Codex assistiu a remoção da aba Evidence, seu painel e estilos exclusivos.
+O guia deixou de anunciar a página e o contrato do assistente deixou de oferecer
+a navegação para ela. Configurações antigas com a aba `analysis` são normalizadas
+para Explore pelo validador. Consultas de tendências armazenadas continuam na
+API e no assistente, com métodos, proveniência e limitações preservados.
+
+Validação local com Node.js 24: 47 testes do frontend e builds do frontend e da
+API aprovados. Publicação e conferência em navegador não realizadas nesta
+alteração. Revisão humana e investigação científica reproduzível continuam
+pendentes; esta remoção não conclui os requisitos científicos ou a submissão.
+
+
+### Evidência incremental — setas de vento mensal no globo (15/11/2026)
+
+Consultas reais de leitura ao SQL Warehouse ativo confirmaram os 12 componentes
+trusted U/V do MERRA-2, nos níveis 2/10/50 m e 250/500/850 hPa. Os pares a 10 m
+e 850 hPa têm 321 meses (jan/2000–set/2026); os demais, 33 meses
+(jan/2024–set/2026). Proveniência, SQL reproduzível, identificadores das consultas,
+fontes primárias, método e limites estão em [vento no globo](wind-arrows.md).
+
+OpenAI Codex assistiu código, testes e documentação da visualização vetorial.
+Selecionar uma componente carrega automaticamente a outra do mesmo nível.
+Setas apontam para onde sopra a resultante das componentes médias mensais;
+comprimento fixo e cor da componente selecionada, em m/s. Não se usa a tabela
+SPEED com conversão incorreta. Faltas de par/cobertura são omitidas explicitamente;
+reanálise mensal não é tempo instantâneo, rajada ou média mensal de velocidades.
+Não houve geração de imagens ou dados científicos por IA nesta funcionalidade.
+
+Node.js 24: 57 testes frontend e builds frontend/backend aprovados, inclusive
+após integração de alterações paralelas. Chromium com dados reais conferiu
+carregamento automático, probe, rotação, zoom8×, playback com meses coerentes,
+deduplicação U/V do mesmo nível, opacidade/visibilidade e nível850hPa. Falha
+de V50 injetada apenas no navegador de QA omitiu setas e recuperou com Retry.
+390px sem overflow horizontal ou exceções JavaScript; capturas inspecionadas.
+Preview5186 e cópia estável de QA5187. Esta evidência não comprova publicação,
+submissão nem conclusão da investigação científica ou conformidade completa.
+
+## Evidência incremental — Trend Lab (15/11/2026)
+
+OpenAI Codex assistiu a nova aba em inglês com seleção independente de
+região/bbox, indicador contínuo e período (todo o histórico por padrão),
+regressão OLS mensal no navegador, pontos e reta, IC de 95% da inclinação,
+significância condicional e controles de dois pontos para mudança em 1–60 meses.
+Extensão tracejada identificada como projeção, com pressupostos e limitações
+de sazonalidade/autocorrelação; classes categóricas desabilitadas. Não usa
+série simulada como fallback nem atribui ao assistente o contexto de outra aba.
+Ver [método, fontes, validação e limites](trend-lab.md).
+
+Node.js 24: 69 testes frontend aprovados (23 da nova matemática), builds frontend
+e backend aprovados. Fixtures Git executadas em diretórios temporários.
+Revisão independente identificou e conferiu correções de legenda SVG, leitura
+mobile e inferência degenerada em reta perfeita com meses faltantes. Chromium
+com API pública real conferiu 321 meses de temperatura a 10 m no retângulo do
+Brasil (jan/2000–set/2026), geração, controles, persistência entre abas e aviso
+de filtros editados; 1440/390/360 px sem overflow e sem erros JavaScript.
+Fixtures sintéticas identificadas conferiram erro/retry, insuficiência,
+categóricos, teclado e bbox desenhado; não são evidência científica.
+
+Implementação local, sem commit/deploy ou alteração da página Project.
+Revisão humana, investigação científica reproduzível final e submissão
+permanecem pendentes. Não declara conformidade completa ou elegibilidade.
+
+Preparação para PRD autorizada pelo usuário em 15/11/2026: integração isolada
+na main `0fcf9df`, com 80 testes frontend e builds frontend/API aprovados.
+Recursos e remoções recentes da main preservados. Por orientação explícita
+do usuário, este projeto usa exclusivamente a conta pessoal `Luckstai`,
+com a identidade Git pessoal do projeto. Confirmação de publicação pendente.
+
+## Publicação verificada — 15/11/2026 03:10 -03
+
+Publicação pela conta pessoal `Luckstai`, PR [#16](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/16),
+commit `e7c0693fb41479cf748ffccfee1386087009201d`. A Vercel informou
+[deploy concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/DZKjyHfJN6DyJLtiTPSRG1KtzLyK),
+e o [domínio público](https://kipp-earth-trends-lab.vercel.app/) entregou
+`index-Djm50shX.js`, correspondente ao build validado. Autoria do merge
+conferida pela API: Lucas Henrique, identidade pessoal do projeto.
+
+Chromium em produção confirmou Trend Lab entre Compare e Events, geração com
+321 meses reais de temperatura a 10 m no retângulo do Brasil, controles de
+24 meses, persistência entre abas e aviso de filtros alterados. Viewports
+1440/390/360 px sem overflow horizontal nem exceções JavaScript.
+80 testes frontend e builds frontend/API haviam passado na versão integrada.
+Isso comprova a publicação e o fluxo funcional; revisão científica humana
+e submissão na página Project continuam etapas distintas.
+
+Integração posterior com a main atual preservou mascote, Trend Lab e setas de
+vento do time.80checks existentes de frontend e builds frontend/backend
+aprovados com Node24. Publicação do alinhamento autorizada pelo usuário.

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, Search } from "lucide-react";
+import { DomainIcon } from "../lib/domains";
 import { MonthPicker } from "./MonthPicker";
 
 export type SearchOption = {
@@ -9,6 +10,7 @@ export type SearchOption = {
   disabled?: boolean;
   suggested?: boolean;
   icon?: string;
+  domain?: string;
   searchTerms?: string;
 };
 const normalizedSearch = (value: string) => value.normalize("NFD")
@@ -54,7 +56,7 @@ export function SearchPicker({
   const term = normalizedSearch(query.trim());
   const matches = options.filter((option) =>
     term
-      ? normalizedSearch(`${option.name} ${option.detail ?? ""} ${option.id} ${option.searchTerms ?? ""}`)
+      ? normalizedSearch(`${option.name} ${option.detail ?? ""} ${option.id} ${option.domain ?? ""} ${option.searchTerms ?? ""}`)
           .includes(term)
       : !curated || all || option.suggested || option.id === value,
   );
@@ -63,8 +65,8 @@ export function SearchPicker({
       className="exploration-picker"
       ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          close();
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) close();
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {
@@ -93,6 +95,7 @@ export function SearchPicker({
       >
         <span id={`${id}-value`} className="exploration-option-name">
           {selected?.icon && <img className="country-flag" src={selected.icon} alt="" width={24} height={18} />}
+          {selected?.domain && <DomainIcon domain={selected.domain} size={13} />}
           <span>{selected?.name ?? placeholder ?? value}</span>
         </span>
         <ChevronDown size={15} aria-hidden="true" />
@@ -148,6 +151,7 @@ export function SearchPicker({
               >
                 <span className="exploration-option-name">
                   {option.icon && <img className="country-flag" src={option.icon} alt="" width={24} height={18} loading="lazy" />}
+                  {option.domain && <DomainIcon domain={option.domain} size={13} />}
                   <span>{option.name}</span>
                 </span>
                 {option.detail && <small>{option.detail}</small>}
@@ -211,8 +215,8 @@ export function PeriodPicker({
       className="exploration-picker exploration-period"
       ref={root}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-          setOpen(false);
+        const next = event.relatedTarget as Node | null;
+        if (next && !event.currentTarget.contains(next)) setOpen(false);
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) {

@@ -145,6 +145,43 @@
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+.multi-variable-options .multi-variable-unit {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+.multi-variable-options .multi-variable-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+}
+.multi-variable-domain {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid #ffffff1f;
+  border-radius: 999px;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #9fb6d2;
+}
+.multi-variable-domain[data-domain="atmosphere"] {
+  color: #9fc6f5;
+}
+.multi-variable-domain[data-domain="hydrosphere"] {
+  color: #7fd0e8;
+}
+.multi-variable-domain[data-domain="cryosphere"] {
+  color: #bfe6ff;
+}
+.multi-variable-domain[data-domain="biosphere"] {
+  color: #a7dea8;
+}
+.multi-variable-domain[data-domain="geosphere"] {
+  color: #d8bf95;
+}
 .multi-variable-options .is-unavailable {
   opacity: 0.5;
   cursor: default;

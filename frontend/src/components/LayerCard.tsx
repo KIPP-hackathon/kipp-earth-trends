@@ -5,6 +5,7 @@ import type { EarthColorRange, EarthVariable } from "../lib/earthApi";
 import { realScale, realUnit, validColorDomain } from "../lib/earthApi";
 import type { LayerSetting } from "../lib/layers";
 import { ColorScaleControls } from "./ColorScaleControls";
+import { windComponents } from "../lib/wind";
 import "./multivariable-layers.css";
 
 export function LayerCard({
@@ -41,6 +42,7 @@ export function LayerCard({
       ? colorRange.domain
       : scale.domain;
   const unit = realUnit(variable.unit);
+  const wind = windComponents(variable.id);
   const opacity = Number.isFinite(setting.opacity)
     ? Math.max(0, Math.min(1, setting.opacity))
     : 1;
@@ -119,6 +121,10 @@ export function LayerCard({
         Show only this layer
       </button>}
       {status && <p className="layer-status">{status}</p>}
+      {wind && <p className="layer-status">
+        Wind arrows at {wind.level} use paired U + V (complement loaded automatically).
+        {" "}Arrows point toward flow; length is fixed. Color and charts show this signed component.
+      </p>}
       {error && (
         <p className="layer-error" role="alert">
           {error}
