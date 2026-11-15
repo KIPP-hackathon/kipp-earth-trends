@@ -787,8 +787,11 @@ Sem alteração do método de tendência ou da família Holm.
 Chrome isolado com fixture sintética identificada conferiu 1120/390 px,
 alinhamento e estilos idênticos dos três controles, ausência das seções
 removidas, hover, Escape, checkbox e ausência de overflow da página.
-Capturas locais ignoradas; não são evidência científica. Publicação pendente
-de confirmação. Revisão humana e submissão permanecem separadas.
+Capturas locais ignoradas; não são evidência científica. Versão integrada
+aprovada em 85 testes frontend e builds frontend/API. Publicação `2c18404`
+confirmada pela [Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/5D36iBKqWJWAuint4sYYYkq7hr8J)
+e pelo bundle público `index-BhFMRo6n.js`, idêntico ao validado, com as seções
+removidas ausentes. Revisão humana e submissão permanecem separadas.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
