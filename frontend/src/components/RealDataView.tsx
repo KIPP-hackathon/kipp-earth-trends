@@ -5,6 +5,7 @@ import "./global-comparison.css";
 import "./compact-exploration.css";
 import { loadCountries } from "../lib/countries";
 import { LoadingStatus } from "./Loading";
+import { useDelayedFlag } from "../lib/useDelayedFlag";
 import type { CountrySelection } from "../lib/countries";
 import { PeriodPicker, SearchPicker } from "./ExplorationControls";
 import {
@@ -29,6 +30,7 @@ import type {
 
 import {
   bufferWindow,
+  playbackRefill,
   requestFrame,
   upcomingMonths,
 } from "../lib/earthFrameCache";
@@ -318,6 +320,19 @@ function SelectedRealPanel({
   const displayedFrame = primaryFrame ?? Object.values(renderedFrames)[0];
   const frame = {data:displayedFrame,loading:layerFrames.loading,
     error:Object.values(layerFrames.errors)[0],retry:layerFrames.retry};
+  // Cached months resolve within a render or two; only surface loading that lasts.
+  const showBusy = useDelayedFlag(frame.loading || buffering);
+  const showLayerLoading = useDelayedFlag(layerFrames.loading);
+  // Keep the last message while the indicator lingers for its minimum time.
+  const lastBusyLabel = useRef("");
+  if (frame.loading || buffering)
+    lastBusyLabel.current = (frame.loading
+      ? `Loading ${realMonth(month)}…`
+      : bufferProgress
+        ? `Buffering playback · ${bufferProgress.ready}/${bufferProgress.total} months ready…`
+        : "Loading…") +
+      (frame.data && frame.data.month !== month ? ` Showing ${realMonth(frame.data.month)}.` : "");
+  const busyLabel = lastBusyLabel.current;
   const mapLayers: MapLayer[] = effectiveSettings.map(setting => ({
     id: setting.variable, visible:setting.visible, opacity:setting.opacity,
     frame:renderedFrames[setting.variable],colorRange:colorRanges[setting.variable],
@@ -402,18 +417,40 @@ function SelectedRealPanel({
   },[reportJointPanel,side,jointPanelKey]);
   useEffect(()=>()=>reportJointPanel?.(side,undefined),[reportJointPanel,side]);
 
+  const ids = useMemo(() => months.map(entry => entry.month),[months]);
+  const neededFor = (target: string) => windFrameVariables(selectedVariables.filter(v =>
+    v.months.some(row => row.month === target && row.validSamples > 0) &&
+    (v.id === variable.id || (view.showLayer && effectiveSettings.some(s => s.variable === v.id && s.visible && s.opacity > 0)))), availableVariables, target);
+  const loadMonth = (target: string, signal: AbortSignal, priority: "foreground" | "background") =>
+    Promise.all(neededFor(target).map(v => requestFrame(v,target,signal,priority)));
   // Look-ahead requests outlive a single month step so a frame that is already
   // downloading is not cancelled and restarted each time playback advances.
-  const prefetch = useRef<AbortController | undefined>(undefined);
+  const prefetch = useRef<{ controller: AbortController; requested: Set<string> } | undefined>(undefined);
   useEffect(() => {
-    if (!playing || !active || jointPlaying) return;
-    const controller = new AbortController();
-    prefetch.current = controller;
+    if (!active) return;
+    const ahead = { controller: new AbortController(), requested: new Set<string>() };
+    prefetch.current = ahead;
     return () => {
-      controller.abort();
-      if (prefetch.current === controller) prefetch.current = undefined;
+      ahead.controller.abort();
+      if (prefetch.current === ahead) prefetch.current = undefined;
     };
-  },[playing,active,layerKey,jointPlaying]);
+  },[active,layerKey,variable.id]);
+  // As soon as data is selected, request a batch of upcoming months; when only
+  // `refillAt` requested months remain ahead of the globe, request the next batch.
+  useEffect(() => {
+    const ahead = prefetch.current;
+    if (!active || !ahead || index < 0) return;
+    const layers = Math.max(1, neededFor(ids[(index + 1) % ids.length]).length);
+    // Batch plus threshold stay inside the 24 frames the shared cache keeps.
+    const batch = bufferWindow(config.playback.lookAhead, layers, 16);
+    const refillAt = Math.min(config.playback.initialBuffer, Math.ceil(batch / 2));
+    for (const target of playbackRefill(ids, index, ahead.requested, batch, refillAt))
+      void loadMonth(target, ahead.controller.signal, "background").catch(() => {
+        if (!ahead.controller.signal.aborted) ahead.requested.delete(target);
+      });
+    // layerKey covers the variables and visibility that neededFor reads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[active,layerKey,variable.id,ids,index,config.playback.lookAhead,config.playback.initialBuffer]);
   useEffect(() => {
     if (!playing || !active || jointPlaying) {
       playbackStarted.current = undefined;
@@ -425,14 +462,8 @@ function SelectedRealPanel({
     if (frame.loading || layerFrames.displayedMonth !== month || months.length < 2) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const ids = months.map(entry => entry.month);
     const next = ids[(index + 1) % ids.length];
-    const neededFor = (target: string) => windFrameVariables(selectedVariables.filter(v =>
-      v.months.some(row => row.month === target && row.validSamples > 0) &&
-      (v.id === variable.id || (view.showLayer && effectiveSettings.some(s => s.variable === v.id && s.visible && s.opacity > 0)))), availableVariables, target);
     const layers = Math.max(1, neededFor(next).length);
-    const loadMonth = (target: string, signal: AbortSignal, priority: "foreground" | "background") =>
-      Promise.all(neededFor(target).map(v => requestFrame(v,target,signal,priority)));
     const deadline = Date.now() + config.playback.cadenceMs / playbackSpeed;
     const fail = (error: unknown) => {
       if (controller.signal.aborted) return;
@@ -444,19 +475,17 @@ function SelectedRealPanel({
       playbackStarted.current = layerKey;
       setBuffering(false);
       setBufferProgress(undefined);
-      // Keep topping up the window behind the next month without blocking on it.
-      const ahead = bufferWindow(Math.max(config.playback.lookAhead, config.playback.initialBuffer), layers);
-      const persistent = prefetch.current?.signal;
-      if (persistent) for (const target of upcomingMonths(ids,index,ahead).slice(1))
-        void loadMonth(target,persistent,"background").catch(() => {});
+      // The batched prefetch effect refills the look-ahead window as months advance.
       timer = setTimeout(() => {
         if (!controller.signal.aborted) setSelection({variable:variable.id,month:next});
       },Math.max(0,deadline-Date.now()));
     };
     setBuffering(true);
     if (playbackStarted.current !== layerKey) {
-      // Fill the buffer before the first step so the globe never stalls mid-animation.
-      const primed = upcomingMonths(ids,index,bufferWindow(config.playback.initialBuffer,layers));
+      // Wait for the start of the prefetched batch (already downloading since the
+      // data was selected) so the globe never stalls mid-animation.
+      const batch = bufferWindow(config.playback.lookAhead,layers,16);
+      const primed = upcomingMonths(ids,index,Math.min(config.playback.initialBuffer,Math.ceil(batch/2)));
       let ready = 0;
       setBufferProgress({ready,total:primed.length});
       void Promise.all(primed.map(target => loadMonth(target,controller.signal,"foreground").then(() => {
@@ -544,16 +573,11 @@ function SelectedRealPanel({
           colorRange={colorRanges[variable.id]}
           onColorRange={(value) => onColorRange(variable.id, value)}
         />
-        {(frame.loading || buffering) && (
+        {showBusy && (
           <LoadingStatus
             className={`real-loading ${frame.data ? "has-frame" : ""}`}
           >
-            {frame.loading ? `Loading ${realMonth(month)}…` : bufferProgress
-              ? `Buffering playback · ${bufferProgress.ready}/${bufferProgress.total} months ready…`
-              : "Loading…"}
-            {frame.data &&
-              frame.data.month !== month &&
-              ` Showing ${realMonth(frame.data.month)}.`}
+            {busyLabel}
           </LoadingStatus>
         )}
       </div>
@@ -700,10 +724,10 @@ function SelectedRealPanel({
             }}
             processingRun={entry.months.find(row=>row.month===(layerFrames.displayedMonth ?? month))?.processingRun}
             onColorRange={value => onColorRange(entry.id,value)}
-            loading={!(playing || jointPlaying) && setting.visible && hasMonth && layerFrames.loading}
+            loading={!(playing || jointPlaying) && setting.visible && hasMonth && showLayerLoading && layerFrames.loading}
             error={layerFrames.errors[entry.id] ?? (pair &&
               (layerFrames.errors[pair.eastward] ?? layerFrames.errors[pair.northward]))}
-            status={!(playing || jointPlaying) && layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
+            status={!(playing || jointPlaying) && showLayerLoading && layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
               !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : windStatus}/>
         })}
       </div>

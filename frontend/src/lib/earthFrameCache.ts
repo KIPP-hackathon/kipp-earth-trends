@@ -216,3 +216,33 @@ export function upcomingMonths(months: string[], index: number, count: number) {
 export function bufferWindow(configured: number, layers: number, maxFrames = 24) {
   return Math.max(1, Math.min(Math.floor(configured), Math.floor(maxFrames / Math.max(1, layers))));
 }
+
+/**
+ * Batched look-ahead for globe playback. `requested` holds the months already
+ * asked for. While more than `threshold` consecutive months after `index` are
+ * requested nothing happens; once the run drops to `threshold` (or the window is
+ * empty) the next `batch` months after the run are returned, never wrapping past
+ * the current month. Months outside the run are pruned from `requested` so a
+ * loop re-requests frames the cache may have evicted.
+ */
+export function playbackRefill(
+  months: string[],
+  index: number,
+  requested: Set<string>,
+  batch: number,
+  threshold: number,
+) {
+  const length = months.length;
+  if (length < 2 || index < 0) {
+    requested.clear();
+    return [];
+  }
+  let ahead = 0;
+  while (ahead < length - 1 && requested.has(months[(index + ahead + 1) % length])) ahead++;
+  const run = new Set(upcomingMonths(months, index, ahead));
+  for (const month of requested) if (!run.has(month)) requested.delete(month);
+  if (ahead > threshold) return [];
+  const load = upcomingMonths(months, index + ahead, Math.min(batch, length - 1 - ahead));
+  for (const month of load) requested.add(month);
+  return load;
+}

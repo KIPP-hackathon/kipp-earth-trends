@@ -78,6 +78,10 @@ button .loading-orbit { color: currentColor; width: 18px; height: 18px; }
   box-shadow: 0 8px 28px #0003;
   backdrop-filter: blur(12px);
 }
+/* Loading indicators appear only after a delay; ease them in instead of popping. */
+.real-loading.loading-status,
+.real-playback-buffering,
+.loading-status.layer-map-loading { animation: loading-fade-in .22s ease-out both; }
 .loading-status.layer-map-loading { margin: 8px 0; font-size: 11px; }
 .layer-map-loading .loading-orbit { width: 18px; height: 18px; }
 .events-skeleton > div { position: relative; overflow: hidden; }
@@ -90,9 +94,11 @@ button .loading-orbit { color: currentColor; width: 18px; height: 18px; }
   animation: loading-placeholder-sweep 2s ease-in-out infinite;
 }
 @keyframes loading-orbit-turn { to { transform: rotate(360deg); } }
+@keyframes loading-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes loading-placeholder-sweep { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .loading-orbit-spin, .loading-placeholder > span, .events-skeleton > div::after { animation: none; }
+  .loading-orbit-spin, .loading-placeholder > span, .events-skeleton > div::after,
+  .real-loading.loading-status, .real-playback-buffering, .loading-status.layer-map-loading { animation: none; }
 }
 @media (max-width: 480px) {
   .loading-state { min-height: 230px; padding: 28px 18px; gap: 18px; }
