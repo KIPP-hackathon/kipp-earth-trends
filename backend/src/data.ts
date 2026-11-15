@@ -9,6 +9,8 @@ import type { Parameters, Provider } from "./core.ts";
 import { variables } from "./registry.ts";
 import { trustedColumns } from "./trusted-map.ts";
 import { comparisonReference, transformComparison } from "./comparison.ts";
+import { buildInvestigation, validateInvestigation } from "./investigation.ts";
+import type { InvestigationRequest } from "./investigation.ts";
 import type { Variable } from "./registry.ts";
 export { variables, excludedSources } from "./registry.ts";
 export type { Variable, RenderMetadata } from "./registry.ts";
@@ -535,6 +537,28 @@ export class DataService {
       global:scope("global"),regional:scope("regional"),
       limitations:[...limitations,"Historical reference2001–2020 is a project reference, not a30-year climate normal. At least10valid years per calendar month are required; zero reference variance is unavailable.",
         "Each spatial scope has its own reference and min/max.0–100 uses the displayed period; a constant series is50. Normalized values compare relative behavior, not physical magnitudes, probabilities, statistical significance or causal effects."]};
+  }
+  async investigation(request: InvestigationRequest) {
+    validateInvestigation(request);
+    const bounds = parseBounds(request.bbox);
+    const selected = [request.x, ...(request.y ? [request.y] : [])].map(id => this.variable(id));
+    if (selected.some(v => v.aggregation === 'weighted_mode' || v.render?.kind === 'categorical'))
+      throw new ApiError(400, 'UNSUPPORTED_INDICATOR', 'Select continuous numeric indicators for this investigation.');
+    const first = request.start < request.baselineStart ? request.start : request.baselineStart;
+    const last = request.end > request.baselineEnd ? request.end : request.baselineEnd;
+    // Sequential bounded scans leave provider slots for other visitors.
+    const sources = [];
+    for (const variable of selected) {
+      const {sql, parameters} = this.selected(variable, bounds, `${first}-01`, monthAfter(last));
+      const rows = await this.provider.query(`WITH selected AS (${sql}) SELECT ${this.month('observed_time')} AS month,
+        ${this.aggregate(variable)} AS value, SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS coverage,
+        COUNT(*) AS samples FROM selected GROUP BY ${this.month('observed_time')} ORDER BY month`, parameters, 601);
+      sources.push({...sourceMetadata(variable), variable: variable.id, name: variable.name, unit: variable.unit,
+        product: variable.product, run: variable.run, quality: variable.quality, aggregation: variable.aggregation,
+        method: this.aggregationDescription(variable), observations: rows.map(r => ({month:String(r.month),
+          value:numeric(r.value), coverage:numeric(r.coverage), samples:numeric(r.samples)}))});
+    }
+    return {...buildInvestigation(request, sources), sourceRevision: process.env.K_REVISION ?? 'local', limitations};
   }
   async series(id: string, startInput: string, endInput: string, bbox: string) {
     const variable = this.variable(id),

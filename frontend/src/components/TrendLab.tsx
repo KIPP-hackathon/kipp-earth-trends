@@ -4,34 +4,30 @@ import type {
   EarthCatalog,
   EarthConfig,
   EarthRegion,
-  EarthSeries,
   EarthVariable,
+  Investigation,
+  InvestigationRequest,
 } from "../lib/earthApi";
-import { loadSeries, variableDataKey } from "../lib/earthApi";
+import { loadInvestigation, variableDataKey } from "../lib/earthApi";
 import { loadCountries } from "../lib/countries";
 import type { CountrySelection } from "../lib/countries";
 import { useEarthResource } from "../lib/useEarthResource";
 import { useGlobeCamera } from "../lib/useGlobeCamera";
 import { initialGlobeView } from "../lib/comparison";
 import { parseStudyBbox } from "../lib/assistant";
-import {
-  fitMonthlyTrend,
-  formatTrendValue,
-  monthFromIndex,
-  trendUnit,
-} from "../lib/trendLab";
-import type { MonthlyTrend } from "../lib/trendLab";
+import { monthIndex, trendUnit } from "../lib/trendLab";
+import { investigationStorageKey, parseSavedStudy } from "../lib/investigation";
 import { RealGlobe } from "./RealGlobe";
 import { SearchPicker } from "./ExplorationControls";
 import { MonthPicker } from "./MonthPicker";
-import { TrendChart } from "./TrendChart";
+import { InvestigationResults } from "./InvestigationResults";
 import "./trend-lab.css";
 
 type Study = {
   variable: EarthVariable;
+  second?: EarthVariable;
   region: EarthRegion;
-  start: string;
-  end: string;
+  request: InvestigationRequest;
   key: string;
 };
 const globalRegion: EarthRegion = {
@@ -41,349 +37,8 @@ const globalRegion: EarthRegion = {
   longitude: 0,
   latitude: 0,
 };
-const numeric = (variable: EarthVariable) =>
-  variable.render?.kind !== "categorical" &&
-  variable.aggregation !== "weighted_mode";
-const dataKind = (product: string) =>
-  /MERRA/i.test(product)
-    ? "Reanalysis: a model combined with assimilated observations."
-    : /IMERG|MODIS|GRACE|NSIDC|AMSR/i.test(product)
-      ? "Satellite-derived estimate or retrieval; not a direct ground measurement."
-      : "Gridded source product; consult its documentation for the measurement or estimation method.";
-const monthLabel = (month: string) =>
-  new Intl.DateTimeFormat("en", {
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${month}-01T00:00:00Z`));
-
-function TrendResult({
-  trend,
-  data,
-  study,
-  onGuide,
-}: {
-  trend: MonthlyTrend;
-  data: EarthSeries;
-  study: Study;
-  onGuide: () => void;
-}) {
-  const id = useId();
-  const [anchor, setAnchor] = useState(trend.endMonth);
-  const [duration, setDuration] = useState(12);
-  const [mode, setMode] = useState<"projection" | "historical">("projection");
-  const maximumDuration =
-    mode === "historical"
-      ? Math.min(60, trend.endMonth - trend.startMonth)
-      : 60;
-  const monthsApart = Math.min(duration, maximumDuration);
-  const latestStart =
-    mode === "historical" ? trend.endMonth - monthsApart : trend.endMonth;
-  const from = Math.max(trend.startMonth, Math.min(latestStart, anchor));
-  const to = from + monthsApart;
-  const change = trend.slope * monthsApart;
-  const unit = trendUnit(data.unit);
-  const coverages = trend.points.flatMap((point) =>
-    point.coverage === null ? [] : [point.coverage],
-  );
-  const minimumCoverage = coverages.length ? Math.min(...coverages) : null;
-  return (
-    <>
-      <div className="trend-result-heading">
-        <div>
-          <span className="trend-kicker">YOUR RESULTS</span>
-          <h3>{study.variable.name}</h3>
-          <p>
-            {study.region.name} · {monthLabel(study.start)} –{" "}
-            {monthLabel(study.end)}
-          </p>
-        </div>
-        <span className="trend-model-tag">Linear regression · OLS</span>
-      </div>
-      <section
-        className="trend-projection"
-        aria-labelledby={`${id}-projection`}
-      >
-        <div className="trend-section-title">
-          <span className="trend-kicker">CHANGE OVER TIME</span>
-          <span className="trend-projection-tag">
-            {to > trend.endMonth
-              ? "Linear projection"
-              : "Historical fitted change"}
-          </span>
-        </div>
-        <h3 id={`${id}-projection`}>
-          How much changes over {monthsApart} months?
-        </h3>
-        <div className="trend-duration-presets" aria-label="Change mode">
-          <button
-            type="button"
-            aria-pressed={mode === "projection"}
-            onClick={() => {
-              setMode("projection");
-              setAnchor(trend.endMonth);
-            }}
-          >
-            Project ahead
-          </button>
-          <button
-            type="button"
-            aria-pressed={mode === "historical"}
-            onClick={() => {
-              setMode("historical");
-              setAnchor(trend.startMonth);
-            }}
-          >
-            Explore past change
-          </button>
-        </div>
-        <div className="trend-endpoint-controls">
-          <label htmlFor={`${id}-from`}>
-            <span>Point A · {monthLabel(monthFromIndex(from))}</span>
-            <input
-              id={`${id}-from`}
-              aria-label="Starting month on the trend line"
-              aria-valuetext={monthLabel(monthFromIndex(from))}
-              type="range"
-              min={trend.startMonth}
-              max={latestStart}
-              step={1}
-              value={from}
-              onChange={(event) => setAnchor(Number(event.target.value))}
-            />
-          </label>
-          <label htmlFor={`${id}-duration`}>
-            <span>Point B · {monthsApart} months after A</span>
-            <input
-              id={`${id}-duration`}
-              aria-label="Months between trend points"
-              type="range"
-              min={1}
-              max={maximumDuration}
-              step={1}
-              value={monthsApart}
-              onChange={(event) => setDuration(Number(event.target.value))}
-            />
-          </label>
-        </div>
-        <div
-          className="trend-duration-presets"
-          aria-label="Projection duration presets"
-        >
-          {[3, 6, 12, 24, 60].map((months) => (
-            <button
-              type="button"
-              key={months}
-              disabled={months > maximumDuration}
-              aria-pressed={monthsApart === months}
-              onClick={() => setDuration(months)}
-            >
-              {months} months
-            </button>
-          ))}
-        </div>
-        <div className="trend-change" role="status" aria-live="polite">
-          <strong>
-            {formatTrendValue(change, true)} <small>{unit}</small>
-          </strong>
-          <p>
-            The fitted trend{" "}
-            {change > 0 ? "increases" : change < 0 ? "decreases" : "changes"} by{" "}
-            <b>
-              {formatTrendValue(Math.abs(change))} {unit}
-            </b>{" "}
-            over <b>{monthsApart} months</b>.
-          </p>
-        </div>
-        <div className="trend-endpoint-values">
-          <span>
-            <b>A</b> {monthLabel(monthFromIndex(from))} ·{" "}
-            {formatTrendValue(trend.predict(from))} {unit}
-          </span>
-          <ArrowRight size={15} aria-hidden="true" />
-          <span>
-            <b>B</b> {monthLabel(monthFromIndex(to))} ·{" "}
-            {formatTrendValue(trend.predict(to))} {unit}
-          </span>
-        </div>
-        <p className="trend-small">
-          {to > trend.endMonth
-            ? "Linear projection assuming the selected trend continues. Future observations may differ. Physical bounds are unconstrained."
-            : "Estimated change along the fitted historical trend. Individual monthly values may differ."}
-        </p>
-      </section>
-      <TrendChart trend={trend} from={from} to={to} unit={unit} />
-      <section className="trend-report" aria-labelledby={`${id}-report`}>
-        <h3 id={`${id}-report`}>Statistical report</h3>
-        <table>
-          <caption>Monthly OLS · conditional estimates</caption>
-          <thead>
-            <tr>
-              <th scope="col">Measure</th>
-              <th scope="col">Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Fitted change · {monthsApart} months</th>
-              <td>
-                {formatTrendValue(change, true)} {unit}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">95% interval · fitted change</th>
-              <td>
-                {trend.interval
-                  ? `${formatTrendValue(trend.interval[0] * monthsApart, true)} to ${formatTrendValue(trend.interval[1] * monthsApart, true)} ${unit}`
-                  : "Unavailable"}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Change per month</th>
-              <td>
-                {formatTrendValue(trend.slope, true)} {unit} per month
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">95% slope interval</th>
-              <td>
-                {trend.interval
-                  ? `${formatTrendValue(trend.interval[0], true)} to ${formatTrendValue(trend.interval[1], true)} ${unit} per month`
-                  : "Unavailable · degenerate residual variation"}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Significant · α = 0.05</th>
-              <td>
-                {trend.significant === null
-                  ? "Unavailable"
-                  : trend.significant
-                    ? "Yes · conditional on OLS"
-                    : "No · conditional on OLS"}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Valid monthly values</th>
-              <td>
-                {trend.n} / {trend.n + trend.missingMonths}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Missing / invalid months</th>
-              <td>{trend.missingMonths}</td>
-            </tr>
-            <tr>
-              <th scope="row">Fit · R²</th>
-              <td>
-                {trend.rSquared === null
-                  ? "Undefined"
-                  : trend.rSquared.toFixed(3)}
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Degrees of freedom</th>
-              <td>{trend.n - 2}</td>
-            </tr>
-            <tr>
-              <th scope="row">Seasonality / autocorrelation correction</th>
-              <td>None</td>
-            </tr>
-            <tr>
-              <th scope="row">Multiple-testing adjustment</th>
-              <td>None · exploratory analysis</td>
-            </tr>
-          </tbody>
-        </table>
-        <button type="button" className="trend-guide-link" onClick={onGuide}>
-          Read the statistical interpretation in Guide <ArrowRight size={14} />
-        </button>
-      </section>
-      <details className="trend-provenance">
-        <summary>Data, coverage & method</summary>
-        <dl>
-          <div>
-            <dt>Data type</dt>
-            <dd>{dataKind(data.product)}</dd>
-          </div>
-          <div>
-            <dt>Product</dt>
-            <dd>
-              {data.product}
-              {data.run ? ` · ${data.run}` : ""}
-            </dd>
-          </div>
-          <div>
-            <dt>Variable / unit</dt>
-            <dd>
-              {data.variable} / {unit}
-            </dd>
-          </div>
-          <div>
-            <dt>Region rectangle</dt>
-            <dd>[{data.bbox.join(", ")}]</dd>
-          </div>
-          <div>
-            <dt>Aggregation</dt>
-            <dd>
-              {data.aggregation === "sum"
-                ? "Sum of valid source cells; no second area weighting."
-                : "Spatial mean weighted by latitude and valid coverage."}
-            </dd>
-          </div>
-          <div>
-            <dt>Coverage</dt>
-            <dd>
-              {trend.missingMonths} missing or invalid months excluded; calendar
-              gaps are preserved.{" "}
-              {minimumCoverage === null
-                ? "Area coverage unavailable."
-                : `Minimum valid area coverage among fitted months: ${(minimumCoverage * 100).toFixed(1)}%.`}
-            </dd>
-          </div>
-          <div>
-            <dt>Model</dt>
-            <dd>
-              y = mean(y) + slope × (calendar month − mean(calendar month)).
-              Two-sided 95% Student-t slope interval, {trend.n - 2} degrees of
-              freedom. All valid monthly source values in the selected period;
-              no deseasonalization.
-            </dd>
-          </div>
-        </dl>
-        <p>
-          Country selections use a bounding rectangle, including cells outside
-          the country boundary. NASA products include reanalyses and
-          satellite-derived estimates; these are not interchangeable with direct
-          observations.
-        </p>
-        <p>{data.method}</p>
-        {data.quality?.notes.map((note) => (
-          <p key={note}>{note}</p>
-        ))}
-        {(data.source || data.sourceTable) && (
-          <p>
-            Data access: {data.source ?? "not specified"} · layer:{" "}
-            {data.sourceLayer ?? "not specified"} · table:{" "}
-            {data.sourceTable ?? "not specified"}
-            {data.sourceUC ? ` · upstream: ${data.sourceUC}` : ""}.
-          </p>
-        )}
-        <p>
-          Method reference:{" "}
-          <a
-            href="https://online.stat.psu.edu/stat501/Lesson02"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Penn State · Simple linear regression inference
-          </a>
-          .
-        </p>
-      </details>
-    </>
-  );
-}
-
+const numeric = (v: EarthVariable) =>
+  v.render?.kind !== "categorical" && v.aggregation !== "weighted_mode";
 export function TrendLab({
   catalog,
   config,
@@ -398,6 +53,7 @@ export function TrendLab({
   onGuide: () => void;
 }) {
   const id = useId();
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
   const camera = useGlobeCamera({
     ...initialGlobeView,
     longitude: initialCountry.region.longitude,
@@ -408,12 +64,17 @@ export function TrendLab({
   ]);
   const [region, setRegion] = useState<EarthRegion>(initialCountry.region);
   const [selectedVariable, setSelectedVariable] = useState("temperature");
+  const [secondId, setSecondId] = useState("");
+  const [baseline, setBaseline] = useState({
+    start: "2003-01",
+    end: "2020-12",
+  });
+  const [savedMessage, setSavedMessage] = useState("");
   const [period, setPeriod] = useState({ start: "", end: "" });
-  const [methodologyOpen, setMethodologyOpen] = useState(false);
   const [submitted, setSubmitted] = useState<Study>();
   const [completed, setCompleted] = useState<{
     key: string;
-    data: EarthSeries;
+    data: Investigation;
   }>();
   const available = useMemo(
     () =>
@@ -427,34 +88,60 @@ export function TrendLab({
   const variable =
     available.find((entry) => entry.id === selectedVariable) ??
     available.find(numeric);
-  const months = useMemo(
-    () =>
-      variable
-        ? [
-            ...new Set(
-              variable.months
-                .filter((row) => row.validSamples > 0)
-                .map((row) => row.month),
-            ),
-          ].sort()
-        : [],
-    [variable],
-  );
-  const start = period.start || months[0] || "";
-  const end = period.end || months.at(-1) || "";
+  const second = available.find((v) => v.id === secondId);
+  const months = useMemo(() => {
+    if (!variable) return [];
+    const a = variable.months
+      .filter((r) => r.validSamples > 0)
+      .map((r) => r.month);
+    const b = second?.months
+      .filter((r) => r.validSamples > 0)
+      .map((r) => r.month);
+    return [...new Set(b ? a.filter((m) => b.includes(m)) : a)].sort();
+  }, [variable, second]);
+  const start = period.start || months[0] || "",
+    end = period.end || months.at(-1) || "";
+  const request: InvestigationRequest = {
+    x: variable?.id ?? "",
+    ...(second ? { y: second.id } : {}),
+    bbox: region.bbox,
+    start,
+    end,
+    baselineStart: baseline.start,
+    baselineEnd: baseline.end,
+    method: "relationships-v1",
+  };
+  const span = [start, end, baseline.start, baseline.end].map(monthIndex);
   const validPeriod =
     !!variable &&
     numeric(variable) &&
+    (!second || numeric(second)) &&
+    (!secondId || !!second) &&
+    second?.id !== variable.id &&
     months.includes(start) &&
     months.includes(end) &&
-    start <= end;
-  const key = variable
-    ? JSON.stringify([variableDataKey(variable), region.bbox, start, end])
-    : "";
+    start <= end &&
+    baseline.start <= baseline.end &&
+    span.every((n) => n !== null) &&
+    Math.max(...(span as number[])) - Math.min(...(span as number[])) < 600;
+  const supported = catalog.capabilities?.investigations === true;
+  const key = JSON.stringify([
+    request,
+    variable && variableDataKey(variable),
+    second && variableDataKey(second),
+  ]);
   const dirty = submitted !== undefined && submitted.key !== key;
   const series = useEarthResource(
     active && submitted ? submitted.key : null,
-    (signal) => loadSeries(submitted!.variable, submitted!.region.bbox, signal),
+    (signal) =>
+      loadInvestigation(
+        submitted!.request,
+        [
+          submitted!.variable,
+          ...(submitted!.second ? [submitted!.second] : []),
+        ],
+        signal,
+      ),
   );
   useEffect(() => {
     if (series.data && submitted)
@@ -463,13 +150,6 @@ export function TrendLab({
   const data =
     series.data ??
     (completed?.key === submitted?.key ? completed?.data : undefined);
-  const trend = useMemo(
-    () =>
-      data && submitted
-        ? fitMonthlyTrend(data.observations, submitted.start, submitted.end)
-        : null,
-    [data, submitted],
-  );
   useEffect(() => {
     let mounted = true;
     void loadCountries()
@@ -515,6 +195,66 @@ export function TrendLab({
       latitude: (south + north) / 2,
     });
   };
+  const preset = (x: string, y: string) => {
+    if (
+      !available.some((v) => v.id === x) ||
+      !available.some((v) => v.id === y)
+    ) {
+      setSavedMessage("A preset indicator is not available in this catalog.");
+      return;
+    }
+    setSelectedVariable(x);
+    setSecondId(y);
+    setPeriod({ start: "", end: "" });
+    selectRegion({
+      id: "trend-pantanal",
+      name: "Pantanal box",
+      bbox: "-60,-22,-54,-16",
+      longitude: -57,
+      latitude: -19,
+    });
+    setBaseline({ start: "2003-01", end: "2020-12" });
+    setSavedMessage("Preset loaded. Generate to apply it.");
+  };
+  const restore = () => {
+    try {
+      const saved = parseSavedStudy(
+        localStorage.getItem(investigationStorageKey) ?? "null",
+      );
+      if (
+        !available.some((v) => v.id === saved.request.x) ||
+        (saved.request.y && !available.some((v) => v.id === saved.request.y))
+      )
+        throw new Error(
+          "A saved indicator is unavailable in the current catalog.",
+        );
+      const box = parseStudyBbox(saved.request.bbox);
+      if (!box) throw new Error("Saved region is invalid.");
+      setSelectedVariable(saved.request.x);
+      setSecondId(saved.request.y ?? "");
+      setPeriod({ start: saved.request.start, end: saved.request.end });
+      setBaseline({
+        start: saved.request.baselineStart,
+        end: saved.request.baselineEnd,
+      });
+      const [w, s, e, n] = box;
+      const width = e >= w ? e - w : e + 360 - w;
+      selectRegion({
+        id: "trend-restored",
+        name: saved.regionName,
+        bbox: box.join(","),
+        longitude: ((w + width / 2 + 540) % 360) - 180,
+        latitude: (s + n) / 2,
+      });
+      setSavedMessage(
+        "Saved settings restored. Generate to load current data.",
+      );
+    } catch (error) {
+      setSavedMessage(
+        error instanceof Error ? error.message : "No saved settings available.",
+      );
+    }
+  };
   return (
     <div className="trend-lab">
       <header className="trend-header">
@@ -526,7 +266,7 @@ export function TrendLab({
             Trend Lab<span>.</span>
           </h2>
           <p>
-            How much has changed — and how much could change in the next months?
+            Choose a place. Discover trends, unusual months, and relationships.
           </p>
         </div>
         <span className="trend-model-tag">Real monthly data · Runtime fit</span>
@@ -535,6 +275,7 @@ export function TrendLab({
         <section className="trend-setup" aria-label="Trend setup">
           <div className="trend-setup-step">
             <h3>1 · Select area</h3>
+
             <SearchPicker
               id={`${id}-area`}
               label="Study region"
@@ -571,10 +312,10 @@ export function TrendLab({
             </details>
           </div>
           <div className="trend-setup-step">
-            <h3>2 · Select indicator</h3>
+            <h3>2 · Select indicators</h3>
             <SearchPicker
               id={`${id}-indicator`}
-              label="Indicator"
+              label="Indicator X"
               value={variable?.id ?? ""}
               options={available.map((entry) => ({
                 id: entry.id,
@@ -589,12 +330,47 @@ export function TrendLab({
               }))}
               onChange={(value) => {
                 setSelectedVariable(value);
+                if (value === secondId) setSecondId("");
                 setPeriod({ start: "", end: "" });
               }}
             />
             {variable?.description && (
               <p className="trend-small">{variable.description}</p>
             )}
+            <SearchPicker
+              id={`${id}-second`}
+              label="Indicator Y (optional)"
+              value={secondId}
+              options={[
+                { id: "", name: "None — single-variable study" },
+                ...available
+                  .filter((v) => v.id !== variable?.id)
+                  .map((v) => ({
+                    id: v.id,
+                    name: `${v.name} (${trendUnit(v.unit)})`,
+                    disabled: !numeric(v),
+                  })),
+              ]}
+              onChange={(value) => {
+                setSecondId(value);
+                setPeriod({ start: "", end: "" });
+              }}
+            />
+            <div className="investigation-presets">
+              <span className="trend-kicker">TRY A QUESTION</span>
+              <button
+                type="button"
+                onClick={() => preset("temperature", "rainfall")}
+              >
+                Pantanal: heat & rainfall
+              </button>
+              <button
+                type="button"
+                onClick={() => preset("rainfall", "grace_water_equivalent")}
+              >
+                Pantanal: rainfall & storage
+              </button>
+            </div>
           </div>
           <div className="trend-setup-step">
             <h3>3 · Select period</h3>
@@ -631,12 +407,47 @@ export function TrendLab({
               {!period.start && !period.end
                 ? "All available data selected. "
                 : "Custom analysis period. "}
-              At least three valid monthly values are required.
+              Seasonal fits require 24 values and two of every calendar month.
+              Inference requires 60 consecutive months.
             </p>
+            <fieldset className="investigation-reference">
+              <legend>Study reference</legend>
+              <label>
+                Reference from
+                <input
+                  type="month"
+                  min="1900-01"
+                  max="2100-12"
+                  value={baseline.start}
+                  onChange={(e) =>
+                    setBaseline({ ...baseline, start: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Reference to
+                <input
+                  type="month"
+                  min="1900-01"
+                  max="2100-12"
+                  value={baseline.end}
+                  onChange={(e) =>
+                    setBaseline({ ...baseline, end: e.target.value })
+                  }
+                />
+              </label>
+            </fieldset>
+            {!supported && (
+              <p className="trend-notice">
+                This API version does not support investigations yet. Refresh
+                the catalog after the backend update.
+              </p>
+            )}
             {!validPeriod && (
               <p role="alert" className="trend-notice">
                 Choose a continuous indicator and a valid period with the start
-                before the end.
+                before the end; study and reference together must span at most
+                600 months.
               </p>
             )}
           </div>
@@ -645,14 +456,14 @@ export function TrendLab({
             <button
               className="trend-run"
               type="button"
-              disabled={!validPeriod}
+              disabled={!validPeriod || !supported}
               onClick={() => {
                 if (variable && validPeriod) {
                   setSubmitted({
                     variable,
                     region: { ...region },
-                    start,
-                    end,
+                    second,
+                    request: { ...request },
                     key,
                   });
                   if (submitted?.key === key) series.retry();
@@ -660,8 +471,43 @@ export function TrendLab({
               }}
             >
               <Play size={16} fill="currentColor" />{" "}
-              {series.loading ? "Generate new trend" : "Generate trend"}
+              {series.loading
+                ? "Generate new investigation"
+                : "Generate investigation"}
             </button>
+            <div className="investigation-toolbar">
+              <button
+                type="button"
+                disabled={!validPeriod}
+                onClick={() => {
+                  try {
+                    localStorage.setItem(
+                      investigationStorageKey,
+                      JSON.stringify({
+                        version: 1,
+                        request,
+                        regionName: region.name,
+                      }),
+                    );
+                    setSavedMessage(
+                      "Investigation settings saved on this device.",
+                    );
+                  } catch {
+                    setSavedMessage(
+                      "This browser could not save the settings.",
+                    );
+                  }
+                }}
+              >
+                Save settings
+              </button>
+              <button type="button" onClick={restore}>
+                Restore saved
+              </button>
+            </div>
+            <p className="trend-small" role="status">
+              {savedMessage}
+            </p>
             <div className="trend-methodology" data-open={methodologyOpen}>
               <button
                 type="button"
@@ -675,12 +521,11 @@ export function TrendLab({
                 id={`${id}-methodology`}
                 className="trend-methodology-content"
               >
-                <strong>Simple linear regression</strong>
+                <strong>Seasonal trends & relationships</strong>
                 <p>
-                  Monthly values are fitted against calendar time using OLS.
-                  Change equals slope × elapsed months. Seasonality and
-                  autocorrelation are uncorrected. Intervals assume independent,
-                  normal, constant-variance residuals.
+                  Calendar-month effects and linear time, with
+                  autocorrelation-aware uncertainty when coverage supports it.
+                  Associations are not causes or forecasts.
                 </p>
                 <button type="button" onClick={onGuide}>
                   Read more in Guide
@@ -692,8 +537,8 @@ export function TrendLab({
         <div className="trend-output" aria-busy={series.loading}>
           {dirty && (
             <p className="trend-notice">
-              Setup changed. Generate a new trend to apply it. Any result below
-              still refers to the labeled previous selection.
+              Setup changed. Generate a new investigation to apply it. Any
+              result below still refers to the labeled previous selection.
             </p>
           )}
           {!submitted && (
@@ -704,13 +549,13 @@ export function TrendLab({
               </span>
               <h3>What is changing in this region?</h3>
               <p>
-                Select an indicator and period, then generate a trend to see the
-                monthly points, fitted line and statistical evidence.
+                Select one or two indicators and a period to explore seasonal
+                trends, anomalies, and relationships with statistical evidence.
               </p>
               <div>
                 <span>Region + data</span>
                 <ArrowRight size={16} />
-                <span>Linear fit</span>
+                <span>Seasonal analysis</span>
                 <ArrowRight size={16} />
                 <span>Change over time</span>
               </div>
@@ -721,8 +566,8 @@ export function TrendLab({
               <RefreshCw size={26} />
               <h3>Loading regional monthly values…</h3>
               <p>
-                The linear fit will run in your browser when the series is
-                ready.
+                The API will compute all views from the same regional series.
+                Missing months remain missing.
               </p>
             </div>
           )}
@@ -742,25 +587,14 @@ export function TrendLab({
           {(!series.loading || !active) &&
             !series.error &&
             data &&
-            submitted &&
-            (trend ? (
-              <TrendResult
+            submitted && (
+              <InvestigationResults
                 key={submitted.key}
-                trend={trend}
                 data={data}
-                study={submitted}
+                regionName={submitted.region.name}
                 onGuide={onGuide}
               />
-            ) : (
-              <div className="trend-empty" role="status">
-                <h3>Not enough valid data for a trend</h3>
-                <p>
-                  This selection needs at least three valid monthly values at
-                  distinct dates. Try a wider period, another region or
-                  indicator. Missing values are never replaced with zeros.
-                </p>
-              </div>
-            ))}
+            )}
         </div>
       </div>
     </div>

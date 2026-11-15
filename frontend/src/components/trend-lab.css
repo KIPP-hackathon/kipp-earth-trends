@@ -731,3 +731,29 @@
     padding: 10px 6px;
   }
 }
+/* Investigation views share the existing Trend Lab palette and region setup. */
+.investigation-tabs, .investigation-toolbar, .investigation-presets {display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;align-items:center}
+.investigation-tabs {border-bottom:1px solid #a2bfe52b;padding-bottom:12px}
+.investigation-tabs button,.investigation-toolbar button,.investigation-presets button {border:1px solid #a2bfe53b;border-radius:6px;padding:9px 12px;color:#c4d5e9;font-size:12px;min-height:38px}
+.investigation-tabs button[aria-pressed="true"],.investigation-toolbar button[aria-pressed="true"] {color:#a3ece5;background:#87dbe51a;border-color:#87dbe5}
+.investigation-toolbar label,.investigation-reference label {display:flex;flex-direction:column;gap:6px;color:#b4c4da;font-size:11px;min-width:0}
+.investigation-toolbar select,.investigation-reference input {color:#e6edf7;background:#0b2035;border:1px solid #a2bfe54b;padding:8px;border-radius:5px;min-height:38px;max-width:100%;font:inherit}
+.investigation-presets {align-items:stretch;flex-direction:column}
+.investigation-presets button {text-align:left;font-size:11px}
+.investigation-reference {display:grid;grid-template-columns:1fr;gap:8px;padding:12px 0;border:0;margin:16px 0}
+.investigation-reference legend {color:#b4c4da;font-size:12px}
+.investigation-reference input {width:100%;box-sizing:border-box;color-scheme:dark}
+.investigation-series {border-top:1px solid #a2bfe52b;padding-top:14px;margin-top:24px}
+.investigation-series h4 {font-size:15px;font-weight:550;margin:8px 0}
+.investigation-chart {margin-top:20px;min-width:0}
+.investigation-chart svg {width:100%;height:auto;display:block}
+.investigation-chart-heading {display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;font-size:12px;color:#b4c4da;margin-bottom:10px}
+.investigation-chart circle,.investigation-lag circle,.investigation-scatter circle {cursor:pointer}
+.investigation-lag,.investigation-scatter svg {display:block;width:100%;max-width:600px;height:auto;margin:auto}
+.investigation-scatter {margin:20px 0}
+.investigation-table {overflow-x:auto;margin:15px 0}
+.investigation-table table {border-collapse:collapse;min-width:100%;font-size:11px;color:#b4c4da}
+.investigation-table th,.investigation-table td {text-align:left;padding:9px 12px;border-bottom:1px solid #a2bfe52b}
+.investigation-table th {color:#e6edf7;font-weight:550}
+.trend-lab select:focus-visible {outline:2px solid var(--trend-cyan);outline-offset:3px}
+@media(max-width:720px){.investigation-toolbar{gap:6px}.investigation-toolbar button{font-size:11px;padding:8px}.investigation-reference{grid-template-columns:1fr}.trend-model-tag{white-space:normal}.trend-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
