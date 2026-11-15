@@ -15,6 +15,7 @@ import type { GlobeView } from "../lib/comparison";
 import {
   dragGlobe,
   globeProjection,
+  outlineLines,
   visibleOnGlobe,
 } from "../lib/globeProjection";
 import { PlaybackControls } from "./PlaybackControls";
@@ -104,6 +105,7 @@ export const Globe = memo(function Globe({
     const path = geoPath(projection).digits(1);
     return {
       land: land ? (path(land) ?? "") : "",
+      landLines: land ? (path(outlineLines(land)) ?? "") : "",
       grid: path(geoGraticule10()) ?? "",
       cells: Object.fromEntries(
         regions.map((r) => [
@@ -245,7 +247,7 @@ export const Globe = memo(function Globe({
             <GlobeSurface longitude={view.longitude} latitude={view.latitude} />
             <g clipPath={`url(#${id}-clip)`}>
               <path
-                d={paths.land}
+                d={paths.landLines}
                 fill="none"
                 stroke="#a9c3b7"
                 strokeWidth=".65"

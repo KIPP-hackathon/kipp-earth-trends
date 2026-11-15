@@ -13,7 +13,7 @@ import {
   geographicPointer,
   selectionBounds,
 } from "../lib/globeSelection";
-import { dragGlobe, globeProjection } from "../lib/globeProjection";
+import { dragGlobe, globeProjection, outlineLines } from "../lib/globeProjection";
 import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
 import type { EarthColorRange, EarthFrame, EarthRegion } from "../lib/earthApi";
@@ -204,9 +204,10 @@ export function RealGlobe({
     const path = geoPath(globeProjection(view)).digits(1);
     return {
       land: land ? (path(land) ?? "") : "",
+      landLines: land ? (path(outlineLines(land)) ?? "") : "",
       grid: path(geoGraticule10()) ?? "",
       countries: showCountryBorders
-        ? (path(countryBorderGeometry()) ?? "")
+        ? (path(outlineLines(countryBorderGeometry())) ?? "")
         : "",
     };
   }, [view.longitude, view.latitude, land, showCountryBorders]);
@@ -526,7 +527,7 @@ export function RealGlobe({
           >
             <g clipPath={`url(#${id})`} pointerEvents="none">
               <path
-                d={paths.land}
+                d={paths.landLines}
                 fill="none"
                 stroke="#dbeaff"
                 strokeWidth=".7"
