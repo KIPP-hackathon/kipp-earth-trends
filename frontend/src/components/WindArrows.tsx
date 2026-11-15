@@ -33,10 +33,10 @@ function WindArrowField({
     const grid = field.eastward.grid;
     const [west, south, east, north] = grid.bounds;
     // Bounded screen sampling; glyphs stay attached to existing display cells.
-    const spacing = Math.max(22, Math.min(42, (640 * 23) / viewportPixels));
+    const spacing = Math.max(30, Math.min(64, (640 * 34) / viewportPixels));
     const seen = new Set<number>();
     const occupied = new Set<string>();
-    const result: { path: string; color: string }[] = [];
+    const result: { shaft: string; head: string; color: string }[] = [];
     for (let y = spacing / 2; y < 640; y += spacing) {
       for (let x = spacing / 2; x < 640; x += spacing) {
         if (Math.hypot(x - 320, y - 320) >= 270 * view.zoom) continue;
@@ -66,15 +66,16 @@ function WindArrowField({
         if (occupied.has(slot)) continue;
         occupied.add(slot);
         const [dx, dy] = direction;
-        const half = spacing * 0.29;
+        const half = spacing * 0.32;
         const tail = [position[0] - dx * half, position[1] - dy * half];
         const tip = [position[0] + dx * half, position[1] + dy * half];
-        const head = half * 0.65,
-          wing = head * 0.65;
+        const head = half * 0.8,
+          wing = head * 0.48;
         const fmt = (p: number[]) =>
           p.map((value) => value.toFixed(1)).join(",");
         result.push({
-          path: `M${fmt(tail)}L${fmt(tip)}M${fmt([tip[0] - dx * head - dy * wing, tip[1] - dy * head + dx * wing])}L${fmt(tip)}L${fmt([tip[0] - dx * head + dy * wing, tip[1] - dy * head - dx * wing])}`,
+          shaft: `M${fmt(tail)}L${fmt(tip)}`,
+          head: `M${fmt(tip)}L${fmt([tip[0] - dx * head - dy * wing, tip[1] - dy * head + dx * wing])}L${fmt([tip[0] - dx * head + dy * wing, tip[1] - dy * head - dx * wing])}Z`,
           color: `rgb(${pixels[index * 4]},${pixels[index * 4 + 1]},${pixels[index * 4 + 2]})`,
         });
       }
@@ -104,21 +105,22 @@ function WindArrowField({
       {arrows.map((arrow, index) => (
         <g key={index}>
           <path
-            d={arrow.path}
+            d={arrow.shaft}
             fill="none"
             stroke="#03101e"
-            strokeWidth={4.4}
+            strokeWidth={4.8}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
-            d={arrow.path}
+            d={arrow.shaft}
             fill="none"
             stroke={arrow.color}
-            strokeWidth={1.8}
+            strokeWidth={2.2}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+          <path d={arrow.head} fill={arrow.color} stroke="#03101e" strokeWidth={1.4} strokeLinejoin="round" />
         </g>
       ))}
     </g>
