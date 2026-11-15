@@ -27,6 +27,8 @@ export function EmptyRealPanel({
   onAreaChange,
   onStart,
   headerAction,
+  onTourChoice,
+  suggestedVariable,
 }: RealPanelProps & { onStart: (preset: PanelPreset) => void }) {
   const id = useId();
   const [region, setRegion] = useState(initialRegion ?? config.regions[0]);
@@ -46,6 +48,7 @@ export function EmptyRealPanel({
     if (initialRegion && !changedArea.current) setRegion(initialRegion);
   }, [initializationKey, initialRegion]);
   const applyArea = (next: EarthRegion, center = false) => {
+    onTourChoice?.("area");
     changedArea.current = true;
     onManualChange();
     onAreaChange?.();
@@ -74,6 +77,7 @@ export function EmptyRealPanel({
       ),
     ].sort();
     if (!variables.length || !months.length) return;
+    onTourChoice?.("variables");
     onManualChange();
     onCustomRegion?.(region);
     onStart({
@@ -90,10 +94,15 @@ export function EmptyRealPanel({
       nonce: Date.now(),
     });
   };
+  useEffect(() => {
+    if (suggestedVariable) applyVariables([suggestedVariable.id]);
+    // Apply only a new explicit request, preserving subsequent manual choices.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestedVariable]);
   return (
     <article
       data-panel-id={instanceId}
-      className={`real-panel compact-real-panel${overview ? " is-overview" : ""}`}
+      className={`real-panel compact-real-panel${overview ? " is-overview is-empty" : ""}`}
       aria-label={
         overview ? "Earth data exploration" : `Earth data panel ${side}`
       }
@@ -196,7 +205,7 @@ export function EmptyRealPanel({
           }
         />
       </div>
-      <section
+      {!overview && <section
         className="real-series-comparison multivariable-analysis"
         aria-label="Selected variable charts"
       >
@@ -206,7 +215,7 @@ export function EmptyRealPanel({
             trends.
           </p>
         </div>
-      </section>
+      </section>}
     </article>
   );
 }

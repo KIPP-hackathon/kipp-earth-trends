@@ -1,0 +1,14 @@
+.explore-tour-workspace { min-width: 0; }
+.guided-tour-secondary:disabled { opacity: .5; cursor: default; }
+/* On narrow screens the picker occupies the same space as the tour card. Let the
+   person finish the picker; the instructions return as soon as it closes. */
+@media (max-width: 900px) {
+  .explore-tour-workspace:has(.guided-tour-target [role="dialog"]) .guided-tour-card {
+    visibility: hidden !important;
+    pointer-events: none;
+  }
+}
+
+.guided-tour-dismiss { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid #a2bfe52b; }
+.guided-tour-dismiss button { padding: 6px 0; color: #c4d5e9; background: transparent; font-size: 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.guided-tour-dismiss button:hover { color: #87dbe5; }

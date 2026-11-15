@@ -46,9 +46,17 @@ export function SearchPicker({
     // iOS keeps the layout viewport tall while the keyboard shrinks/pans the
     // visual viewport. Let the list scroll within the space actually visible.
     const viewport = window.visualViewport;
+    let horizontalShift = 0;
     const fit = () => {
       const popup = dialog.current;
       if (!popup) return;
+      const left = (viewport?.offsetLeft ?? 0) + 8;
+      const right = (viewport?.offsetLeft ?? 0) + (viewport?.width ?? window.innerWidth) - 8;
+      popup.style.maxWidth = `${Math.max(0, right - left)}px`;
+      const bounds = popup.getBoundingClientRect();
+      const naturalLeft = bounds.left - horizontalShift;
+      horizontalShift = Math.max(left - naturalLeft, Math.min(0, right - naturalLeft - bounds.width));
+      popup.style.setProperty("--search-popover-shift-x", `${horizontalShift}px`);
       const bottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight);
       popup.style.setProperty(
         "--search-popover-max-height",

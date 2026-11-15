@@ -1757,3 +1757,129 @@ em Node.js 24. Conta `Marcelo-Kenji-Noda` autorizada pelo usuario nesta sessao.
 ### Formatação do range — 15/11/2026
 
 OpenAI Codex ajustou localmente os campos de mínimo/máximo da escala para duas casas decimais no carregamento, sincronização e Reset. Precisão dos dados da API preservada. Node.js 24.22.3: 136 testes frontend e builds frontend/backend aprovados. Sem publicação ou alteração da submissão.
+
+
+### Tour de Explore — preview local (15/11/2026)
+
+OpenAI Codex adaptou o componente GuidedTour já usado em Trend Lab para Explore:
+nove etapas em inglês, destaque do controle, Back/Next/Finish e confirmação
+explícita de área, variáveis aplicadas e período. O tour continua ao substituir
+o painel vazio pelo selecionado, sem escolher dados automaticamente. Trocar de
+workspace encerra o tour; Finish/Escape removem os destaques e preservam filtros.
+No mobile, instruções ficam ocultas enquanto o picker destacado está aberto
+e reaparecem ao fechá-lo, liberando busca e Apply. Sem novas dependências/assets.
+
+Preview `http://127.0.0.1:5188/`, cópia local isolada na branch
+`feat/explore-guided-tour`, base `4451712` de `feat/trend-significance`. O checkout
+original e o trabalho do outro chat foram preservados. Proxy público já existente,
+sem credenciais locais novas. Navegador com API real confirmou Brazil/Canada,
+Apply de temperatura a 10 m, período 2000–2026/2001–2026, leitura de gráfico
+regional, avanço de mês, Finish, Escape, reabertura e troca para Trend Lab.
+136 testes existentes e builds frontend/API passaram com Node.js 24; nova execução
+final após os ajustes visuais registrada no relatório local. Desktop padrão
+1280×720 e mobile 390×844/360×740 sem overflow horizontal. A conferência é de
+interface, não uma nova validação científica das observações ou das inferências.
+
+Assistência de IA incluiu código, textos do tour e este registro; revisão humana
+pendente. Sem commit, push, deploy ou alteração da página Project. Permanecem
+as pendências científicas e de submissão/congelamento do checklist.
+
+
+Revisão solicitada do tour de Explore (15/11/2026): menu de países abre pela
+esquerda do campo e é contido na largura visível, inclusive no breakpoint
+intermediário de 800 px. O spotlight acompanha o diálogo aberto de país,
+variáveis e período. Sugestão explícita de temperatura a 10 m pode ser aplicada
+pelo card, apenas se disponível no catálogo; preserva região e variáveis já
+selecionadas. A opção manual de busca/Apply permanece. Removido o card lateral
+de mensagem do Explore vazio, com globo centralizado; Compare mantém seu estado
+vazio. Nenhuma consulta é iniciada automaticamente por essa sugestão.
+
+Navegador com API pública real confirmou sugestão na região Canada, seleção
+manual adicional de umidade a 250 hPa, destaque do menu inteiro e aplicação das
+duas variáveis. Países dentro da janela a 800 e 360 px; menu de variáveis
+destacado e desobstruído a 390 px. 136 testes e builds frontend/API passaram
+com Node.js 24. Alterações assistidas por OpenAI Codex; conferência humana
+pendente. Continua somente local, sem commit, push, deploy ou submissão.
+
+
+Nova preferência de entrada em Explore (15/11/2026): a pedido do usuário, removido
+o botão de início. O tour começa quando catálogo/configuração já carregaram e
+os controles foram pintados, sem aguardar uma consulta científica inexistente
+no estado vazio. Skip/fechar/Escape encerram apenas a visita atual. Don’t show
+again encerra e grava `dismissed`; Finish grava `completed`. A preferência local
+versionada `kipp.explore-tour.v1` impede novas aberturas neste navegador/origem,
+sem enviar preferências ao servidor. Armazenamento bloqueado preserva a supressão
+apenas enquanto o componente continua montado. A preferência de desenvolvimento
+é independente da origem de produção.
+
+Navegador confirmou Skip → sair/voltar → abertura, Don’t show again → recarregar
+→ ausência de tour, e percurso completo com teclado/variável real → Finish →
+recarregar → ausência de tour. Conferida persistência dos estados `dismissed` e
+`completed` com página temporária de QA, removida após o teste; a preferência
+criada pelo teste foi limpa para revisão humana do preview. Foco inicial no
+card, retorno ao seletor e ações no mobile 360 px conferidos. 136 testes e builds
+frontend/API aprovados em Node.js 24. Código/textos/QA assistidos por OpenAI Codex;
+sem commit, push, deploy, alteração científica ou submissão.
+
+
+## Reprodução conjunta de Compare — preview local (15/11/2026)
+
+OpenAI Codex implementou barra Play both/Pause both acima dos painéis, velocidade
+compartilhada, datas A/B visíveis e Same month opcional. Um relógio prepara os
+dois próximos quadros via cache/filas existentes antes de alterar qualquer mês.
+Same month usa a interseção exata dos calendários selecionados, exige ao menos
+dois meses e mantém lacunas; desligado, cada calendário percorre seu período.
+Pausar, ocultar a página, sair da aba, mudar configuração/velocidade individual
+ou receber novo preset cancela a execução sem commit tardio. Erros de preparação
+preservam as duas datas. Plays individuais continuam disponíveis; Pause both
+também pausa a reprodução individual. A velocidade conjunta reinicia ambos
+no novo ritmo, preservando os meses atuais. Sem novas dependências.
+
+143 testes frontend (sete novos para calendário, barreira, falha e cancelamento)
+e builds frontend/API aprovados com Node.js v24.18.0. Revisão independente
+identificou e conferiu as correções de cancelamento por velocidade individual
+e preset. Navegador com API pública real: temperatura a10m nos dois painéis,
+datas distintas com diferença de um ano, alinhamento e avanço em mesma data,
+velocidade2×, pausa conjunta/individual, reprodução só de A, saída/retorno à aba
+sem auto-reprodução e bloqueio de Same month para períodos sem interseção.
+390/360px sem overflow horizontal; contraste do botão em hover revisado.
+Sem exceções JS na sessão final. Quadros/séries são reais; testes de barreira
+usam promessas controladas e não constituem evidência científica.
+
+Preview em `http://127.0.0.1:5188/`, cópia isolada `/private/tmp/kipp-explore-tour`,
+com ajustes anteriores do tour preservados. Barra pausada e dados temporários
+aplicados para revisão humana, sem salvar investigação. Código/textos/testes
+assistidos por OpenAI Codex. Sem commit, push, deploy, alteração de métodos,
+submissão ou conclusão das pendências científicas/organizacionais do checklist.
+
+
+### Preview atualizado com main — 15/11/2026
+
+A pedido do usuário, a cópia local integrou `upstream/main` em `3c9fd8b`
+(footer simplificado, gráficos global/regional, ajustes de filtros/vento e
+assistente de Trend Lab), preservando o tour automático de Explore e a
+reprodução conjunta de Compare. Alterações locais foram preservadas no commit
+`3e29449` antes da integração. Um conflito apenas no final do CSS foi conciliado
+preservando ambos os conjuntos de regras. O tour agora descreve os dois gráficos;
+a supressão de loading dos filtros também considera o play conjunto. Sem novas
+dependências ou alteração do checkout original da equipe.
+
+148 testes frontend, 47 testes backend e builds frontend/API passaram com
+Node.js24.18.0. Navegador com API pública real confirmou abertura automática,
+seleção sugerida,321meses, gráficos Brazil/Global e destaque das etapas no
+layout atualizado; card e página cabem em360px. Capturas locais fora do Git.
+Preview preservado em `http://127.0.0.1:5188/` para revisão humana, reaberto no
+início do tour sem persistir conclusão. Codex assistiu integração e conferência.
+Commits somente locais: sem push, deploy ou alteração da página Project.
+
+
+### Preparação autorizada da publicação do tour/Compare — 15/11/2026
+
+O usuário autorizou publicar os ajustes avaliados localmente. Integrada a main
+`1ed0265`, preservando as tabelas compactas com poucas variáveis. O destino
+confirmado é o Worker `kipp-earth-trends`, na conta Cloudflare já configurada
+no repositório, pelo workflow Frontend Cloudflare. Sem alterações na pipeline,
+permissões, dados, backend ou materiais da página Project. Conta GitHub pessoal
+Luckstai verificada conforme política do diretório. Resultado da publicação
+e smoke público serão registrados após a conclusão; não estão comprovados
+por esta preparação.

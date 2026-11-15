@@ -92,12 +92,12 @@
   --lime: #0b3d91;
   --line: #cbd7e6;
 }
-.exploration-picker:nth-child(2) .exploration-popover,
 .exploration-period .exploration-popover {
   left: auto;
   right: 0;
 }
 .exploration-search-popover {
+  transform: translateX(var(--search-popover-shift-x, 0px));
   display: flex;
   flex-direction: column;
   max-height: var(--search-popover-max-height, calc(100dvh - 16px));
@@ -592,4 +592,13 @@
   #panel-explore .compact-comparison-tables .comparison-chart { height: auto; align-self: start; }
   #panel-explore .compact-comparison-tables .runtime-trend-results { flex: none; min-height: 0; }
   #panel-explore .compact-comparison-tables .runtime-trend-table-scroll { flex: 0 1 auto; min-height: 0; max-height: 210px; }
+}
+
+/* The initial Explore view contains only the globe until variables are applied. */
+@media (min-width: 1000px) {
+  .real-panels:not(.is-comparing) .compact-real-panel.is-overview.is-empty > .real-globe-container {
+    grid-column: 1 / -1;
+    width: min(100%, 640px);
+    justify-self: center;
+  }
 }
