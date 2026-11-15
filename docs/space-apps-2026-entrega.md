@@ -808,7 +808,11 @@ disponíveis em Source, quality & coordinates e no gráfico.
 1440/390 px, proporções dos campos, 24 px de separação, detalhes no seletor,
 ausência das legendas e de overflow da página. Ambiente sem WebGL; conferência
 limitada à interface, sem alegar validação da renderização das camadas.
-Publicação em verificação; investigação científica e submissão não alteradas.
+Publicação `88604e2` confirmada pela
+[Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/8GD1ba2E8auJuKdunnAj3zeKqomW)
+e pelo bundle público `index-D4j8B6pk.js`, idêntico ao build validado.
+Conferência adicional em 360 px manteve país e período compactos, sem overflow.
+Investigação científica e submissão não alteradas.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
