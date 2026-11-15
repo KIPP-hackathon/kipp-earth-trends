@@ -674,3 +674,34 @@ de V50 injetada apenas no navegador de QA omitiu setas e recuperou com Retry.
 390px sem overflow horizontal ou exceções JavaScript; capturas inspecionadas.
 Preview5186 e cópia estável de QA5187. Esta evidência não comprova publicação,
 submissão nem conclusão da investigação científica ou conformidade completa.
+
+## Evidência incremental — Trend Lab (15/11/2026)
+
+OpenAI Codex assistiu a nova aba em inglês com seleção independente de
+região/bbox, indicador contínuo e período (todo o histórico por padrão),
+regressão OLS mensal no navegador, pontos e reta, IC de 95% da inclinação,
+significância condicional e controles de dois pontos para mudança em 1–60 meses.
+Extensão tracejada identificada como projeção, com pressupostos e limitações
+de sazonalidade/autocorrelação; classes categóricas desabilitadas. Não usa
+série simulada como fallback nem atribui ao assistente o contexto de outra aba.
+Ver [método, fontes, validação e limites](trend-lab.md).
+
+Node.js 24: 69 testes frontend aprovados (23 da nova matemática), builds frontend
+e backend aprovados. Fixtures Git executadas em diretórios temporários.
+Revisão independente identificou e conferiu correções de legenda SVG, leitura
+mobile e inferência degenerada em reta perfeita com meses faltantes. Chromium
+com API pública real conferiu 321 meses de temperatura a 10 m no retângulo do
+Brasil (jan/2000–set/2026), geração, controles, persistência entre abas e aviso
+de filtros editados; 1440/390/360 px sem overflow e sem erros JavaScript.
+Fixtures sintéticas identificadas conferiram erro/retry, insuficiência,
+categóricos, teclado e bbox desenhado; não são evidência científica.
+
+Implementação local, sem commit/deploy ou alteração da página Project.
+Revisão humana, investigação científica reproduzível final e submissão
+permanecem pendentes. Não declara conformidade completa ou elegibilidade.
+
+Preparação para PRD autorizada pelo usuário em 15/11/2026: integração isolada
+na main `0fcf9df`, com 80 testes frontend e builds frontend/API aprovados.
+Recursos e remoções recentes da main preservados. Por orientação explícita
+do usuário, este projeto usa exclusivamente a conta pessoal `Luckstai`,
+com a identidade Git pessoal do projeto. Confirmação de publicação pendente.

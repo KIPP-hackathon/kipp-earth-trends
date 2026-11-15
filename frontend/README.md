@@ -2,7 +2,7 @@
 
 Laboratório de exploração de campos mensais derivados de produtos NASA.
 Frontend React/TypeScript/Vite, Node.js 24. As cinco abas operacionais usam
-os dados reais da API: Explorar, Comparar, Eventos, Análise e Como funciona.
+os dados reais da API: Explore, Compare, Trend Lab, Events e Guide.
 
 O catálogo publica variáveis, unidades, disponibilidade, QA e escalas de cores.
 Regiões e presets históricos vêm de `/v1/config` e `/v1/events` no backend.
@@ -72,6 +72,17 @@ escuro. As escalas científicas do globo não são modificadas pelo tema.
 
 Módulos antigos de simulação e suas verificações foram preservados como material
 histórico, mas não são usados pelo fluxo operacional do App.
+
+## Trend Lab
+
+Workspace em inglês para escolher região/bbox, um indicador contínuo e período
+(todo o histórico por padrão). **Generate trend** ajusta regressão linear mensal
+no navegador e mostra pontos, reta, IC da inclinação e significância condicional.
+Dois controles percorrem a reta e calculam a mudança em 1–60 meses. A extensão
+tracejada é projeção da tendência, não previsão; sazonalidade e autocorrelação
+não são corrigidas. Filtros e controles permanecem ao alternar abas. O assistente
+das outras abas não recebe esse contexto.
+Ver [método, fontes, limites e validação](../docs/trend-lab.md).
 
 ## Publicação
 
