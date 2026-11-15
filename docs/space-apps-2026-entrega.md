@@ -27,8 +27,14 @@ Teste estatístico cobre a família conjunta e valores indisponíveis. Chromium
 em 1440/1024px confirmou curvas distintas, base alinhada e cabeçalhos fixos
 após scroll de 100px nas duas tabelas. WebKit emulando iPhone confirmou os dois
 gráficos e readout externo sem mover playback. Sem erros de página/overflow
-horizontal nas checagens e sem teste em iPhone físico. Publicação em
-acompanhamento; assistência IA registrada nesta entrada.
+horizontal nas checagens e sem teste em iPhone físico.
+Publicado em `45e33a0` na [Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/),
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43753991397)
+concluído, bundle `index-BE_p8vYv.js` conferido. Testes repetidos no site público
+confirmaram curvas distintas, duas tabelas com cabeçalhos estáveis, bases em
+964.44px e playback imóvel no hover (desktop e WebKit). Vercel bloqueou este
+build por limite de publicações e mantém a versão anterior. Assistência IA
+registrada nesta entrada.
 
 ## Traços de vento na superfície — implementação local (15/11/2026)
 
