@@ -94,7 +94,7 @@ export const historicalEvents: HistoricalEvent[] = [
     description:
       "Satellite records documented fires in the Pantanal in 2024. Explore monthly rainfall and temperature context in the study area.",
     limitation:
-      "The rectangle is not a burned-area footprint. This layer has no hotspots or fire detection; MODIS is available for only part of 2024.",
+      "The rectangle is not a burned-area footprint. Monthly rainfall, air temperature and humidity provide environmental context, not hotspots or fire detection.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/smoke-fills-south-american-skies-153295/",
@@ -145,7 +145,7 @@ export const historicalEvents: HistoricalEvent[] = [
     description:
       "Historical record of extensive fires in the Pantanal in 2020.",
     limitation:
-      "Outside the currently loaded record. The period is not replaced with a simulation.",
+      "Monthly environmental fields provide context, not burned area or fire detection. The rectangle is not the affected footprint.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/fires-char-the-pantanal-147269/",
@@ -160,9 +160,9 @@ export const historicalEvents: HistoricalEvent[] = [
     region: "pacifico",
     variable: "temperature",
     description:
-      "Historical context for a future comparison between ENSO episodes.",
+      "Explore monthly environmental context during the documented 2015–2016 El Niño episode.",
     limitation:
-      "Outside the loaded record; ENSO indices and sea temperature are also needed to characterize this phenomenon.",
+      "Air temperature is not sea-surface temperature. ENSO indices and sea temperature are needed to characterize this phenomenon; monthly context alone does not diagnose El Niño.",
     source: {
       name: "NOAA · ENSO",
       url: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ensofaq.shtml",
@@ -179,7 +179,7 @@ export const historicalEvents: HistoricalEvent[] = [
     description:
       "Satellite imagery recorded fire activity in the Amazon in 2019.",
     limitation:
-      "Outside the loaded record. The rectangle does not reproduce the distribution of fires.",
+      "Monthly environmental fields do not detect fires or attribute their causes. The rectangle does not reproduce the distribution of fires.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/uptick-in-amazon-fire-activity-in-2019-145498/",
@@ -196,7 +196,7 @@ export const historicalEvents: HistoricalEvent[] = [
     description:
       "Historical record of the cyclone that crossed the Gulf of Mexico in August 2005.",
     limitation:
-      "Outside the loaded record; hurricane analysis requires subdaily data and a storm track.",
+      "Monthly environmental fields cannot resolve storm peaks. Hurricane analysis requires subdaily data and a storm track.",
     source: {
       name: "NOAA · National Hurricane Center",
       url: "https://www.nhc.noaa.gov/data/tcr/AL122005_Katrina.pdf",

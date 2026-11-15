@@ -1,5 +1,27 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+### Auditoria das fontes de Events — 15/11/2026
+
+Consultas somente de leitura ao SQL Warehouse e à API pública confirmaram as
+sete tabelas trusted dos presets. Chuva, temperatura a 10 m, umidade específica
+a 2 m, componentes U/V a 10 m e pressão têm `valid_flag=true`; NDVI/EVI têm
+`false`, com cobertura apenas jan–mar/2024. O código local de Events passou a
+omitir fontes ausentes, indisponíveis ou ocultas pelo flag. Textos históricos
+que declaravam períodos já cobertos como indisponíveis foram corrigidos.
+Sete casos têm contexto ambiental; Tōhoku segue sem camada adequada.
+
+[Tabelas, períodos, SQL e IDs das consultas](event-investigations.md#events-source-audit--november-15-2026).
+Node.js 24: 85 testes frontend, testes backend e ambos os builds aprovados;
+replay do catálogo público conferiu sugestões sem NDVI/EVI. Assistência
+OpenAI Codex; revisão humana e publicação pendentes. Sem escrita no warehouse,
+novos dados ou conclusão de investigação científica/submissão.
+
+Preparação para publicação: release isolado sobre `main` `ae24cf0`, branch
+`fix/event-source-availability`, com 87 testes frontend, testes backend e ambos
+os builds aprovados em Node.js 24. O usuário autorizou explicitamente `c0ffex`
+para esta publicação após a conferência de identidade; autoria Git pessoal do
+projeto preservada. Verificação de produção será registrada após o pipeline.
+
 ## Configuração de indicadores trusted — implementação preparada em 15/11/2026
 
 Consulta somente de leitura à `earth-trend-data.trusted.tb_indicator_coverage`

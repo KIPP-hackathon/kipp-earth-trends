@@ -77,7 +77,11 @@ export function eventSuggestions(
   catalog: CatalogVariable[],
 ) {
   const suggestedVariables = (candidates[event.category] ?? [])
-    .filter((candidate) => registered.has(candidate.id))
+    .filter((candidate) => {
+      const variable = catalog.find((entry) => entry.id === candidate.id);
+      return registered.has(candidate.id) && variable?.available === true &&
+        variable.coverageFlag !== false;
+    })
     .map((candidate) => {
       const variable = catalog.find((entry) => entry.id === candidate.id);
       const months =
