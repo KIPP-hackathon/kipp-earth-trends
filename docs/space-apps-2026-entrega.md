@@ -1,5 +1,20 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Textos de vento sem recorte — 15/11/2026
+
+OpenAI Codex removeu a altura máxima de 44px e a rolagem interna da nota de
+trajetórias. Direção e resultante/componentes U/V ficam em linhas distintas no
+readout, com área reservada maior para vento antes do hover (96px em telas
+largas, 112px nas demais). A leitura completa não cobre o mapa nem desloca o
+playback. Preservadas a explicação de média mensal, reanálise MERRA-2 e a
+ressalva de que a animação indica direção, não velocidade. Sem alterar dados,
+cálculo de direção/resultante ou desenho das trajetórias.
+
+154 testes frontend e build aprovados com Node.js 24 após integrar a main.
+Chromium em 1440/1024px verificou conteúdo sem recorte ou overflow horizontal,
+com playback na mesma posição antes/depois do hover. Sem teste em iPhone
+físico. Publicação em acompanhamento; assistência IA registrada nesta entrada.
+
 ## Tour de Explore e play conjunto publicados — 15/11/2026
 
 Publicação autorizada pelo usuário e integrada pelo [PR #44](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/44),
