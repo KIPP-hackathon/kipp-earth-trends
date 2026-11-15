@@ -1,5 +1,35 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Comparação global/regional e alinhamento dos painéis — 15/11/2026
+
+OpenAI Codex assistiu os ajustes solicitados: Display cell at voltou para fora
+do globo, em linha com altura reservada; hover não move o playback. Removidos
+prefixo Selected area do título regional, legenda visual Trend and significance,
+parágrafo externo sobre o contorno e Loading next month duplicado. A legenda
+da tabela continua acessível a leitores de tela, e a explicação do recorte
+retangular está nos detalhes de informação do gráfico.
+
+Explore desktop tem a base de filtro, coluna globo/playback e gráficos alinhada.
+Tabelas rolam internamente, mantendo cabeçalhos opacos fixos. O viewport usa
+o menor lado como referência para preservar um planeta circular e alinhamento
+canvas/SVG também quando a coluna fica estreita e alta.
+
+Adicionado gráfico Global junto ao país/região, reutilizando séries reais já
+retornadas na mesma resposta da API. Período, escala vertical, modo, cursor e
+variáveis exibidas são compartilhados para permitir comparação. Cada escopo
+mantém sua referência histórica. A correção Holm considera a família de todas
+as variáveis selecionadas nos dois escopos (2N testes com região); a família
+inclui testes indisponíveis, sem ser reduzida por ocultar uma curva. Nenhuma
+observação ou algoritmo de inferência foi substituído.
+
+139 testes frontend e build aprovados com Node.js 24 após integrar a main.
+Teste estatístico cobre a família conjunta e valores indisponíveis. Chromium
+em 1440/1024px confirmou curvas distintas, base alinhada e cabeçalhos fixos
+após scroll de 100px nas duas tabelas. WebKit emulando iPhone confirmou os dois
+gráficos e readout externo sem mover playback. Sem erros de página/overflow
+horizontal nas checagens e sem teste em iPhone físico. Publicação em
+acompanhamento; assistência IA registrada nesta entrada.
+
 ## Traços de vento na superfície — implementação local (15/11/2026)
 
 OpenAI Codex substituiu as setas planas por traços curvos projetados no globo,
