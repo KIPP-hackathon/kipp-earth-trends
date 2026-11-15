@@ -224,6 +224,7 @@ function ComparisonChartComponent({
           <svg
             className="comparison-plot"
             viewBox="0 0 640 210"
+            preserveAspectRatio="none"
             role="group"
             tabIndex={0}
             aria-label={`${title}, ${monthLabel(start)} to ${monthLabel(end)}. Left/right arrows inspect months; Enter selects that month on the globe.`}

@@ -588,6 +588,7 @@ function SelectedRealPanel({
         <span className="filter-summary-expanded">Map filters · {selectedVariables.length}</span>
         <span className="filter-summary-collapsed">Filters</span>
       </summary>
+      <div className="layer-deck-content">
       <div className="layer-deck-heading">
         <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
           Map layers keep their physical units and scales. Opacity blends colors, not measurements.
@@ -649,12 +650,13 @@ function SelectedRealPanel({
             }}
             processingRun={entry.months.find(row=>row.month===(layerFrames.displayedMonth ?? month))?.processingRun}
             onColorRange={value => onColorRange(entry.id,value)}
-            loading={setting.visible && hasMonth && layerFrames.loading}
+            loading={!playing && setting.visible && hasMonth && layerFrames.loading}
             error={layerFrames.errors[entry.id] ?? (pair &&
               (layerFrames.errors[pair.eastward] ?? layerFrames.errors[pair.northward]))}
-            status={layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
+            status={!playing && layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
               !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : windStatus}/>
         })}
+      </div>
       </div>
       </details>
       <section className="real-series-comparison multivariable-analysis" aria-label="Selected variable charts">

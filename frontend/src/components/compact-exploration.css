@@ -554,3 +554,40 @@
   #panel-explore .comparison-charts .runtime-trend-results { display: flex; flex-direction: column; flex: 1; min-height: 0; }
   #panel-explore .comparison-charts .runtime-trend-table-scroll { flex: 1; min-height: 0; max-height: none; }
 }
+/* Give the right-hand charts room for full-width curves and readable tables. */
+@media (min-width: 1000px) {
+  #panel-explore .real-panel.is-overview { --explore-content-height: clamp(800px, calc(100dvh - 220px), 1100px); }
+  #panel-explore .real-panel.is-overview:not(.filters-collapsed) {
+    grid-template-columns: 220px minmax(280px, 1fr) minmax(360px, 1.2fr);
+  }
+  #panel-explore .real-panel.is-overview.filters-collapsed {
+    grid-template-columns: 44px minmax(280px, 1fr) minmax(360px, 1.2fr);
+  }
+  #panel-explore .comparison-map-controls[open] { display: flex; flex-direction: column; }
+  #panel-explore .comparison-map-controls > :not(.layer-stack) { flex-shrink: 0; }
+  #panel-explore .comparison-map-controls .layer-stack { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #panel-explore .comparison-map-controls .layer-card { flex: 1; display: flex; flex-direction: column; }
+  #panel-explore .comparison-map-controls .layer-card .inline-color-range { margin-top: auto; }
+  #panel-explore .comparison-charts .comparison-plot {
+    width: 100%; max-width: none; max-height: none;
+    flex: 0 0 clamp(140px, 15dvh, 180px); min-height: 140px;
+  }
+  #panel-explore .comparison-charts .runtime-trend-table-scroll { min-height: 110px; }
+}
+@media (min-width: 1000px) {
+  #panel-explore .comparison-map-controls[open] { display: block; position: relative; }
+  #panel-explore .comparison-map-controls > .layer-deck-content {
+    position: absolute; top: 44px; bottom: 10px; left: 10px; right: 10px;
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  #panel-explore .layer-deck-content > :not(.layer-stack) { flex-shrink: 0; }
+}
+@media (min-width: 1000px) {
+  #panel-explore .real-panel.is-overview { --explore-content-height: clamp(860px, calc(100dvh - 220px), 1160px); }
+  #panel-explore .comparison-charts .comparison-chart-heading { flex-shrink: 0; }
+  #panel-explore .comparison-charts .comparison-plot { flex: 0 1 160px; min-height: 100px; }
+  #panel-explore .comparison-charts .runtime-trend-results { flex: 1 0 180px; min-height: 180px; }
+  #panel-explore .comparison-charts .runtime-trend-caption { flex-shrink: 0; }
+  #panel-explore .comparison-charts .runtime-trend-table-scroll { min-height: 120px; }
+  #panel-explore .comparison-charts .runtime-trend-reasons { flex: 0 1 28px; min-height: 0; max-height: 28px; margin: 4px 0; }
+}

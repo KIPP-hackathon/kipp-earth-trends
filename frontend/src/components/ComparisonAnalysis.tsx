@@ -187,26 +187,6 @@ function ComparisonAnalysisComponent({
       )}
       <div className="comparison-charts">
       <ComparisonChart
-        title="Global"
-        scope="global"
-        entries={entries}
-        hiddenVariables={hiddenVariables}
-        onToggleVariable={toggleVariable}
-        onMode={onMode}
-        mode={mode}
-        domain={domain}
-        start={start}
-        end={end}
-        month={cursor ?? month}
-        onCursor={setCursor}
-        onMonth={onMonth}
-        eventWindow={eventWindow}
-        noArea={false}
-        adjustedP={adjustedP}
-        familySize={familySize}
-        loading={available && active && completed < entries.length}
-      />
-      <ComparisonChart
         title={hasArea ? region.name : "Region"}
         scope="regional"
         entries={entries}
@@ -222,6 +202,26 @@ function ComparisonAnalysisComponent({
         onMonth={onMonth}
         eventWindow={eventWindow}
         noArea={!hasArea}
+        adjustedP={adjustedP}
+        familySize={familySize}
+        loading={available && active && completed < entries.length}
+      />
+      <ComparisonChart
+        title="Global"
+        scope="global"
+        entries={entries}
+        hiddenVariables={hiddenVariables}
+        onToggleVariable={toggleVariable}
+        onMode={onMode}
+        mode={mode}
+        domain={domain}
+        start={start}
+        end={end}
+        month={cursor ?? month}
+        onCursor={setCursor}
+        onMonth={onMonth}
+        eventWindow={eventWindow}
+        noArea={false}
         adjustedP={adjustedP}
         familySize={familySize}
         loading={available && active && completed < entries.length}

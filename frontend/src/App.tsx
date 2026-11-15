@@ -1153,11 +1153,6 @@ function App() {
             <Guide config={config.data} />
           </section>
         )}
-        <p className="workspace-data-note">
-          Real data derived from NASA products. The base image is static; the
-          data layer represents its displayed month. Descriptive comparisons do
-          not establish forecasts, event detection or causal attribution.
-        </p>
         <footer className="site-footer">
           <a
             href="#"
@@ -1170,11 +1165,7 @@ function App() {
           >
             <Earth size={19} /> KIPP.
           </a>
-          <span>Explore questions about our changing planet.</span>
           <div>
-            <span>INDEPENDENT LAB</span>
-            <span className="footer-dot" />
-            NASA SPACE APPS · 2026
             <button onClick={() => setModal("sources")}>
               Credits & data <ArrowUpRight size={12} />
             </button>
