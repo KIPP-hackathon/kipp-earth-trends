@@ -7,7 +7,10 @@ há até três variáveis selecionadas. Os cartões usam a altura real das linha
 e o Global aparece logo após o país, sem vazio intermediário. Seleções maiores
 mantêm a área de rolagem ampliada e os cabeçalhos fixos. Sem alterar dados,
 inferência, escala ou período. 141 testes frontend e build aprovados com
-Node.js 24; publicação em acompanhamento.
+Node.js 24. Publicado em `1ed0265` na Vercel e Cloudflare;
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43760117846)
+concluído com sucesso. Checagem local com uma variável confirmou tabela e área
+de rolagem com a mesma altura, sem reserva vazia após a linha.
 
 ## Ações do rodapé removidas — 15/11/2026
 
