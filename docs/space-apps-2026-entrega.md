@@ -1014,6 +1014,20 @@ OpenAI Codex assistiu integração, publicação e verificação. Revisão cient
 humana, previsão ENSO e submissão na página Project continuam etapas distintas.
 
 
+### Simplificacao dos controles do Trend Lab - 15/11/2026
+
+OpenAI Codex assistiu a reutilizacao do seletor agrupado do Explore nos eixos
+X/Y, com uma variavel por eixo e Y opcional. Exemplos ficam recolhidos.
+Removidos os badges Real monthly data e as acoes Save settings/Restore saved.
+Monthly period passa a definir tambem a referencia das anomalias, explicitada
+nos resultados. Os controles A/B voltam a alimentar o TrendChart existente,
+com delta quando ha espaco e cor de extrapolacao alem do ultimo mes observado.
+O ajuste sazonal da API e suas estatisticas permanecem como fonte dos valores.
+
+Validacao local com Node.js 24, testes frontend e builds frontend/API.
+Conferencia visual em navegador pendente. Alteracao local, sem publicacao.
+
+
 ## Evidência incremental — Events, estudo visual local (15/11/2026)
 
 OpenAI Codex assistiu uma proposta local para análise humana: capas vetoriais
@@ -1062,3 +1076,9 @@ deslocamento685,98px no desktop1440px. Incluindo Tōhoku, os oito cards mediram
 85 testes frontend e builds frontend/backend aprovados antes do envio, Node.js24.
 A captura de produção permanece fora do Git. A publicação visual não conclui
 as pendências científicas, revisão humana e submissão da página Project.
+
+
+Integracao dos controles do Trend Lab em 15/11/2026: conflito de anexos no
+checklist resolvido preservando os registros do Trend Lab e Events. Main
+`19dc594` integrada com 87 testes frontend e builds frontend/API aprovados
+em Node.js 24. Conta `Marcelo-Kenji-Noda` autorizada pelo usuario nesta sessao.

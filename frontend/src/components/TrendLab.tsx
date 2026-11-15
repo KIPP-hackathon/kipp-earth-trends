@@ -15,8 +15,8 @@ import { useEarthResource } from "../lib/useEarthResource";
 import { useGlobeCamera } from "../lib/useGlobeCamera";
 import { initialGlobeView } from "../lib/comparison";
 import { parseStudyBbox } from "../lib/assistant";
-import { monthIndex, trendUnit } from "../lib/trendLab";
-import { investigationStorageKey, parseSavedStudy } from "../lib/investigation";
+import { monthIndex } from "../lib/trendLab";
+import { MultiVariablePicker } from "./MultiVariablePicker";
 import { RealGlobe } from "./RealGlobe";
 import { SearchPicker } from "./ExplorationControls";
 import { MonthPicker } from "./MonthPicker";
@@ -65,10 +65,6 @@ export function TrendLab({
   const [region, setRegion] = useState<EarthRegion>(initialCountry.region);
   const [selectedVariable, setSelectedVariable] = useState("temperature");
   const [secondId, setSecondId] = useState("");
-  const [baseline, setBaseline] = useState({
-    start: "2003-01",
-    end: "2020-12",
-  });
   const [savedMessage, setSavedMessage] = useState("");
   const [period, setPeriod] = useState({ start: "", end: "" });
   const [submitted, setSubmitted] = useState<Study>();
@@ -107,11 +103,11 @@ export function TrendLab({
     bbox: region.bbox,
     start,
     end,
-    baselineStart: baseline.start,
-    baselineEnd: baseline.end,
+    baselineStart: start,
+    baselineEnd: end,
     method: "relationships-v1",
   };
-  const span = [start, end, baseline.start, baseline.end].map(monthIndex);
+  const span = [start, end].map(monthIndex);
   const validPeriod =
     !!variable &&
     numeric(variable) &&
@@ -121,7 +117,6 @@ export function TrendLab({
     months.includes(start) &&
     months.includes(end) &&
     start <= end &&
-    baseline.start <= baseline.end &&
     span.every((n) => n !== null) &&
     Math.max(...(span as number[])) - Math.min(...(span as number[])) < 600;
   const supported = catalog.capabilities?.investigations === true;
@@ -213,47 +208,7 @@ export function TrendLab({
       longitude: -57,
       latitude: -19,
     });
-    setBaseline({ start: "2003-01", end: "2020-12" });
     setSavedMessage("Preset loaded. Generate to apply it.");
-  };
-  const restore = () => {
-    try {
-      const saved = parseSavedStudy(
-        localStorage.getItem(investigationStorageKey) ?? "null",
-      );
-      if (
-        !available.some((v) => v.id === saved.request.x) ||
-        (saved.request.y && !available.some((v) => v.id === saved.request.y))
-      )
-        throw new Error(
-          "A saved indicator is unavailable in the current catalog.",
-        );
-      const box = parseStudyBbox(saved.request.bbox);
-      if (!box) throw new Error("Saved region is invalid.");
-      setSelectedVariable(saved.request.x);
-      setSecondId(saved.request.y ?? "");
-      setPeriod({ start: saved.request.start, end: saved.request.end });
-      setBaseline({
-        start: saved.request.baselineStart,
-        end: saved.request.baselineEnd,
-      });
-      const [w, s, e, n] = box;
-      const width = e >= w ? e - w : e + 360 - w;
-      selectRegion({
-        id: "trend-restored",
-        name: saved.regionName,
-        bbox: box.join(","),
-        longitude: ((w + width / 2 + 540) % 360) - 180,
-        latitude: (s + n) / 2,
-      });
-      setSavedMessage(
-        "Saved settings restored. Generate to load current data.",
-      );
-    } catch (error) {
-      setSavedMessage(
-        error instanceof Error ? error.message : "No saved settings available.",
-      );
-    }
   };
   return (
     <div className="trend-lab">
@@ -269,7 +224,6 @@ export function TrendLab({
             Choose a place. Discover trends, unusual months, and relationships.
           </p>
         </div>
-        <span className="trend-model-tag">Real monthly data · Runtime fit</span>
       </header>
       <div className="trend-layout">
         <section className="trend-setup" aria-label="Trend setup">
@@ -313,64 +267,49 @@ export function TrendLab({
           </div>
           <div className="trend-setup-step">
             <h3>2 · Select indicators</h3>
-            <SearchPicker
+            <MultiVariablePicker
               id={`${id}-indicator`}
               label="Indicator X"
-              value={variable?.id ?? ""}
-              options={available.map((entry) => ({
-                id: entry.id,
-                name: numeric(entry)
-                  ? `${entry.name} (${trendUnit(entry.unit)})`
-                  : entry.name,
-                detail: numeric(entry)
-                  ? entry.domain
-                  : `${entry.domain ? `${entry.domain} · ` : ""}Categorical classes · linear regression unavailable`,
-                domain: entry.domain,
-                disabled: !numeric(entry),
-              }))}
-              onChange={(value) => {
+              single
+              variables={available.filter(numeric)}
+              selected={variable ? [variable.id] : []}
+              onApply={([value]) => {
                 setSelectedVariable(value);
                 if (value === secondId) setSecondId("");
                 setPeriod({ start: "", end: "" });
               }}
             />
-            {variable?.description && (
-              <p className="trend-small">{variable.description}</p>
-            )}
-            <SearchPicker
+            <MultiVariablePicker
               id={`${id}-second`}
               label="Indicator Y (optional)"
-              value={secondId}
-              options={[
-                { id: "", name: "None — single-variable study" },
-                ...available
-                  .filter((v) => v.id !== variable?.id)
-                  .map((v) => ({
-                    id: v.id,
-                    name: `${v.name} (${trendUnit(v.unit)})`,
-                    disabled: !numeric(v),
-                  })),
-              ]}
-              onChange={(value) => {
-                setSecondId(value);
+              single
+              optional
+              variables={available.filter(
+                (v) => numeric(v) && v.id !== variable?.id,
+              )}
+              selected={secondId ? [secondId] : []}
+              onApply={([value]) => {
+                setSecondId(value ?? "");
                 setPeriod({ start: "", end: "" });
               }}
             />
-            <div className="investigation-presets">
-              <span className="trend-kicker">TRY A QUESTION</span>
-              <button
-                type="button"
-                onClick={() => preset("temperature", "rainfall")}
-              >
-                Pantanal: heat & rainfall
-              </button>
-              <button
-                type="button"
-                onClick={() => preset("rainfall", "grace_water_equivalent")}
-              >
-                Pantanal: rainfall & storage
-              </button>
-            </div>
+            <details className="investigation-examples">
+              <summary>Try an example</summary>
+              <div className="investigation-presets">
+                <button
+                  type="button"
+                  onClick={() => preset("temperature", "rainfall")}
+                >
+                  Pantanal: heat & rainfall
+                </button>
+                <button
+                  type="button"
+                  onClick={() => preset("rainfall", "grace_water_equivalent")}
+                >
+                  Pantanal: rainfall & storage
+                </button>
+              </div>
+            </details>
           </div>
           <div className="trend-setup-step">
             <h3>3 · Select period</h3>
@@ -410,33 +349,6 @@ export function TrendLab({
               Seasonal fits require 24 values and two of every calendar month.
               Inference requires 60 consecutive months.
             </p>
-            <fieldset className="investigation-reference">
-              <legend>Study reference</legend>
-              <label>
-                Reference from
-                <input
-                  type="month"
-                  min="1900-01"
-                  max="2100-12"
-                  value={baseline.start}
-                  onChange={(e) =>
-                    setBaseline({ ...baseline, start: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Reference to
-                <input
-                  type="month"
-                  min="1900-01"
-                  max="2100-12"
-                  value={baseline.end}
-                  onChange={(e) =>
-                    setBaseline({ ...baseline, end: e.target.value })
-                  }
-                />
-              </label>
-            </fieldset>
             {!supported && (
               <p className="trend-notice">
                 This API version does not support investigations yet. Refresh
@@ -475,36 +387,6 @@ export function TrendLab({
                 ? "Generate new investigation"
                 : "Generate investigation"}
             </button>
-            <div className="investigation-toolbar">
-              <button
-                type="button"
-                disabled={!validPeriod}
-                onClick={() => {
-                  try {
-                    localStorage.setItem(
-                      investigationStorageKey,
-                      JSON.stringify({
-                        version: 1,
-                        request,
-                        regionName: region.name,
-                      }),
-                    );
-                    setSavedMessage(
-                      "Investigation settings saved on this device.",
-                    );
-                  } catch {
-                    setSavedMessage(
-                      "This browser could not save the settings.",
-                    );
-                  }
-                }}
-              >
-                Save settings
-              </button>
-              <button type="button" onClick={restore}>
-                Restore saved
-              </button>
-            </div>
             <p className="trend-small" role="status">
               {savedMessage}
             </p>
