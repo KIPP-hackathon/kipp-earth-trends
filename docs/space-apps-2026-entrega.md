@@ -748,7 +748,13 @@ considerar apenas as variáveis selecionadas no recorte, incluindo as curvas
 ocultas; a escala vertical usa somente os dados regionais. Sem recorte, a UI
 pede selecionar um país ou desenhar uma área, sem consultar uma série global
 como substituta. O contrato da API permanece compatível. Nenhum dado ou
-modelo de tendência foi alterado. Publicação e validação serão registradas.
+modelo de tendência foi alterado. Publicação9b78a98 aprovada pela Vercel e
+pelo CI43687636418, incluindo a atualização do contexto do agente.80checks
+existentes e builds frontend/backend aprovados; verificação específica de
+Holm confirmou exclusão dos testes globais. A main posterior9c5c9c7 manteve
+apenas um ComparisonChart regional e o bundle público index-CeqgUBWO.js
+confirmou os controles alinhados e ausência de Trend CSV. Navegação visual
+automatizada não foi declarada; publicação conferida por código e artefatos.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
