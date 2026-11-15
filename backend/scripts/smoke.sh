@@ -20,12 +20,31 @@ assert.equal(data.simulated, false);
 assert.equal(data.provider, 'databricks-sql');
 assert.equal(data.sourceLayer, 'trusted');
 if (process.env.EXPECTED_REVISION) assert.equal(data.revision, process.env.EXPECTED_REVISION);
-assert.equal(data.variables.length, 205, 'All consolidated physical indicators must remain explicit');
+assert.equal(data.variables.length, 224, 'All selected physical indicators must remain explicit');
+const selectedTables = new Set([
+  'tb_merra2_fluxos', 'tb_merra2_nuvens', 'tb_merra2_pressao_altura',
+  'tb_merra2_temperatura', 'tb_merra2_umidade', 'tb_merra2_variancias',
+  'tb_merra2_vento', 'tb_merra2_aerossois', 'tb_merra2_quimica',
+  'tb_gpm_imerg_precipitation_final_late', 'tb_sea_ice_concentration_global'
+].map(table => `earth-trend-data.trusted.${table}`));
+assert.deepEqual(new Set(data.variables.map(v => v.sourceUC)), selectedTables);
+assert.equal(new Set(data.variables.map(v => `${v.sourceUC}:${v.sourceColumn}`)).size, 224,
+  'Physical indicators must be unique');
+assert.ok(!data.variables.some(v => ['rainfall_late', 'rainfall_rate_late'].includes(v.id)),
+  'IMERG Late must not duplicate the combined quantities');
+for (const id of ['rainfall', 'rainfall_rate']) {
+  const variable = data.variables.find(v => v.id === id);
+  assert.equal(variable?.available, true);
+  assert.equal(variable.sourceUC, 'earth-trend-data.trusted.tb_gpm_imerg_precipitation_final_late');
+  assert.equal(variable.months.find(m => m.month === '2025-09')?.processingRun, 'Final');
+  assert.equal(variable.months.find(m => m.month === '2025-10')?.processingRun, 'Late');
+}
+assert.equal(data.variables.find(v => v.id === 'sea_ice_concentration')?.available, true);
 for (const variable of data.variables) {
   assert.equal(variable.source, 'databricks-sql');
   assert.equal(variable.sourceLayer, 'trusted');
   assert.match(variable.sourceUC, /^earth-trend-data\.trusted\./);
-  assert.match(variable.sourceUC, /^earth-trend-data\.trusted\.tb_merra2_(fluxos|nuvens|pressao_altura|temperatura|umidade|variancias|vento)$/);
+  assert.ok(selectedTables.has(variable.sourceUC), `Unexpected app table: ${variable.sourceUC}`);
   assert.ok(variable.sourceColumn, `Missing physical indicator: ${variable.id}`);
   if (variable.coverageFlag === false) {
     assert.equal(variable.available, false, `Flagged indicator selectable: ${variable.id}`);
