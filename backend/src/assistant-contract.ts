@@ -5,7 +5,6 @@ export const assistantTabs = [
   "explore",
   "compare",
   "events",
-  "analysis",
   "learn",
 ] as const;
 export type AssistantTab = (typeof assistantTabs)[number];

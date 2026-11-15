@@ -4,7 +4,7 @@ import type { EarthColorRange, EarthRegion, ComparisonMode } from "./earthApi";
 import type { LayerSetting } from "./layers";
 
 export type InvestigationView = {
-  tab: "explore" | "compare" | "analysis";
+  tab: "explore" | "compare";
   panels: {
     side: "A" | "B";
     variable: string;
@@ -235,7 +235,8 @@ export function validateInvestigationView(value: unknown): InvestigationView {
     colorRanges[key] = { domain, hideOutside: range.hideOutside };
   }
   return {
-    tab: v.tab,
+    // Older saved views used the removed Evidence workspace.
+    tab: v.tab === "analysis" ? "explore" : v.tab,
     panels,
     camera,
     colorRanges,

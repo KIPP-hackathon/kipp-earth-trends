@@ -1,5 +1,12 @@
 # Event context and exact stored trend evidence
 
+Update, November 15, 2026: the Evidence workspace and its dedicated trend panel
+were removed at the user's request. The guide and assistant navigation now use
+the remaining workspaces. Legacy saved Evidence configurations normalize to
+Explore. Stored trend queries remain available to the assistant and API. The
+panel descriptions and browser checks below document the earlier implementation.
+This removal is validated locally; publication has not been verified.
+
 Implemented locally on November 14, 2026. Deployment and integrated browser
 verification must be recorded separately; this document does not establish a
 finished scientific investigation or Space Apps submission.

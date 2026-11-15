@@ -527,3 +527,17 @@ Preview em `http://localhost:5185`, com proxy para a API pública existente.
 47 testes aprovados; build aprovado com Node.js 24. Chromium confirmou
 posicionamento das camadas, tamanhos de texto maiores, controles funcionais e
 390 px sem overflow horizontal ou exceções JS. Captura mobile inspecionada.
+
+
+### Ajuste solicitado — remoção da página Evidence (15/11/2026)
+
+OpenAI Codex assistiu a remoção da aba Evidence, seu painel e estilos exclusivos.
+O guia deixou de anunciar a página e o contrato do assistente deixou de oferecer
+a navegação para ela. Configurações antigas com a aba `analysis` são normalizadas
+para Explore pelo validador. Consultas de tendências armazenadas continuam na
+API e no assistente, com métodos, proveniência e limitações preservados.
+
+Validação local com Node.js 24: 47 testes do frontend e builds do frontend e da
+API aprovados. Publicação e conferência em navegador não realizadas nesta
+alteração. Revisão humana e investigação científica reproduzível continuam
+pendentes; esta remoção não conclui os requisitos científicos ou a submissão.

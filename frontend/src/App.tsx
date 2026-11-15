@@ -10,25 +10,22 @@ import {
 } from "lucide-react";
 import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
-import type { InvestigationView } from "./lib/investigations";
 import { EventExplorer } from "./components/EventExplorer";
-import { TrendEvidence } from "./components/TrendEvidence";
 import { RealPanel } from "./components/RealDataView";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { useCountryLocation } from "./lib/useCountryLocation";
-import { brazilCountry, loadCountries } from "./lib/countries";
+import { brazilCountry } from "./lib/countries";
 import type { CountrySelection } from "./lib/countries";
 import "./country-location.css";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
 import { useGlobeCamera } from "./lib/useGlobeCamera";
-import { loadCatalog, loadConfig, loadEvents, realMonth } from "./lib/earthApi";
+import { loadCatalog, loadConfig, realMonth } from "./lib/earthApi";
 import type {
   EarthColorRange,
   EarthConfig,
   EarthEvent,
   EarthVariable,
-  EarthTrendEvidence,
 } from "./lib/earthApi";
 import { useEarthResource } from "./lib/useEarthResource";
 import { invalidateFrames } from "./lib/earthFrameCache";
@@ -77,7 +74,7 @@ const guide = [
   },
   {
     title: "Assess change and uncertainty",
-    text: "Evidence shows stored trend estimates only when the variable, region and period match exactly. Inspect methods, coverage and uncertainty. This short record does not establish a long-term climate trend; a non-significant result does not establish no change.",
+    text: "Ask the assistant about stored trend studies and inspect their methods, coverage and uncertainty. Estimates apply only to their exact variable, region and period. This short record does not establish a long-term climate trend; a non-significant result does not establish no change.",
   },
 ];
 function Guide({ config }: { config?: EarthConfig }) {
@@ -246,7 +243,6 @@ function App() {
       ? 1
       : 0,
   );
-  const initialShareVersion = useRef(version.current);
   const commandNonce = useRef(0);
   const markChanged = useCallback(() => {
     version.current++;
@@ -298,7 +294,6 @@ function App() {
     // Only a new permission result bootstraps a country, not camera/data renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.status, location.country]);
-  const [studyError, setStudyError] = useState("");
   const [modal, setModal] = useState<"sources" | "guide" | null>(null);
   const catalog = useEarthResource("catalog", loadCatalog);
   const config = useEarthResource("configuration", loadConfig);
@@ -341,7 +336,7 @@ function App() {
     () => getWorkspaceContext(activeTab.current),
     [getWorkspaceContext],
   );
-  const isExploration = active === "explore" || active === "analysis";
+  const isExploration = active === "explore";
   const showTab = (tab: LabTab) => {
     markChanged();
     setActive(tab);
@@ -410,169 +405,6 @@ function App() {
       latitude: event.latitude,
     });
     showTab(compare ? "compare" : "explore");
-  };
-  const restoreInvestigation = async (
-    view: InvestigationView,
-    automatic = false,
-  ) => {
-    if (automatic && version.current !== initialShareVersion.current)
-      throw new Error(
-        "You changed the view before the shared investigation was ready. Reload this link to open it.",
-      );
-    if (!catalog.data || !config.data)
-      throw new Error("The data catalog is not ready. Please retry.");
-    const requestedVersion = version.current;
-    const countries = await loadCountries();
-    const sameBounds = (a: string, b: string) =>
-      a
-        .split(",")
-        .map(Number)
-        .every((n, i) => Math.abs(n - Number(b.split(",")[i])) < 1e-7);
-    for (const panel of view.panels) {
-      const variable = catalog.data.variables.find(
-        (entry) => entry.id === panel.variable && entry.available !== false,
-      );
-      const layerIds = panel.layers?.map(layer => layer.variable) ?? [panel.variable];
-      const layerVariables = layerIds.map(id => catalog.data!.variables.find(entry =>
-        entry.id === id && entry.available !== false && entry.months.some(row => row.validSamples > 0)));
-      if (layerVariables.some(entry => !entry))
-        throw new Error("A saved variable is unavailable in the current catalog. No filters were changed.");
-      const months = new Set(
-        layerVariables.flatMap(entry => entry?.months ?? [])
-          .filter((row) => row.validSamples > 0)
-          .map((row) => row.month),
-      );
-      if (
-        !variable ||
-        ![panel.start, panel.end, panel.month].every((month) =>
-          months.has(month),
-        )
-      )
-        throw new Error(
-          `Saved dates for ${panel.variable} are not in the current catalog. No filters were changed.`,
-        );
-      const fixed = config.data.regions.find(
-        (region) => region.id === panel.region.id,
-      );
-      if (fixed && !sameBounds(fixed.bbox, panel.region.bbox))
-        throw new Error(
-          "This saved area conflicts with a current preset. No filters were changed.",
-        );
-      if (panel.region.id.startsWith("custom-country-")) {
-        const country = countries.find(
-          (entry) => entry.region.id === panel.region.id,
-        );
-        if (!country || !sameBounds(country.region.bbox, panel.region.bbox))
-          throw new Error(
-            "The saved country boundary could not be verified. No filters were changed.",
-          );
-      }
-      if (
-        panel.region.id === "custom-global" &&
-        !sameBounds(panel.region.bbox, globalStudyRegion.bbox)
-      )
-        throw new Error(
-          "Invalid global study extent. No filters were changed.",
-        );
-    }
-    for (const id of Object.keys(view.colorRanges)) {
-      const variable = catalog.data.variables.find((entry) => entry.id === id);
-      if (!variable || variable.render?.kind === "categorical")
-        throw new Error(
-          "A saved display range does not match the current variable. No filters were changed.",
-        );
-    }
-    let event: EarthEvent | undefined;
-    if (view.eventId) {
-      const events = await loadEvents(AbortSignal.timeout(30000));
-      event = events.events.find((entry) => entry.id === view.eventId);
-      if (
-        !event ||
-        !view.panels.every((panel) =>
-          sameBounds(panel.region.bbox, event!.bbox),
-        )
-      )
-        throw new Error(
-          "The saved event context does not match this study area. No filters were changed.",
-        );
-    }
-    if (version.current !== requestedVersion)
-      throw new Error(
-        "The view changed while opening this investigation. Retry to apply it.",
-      );
-    markChanged();
-    const workspace = view.tab === "compare" ? comparison : exploration;
-    const nonce = ++commandNonce.current;
-    for (const panel of view.panels) workspace.registerRegion(panel.region);
-    workspace.setPresets(
-      Object.fromEntries(
-        view.panels.map((panel) => [
-          panel.side,
-          {
-            variable: panel.variable,
-            ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
-            comparisonMode:panel.comparisonMode,
-            month: panel.month,
-            start: panel.start,
-            end: panel.end,
-            region: panel.region.id,
-            nonce,
-          },
-        ]),
-      ),
-    );
-    workspace.setColorRanges(structuredClone(view.colorRanges));
-    workspace.setEventContext(event);
-    workspace.setPlaybackCommands(
-      Object.fromEntries(
-        view.panels.map((panel) => [panel.side, { playing: false, nonce }]),
-      ),
-    );
-    workspace.camera.flyTo(view.camera);
-    setActive(view.tab);
-  };
-  const openStoredContext = (
-    context: EarthTrendEvidence["supportedContexts"][number],
-  ) => {
-    if (
-      context.bbox.length !== 4 ||
-      context.bbox.some((value) => value === null || !Number.isFinite(value))
-    )
-      return;
-    const [west, south, east, north] = context.bbox as number[];
-    const width = east >= west ? east - west : east + 360 - west;
-    const region: EarthRegion = {
-      id: `custom-reference-${context.regionId}`,
-      name: context.regionName.slice(0, 80),
-      bbox: context.bbox.join(","),
-      longitude: ((((west + width / 2 + 180) % 360) + 360) % 360) - 180,
-      latitude: (south + north) / 2,
-    };
-    void restoreInvestigation({
-      tab: "analysis",
-      panels: [
-        {
-          side: "A",
-          variable: context.variable,
-          month: context.end,
-          start: context.start,
-          end: context.end,
-          region,
-        },
-      ],
-      camera: {
-        ...exploration.camera.view,
-        longitude: region.longitude,
-        latitude: region.latitude,
-      },
-      colorRanges: {},
-    }).catch((error) =>
-      setStudyError(
-        error instanceof Error
-          ? error.message
-          : "This stored context could not be opened.",
-      ),
-    );
   };
   const applyAssistantResponse = (
     response: AssistantResponse,
@@ -941,12 +773,6 @@ function App() {
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
-        {studyError && (
-          <p role="alert" className="real-error">
-            {studyError}
-            <button onClick={() => setStudyError("")}>Dismiss</button>
-          </p>
-        )}
         {(catalog.loading || config.loading) && (
           <p className="real-notice" role="status">
             Loading real variables and study areas…
@@ -963,9 +789,9 @@ function App() {
             <section
               hidden={!isExploration}
               role="tabpanel"
-              id={`panel-${active === "analysis" ? "analysis" : "explore"}`}
-              aria-labelledby={`tab-${active === "analysis" ? "analysis" : "explore"}`}
-              className={`real-workspace ${active === "analysis" ? "is-analysis" : ""}`}
+              id="panel-explore"
+              aria-labelledby="tab-explore"
+              className="real-workspace"
             >
               {renderEventContext(exploration, false)}
               <div className="real-panels">
@@ -993,17 +819,6 @@ function App() {
                   onCustomRegion={exploration.registerRegion}
                   onAreaChange={() => exploration.setEventContext(undefined)}
                   eventWindow={exploration.eventContext?.window}
-                  analysisContent={
-                    active === "analysis" && exploration.studies.A ? (
-                      <TrendEvidence
-                        variable={exploration.studies.A.variable}
-                        bbox={exploration.studies.A.region.bbox}
-                        start={exploration.studies.A.start}
-                        end={exploration.studies.A.end}
-                        onSelectContext={openStoredContext}
-                      />
-                    ) : undefined
-                  }
                 />
               </div>
               <p className="real-method-note">
