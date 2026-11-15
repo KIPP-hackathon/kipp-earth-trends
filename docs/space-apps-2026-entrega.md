@@ -866,7 +866,11 @@ temperatura, país escolhido preservado, comparação inicialmente independente,
 seleção preservada entre abas e abertura de salvo/link a partir da tela vazia.
 Nova visita comum continuou vazia mesmo com salvo local; fixture removida.
 1440/390/360 px sem overflow. Ambiente sem WebGL: validação da interface e
-consultas, não da renderização das camadas. Publicação em verificação.
+consultas, não da renderização das camadas. Publicação `cdfed62` confirmada pela
+[Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/AN3adVJSTNeWPLE22xregZhZPxGD)
+e pelo bundle público `index-DZtDWBmn.js`, idêntico ao validado. Chrome em
+produção confirmou zero variáveis/gráficos e zero consultas de dados de
+variáveis na entrada, com Saved acessível e Save aguardando seleção.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
