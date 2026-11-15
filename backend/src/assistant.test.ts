@@ -233,3 +233,63 @@ for (const [reason, batches] of [
     } else assert.deepEqual(result.actions, []);
   });
 }
+
+test("Trend Lab tool preserves request, provenance, missingness and full inference family", async () => {
+  const tools = createAssistantTools(options);
+  const selection = {
+    x: "rainfall",
+    bbox: "170,-10,-170,10",
+    start: "2025-09",
+    end: "2025-11",
+  };
+  const executed = await tools.execute(
+    "run_investigation",
+    { selection, name: "Wrapped area" },
+    request.context,
+  );
+  const expected = await data.investigation({
+    ...selection,
+    baselineStart: selection.start,
+    baselineEnd: selection.end,
+    method: "relationships-v1",
+  });
+  const result = executed.result as {
+    request: unknown;
+    family: unknown;
+    series: {
+      trend: unknown;
+      coverage: { validMonths: number };
+      observations?: unknown;
+      processingRuns: string[];
+    }[];
+  };
+  assert.deepEqual(result.request, expected.request);
+  assert.deepEqual(result.family, expected.family);
+  assert.deepEqual(result.series[0].trend, expected.series[0].trend);
+  assert.equal(result.series[0].observations, undefined);
+  assert.equal(result.series[0].coverage.validMonths, 2);
+  assert.deepEqual(result.series[0].processingRuns, ["Final", "Late"]);
+  assert.deepEqual(executed.actions, [
+    { type: "run_investigation", selection, name: "Wrapped area" },
+  ]);
+  for (const bad of [
+    { ...selection, y: "rainfall" },
+    { ...selection, start: "1900-01" },
+    { ...selection, bbox: "invalid" },
+    { ...selection, x: "temperature" },
+  ])
+    await assert.rejects(
+      tools.execute(
+        "run_investigation",
+        { selection: bad, name: "Test" },
+        request.context,
+      ),
+    );
+  await assert.rejects(
+    tools.execute(
+      "configure_view",
+      { actions: executed.actions },
+      request.context,
+    ),
+  );
+});

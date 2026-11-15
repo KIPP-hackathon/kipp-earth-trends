@@ -1,9 +1,12 @@
+import type { InvestigationRequest } from "./investigation.ts";
+import { validateInvestigation } from "./investigation.ts";
 import { ApiError } from "./core.ts";
 import { parseBounds, parseMonth, variables } from "./data.ts";
 
 export const assistantTabs = [
   "explore",
   "compare",
+  "trend",
   "events",
   "learn",
 ] as const;
@@ -17,9 +20,9 @@ export type AssistantRegion = {
   latitude: number;
 };
 export type AssistantPanel = {
-  comparisonMode?:"standardized"|"minmax";
-  layers?: {variable:string;visible:boolean;opacity:number}[];
-  layerMonths?: Record<string,string|null>;
+  comparisonMode?: "standardized" | "minmax";
+  layers?: { variable: string; visible: boolean; opacity: number }[];
+  layerMonths?: Record<string, string | null>;
   side: AssistantSide;
   variable: string;
   selectedMonth: string | null;
@@ -30,7 +33,18 @@ export type AssistantPanel = {
   loading: boolean;
   playing: boolean;
 };
+export type TrendSelection = Pick<
+  InvestigationRequest,
+  "x" | "y" | "bbox" | "start" | "end"
+>;
+export type TrendContext = {
+  selection?: TrendSelection;
+  applied?: TrendSelection;
+  loading: boolean;
+  generatedAt?: string;
+};
 export type AssistantContext = {
+  trendLab?: TrendContext;
   version: number;
   tab: AssistantTab;
   panels: AssistantPanel[];
@@ -51,6 +65,7 @@ export type AssistantRequest = {
   context: AssistantContext;
 };
 export type AssistantAction =
+  | { type: "run_investigation"; selection: TrendSelection; name: string }
   | { type: "set_tab"; tab: AssistantTab }
   | {
       type: "set_panel";
@@ -118,6 +133,29 @@ const rangeSchema = objectSchema({
   domain: { type: "array", items: num(-1e20, 1e20), minItems: 2, maxItems: 2 },
   hideOutside: bool,
 });
+export const trendSelectionSchema = objectSchema(
+  {
+    x: variableSchema,
+    y: variableSchema,
+    bbox: bboxSchema,
+    start: monthSchema,
+    end: monthSchema,
+  },
+  ["x", "bbox", "start", "end"],
+);
+export function investigationRequest(
+  selection: TrendSelection,
+): InvestigationRequest {
+  const request: InvestigationRequest = {
+    ...selection,
+    baselineStart: selection.start,
+    baselineEnd: selection.end,
+    method: "relationships-v1",
+  };
+  parseBounds(selection.bbox);
+  validateInvestigation(request);
+  return request;
+}
 export const assistantRequestSchema = objectSchema({
   message: text(2000),
   history: {
@@ -129,53 +167,105 @@ export const assistantRequestSchema = objectSchema({
       content: text(3000),
     }),
   },
-  context: objectSchema({
-    version: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER },
-    tab: tabSchema,
-    panels: {
-      type: "array",
-      minItems: 0,
-      maxItems: 2,
-      items: objectSchema({
-        side: sideSchema,
-        variable: variableSchema,
-        selectedMonth: nullableMonth,
-        displayedMonth: nullableMonth,
-        start: monthSchema,
-        end: monthSchema,
-        region: objectSchema({
-          id: { ...text(80), pattern: "^[a-zA-Z0-9_-]+$" },
-          name: text(80),
-          bbox: bboxSchema,
-          longitude: lon,
-          latitude: lat,
-        }),
-        loading: bool,
-        playing: bool,
-        comparisonMode:{type:"string",enum:["standardized","minmax"]},
-        layers: {type:"array",minItems:1,maxItems:variables.length,items:objectSchema({
-          variable:variableSchema,visible:bool,opacity:num(0,1),
-        })},
-        layerMonths: {type:"object",maxProperties:variables.length,
-          properties:Object.fromEntries(variables.map(v=>[v.id,nullableMonth])),additionalProperties:false},
-      },["side","variable","selectedMonth","displayedMonth","start","end","region","loading","playing"]),
+  context: objectSchema(
+    {
+      trendLab: objectSchema(
+        {
+          selection: trendSelectionSchema,
+          applied: trendSelectionSchema,
+          loading: bool,
+          generatedAt: text(80),
+        },
+        ["loading"],
+      ),
+      version: {
+        type: "integer",
+        minimum: 0,
+        maximum: Number.MAX_SAFE_INTEGER,
+      },
+      tab: tabSchema,
+      panels: {
+        type: "array",
+        minItems: 0,
+        maxItems: 2,
+        items: objectSchema(
+          {
+            side: sideSchema,
+            variable: variableSchema,
+            selectedMonth: nullableMonth,
+            displayedMonth: nullableMonth,
+            start: monthSchema,
+            end: monthSchema,
+            region: objectSchema({
+              id: { ...text(80), pattern: "^[a-zA-Z0-9_-]+$" },
+              name: text(80),
+              bbox: bboxSchema,
+              longitude: lon,
+              latitude: lat,
+            }),
+            loading: bool,
+            playing: bool,
+            comparisonMode: {
+              type: "string",
+              enum: ["standardized", "minmax"],
+            },
+            layers: {
+              type: "array",
+              minItems: 1,
+              maxItems: variables.length,
+              items: objectSchema({
+                variable: variableSchema,
+                visible: bool,
+                opacity: num(0, 1),
+              }),
+            },
+            layerMonths: {
+              type: "object",
+              maxProperties: variables.length,
+              properties: Object.fromEntries(
+                variables.map((v) => [v.id, nullableMonth]),
+              ),
+              additionalProperties: false,
+            },
+          },
+          [
+            "side",
+            "variable",
+            "selectedMonth",
+            "displayedMonth",
+            "start",
+            "end",
+            "region",
+            "loading",
+            "playing",
+          ],
+        ),
+      },
+      camera: objectSchema({
+        longitude: lon,
+        latitude: lat,
+        zoom,
+        showLayer: bool,
+      }),
+      colorRanges: {
+        type: "object",
+        maxProperties: variables.length,
+        properties: Object.fromEntries(
+          variables.map((v) => [v.id, rangeSchema]),
+        ),
+        additionalProperties: false,
+      },
     },
-    camera: objectSchema({
-      longitude: lon,
-      latitude: lat,
-      zoom,
-      showLayer: bool,
-    }),
-    colorRanges: {
-      type: "object",
-      maxProperties: variables.length,
-      properties: Object.fromEntries(variables.map((v) => [v.id, rangeSchema])),
-      additionalProperties: false,
-    },
-  }),
+    ["version", "tab", "panels", "camera", "colorRanges"],
+  ),
 });
 export const assistantActionSchema: JsonSchema = {
   anyOf: [
+    objectSchema({
+      type: { const: "run_investigation" },
+      selection: trendSelectionSchema,
+      name: text(80),
+    }),
     objectSchema({ type: { const: "set_tab" }, tab: tabSchema }),
     objectSchema(
       {
@@ -274,7 +364,11 @@ export function assertSchema(value: unknown, schema: JsonSchema): void {
       "Invalid assistant input or unsupported fields.",
     );
 }
-export function validatePeriod(start: string, end: string, maximumMonths = 120): string[] {
+export function validatePeriod(
+  start: string,
+  end: string,
+  maximumMonths = 120,
+): string[] {
   parseMonth(start);
   parseMonth(end);
   const index = (m: string) =>
@@ -302,6 +396,12 @@ export function validateAssistantRequest(raw: unknown): AssistantRequest {
       "INVALID_ASSISTANT_INPUT",
       "Message cannot be blank.",
     );
+  for (const selection of [
+    request.context.trendLab?.selection,
+    request.context.trendLab?.applied,
+  ]) {
+    if (selection) investigationRequest(selection);
+  }
   const sides = new Set<string>();
   for (const panel of request.context.panels) {
     if (sides.has(panel.side))
@@ -312,12 +412,28 @@ export function validateAssistantRequest(raw: unknown): AssistantRequest {
       );
     sides.add(panel.side);
     validatePeriod(panel.start, panel.end, 2400);
-    if (panel.layers && (new Set(panel.layers.map(layer=>layer.variable)).size !== panel.layers.length ||
-        !panel.layers.some(layer=>layer.variable===panel.variable)))
-      throw new ApiError(400,"INVALID_ASSISTANT_INPUT","Invalid selected layer configuration.");
-    if (panel.layerMonths && Object.keys(panel.layerMonths).some(id=>
-        !panel.layers?.some(layer=>layer.variable===id)))
-      throw new ApiError(400,"INVALID_ASSISTANT_INPUT","Layer dates must match selected variables.");
+    if (
+      panel.layers &&
+      (new Set(panel.layers.map((layer) => layer.variable)).size !==
+        panel.layers.length ||
+        !panel.layers.some((layer) => layer.variable === panel.variable))
+    )
+      throw new ApiError(
+        400,
+        "INVALID_ASSISTANT_INPUT",
+        "Invalid selected layer configuration.",
+      );
+    if (
+      panel.layerMonths &&
+      Object.keys(panel.layerMonths).some(
+        (id) => !panel.layers?.some((layer) => layer.variable === id),
+      )
+    )
+      throw new ApiError(
+        400,
+        "INVALID_ASSISTANT_INPUT",
+        "Layer dates must match selected variables.",
+      );
     parseBounds(panel.region.bbox);
   }
   for (const [id, range] of Object.entries(request.context.colorRanges)) {

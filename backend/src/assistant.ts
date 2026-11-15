@@ -182,6 +182,9 @@ export function createAssistant(options: AssistantToolOptions) {
                 };
               else {
                 try {
+                  if ((call.name === "run_investigation" && actions.length > 0) ||
+                      (call.name === "configure_view" && actions.some(a => a.type === "run_investigation")))
+                    throw new ApiError(400, "MIXED_WORKSPACE_ACTIONS", "Use one run_investigation without other view commands in this response.");
                   const executed = await tools.execute(
                     String(call.name ?? ""),
                     call.args ?? {},

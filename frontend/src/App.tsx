@@ -39,6 +39,8 @@ import { earthReadCache } from "./lib/earthReadCache";
 import { Assistant } from "./components/Assistant";
 import { parseStudyBbox, validateAssistantActions } from "./lib/assistant";
 import type {
+  TrendContext,
+  TrendSelection,
   AssistantContext,
   AssistantResponse,
   PanelPreset,
@@ -272,6 +274,10 @@ function App() {
     version.current++;
   }, []);
   const [active, setActive] = useState<LabTab>("explore");
+  const trendContext = useRef<TrendContext>({loading: false});
+  const [trendCommand, setTrendCommand] = useState<{selection: TrendSelection; name: string; nonce: number}>();
+  const receiveTrendContext = useCallback((context: TrendContext) => { trendContext.current = context; }, []);
+
   const exploration = useLabWorkspace(markChanged);
   const comparison = useLabWorkspace(markChanged);
   const location = useCountryLocation();
@@ -347,6 +353,10 @@ function App() {
   activeTab.current = active;
   const getWorkspaceContext = useCallback(
     (tab: LabTab): AssistantContext => {
+      if (tab === "trend") return {
+        version: version.current, tab, panels: [], trendLab: structuredClone(trendContext.current),
+        camera: {...initialGlobeView}, colorRanges: {},
+      };
       const context = (tab === "compare" ? comparison : exploration).getContext(
           tab,
           version.current,
@@ -662,6 +672,16 @@ function App() {
       current.version !== requested.version
     )
       return "The view changed while this request was running. No commands applied; please retry with the current view.";
+    if (response.actions.some(a => a && typeof a === "object" && (a as {type?:string}).type === "run_investigation")) {
+      if (!catalog.data || !config.data) return "The catalog is unavailable. No commands applied.";
+      const actions = validateAssistantActions(response.actions, catalog.data, config.data, current);
+      const action = actions?.[0];
+      if (!action || action.type !== "run_investigation") return "The investigation could not be validated. No commands applied.";
+      markChanged();
+      setTrendCommand({selection: action.selection, name: action.name, nonce: ++commandNonce.current});
+      setActive("trend");
+      return "Trend Lab selection accepted. The page is running the same investigation; the explanation refers to the server computation recorded in Evidence.";
+    }
     const finalTab = response.actions.reduce<LabTab>((tab, raw) => {
       if (!raw || typeof raw !== "object" || Array.isArray(raw)) return tab;
       const action = raw as Record<string, unknown>;
@@ -1131,6 +1151,9 @@ function App() {
                 config={config.data!}
                 initialCountry={startingCountry}
                 active={active === "trend"}
+                assistantCommand={trendCommand}
+                onAssistantContext={receiveTrendContext}
+                onManualChange={markChanged}
               />
             </section>
             {active === "events" && (
@@ -1186,12 +1209,11 @@ function App() {
           </div>
         </footer>
       </main>
-      <div hidden={active === "trend"}>
+      <div>
         <Assistant
           ready={
             !!catalog.data &&
-            !!config.data &&
-            active !== "trend"
+            !!config.data
           }
           getContext={getContext}
           applyResponse={applyAssistantResponse}

@@ -25,6 +25,16 @@ de aproximadamente 147px. Cartão termina a 11px da borda inferior, dentro do
 padding do painel. Sem erros de página/overflow horizontal nas checagens;
 sem teste em iPhone físico. Publicação em acompanhamento; assistência IA
 registrada nesta entrada.
+## Assistente no Trend Lab — 15/11/2026
+
+OpenAI Codex integrou ferramenta bounded ao motor existente de investigações:
+uma/duas variáveis contínuas, bbox, período de até 600 meses e referência igual
+ao período. O assistente recebe resultados reais compactos, família Holm completa,
+cobertura e limitações, e configura/executa a mesma seleção na página. Contexto
+separa rascunho e última execução; edições manuais invalidam comandos pendentes.
+Nenhum estimador ou dado científico foi alterado. Ver [contrato e limites](assistant-trend-lab.md).
+Validação local: 141 testes frontend, 47 testes backend e builds frontend/API
+aprovados com Node.js 24. Revisão humana científica permanece pendente.
 
 ## Assistente seleciona a investigação — 15/11/2026
 
