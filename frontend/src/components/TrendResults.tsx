@@ -11,6 +11,8 @@ function TrendResultsComponent({
   adjustedP,
   familySize,
   loading,
+  hiddenVariables,
+  onToggleVariable,
 }: {
   entries: ComparisonEntry[];
   mode: ComparisonMode;
@@ -18,6 +20,8 @@ function TrendResultsComponent({
   adjustedP: Record<string, number>;
   familySize: number;
   loading: boolean;
+  hiddenVariables: Set<string>;
+  onToggleVariable: (id: string) => void;
 }) {
   const unit = mode === "standardized" ? "σ/year" : "points/year";
   return (
@@ -35,7 +39,8 @@ function TrendResultsComponent({
           </caption>
           <thead>
             <tr>
-              <th>Variable</th>
+              <th scope="col">Plot</th>
+              <th scope="col">Variable</th>
               <th>Rate/year</th>
               <th>p</th>
               <th>p (Holm)</th>
@@ -47,8 +52,23 @@ function TrendResultsComponent({
               const trend = data?.[scope].trends?.[mode],
                 adjusted = adjustedP[trendKey(scope, variable.id)];
               return (
-                <tr key={variable.id}>
-                  <th>
+                <tr
+                  key={variable.id}
+                  className={
+                    hiddenVariables.has(variable.id)
+                      ? "is-chart-hidden"
+                      : undefined
+                  }
+                >
+                  <td className="runtime-trend-visibility">
+                    <input
+                      type="checkbox"
+                      checked={!hiddenVariables.has(variable.id)}
+                      aria-label={`Show ${variable.name} in chart`}
+                      onChange={() => onToggleVariable(variable.id)}
+                    />
+                  </td>
+                  <th scope="row">
                     <i style={{ background: comparisonColor(variable.id) }} />
                     {variable.name}
                     {trend && (

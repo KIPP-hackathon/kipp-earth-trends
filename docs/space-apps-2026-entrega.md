@@ -755,3 +755,17 @@ Holm confirmou exclusão dos testes globais. A main posterior9c5c9c7 manteve
 apenas um ComparisonChart regional e o bundle público index-CeqgUBWO.js
 confirmou os controles alinhados e ausência de Trend CSV. Navegação visual
 automatizada não foi declarada; publicação conferida por código e artefatos.
+
+### Controles da investigação — 15/11/2026
+
+OpenAI Codex assistiu o agrupamento do seletor de variáveis por domínio/tag,
+com grupos inicialmente recolhidos, expansão, seleção de todo o grupo disponível
+e aplicação explícita. A busca expande os grupos correspondentes; selecionar
+um grupo inclui seus itens disponíveis fora da busca, conforme aviso na UI.
+Historical deviation, Scale 0–100 e Trends only passam ao cabeçalho do gráfico.
+Checkboxes na tabela de tendências controlam a visibilidade das curvas e retas,
+substituindo os botões superiores; as linhas da tabela e a família Holm completa
+permanecem ao ocultar variáveis. Sem alteração dos dados ou do método estatístico.
+80 testes existentes e build frontend aprovados; verificação de renderização
+confirmou controles, checkbox, curvas ocultas e estatísticas preservadas.
+Publicação ainda em verificação; sem declaração de navegação visual automatizada.

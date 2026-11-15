@@ -372,7 +372,7 @@
   vertical-align: top;
   font-weight: 400;
 }
-.runtime-trend-results th:first-child {
+.runtime-trend-results th:nth-child(2) {
   text-align: left;
   max-width: 170px;
   width: 33%;
@@ -410,4 +410,44 @@
 }
 .runtime-trend-reasons li {
   margin: 4px 0;
+}
+.comparison-chart-heading {
+  flex-direction: column;
+  align-items: stretch;
+}
+.comparison-chart-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comparison-chart-controls {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.comparison-chart-controls > button {
+  min-height: 44px;
+  padding: 9px 12px;
+}
+.runtime-trend-results .runtime-trend-visibility {
+  width: 32px;
+  text-align: center;
+}
+.runtime-trend-visibility input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0;
+  accent-color: #95bfff;
+}
+.runtime-trend-results tr.is-chart-hidden > :not(:first-child) {
+  opacity: .55;
+}
+
+.runtime-trend-results thead th:first-child {
+  width: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  text-align: center;
 }

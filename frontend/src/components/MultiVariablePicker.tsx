@@ -4,6 +4,11 @@ import type { EarthVariable } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
 import { DomainIcon } from "../lib/domains";
 import { windComponents } from "../lib/wind";
+import {
+  groupVariables,
+  toggleVariableGroup,
+  variableAvailable as isAvailable,
+} from "../lib/variableGroups";
 import "./multivariable-layers.css";
 
 const normalize = (text: string) =>
@@ -11,9 +16,6 @@ const normalize = (text: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase();
-const isAvailable = (variable: EarthVariable) =>
-  variable.available !== false &&
-  variable.months.some((month) => month.validSamples > 0);
 
 export function MultiVariablePicker({
   id,
@@ -29,6 +31,7 @@ export function MultiVariablePicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [rightAligned, setRightAligned] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -64,6 +67,8 @@ export function MultiVariablePicker({
         `${variable.name} ${variable.id} ${variable.product} ${variable.category ?? ""} ${variable.domain ?? ""} ${variable.unit} ${realUnit(variable.unit)}`,
       ).includes(term),
   );
+  const matchingIds = new Set(matches.map((variable) => variable.id));
+  const groups = groupVariables(variables);
   return (
     <div
       className="multi-variable-picker"
@@ -105,6 +110,7 @@ export function MultiVariablePicker({
               ),
             );
             setQuery("");
+            setExpanded({});
             const left = trigger.current?.getBoundingClientRect().left ?? 0;
             setRightAligned(
               left + Math.min(430, document.documentElement.clientWidth - 40) >
@@ -142,7 +148,10 @@ export function MultiVariablePicker({
               value={query}
               aria-label="Search variables"
               placeholder="Search variable, product or unit…"
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setExpanded({});
+              }}
               onKeyDown={(event) => {
                 if (event.key === "ArrowDown") {
                   event.preventDefault();
@@ -169,10 +178,7 @@ export function MultiVariablePicker({
             >
               Select all available
             </button>
-            <button
-              type="button"
-              onClick={() => setDraft([])}
-            >
+            <button type="button" onClick={() => setDraft([])}>
               Clear
             </button>
             <span>{validDraft.length} selected</span>
@@ -182,53 +188,126 @@ export function MultiVariablePicker({
             role="group"
             aria-label="Available variable choices"
           >
-            {matches.map((variable) => {
-              const available = isAvailable(variable);
-              const wind = windComponents(variable.id);
+            {groups.map((group) => {
+              const groupMatches = group.variables.filter((variable) =>
+                matchingIds.has(variable.id),
+              );
+              if (!groupMatches.length) return null;
+              const eligible = group.variables.filter(isAvailable);
+              const count = eligible.filter((variable) =>
+                validDraft.includes(variable.id),
+              ).length;
+              const all = eligible.length > 0 && count === eligible.length;
+              const partial = count > 0 && !all;
+              const isExpanded = expanded[group.key] ?? Boolean(term);
+              const panelId = `${id}-group-${encodeURIComponent(group.key)}`;
               return (
-                <label
-                  key={variable.id}
-                  className={available ? "" : "is-unavailable"}
-                >
-                  <input
-                    type="checkbox"
-                    checked={draft.includes(variable.id)}
-                    disabled={!available}
-                    onChange={(event) =>
-                      setDraft((previous) =>
-                        event.target.checked
-                          ? [
-                              ...previous.filter((id) => id !== variable.id),
-                              variable.id,
-                            ]
-                          : previous.filter((id) => id !== variable.id),
-                      )
-                    }
-                  />
-                  <span>
-                    <strong>
-                      {variable.name}{" "}
-                      <span className="multi-variable-unit">
-                        ({realUnit(variable.unit)})
+                <section className="multi-variable-group" key={group.key}>
+                  <div className="multi-variable-group-heading">
+                    <input
+                      type="checkbox"
+                      checked={all}
+                      disabled={!eligible.length}
+                      aria-label={`Select all available variables in ${group.label}`}
+                      aria-checked={partial ? "mixed" : all}
+                      ref={(element) => {
+                        if (element) element.indeterminate = partial;
+                      }}
+                      onChange={() =>
+                        setDraft((previous) =>
+                          toggleVariableGroup(previous, group.variables),
+                        )
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="multi-variable-group-toggle"
+                      id={`${panelId}-title`}
+                      aria-expanded={isExpanded}
+                      aria-controls={isExpanded ? panelId : undefined}
+                      onClick={() =>
+                        setExpanded((previous) => ({
+                          ...previous,
+                          [group.key]: !isExpanded,
+                        }))
+                      }
+                    >
+                      <span className="multi-variable-group-name">
+                        <DomainIcon domain={group.key} size={16} />
+                        <strong>{group.label}</strong>
+                        <small>
+                          {count}/{eligible.length} selected
+                          {term
+                            ? ` · ${groupMatches.length}/${group.variables.length} shown`
+                            : ""}
+                        </small>
                       </span>
-                    </strong>
-                    {(variable.domain || !available || wind) && (
-                      <small className="multi-variable-meta">
-                        {variable.domain && (
-                          <span
-                            className="multi-variable-domain"
-                            data-domain={variable.domain}
+                      <ChevronDown size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                  {isExpanded && (
+                    <div
+                      className="multi-variable-group-options"
+                      role="group"
+                      id={panelId}
+                      aria-labelledby={`${panelId}-title`}
+                    >
+                      {groupMatches.map((variable) => {
+                        const available = isAvailable(variable);
+                        const wind = windComponents(variable.id);
+                        return (
+                          <label
+                            key={variable.id}
+                            className={available ? "" : "is-unavailable"}
                           >
-                            <DomainIcon domain={variable.domain} />
-                            {variable.domain}
-                          </span>
-                        )}
-                        {!available && <span>unavailable</span>}
-                        {wind && <span>↗ paired wind arrows</span>}
-                      </small>
-                    )}
-                  </span>
-                </label>
+                            <input
+                              type="checkbox"
+                              checked={draft.includes(variable.id)}
+                              disabled={!available}
+                              onChange={(event) =>
+                                setDraft((previous) =>
+                                  event.target.checked
+                                    ? [
+                                        ...previous.filter(
+                                          (id) => id !== variable.id,
+                                        ),
+                                        variable.id,
+                                      ]
+                                    : previous.filter(
+                                        (id) => id !== variable.id,
+                                      ),
+                                )
+                              }
+                            />
+                            <span>
+                              <strong>
+                                {variable.name}{" "}
+                                <span className="multi-variable-unit">
+                                  ({realUnit(variable.unit)})
+                                </span>
+                              </strong>
+                              {(variable.domain || !available || wind) && (
+                                <small className="multi-variable-meta">
+                                  {variable.domain && (
+                                    <span
+                                      className="multi-variable-domain"
+                                      data-domain={variable.domain}
+                                    >
+                                      <DomainIcon domain={variable.domain} />
+                                      {variable.domain}
+                                    </span>
+                                  )}
+                                  {!available && <span>unavailable</span>}
+                                  {wind && <span>↗ paired wind arrows</span>}
+                                </small>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
               );
             })}
             {!matches.length && (
@@ -236,6 +315,12 @@ export function MultiVariablePicker({
             )}
           </div>
           <p className="multi-variable-note">
+            {term && (
+              <>
+                Selecting a group includes all its available variables, even
+                those outside this search.{" "}
+              </>
+            )}
             Selections take effect together when you apply. Each variable keeps
             its own units and scale.
           </p>

@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import { memo, useId, useMemo, useState } from "react";
 import type { ComparisonMode } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
@@ -28,6 +29,9 @@ function ComparisonChartComponent({
   scope,
   entries,
   mode,
+  onMode,
+  hiddenVariables,
+  onToggleVariable,
   domain,
   start,
   end,
@@ -44,6 +48,9 @@ function ComparisonChartComponent({
   scope: "global" | "regional";
   entries: ComparisonEntry[];
   mode: ComparisonMode;
+  onMode: (mode: ComparisonMode) => void;
+  hiddenVariables: Set<string>;
+  onToggleVariable: (id: string) => void;
   domain: [number, number];
   start: string;
   end: string;
@@ -59,13 +66,17 @@ function ComparisonChartComponent({
   const id = useId();
   const [preview, setPreview] = useState(false);
   const [trendsOnly, setTrendsOnly] = useState(false);
+  const plotEntries = useMemo(
+    () => entries.filter((entry) => !hiddenVariables.has(entry.variable.id)),
+    [entries, hiddenVariables],
+  );
   const months = useMemo(() => calendar(start, end), [start, end]);
   const chart = useMemo(() => {
     const x = (index: number) =>
       48 + (index / Math.max(1, months.length - 1)) * 530;
     const y = (value: number) =>
       150 - ((value - domain[0]) / (domain[1] - domain[0])) * 122;
-    const series = entries.map((entry) => {
+    const series = plotEntries.map((entry) => {
       const data = entry.data?.[scope];
       let path = "",
         connected = false;
@@ -91,14 +102,14 @@ function ComparisonChartComponent({
       return { entry, path, byMonth, points };
     });
     return { x, y, series };
-  }, [entries, months, scope, mode, domain]);
+  }, [plotEntries, months, scope, mode, domain]);
   const activeIndex = months.indexOf(month);
   const activeMonth = activeIndex >= 0 ? month : months.at(-1)!;
   const index = activeIndex >= 0 ? activeIndex : Math.max(0, months.length - 1);
   const hasValues = !noArea && chart.series.some((series) => series.path);
   const hasTrends =
     !noArea &&
-    entries.some(({ data }) => {
+    plotEntries.some(({ data }) => {
       const trend = data?.[scope].trends?.[mode];
       return trend?.status === "available" && trend.line.length === 2;
     });
@@ -112,14 +123,55 @@ function ComparisonChartComponent({
     <section className="comparison-chart" aria-labelledby={`${id}-title`}>
       <div className="comparison-chart-heading">
         <div>
-          <h3 id={`${id}-title`}>{title}</h3>
+          <div className="comparison-chart-title">
+            <h3 id={`${id}-title`}>{title}</h3>{" "}
+            <details className="comparison-info">
+              <summary
+                aria-label="About the chart scale"
+                title="About the chart scale"
+              >
+                <Info size={16} aria-hidden="true" />
+              </summary>
+              <p className="comparison-explainer">
+                {mode === "standardized"
+                  ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
+                  : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
+                The selected area has its own reference. Hover for original units. Map
+                opacity does not affect this chart.
+              </p>
+            </details>
+          </div>
           <p>
             {mode === "standardized"
               ? "Deviation · standard deviations (σ)"
               : "Relative position · 0–100"}
           </p>
         </div>
-        <div className="real-export-actions">
+        <div
+          className="comparison-chart-controls"
+          role="group"
+          aria-label="Chart display controls"
+        >
+          <div
+            className="comparison-mode"
+            role="group"
+            aria-label="Chart comparison scale"
+          >
+            <button
+              type="button"
+              aria-pressed={mode === "standardized"}
+              onClick={() => onMode("standardized")}
+            >
+              Historical deviation
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "minmax"}
+              onClick={() => onMode("minmax")}
+            >
+              Scale 0–100
+            </button>
+          </div>
           <button
             type="button"
             className="comparison-trends-only"
@@ -202,10 +254,7 @@ function ComparisonChartComponent({
                 <rect x="48" y="22" width="530" height="134" />
               </clipPath>
             </defs>
-            <title>
-              {title} ·{" "}
-              {mode === "standardized" ? "Historical deviation" : "Scale 0–100"}
-            </title>
+            <title>{`${title} · ${mode === "standardized" ? "Historical deviation" : "Scale 0–100"}`}</title>
             {eventIndices.length > 0 && (
               <rect
                 x={chart.x(eventIndices[0])}
@@ -269,7 +318,7 @@ function ComparisonChartComponent({
                 clipPath={`url(#${id}-plot)`}
                 aria-label="Season-adjusted trend lines"
               >
-                {entries.map(({ variable, data }) => {
+                {plotEntries.map(({ variable, data }) => {
                   const trend = data?.[scope].trends?.[mode];
                   if (trend?.status !== "available" || trend.line.length !== 2)
                     return null;
@@ -288,10 +337,7 @@ function ComparisonChartComponent({
                       fill="none"
                       vectorEffect="non-scaling-stroke"
                     >
-                      <title>
-                        {variable.name} · season-adjusted trend · {trend.n}
-                        months
-                      </title>
+                      <title>{`${variable.name} · season-adjusted trend · ${trend.n} months`}</title>
                     </path>
                   );
                 })}
@@ -316,9 +362,9 @@ function ComparisonChartComponent({
             </text>
             {!hasPlot && (
               <text x="313" y="94" textAnchor="middle">
-                {entries.length === 0
-                  ? "Select a variable above to show it in the charts"
-                  : entries.some((entry) => entry.data)
+                {plotEntries.length === 0
+                  ? "Use the checkboxes below to show variables in the chart"
+                  : plotEntries.some((entry) => entry.data)
                     ? trendsOnly
                       ? "No trend lines for this mode"
                       : "No comparable values for this mode"
@@ -352,15 +398,18 @@ function ComparisonChartComponent({
                   </div>
                 );
               })}
-              {entries.length > 8 && (
+              {plotEntries.length > 8 && (
                 <small>
-                  Open original values below for all {entries.length} variables.
+                  Open original values below for all {plotEntries.length}{" "}
+                  variables.
                 </small>
               )}
             </div>
           )}
           <TrendResults
             entries={entries}
+            hiddenVariables={hiddenVariables}
+            onToggleVariable={onToggleVariable}
             mode={mode}
             scope={scope}
             adjustedP={adjustedP}
@@ -433,7 +482,7 @@ function ComparisonChartComponent({
             </div>
           </details>
           <ul className="comparison-status-list">
-            {entries.map(({ variable, data, error }) => {
+            {plotEntries.map(({ variable, data, error }) => {
               if (error)
                 return (
                   <li key={variable.id}>
