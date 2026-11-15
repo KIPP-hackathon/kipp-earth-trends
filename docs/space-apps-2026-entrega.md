@@ -13,7 +13,13 @@ cálculo de direção/resultante ou desenho das trajetórias.
 154 testes frontend e build aprovados com Node.js 24 após integrar a main.
 Chromium em 1440/1024px verificou conteúdo sem recorte ou overflow horizontal,
 com playback na mesma posição antes/depois do hover. Sem teste em iPhone
-físico. Publicação em acompanhamento; assistência IA registrada nesta entrada.
+físico. WebKit emulando iPhone confirmou nota completa (101px), readout sem
+recorte e playback estável no hover. Publicado em `a358043` na
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/),
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43762365380)
+concluído. Chromium repetiu a checagem no site público: texto completo e mesma
+posição do playback. Vercel bloqueou novo build por limite de publicações.
+Assistência IA registrada nesta entrada.
 
 ## Tour de Explore e play conjunto publicados — 15/11/2026
 
