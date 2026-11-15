@@ -114,3 +114,17 @@ Chromium em produção confirmou Trend Lab entre Compare e Events, geração com
 80 testes frontend e builds frontend/API haviam passado na versão integrada.
 Isso comprova a publicação e o fluxo funcional; revisão científica humana
 e submissão na página Project continuam etapas distintas.
+
+
+## Ajustes de interface de 15/11/2026
+
+Configuracao horizontal acima dos resultados, com globo expansivel na etapa
+de area e metodologia acessivel por hover, foco ou toque. A mudanca em X meses
+precede o grafico. Project ahead inicia no ultimo mes valido; Explore past
+change restringe ambos os pontos ao intervalo historico e limita a duracao
+ao menor valor entre 60 meses e a extensao desse intervalo. Os valores representam
+a reta ajustada. Relatorio estatistico final consolida inclinacao, IC, mudanca,
+significancia condicional, n, lacunas, R quadrado e graus de liberdade.
+Explicacao estatistica e limitacoes disponiveis no Guide pelo resultado.
+Node.js 24.22.1, 80 testes e builds frontend/API aprovados; verificacao visual
+em navegador pendente nesta revisao. OpenAI Codex assistiu a implementacao.
