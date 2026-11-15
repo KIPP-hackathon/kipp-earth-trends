@@ -1,5 +1,12 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Ações do rodapé removidas — 15/11/2026
+
+Por solicitação do usuário, OpenAI Codex removeu Credits & data, Field guide
+e Refresh catalog do rodapé. Mantido o link da marca KIPP. Removidos imports
+que ficaram sem uso. 141 testes frontend e build aprovados com Node.js 24.
+Sem alteração de dados ou métodos científicos. Publicação em acompanhamento.
+
 ## Filtro com altura natural — 15/11/2026
 
 Por decisão posterior do usuário, OpenAI Codex removeu o esticamento vertical
