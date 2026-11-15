@@ -32,6 +32,35 @@ sem exceções JavaScript. O usuário autorizou explicitamente `c0ffex` para est
 publicação e solicitou rebase sobre as mudanças remotas; autoria Git pessoal
 Lucas Henrique preservada. Publicação será conferida após integração.
 
+### Publicação dos indicadores de carregamento — verificada em 15/11/2026
+
+[PR #41](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/41), merge
+`8265218`, publicado pela
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/), com
+[workflow aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43749532568).
+Rebase sobre `e4d15e0` preservou viewport retangular, cascata de camadas,
+seletores nativos e layout em três colunas. Conta `c0ffex` autorizada pelo
+usuário; autoria Git pessoal Lucas Henrique mantida.
+
+A main recebeu em seguida o merge `c4d46b5`, incluindo a release acima;
+[publicação seguinte aprovada](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43749543385).
+136 testes frontend e build aprovados nesse estado com Node.js 24;
+build da API aprovado na release de carregamento. Bundle público
+`index-CQVWALBB.js` corresponde ao build local dessa main.
+
+Chromium no site público, com respostas reais apenas retidas temporariamente
+para observar a espera, conferiu entrada antes do JavaScript, catálogo,
+redução de movimento, loader do mapa e conclusão bem-sucedida de frame real.
+Catálogo respondeu `databricks-sql`, `simulated=false`, com 224 definições.
+1440/390/360 px sem overflow horizontal ou exceções JavaScript; canvas e SVG
+do viewport retangular alinhados. Evidências locais em
+`/tmp/kipp-loading-production-check.json` e capturas correspondentes, fora do Git.
+
+Vercel recusou os dois deploys automáticos com
+`Deployment rate limited — retry in 24 hours`; seu endereço mantém uma versão
+anterior. A URL Cloudflare contém a release verificada. Sem mudança de plano,
+dados, método científico ou submissão Project nesta publicação de carregamento.
+
 ## Viewport retangular e configuração por cascata — 15/11/2026
 
 OpenAI Codex assistiu os ajustes solicitados pelo usuário: globo ocupa toda a
