@@ -20,6 +20,7 @@ import { useCountryLocation } from "./lib/useCountryLocation";
 import { brazilCountry, loadCountries } from "./lib/countries";
 import type { CountrySelection } from "./lib/countries";
 import "./country-location.css";
+import "./guide-wiki.css";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
 import { useGlobeCamera } from "./lib/useGlobeCamera";
@@ -62,19 +63,7 @@ function RequestFailure({
     </div>
   );
 }
-const guide = [
-  {
-    title: "Explore change in Trend Lab",
-    text: "Choose an area, indicator and study period, then run the experiment. Project ahead starts at the last valid month. Explore past change keeps both endpoints inside the historical record. The displayed change is the fitted slope multiplied by elapsed months. Endpoints represent the fitted line. Future extensions assume that slope continues and can exceed physical bounds. The 95% interval describes fitted change, with future individual observations carrying additional uncertainty.",
-  },
-  {
-    title: "Read the statistical report",
-    text: "Trend Lab fits calendar-month effects and linear time, with Newey–West HAC12 uncertainty. Trend slopes use 13 model parameters; lagged relationships use 14. Inference requires 60 consecutive valid months and nondegenerate variation. Holm adjustment covers every applied trend and lag test. Missing months remain gaps; short or gapped results can be descriptive without inference.",
-  },
-  {
-    title: "Interpret the evidence carefully",
-    text: "Trend Lab assumes a linear time component, fixed calendar-month effects and short-memory residual dependence. HAC12 and Holm adjustment do not correct all model violations or repeated exploratory choices. Baseline and native product uncertainty are not propagated. Significance alone establishes neither practical importance nor causality. Short records offer limited evidence about long-term climate change. Country areas use bounding rectangles. Inspect product type, units, coverage and provenance alongside the result.",
-  },
+const guideWorkflow = [
   {
     title: "Start with a question",
     text: "Explore any available variable, country or drawn area. Event presets are editable starting points; no name or account is needed to begin.",
@@ -87,28 +76,134 @@ const guide = [
     title: "Compare with context",
     text: "Two independent panels share a camera and consistent colors for the same variable. Compare matching calendar months where possible; adjacent periods can differ because of seasonality.",
   },
+];
+
+const guideTrendLab = [
   {
-    title: "Assess change and uncertainty",
-    text: "Ask the assistant about stored trend studies and inspect their methods, coverage and uncertainty. Estimates apply only to their exact variable, region and period. This short record does not establish a long-term climate trend; a non-significant result does not establish no change.",
+    title: "Explore change in Trend Lab",
+    text: "Choose an area, indicator and study period, then run the experiment. Project ahead starts at the last valid month. Explore past change keeps both endpoints inside the historical record. The displayed change is the fitted slope multiplied by elapsed months. Endpoints represent the fitted line.",
+  },
+  {
+    title: "Read the statistical report",
+    text: "Trend Lab fits calendar-month effects and linear time, with Newey–West HAC12 uncertainty. Trend slopes use 13 model parameters; lagged relationships use 14. Inference requires 60 consecutive valid months and nondegenerate variation. Holm adjustment covers every applied trend and lag test.",
+  },
+  {
+    title: "Interpret the evidence carefully",
+    text: "Trend Lab assumes a linear time component, fixed calendar-month effects and short-memory residual dependence. Significance alone establishes neither practical importance nor causality. Inspect product type, units, coverage and provenance alongside the result.",
   },
 ];
+
 function Guide({ config }: { config?: EarthConfig }) {
   return (
-    <div className="real-guide-grid">
-      {guide.map((step, index) => (
-        <article className="real-info-card" key={step.title}>
-          <span className="eyebrow">0{index + 1} · FIELD GUIDE</span>
-          <h2>{step.title}</h2>
-          <p>{step.text}</p>
-        </article>
-      ))}
-      <article className="real-info-card">
-        <ShieldCheck size={21} />
-        <h2>Scope and limitations</h2>
-        {config?.limitations.map((limitation) => (
-          <p key={limitation}>{limitation}</p>
-        ))}
-      </article>
+    <div className="guide-wiki-container">
+      <div className="guide-wiki-content">
+        {/* Investigation Workflow */}
+        <section className="guide-section">
+          <h2 className="guide-section-title">Investigation Workflow</h2>
+          <p className="guide-section-intro">
+            Follow this process to explore Earth's changing systems with KIPP.
+          </p>
+          <div className="guide-cards-grid">
+            {guideWorkflow.map((step, index) => (
+              <article className="guide-step-card" key={step.title}>
+                <div className="guide-step-number">{index + 1}</div>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Trend Lab Section */}
+        <section className="guide-section">
+          <h2 className="guide-section-title">Trend Lab Analysis</h2>
+          <p className="guide-section-intro">
+            Learn how to use Trend Lab to detect and analyze change over time.
+          </p>
+          <div className="guide-cards-grid">
+            {guideTrendLab.map((step, index) => (
+              <article className="guide-step-card" key={step.title}>
+                <div className="guide-step-number">{index + 4}</div>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Additional Resources */}
+        <section className="guide-section">
+          <h2 className="guide-section-title">Assessment & Interpretation</h2>
+          <article className="guide-highlight-card">
+            <h3>Assess change and uncertainty</h3>
+            <p>
+              Ask the assistant about stored trend studies and inspect their
+              methods, coverage and uncertainty. Estimates apply only to their
+              exact variable, region and period. This short record does not
+              establish a long-term climate trend; a non-significant result does
+              not establish no change.
+            </p>
+            <p className="guide-tip-text">
+              Future extensions assume that slope continues and can exceed
+              physical bounds. The 95% interval describes fitted change, with
+              future individual observations carrying additional uncertainty.
+            </p>
+          </article>
+        </section>
+
+        {/* Limitations */}
+        {config && (
+          <section className="guide-section">
+            <h2 className="guide-section-title">
+              <ShieldCheck size={20} /> Scope and Limitations
+            </h2>
+            <article className="guide-highlight-card guide-limitations">
+              {config.limitations.map((limitation, idx) => (
+                <div key={idx} className="limitation-item">
+                  <span className="limitation-bullet">•</span>
+                  <p>{limitation}</p>
+                </div>
+              ))}
+            </article>
+          </section>
+        )}
+
+        {/* Quick Tips */}
+        <section className="guide-section guide-section-tips">
+          <h2 className="guide-section-title">Quick Tips</h2>
+          <div className="tips-grid">
+            <div className="tip-box">
+              <h4>Data Sources</h4>
+              <p>
+                All data derived from NASA products. The base image is static;
+                the data layer represents its displayed month.
+              </p>
+            </div>
+            <div className="tip-box">
+              <h4>Calendar Effects</h4>
+              <p>
+                Model accounts for calendar-month effects. Compare matching
+                months where possible; adjacent periods may differ due to
+                seasonality.
+              </p>
+            </div>
+            <div className="tip-box">
+              <h4>Uncertainty Bounds</h4>
+              <p>
+                HAC12 adjustment and Holm correction applied. Does not correct
+                all model violations or repeated exploratory choices.
+              </p>
+            </div>
+            <div className="tip-box">
+              <h4>Descriptive vs Inference</h4>
+              <p>
+                Missing months remain gaps. Short or gapped results can be
+                descriptive without formal inference.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
