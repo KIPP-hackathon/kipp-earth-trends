@@ -1,5 +1,31 @@
 # Trend Lab
 
+## Projection chart repair — 15/11/2026
+
+The relationships view retained the fitted-change controls but disconnected them
+from the time-series chart. The chart now shares the controls' A/B endpoints,
+extends its date/value domains to include B, and draws an amber dashed extension
+from the last valid observation month when B is beyond the data. A last-observation
+divider distinguishes extrapolation from source data.
+Historical mode keeps both markers inside the fitted period; anomaly and
+relationship views retain their original data without extrapolation. Each indicator
+keeps its own controls across view changes.
+
+The calculation still uses the backend seasonal model's linear time component.
+Seasonal offsets are excluded; the extension is not a forecast and has no invented
+prediction interval. Source observations, inference and exports are unchanged.
+Integration preserves the restored TrendChart on current main (7282ead), keeps
+controls mounted across investigation views and shows source values when a fit
+is unavailable. OpenAI Codex assisted the repair and integration. Deployment
+was requested; Space Apps submission is separate.
+
+Validation after rebase: Node.js 24, 90 frontend tests and both builds passed. Focused Chromium
+checks replayed previously measured Pantanal series at 1440, 390 and 360 px:
+12/60-month extension, historical mode, independent indicators, state retained
+across views, markers inside the SVG, no horizontal overflow or JavaScript
+exceptions. Screenshots were inspected. This is component QA, not a new scientific
+investigation or a production API test.
+
 ## Current local implementation — relationships-v1 (15/11/2026)
 
 The first relationships release replaces the browser's raw monthly OLS view with

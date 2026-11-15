@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Investigation } from "../lib/earthApi";
 import { formatTrendP } from "../lib/runtimeTrends";
 import { formatTrendValue, monthIndex, trendUnit } from "../lib/trendLab";
@@ -469,8 +469,7 @@ export function InvestigationResults({
               </p>
             </>
           )}
-          {view === "Trend" && <FittedChange series={s} />}
-          {view !== "Trend" && (
+          <FittedChange series={s} enabled={view === "Trend"}>
             <SeriesChart
               title={s.name}
               unit={
@@ -497,7 +496,7 @@ export function InvestigationResults({
               start={data.request.start}
               end={data.request.end}
             />
-          )}
+          </FittedChange>
           {view === "Anomalies" && (
             <details className="trend-provenance">
               <summary>Reference counts and monthly statistics</summary>
@@ -703,18 +702,27 @@ function Scatter({
   );
 }
 
-function FittedChange({ series }: { series: Investigation["series"][number] }) {
+function FittedChange({
+  series,
+  enabled,
+  children,
+}: {
+  series: Investigation["series"][number];
+  enabled: boolean;
+  children: ReactNode;
+}) {
   const t = series.trend;
   const [mode, setMode] = useState<"projection" | "historical">("projection");
   const [duration, setDuration] = useState(12);
   const [anchor, setAnchor] = useState<number | null>(null);
   if (
+    !enabled ||
     t.slopePerYear === null ||
     !t.firstMonth ||
     !t.lastMonth ||
     !t.line.length
   )
-    return null;
+    return children;
   const first = monthIndex(t.firstMonth)!,
     last = monthIndex(t.lastMonth)!;
   const max = mode === "historical" ? Math.min(60, last - first) : 60;
