@@ -1,4 +1,4 @@
-.investigation-layers {--ly-cyan:#87dbe5;--ly-coral:#f2958a;--ly-ink:#b4c4da;--ly-muted:#9cb1ce;--ly-line:#a2bfe524;display:flex;flex-direction:column;gap:16px;margin:20px 0 4px;padding:18px;border:1px solid var(--ly-line);border-radius:12px;background:#0b1a2cb3}
+.investigation-layers {--ly-cyan:#87dbe5;--ly-coral:#f2958a;--ly-ink:#b4c4da;--ly-muted:#9cb1ce;--ly-line:#a2bfe524;display:flex;flex-direction:column;gap:16px;margin:20px 0 4px;padding:20px;border:1px solid var(--ly-line);border-radius:12px;background:#0b1a2cb3}
 .investigation-layers h4 {margin:2px 0 0;font-size:16px;font-weight:600;line-height:1.35;color:#e6edf7}
 .investigation-layers h5 {margin:0;font-size:14px;font-weight:600;color:#e6edf7}
 .layers-head {display:flex;flex-direction:column;gap:12px}
@@ -118,8 +118,8 @@
 /* LayeredTrend (shared with the Trend view). */
 .layered-trend {display:flex;flex-direction:column;gap:12px;margin-top:6px}
 .layered-trend h3 {margin:0;font-size:15px;font-weight:600;color:#e6edf7}
-.layered-controls {display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;font-size:12px;color:#b4c4da}
-.layered-lag,.layered-check {display:inline-flex;align-items:center;gap:8px}
+.investigation-toolbar.layered-controls {margin:0}
+.investigation-toolbar.layered-controls button {max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .layered-change {display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
 .layered-change > div {display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid #a2bfe52b;border-left:3px solid #84dbe8;border-radius:8px;background:#0b2035aa}
 .layered-change > div[data-accent="coral"] {border-left-color:#f2958a}
