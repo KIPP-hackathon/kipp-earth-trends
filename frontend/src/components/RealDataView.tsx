@@ -592,8 +592,8 @@ function SelectedRealPanel({
       <div className="layer-deck-heading">
         <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
           Map layers keep their physical units and scales. Opacity blends colors, not measurements.
-          Later color fields appear on top; wind arrows overlay them. For paired U/V at the same level,
-          the last visible component styles one shared arrow field.
+          Later color fields appear on top; wind trails overlay them. For paired U/V at the same level,
+          the last visible component styles one shared flow field.
         </p></div>
         <div className="layer-deck-actions">
           <button type="button" onClick={() => {
@@ -634,9 +634,9 @@ function SelectedRealPanel({
           const windStyle = pair && mapLayers.findLast(layer => windComponents(layer.id)?.level === pair.level &&
             layer.visible && layer.opacity > 0);
           const windStatus = pair && setting.visible && hasMonth && !layerFrames.loading && !windReady
-            ? `Wind arrows unavailable: both U and V at ${pair.level} with matching month, grid and product are required.`
+            ? `Wind trails unavailable: both U and V at ${pair.level} with matching month, grid and product are required.`
             : windStyle && windStyle.id !== entry.id
-              ? `Same-level arrows use ${selectedVariables.find(variable => variable.id === windStyle.id)?.name} styling (last visible component).`
+              ? `Same-level trails use ${selectedVariables.find(variable => variable.id === windStyle.id)?.name} styling (last visible component).`
               : undefined;
           return <LayerCard key={entry.id} variable={entry} setting={setting}
             colorRange={colorRanges[entry.id]} onChange={changeLayer}

@@ -1,5 +1,22 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Traços de vento na superfície — implementação local (15/11/2026)
+
+OpenAI Codex substituiu as setas planas por traços curvos projetados no globo,
+com distribuição geográfica, atenuação no horizonte e pulsos de direção.
+Traços seguem os pares U/V mensais existentes, interrompendo em células sem
+cobertura ou vento resultante calmo. Cor mantém o componente selecionado;
+comprimento e animação são visuais, não velocidade física nem trajetórias.
+Redução de movimento mantém os traços estáticos. Sem novas fontes ou assets.
+
+Validação: 138 testes frontend, incluindo travessia do antimeridiano, direção,
+lacunas e calmaria; builds frontend/API com Node.js 24. Chromium conferiu
+rotação, desktop/mobile e redução de movimento com fixture sintética isolada,
+sem erros JavaScript ou overflow. Fixture não representa observações reais;
+conferência visual com os dados de produção permanece pendente. Versão integrada à main mais recente; publicação técnica autorizada pelo usuário
+via conta c0ffex nesta sessão. Sem submissão Project; confirmação do deploy pendente.
+
+
 ## Header móvel e cópia dentro dos painéis — 15/11/2026
 
 OpenAI Codex assistiu o reposicionamento de Copy A → B e Copy B → A no canto

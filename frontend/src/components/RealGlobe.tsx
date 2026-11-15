@@ -697,8 +697,8 @@ export function RealGlobe({
         </div>
       </div>
       {view.showLayer && windLevels.length > 0 && <p className="real-wind-note">
-        <span aria-hidden="true">↗</span> Wind flow · {windLevels.join(" / ")} · arrows point toward flow.
-        {" "}Monthly MERRA-2 reanalysis; fixed arrow length, color = selected component (m/s).
+        <span aria-hidden="true">↗</span> Wind flow · {windLevels.join(" / ")} · trails follow monthly mean flow. Motion shows direction, not speed.
+        {" "}Monthly MERRA-2 reanalysis; color = selected component (m/s).
       </p>}
       {!unavailable && (!surfaceReady || landLoading) && (
         <LoadingStatus className="globe-assets-loading">Preparing Earth basemap…</LoadingStatus>
@@ -706,7 +706,7 @@ export function RealGlobe({
       {unavailable && (
         <p role="alert">
           Globe rendering is unavailable. The image basemap or color fields could not be drawn;
-          wind arrows and monthly series remain available when their data is loaded.
+          wind trails and monthly series remain available when their data is loaded.
         </p>
       )}
       {scale && frame && (

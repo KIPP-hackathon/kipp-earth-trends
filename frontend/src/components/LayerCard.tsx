@@ -105,8 +105,8 @@ export function LayerCard({
       {loading && <LoadingStatus className="layer-map-loading">Loading observations…</LoadingStatus>}
       {status && <p className="layer-status">{status}</p>}
       {wind && <p className="layer-status">
-        Wind arrows at {wind.level} use paired U + V (complement loaded automatically).
-        {" "}Arrows point toward flow; length is fixed. Color and charts show this signed component.
+        Wind trails at {wind.level} use paired U + V (complement loaded automatically).
+        {" "}Trails follow monthly mean flow; motion shows direction, not speed. Color and charts show this signed component.
       </p>}
       {error && (
         <p className="layer-error" role="alert">

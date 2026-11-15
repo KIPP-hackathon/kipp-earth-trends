@@ -10,3 +10,28 @@
   font-size: 18px;
   margin-right: 4px;
 }
+
+.wind-flow-pulse,
+.wind-flow-tip {
+  animation: wind-surface-flow 4.1s linear infinite;
+}
+.wind-flow-tip {
+  animation-name: wind-surface-tip;
+}
+@keyframes wind-surface-tip {
+  from { stroke-dashoffset: 80; }
+  to { stroke-dashoffset: -20; }
+}
+/* Move from the seed toward the end of each geographic streamline. */
+@keyframes wind-surface-flow {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wind-flow-pulse,
+  .wind-flow-tip {
+    animation: none;
+    stroke-dashoffset: -65;
+  }
+  .wind-flow-tip { stroke-dashoffset: -85; }
+}
