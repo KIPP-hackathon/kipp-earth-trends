@@ -1,4 +1,4 @@
-# KIPP — NASA Earth Trends Lab
+# KIPP - Earth Trend
 
 Repositório do time KIPP para explorar o desafio **Be An Earth System Trend Detective!**, do NASA Space Apps 2026.
 

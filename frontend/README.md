@@ -1,4 +1,4 @@
-# KIPP — Earth Systems Lab
+# KIPP - Earth Trend
 
 Laboratório de exploração de campos mensais derivados de produtos NASA.
 Frontend React/TypeScript/Vite, Node.js 24. As cinco abas operacionais usam
