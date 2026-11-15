@@ -23,7 +23,11 @@ confirmou seletor único com reticências, isolamento de uma entre três camadas
 preservação das três variáveis e ordem escala/opacidade. Hover com dados reais
 manteve a posição do playback em 717.44px antes e depois. Controles também
 conferidos em WebKit emulando iPhone; sem teste em iPhone físico. Publicação
-em acompanhamento. Esta entrada substitui a função anterior do segundo olho.
+conferida em `f8ed439`: [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43750985411)
+concluído e Vercel também confirmou sucesso. Ambos os endereços servem o bundle
+`index-D1f0WgP3.js`. Chromium no site público da Vercel repetiu os testes de
+seletor, isolamento e ordem; hover preservou novamente 717.44px do playback.
+Esta entrada substitui a função anterior do segundo olho.
 
 ## Indicadores de carregamento — implementação local (15/11/2026)
 
