@@ -269,6 +269,26 @@ test("Trend Lab tool preserves request, provenance, missingness and full inferen
   assert.equal(result.series[0].observations, undefined);
   assert.equal(result.series[0].coverage.validMonths, 2);
   assert.deepEqual(result.series[0].processingRuns, ["Final", "Late"]);
+  // A 3-month study period cannot supply 10 reference years per month.
+  const anomalies = (
+    executed.result as {
+      series: {
+        anomalies: {
+          availableMonths: number;
+          meanAnomaly: number | null;
+          lastTwelve: { status: string }[];
+          statusCounts: Record<string, number>;
+        };
+      }[];
+    }
+  ).series[0].anomalies;
+  assert.equal(anomalies.availableMonths, 0);
+  assert.equal(anomalies.meanAnomaly, null);
+  assert.equal(anomalies.lastTwelve.length, 3);
+  assert.deepEqual(anomalies.statusCounts, {
+    insufficient_reference: 2,
+    no_data: 1,
+  });
   assert.deepEqual(executed.actions, [
     { type: "run_investigation", selection, name: "Wrapped area" },
   ]);
@@ -292,4 +312,24 @@ test("Trend Lab tool preserves request, provenance, missingness and full inferen
       request.context,
     ),
   );
+});
+
+// Synthetic fixture: checks the compact summary contract, not a finding.
+test("anomaly summary ranks standardized departures and keeps the last 12 months", async () => {
+  const { anomalySummary } = await import("./assistant-tools.ts");
+  const rows = Array.from({ length: 24 }, (_, i) => ({
+    month: `2020-${String((i % 12) + 1).padStart(2, "0")}`,
+    anomaly: i === 23 ? null : (i % 5) - 2,
+    standardized: i === 23 ? null : ((i % 5) - 2) / 2,
+    anomalyStatus: i === 23 ? "no_data" : "available",
+  }));
+  const summary = anomalySummary(rows);
+  assert.equal(summary.availableMonths, 23);
+  assert.equal(summary.lastTwelve.length, 12);
+  assert.equal(summary.lastTwelve.at(-1)!.status, "no_data");
+  assert.equal(summary.largestStandardized.length, 5);
+  assert.ok(
+    summary.largestStandardized.every((r) => Math.abs(r.standardized!) === 1),
+  );
+  assert.deepEqual(summary.statusCounts, { available: 23, no_data: 1 });
 });
