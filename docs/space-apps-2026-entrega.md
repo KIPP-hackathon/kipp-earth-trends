@@ -926,4 +926,23 @@ histórica/projetada usam a inclinação sazonal e IC robusto, sem alegar previs
 Após o bloqueio inicial por autenticação, o usuário autorizou explicitamente
 usar a conta disponível `c0ffex` para esta publicação e solicitou rebase e
 conferência de preservação da main. Autoria Git pessoal do projeto mantida.
-Publicação e verificação em produção serão registradas após conclusão.
+Publicação concluída; verificação registrada abaixo.
+
+### Publicação das relações do Trend Lab — 15/11/2026
+
+Release rebased sobre main `1e054ac`, preservando o ajuste de vento e as mudanças
+recentes da interface; [PR #23](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/23),
+merge `beadd712`. 85 testes frontend, 14 backend e builds Node.js 24 aprovados.
+[Vercel concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/C8jeJc93iD96LTANDeLFc9sbgfRc)
+e [CI/CD backend aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43690141300),
+revisão `kipp-earth-api-00014-wos`. A conta `c0ffex` foi autorizada explicitamente
+pelo usuário para esta publicação; autoria Git pessoal do projeto mantida.
+
+Duas investigações públicas reais conferiram 14 relações contra a referência
+independente. Chromium em produção, sem fixtures/interceptação, conferiu presets,
+controles históricos, anomalias, defasagens, exportação, aviso de lacunas GRACE
+e Guide em 1440/390/360 px, sem overflow/exceções, às 13:23 UTC (10:23 -03).
+A verificação final inclui mudanças posteriores da main até `5655e01` e o catálogo
+normal já atualizado após expirar seu cache. [Evidências e método](trend-lab-relationships.md#production-verification--2026-11-15).
+OpenAI Codex assistiu integração, publicação e verificação. Revisão científica
+humana, previsão ENSO e submissão na página Project continuam etapas distintas.
