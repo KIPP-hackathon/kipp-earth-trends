@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadCatalog, loadConfig, loadSeries } from "./earthApi";
+import { loadCatalog, loadComparisons, loadConfig, loadSeries } from "./earthApi";
+import type { EarthVariable } from "./earthApi";
 import { earthReadCache } from "./earthReadCache";
 
 const config = {
@@ -144,5 +145,65 @@ describe("Earth API connection recovery", () => {
       "Invalid selection",
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+  describe("batched study series", () => {
+    const area = "-60,-22,-54,-16";
+    const variables = ["temperature", "rainfall", "humidity"].map(id => ({
+      id, name: id, quantity: id, unit: "u", product: "MERRA-2", months: [],
+    }) as unknown as EarthVariable);
+    const doc = (variable: string) => ({
+      simulated: false, variable, start: "2024-01", end: "2024-12",
+      global: { observations: [] }, regional: { observations: [] },
+    });
+    const run = () => loadComparisons(variables, "2024-01", "2024-12", area, new AbortController().signal);
+
+    it("asks for every selected variable in one request", async () => {
+      fetchMock.mockResolvedValueOnce(Response.json({
+        version: 1, errors: {},
+        results: Object.fromEntries(variables.map(v => [v.id, doc(v.id)])),
+      }));
+      const entries = await run();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const url = new URL(String(fetchMock.mock.calls[0][0]), "https://x.test");
+      expect(url.pathname).toBe("/api/earth/v1/comparisons");
+      expect(url.searchParams.get("variables")).toBe("temperature,rainfall,humidity");
+      expect(Object.keys(entries)).toEqual(["temperature", "rainfall", "humidity"]);
+      expect(entries.rainfall.data?.variable).toBe("rainfall");
+    });
+
+    it("keeps one failed variable from hiding the others and does not cache the failure", async () => {
+      const body = {
+        version: 1,
+        results: { temperature: doc("temperature"), humidity: doc("humidity") },
+        errors: { rainfall: { code: "NO_DATA", message: "No data for this area." } },
+      };
+      fetchMock.mockImplementation(async () => Response.json(body));
+      const first = await run();
+      expect(first.rainfall.error).toBe("No data for this area.");
+      expect(first.temperature.data).toBeDefined();
+      await run();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("rejects a result that belongs to another selection", async () => {
+      fetchMock.mockResolvedValueOnce(Response.json({
+        version: 1, errors: {},
+        results: Object.fromEntries(variables.map(v => [v.id, { ...doc(v.id), end: "2023-12" }])),
+      }));
+      const entries = await run();
+      expect(Object.values(entries).every(entry => entry.error && !entry.data)).toBe(true);
+    });
+
+    it("falls back to one request per variable when the API has no batch route", async () => {
+      fetchMock.mockImplementation(async input => {
+        const path = new URL(String(input), "https://x.test").pathname;
+        if (path.endsWith("/comparisons"))
+          return Response.json({ error: { message: "Not found" } }, { status: 404 });
+        return Response.json(doc(path.split("/").pop()!));
+      });
+      const entries = await run();
+      expect(Object.values(entries).every(entry => entry.data)).toBe(true);
+      expect(fetchMock).toHaveBeenCalledTimes(1 + variables.length);
+    });
   });
 });

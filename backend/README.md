@@ -43,6 +43,12 @@ e [preparação futura Lakebase](../docs/lakebase-only.md).
 - `GET /v1/frames/temperature/2024-01?factor=4&format=f32`.
 - `GET /v1/frames/rainfall/2024-01?bbox=-60,-22,-54,-16&factor=1&format=json`.
 - `GET /v1/series/temperature?start=2024-01&end=2024-12&bbox=-60,-22,-54,-16`.
+- `GET /v1/comparisons?variables=temperature,rainfall&start=2024-01&end=2024-12&bbox=-60,-22,-54,-16`:
+  séries de estudo de até seis variáveis em uma requisição. Cada variável reutiliza
+  o cache de `/v1/comparison/:variable`; no máximo três varreduras correm ao mesmo
+  tempo, deixando uma vaga do warehouse livre. A resposta é
+  `{version, results:{id:…}, errors:{id:{code,message}}}`: uma variável com falha
+  não esconde as demais e a resposta parcial nunca é armazenada em cache.
 
 `bbox=oeste,sul,leste,norte`. Oeste maior que leste cruza o antimeridiano;
 o leste retornado pode exceder 180° para preservar uma grade contínua.
@@ -87,6 +93,36 @@ Somas e classes usam os métodos publicados nos metadados de cada variável.
 - Cache LRU de 64 MiB / 256 respostas por instância, TTL de cinco minutos.
 - Requisições idênticas simultâneas compartilham uma consulta.
 - ETag, respostas 304 e Cache-Control para cache do navegador/intermediário.
+  Catálogo, configuração, eventos e disponibilidade: `max-age=300, s-maxage=300,
+  stale-while-revalidate=3600`. Frames, séries, comparações e investigações
+  (observações por mês/região/revisão): `max-age=3600, s-maxage=21600,
+  stale-while-revalidate=86400`. `X-Cache` e `X-Cache-Layer`
+  (`memory`, `store` ou `origin`) indicam de onde veio a resposta.
+- Segundo nível compartilhado no Firestore (opcional, desligado por padrão).
+  Ativado com `PERSISTENT_CACHE=firestore`, usa a coleção `kipp_response_cache`
+  do banco `(default)` já usado pela cota do assistente. Sobrevive a
+  scale-to-zero e é compartilhado entre instâncias. Falha aberta: qualquer erro
+  do Firestore vira miss. Entradas são isoladas por revisão do Cloud Run
+  (`K_REVISION`), limitadas a ~800 KB (limite de 1 MiB por documento) e,
+  por instância e por dia UTC, a 12.000 leituras e 1.000 escritas
+  (`PERSISTENT_CACHE_DAILY_READS` / `PERSISTENT_CACHE_DAILY_WRITES`), com
+  pausa de 60 s após três falhas seguidas. Entradas ficam frescas por 1 h
+  (catálogo) ou 24 h (observações) e são servidas obsoletas, com atualização em
+  segundo plano, por até 24 h ou 3 dias. Os orçamentos protegem a cota gratuita
+  do Firestore, compartilhada com os contadores do assistente, que falham
+  fechados.
+  Antes de ativar, habilite a política de TTL para que documentos expirados
+  sejam removidos (exige permissão de administrador do banco):
+
+  ```bash
+  gcloud firestore fields ttls update expiresAt \
+    --collection-group=kipp_response_cache --enable-ttl \
+    --project=kipp-space-apps-2026
+  ```
+
+  Depois, publique com a variável: `gcloud run services update kipp-earth-api
+  --update-env-vars PERSISTENT_CACHE=firestore`. Para desligar, remova a
+  variável; as respostas voltam a vir apenas da memória e do Warehouse.
 - Compressão gzip/deflate, inclusive para frames binários.
 - Até quatro consultas SQL Warehouse simultâneas por instância; excesso retorna 503
   com Retry-After. Conexões e consultas possuem timeout e orçamento limitado.
@@ -95,7 +131,7 @@ Somas e classes usam os métodos publicados nos metadados de cada variável.
   OAuth M2M continua disponível para desenvolvimento e revisões antigas.
   Logs não incluem credenciais ou erros SQL detalhados.
 - Cloud Run: mínimo zero, máximo três instâncias, 1 CPU / 512 MiB, concorrência 32.
-  Cada instância tem cache próprio; o Warehouse tem seu próprio ciclo de inicialização.
+  Cada instância tem cache próprio em memória (compartilhado só com o nível Firestore, se ativado); o Warehouse tem seu próprio ciclo de inicialização.
 
 ## Desenvolvimento e publicação
 

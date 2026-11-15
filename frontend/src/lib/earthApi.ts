@@ -170,6 +170,10 @@ export type EarthComparison = {
   reference:{start:string;end:string;minimumYearsPerMonth:number;method:string};
   global:ComparisonScope;regional:ComparisonScope;
 };
+function validComparison(data: EarthComparison, variable: string, start: string, end: string) {
+  return data?.simulated === false && data.variable === variable && data.start === start && data.end === end &&
+    Array.isArray(data.global?.observations) && Array.isArray(data.regional?.observations);
+}
 export function loadComparison(variable:EarthVariable,start:string,end:string,bbox:string,signal:AbortSignal,includeTrends=false):Promise<EarthComparison> {
   const key=JSON.stringify(["comparison:v2",variableDataKey(variable),start,end,bbox,includeTrends]);
   return earthReadCache.read(key,signal,60_000,async(requestSignal)=> {
@@ -177,11 +181,60 @@ export function loadComparison(variable:EarthVariable,start:string,end:string,bb
     if(includeTrends)query.set("analysis","trend-v1");
     const data:EarthComparison=await queuedSeries(requestSignal,async()=>
       (await checked(`/v1/comparison/${encodeURIComponent(variable.id)}?${query}`,requestSignal)).json());
-    if (data.simulated!==false || data.variable!==variable.id || data.start!==start || data.end!==end ||
-      !Array.isArray(data.global?.observations) || !Array.isArray(data.regional?.observations))
+    if (!validComparison(data,variable.id,start,end))
       throw new Error("Comparison data does not match this selection.");
     return data;
   });
+}
+export type ComparisonBatchEntry = { data?: EarthComparison; error?: string };
+// Keep in step with the API's per-request limit and the proxy's response cap.
+export const comparisonBatchSize = 6;
+/**
+ * Loads every selected variable's study series in one request per six variables
+ * instead of one request each. A failed variable is reported on its own entry; an
+ * API that predates the batch route is served by the single-variable route.
+ */
+export async function loadComparisons(variables:EarthVariable[],start:string,end:string,bbox:string,signal:AbortSignal,includeTrends=false):Promise<Record<string,ComparisonBatchEntry>> {
+  const entries:Record<string,ComparisonBatchEntry>={};
+  const fallback=async(group:EarthVariable[])=> {
+    await Promise.all(group.map(async variable=> {
+      try { entries[variable.id]={data:await loadComparison(variable,start,end,bbox,signal,includeTrends)}; }
+      catch (error) {
+        if (signal.aborted) throw error;
+        entries[variable.id]={error:error instanceof Error?error.message:"Could not load comparison."};
+      }
+    }));
+  };
+  const groups:EarthVariable[][]=[];
+  for (let i=0;i<variables.length;i+=comparisonBatchSize) groups.push(variables.slice(i,i+comparisonBatchSize));
+  await Promise.all(groups.map(async group=> {
+    const key=JSON.stringify(["comparisons:v1",group.map(variableDataKey),start,end,bbox,includeTrends]);
+    try {
+      const batch=await earthReadCache.read(key,signal,60_000,async requestSignal=> {
+        const query=new URLSearchParams({variables:group.map(v=>v.id).join(","),start,end,bbox});
+        if(includeTrends)query.set("analysis","trend-v1");
+        const body:{version?:number;results?:Record<string,EarthComparison>;errors?:Record<string,{message?:string}>}=
+          await queuedSeries(requestSignal,async()=>(await checked(`/v1/comparisons?${query}`,requestSignal)).json());
+        if (body?.version!==1 || typeof body.results!=="object" || typeof body.errors!=="object")
+          throw new Error("Comparison data does not match this selection.");
+        const out:Record<string,ComparisonBatchEntry>={};
+        for (const variable of group) {
+          const data=body.results?.[variable.id];
+          if (data && validComparison(data,variable.id,start,end)) out[variable.id]={data};
+          else out[variable.id]={error:body.errors?.[variable.id]?.message ?? "Comparison data does not match this selection."};
+        }
+        return out;
+      },value=>Object.values(value).every(entry=>!entry.error));
+      Object.assign(entries,batch);
+    } catch (error) {
+      if (signal.aborted) throw error;
+      // 404: the API has not been updated with the batch route yet.
+      if ((error as {status?:number})?.status===404) return fallback(group);
+      const message=error instanceof Error?error.message:"Could not load comparison.";
+      for (const variable of group) entries[variable.id]={error:message};
+    }
+  }));
+  return entries;
 }
 export function loadInvestigation(request: InvestigationRequest, variables: EarthVariable[], signal: AbortSignal): Promise<Investigation> {
   const key=JSON.stringify(['investigation-v1',request,variables.map(variableDataKey)]);
