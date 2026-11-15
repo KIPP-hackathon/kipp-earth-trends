@@ -6,6 +6,7 @@ import type {
   AssistantResponse,
 } from "../lib/assistant";
 import { parseAssistantResponse, safeEvidenceUrl } from "../lib/assistant";
+import { KippMascot } from "./KippMascot";
 import "../assistant.css";
 
 type Message = {
@@ -122,7 +123,7 @@ export function Assistant({
     triggerRef.current?.focus();
   };
   return (
-    <div className="lab-assistant">
+    <div className={`lab-assistant${open ? " is-open" : ""}`}>
       {open && (
         <section
           id={`${id}-panel`}
@@ -136,6 +137,7 @@ export function Assistant({
           }}
         >
           <header className="assistant-header">
+            <KippMascot animated />
             <div>
               <span className="eyebrow">KIPP · AI ASSISTANT</span>
               <h2 id={`${id}-title`}>Explore with evidence</h2>
@@ -300,14 +302,17 @@ export function Assistant({
       )}
       <button
         ref={triggerRef}
-        className="assistant-trigger"
+        className="assistant-trigger assistant-mascot-trigger"
         type="button"
         aria-expanded={open}
         aria-controls={`${id}-panel`}
         onClick={() => (open ? close() : setOpen(true))}
       >
-        <MessageCircle size={19} />
-        <span>{open ? "Close assistant" : "Ask KIPP"}</span>
+        <KippMascot animated />
+        <span className="assistant-trigger-label">
+          {open ? <X size={14} /> : <MessageCircle size={14} />}
+          {open ? "Close assistant" : "Ask KIPP"}
+        </span>
       </button>
     </div>
   );

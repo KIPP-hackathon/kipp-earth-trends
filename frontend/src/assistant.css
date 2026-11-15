@@ -296,3 +296,92 @@
 }
 
 .assistant-trigger, .assistant-form-footer button { background: var(--nasa-blue); color: #47566b; }
+
+/* The mascot remains the existing accessible assistant button. */
+.lab-assistant .assistant-mascot-trigger {
+  flex-direction: column;
+  gap: 0;
+  padding: 0 4px 4px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: #edf4ff;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.assistant-mascot-trigger .kipp-mascot {
+  width: 108px;
+  height: 105px;
+  filter: drop-shadow(0 5px 12px #0008) drop-shadow(0 0 14px #5eafff26);
+}
+.lab-assistant .assistant-mascot-trigger:hover {
+  background: transparent;
+}
+.assistant-trigger-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #87b7f05c;
+  border-radius: 24px;
+  background: #0b203bf2;
+  box-shadow: 0 4px 18px #0005;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.assistant-mascot-trigger:hover .assistant-trigger-label,
+.assistant-mascot-trigger:focus-visible .assistant-trigger-label {
+  background: #214d83;
+  border-color: #a7d1ff;
+}
+.assistant-header > .kipp-mascot {
+  width: 42px;
+  height: 44px;
+}
+.assistant-header > div {
+  min-width: 0;
+}
+.is-open .assistant-mascot-trigger {
+  flex-direction: row;
+  gap: 3px;
+  padding: 2px 8px 2px 2px;
+  border: 1px solid #87b7f05c;
+  border-radius: 30px;
+  background: #0b203bf2;
+}
+.is-open .assistant-mascot-trigger .kipp-mascot {
+  width: 34px;
+  height: 34px;
+  filter: none;
+}
+.lab-assistant.is-open .assistant-mascot-trigger:hover {
+  background: #153559;
+}
+.is-open .assistant-trigger-label {
+  border: 0;
+  padding: 6px;
+  background: transparent;
+  box-shadow: none;
+}
+@media (max-width: 600px) {
+  .lab-assistant {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .assistant-mascot-trigger .kipp-mascot {
+    width: 88px;
+    height: 86px;
+  }
+  .assistant-header > .kipp-mascot {
+    width: 32px;
+    height: 36px;
+  }
+  .assistant-header h2 {
+    font-size: 15px;
+  }
+  .assistant-panel {
+    height: min(620px, calc(100dvh - 100px - env(safe-area-inset-bottom)));
+  }
+}

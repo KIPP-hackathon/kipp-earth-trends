@@ -107,6 +107,22 @@ Para cada dado real entregue, preencher: **produtor; produto/versão; URL/DOI; v
 
 ## Registro de IA
 
+Preparação da publicação do mascote em 15/11/2026: integração isolada a partir
+da `main` remota `4c0281d`, preservando migração GCP, interface em inglês,
+comparação/legenda interativa, remoção de ações/aviso de localização e posição
+das camadas, legibilidade/tamanho de fonte, tendências/significância e extrações
+incrementais já publicadas pelo time. Inclui os dois mascotes animados do
+assistente, favicon GIF com PNG e alternativa de movimento reduzido, assets e
+créditos em inglês. Header/rodapé mantêm o logo original. Ver [registro de
+assets, ferramentas e IA](kipp-mascot.md). Publicação pela conta pessoal `Luckstai`,
+conforme orientação explícita da equipe registrada no AGENTS.md. Não declara
+deploy, submissão ou conclusão científica antes da verificação.
+Validação integrada: 47 testes frontend e builds frontend/API aprovados com
+Node.js 24; revisão independente sem problemas materiais. CUA conferiu desktop
+e 390 px com interface em inglês, logos originais, dois mascotes animados e
+layout atual do time preservados. Identidade pessoal configurada no escopo do
+repositório; validação de publicação pendente.
+
 Evidência técnica adicional de 14/11/2026: a migração do backend para Lakebase
 conferiu as quatro tabelas de MERRA-2 e IMERG, nomes/tipos de colunas,
 20.793.600 registros e coberturas de 33/33/21/13 meses. O adaptador real retornou

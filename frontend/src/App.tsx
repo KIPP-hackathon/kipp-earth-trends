@@ -1085,6 +1085,7 @@ function App() {
           <a
             href="#"
             className="footer-brand"
+            aria-label="KIPP home"
             onClick={(event) => {
               event.preventDefault();
               showTab("explore");
@@ -1151,6 +1152,13 @@ function App() {
                 Event cards are curated and cite their historical sources.
                 A coincidence between fields and events does not establish
                 causality.
+              </p>
+              <p>
+                KIPP mascot: AI-generated artwork inspired by the robot in
+                Interstellar (2014), with a locally authored 3D animation.
+                Created with OpenAI ImageGen, Codex, Three.js and FFmpeg.
+                The mascot is not official film artwork; its screen graphics
+                are decorative and do not represent scientific results.
               </p>
               {[
                 ...new Set([

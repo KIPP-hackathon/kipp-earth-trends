@@ -3,6 +3,9 @@
 ## Identidade e Git
 
 - Este repositório pertence ao projeto pessoal do time KIPP.
+- Use exclusivamente a conta pessoal GitHub `Luckstai` neste projeto. Nunca use
+  conta ou identidade da CERC para operações deste repositório.
+- Identidade Git local do projeto: `Lucas Henrique` e `lucas.henrique.tai@gmail.com`.
 - Antes de autenticar, criar commits ou enviar código, confira a conta efetiva com `gh api user` e a identidade Git local. Use a conta autorizada pelo usuário para a sessão.
 - Configure identidade e credenciais no escopo deste repositório. Não copie configurações, credenciais, dados ou documentos de projetos de trabalho.
 - Use nomes de branches descritivos com prefixos `feat/`, `fix/` ou `docs/` quando uma nova branch for necessária.
