@@ -18,8 +18,7 @@ export default async function handler(
       JSON.stringify({
         error: {
           code,
-          message:
-            "Could not query the data source. Try again.",
+          message: "Could not query the data source. Try again.",
         },
       }),
     );
@@ -70,17 +69,27 @@ export default async function handler(
     }
     const allowed = new Set(
       path === "/v1/investigation"
-        ? ['x','y','bbox','start','end','baselineStart','baselineEnd','method']
+        ? [
+            "x",
+            "y",
+            "bbox",
+            "start",
+            "end",
+            "baselineStart",
+            "baselineEnd",
+            "method",
+          ]
         : path === "/v1/trends"
-        ? ["variable", "bbox", "start", "end"]
-        : path.startsWith("/v1/comparison/") ? ["bbox","start","end","analysis"]
-        : ["bbox", "factor", "format", "start", "end"],
+          ? ["variable", "bbox", "start", "end"]
+          : path.startsWith("/v1/comparison/")
+            ? ["bbox", "start", "end", "analysis"]
+            : ["bbox", "factor", "format", "start", "end"],
     );
     for (const [key, value] of query)
       if (
         !allowed.has(key) ||
-        (key==="analysis" && value!=="trend-v1") ||
-        (key==="method" && value!=="relationships-v1") ||
+        (key === "analysis" && value !== "trend-v1") ||
+        (key === "method" && value !== "relationships-v1") ||
         value.length > 200 ||
         query.getAll(key).length !== 1
       ) {
@@ -99,14 +108,19 @@ export default async function handler(
     return fail(400, "INVALID_PARAMETERS");
   }
   try {
-    const token = await identityToken();
-    const headers: Record<string, string> = {
-      authorization: `Bearer ${token}`,
-    };
+    // Preview reuses the existing public read API. Its OIDC subject is not
+    // authorized by the production-only Google federation; IAM stays unchanged.
+    const preview = process.env.VERCEL_ENV === "preview";
+    const upstream = preview
+      ? "https://kipp-earth-trends-lab.vercel.app/api/earth"
+      : origin;
+    const headers: Record<string, string> = preview
+      ? {}
+      : { authorization: `Bearer ${await identityToken()}` };
     const etag = request.headers["if-none-match"];
     if (typeof etag === "string" && etag.length < 200)
       headers["if-none-match"] = etag;
-    const result = await fetch(`${origin}${path}?${query}`, {
+    const result = await fetch(`${upstream}${path}?${query}`, {
       method: request.method,
       headers,
       redirect: "error",

@@ -9,6 +9,11 @@ const previewOrigin =
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    "import.meta.env.KIPP_PREVIEW": JSON.stringify(
+      process.env.VERCEL_ENV === "preview",
+    ),
+  },
   server: {
     host: "127.0.0.1",
     port: 5173,

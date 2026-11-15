@@ -20,6 +20,7 @@ export function Assistant({
   getContext,
   applyResponse,
   ready,
+  preview = false,
 }: {
   getContext: () => AssistantContext;
   applyResponse: (
@@ -27,6 +28,7 @@ export function Assistant({
     requested: AssistantContext,
   ) => string;
   ready: boolean;
+  preview?: boolean;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -55,7 +57,8 @@ export function Assistant({
   };
   const ask = async () => {
     const message = input.trim();
-    if (!message || message.length > 2000 || pending || !ready) return;
+    if (!message || message.length > 2000 || pending || !ready || preview)
+      return;
     const context = getContext();
     if (!context.panels.length) {
       setNotice("Wait for the lab view to be ready.");
@@ -265,6 +268,7 @@ export function Assistant({
               id={`${id}-input`}
               ref={inputRef}
               value={input}
+              disabled={preview}
               maxLength={2000}
               rows={2}
               placeholder="Try: show rainfall over the Amazon…"
@@ -283,16 +287,33 @@ export function Assistant({
             />
             <div className="assistant-form-footer">
               <small id={`${id}-help`}>
-                {ready
-                  ? `${input.length}/2000 · Enter to send`
-                  : "Choose variables in Explore or Compare to enable the assistant."}
+                {preview ? (
+                  <>
+                    The AI assistant is available in the{" "}
+                    <a
+                      href="https://kipp-earth-trends-lab.vercel.app/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      production app
+                    </a>
+                    . This preview supports the data journey and charts.
+                  </>
+                ) : ready ? (
+                  `${input.length}/2000 · Enter to send`
+                ) : (
+                  "Choose variables in Explore or Compare to enable the assistant."
+                )}
               </small>
               {pending ? (
                 <button type="button" onClick={cancel}>
                   <Square size={13} /> Cancel
                 </button>
               ) : (
-                <button type="submit" disabled={!ready || !input.trim()}>
+                <button
+                  type="submit"
+                  disabled={preview || !ready || !input.trim()}
+                >
                   <Send size={14} /> Send
                 </button>
               )}

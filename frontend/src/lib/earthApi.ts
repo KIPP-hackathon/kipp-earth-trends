@@ -324,7 +324,7 @@ async function readCatalog(signal: AbortSignal): Promise<EarthCatalog> {
     )
   )
     throw new Error(
-      "No months are available in the catalog. Refresh after data has loaded.",
+      "No variables are currently available. Check source coverage settings, then refresh.",
     );
   if (typeof data.revision === "string")
     data.variables = data.variables.map((variable: EarthVariable) => ({

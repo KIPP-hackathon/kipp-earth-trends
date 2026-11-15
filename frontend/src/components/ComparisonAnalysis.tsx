@@ -7,6 +7,7 @@ import type {
   EarthVariable,
 } from "../lib/earthApi";
 import { ComparisonChart } from "./ComparisonChart";
+import { chartDomain } from "../lib/chartDomain";
 import { adjustTrendFamily } from "../lib/runtimeTrends";
 import "./comparison-analysis.css";
 
@@ -59,7 +60,7 @@ function ComparisonAnalysisComponent({
     entries: Record<string, { data?: EarthComparison; error?: string }>;
   }>({ key: "", entries: {} });
   useEffect(() => {
-    if (!active || !available || !hasArea) return;
+    if (!active || !available) return;
     const controller = new AbortController();
     setResult({ key, entries: {} });
     for (const variable of variables) {
@@ -106,7 +107,7 @@ function ComparisonAnalysisComponent({
     return () => controller.abort();
     // Mode, camera, opacity and selected month never reload a study series.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, active, available, hasArea]);
+  }, [key, active, available]);
   const entries = useMemo<ComparisonEntry[]>(
     () =>
       variables.map((variable) => ({
@@ -132,59 +133,29 @@ function ComparisonAnalysisComponent({
   const [cursor, setCursor] = useState<string>();
   useEffect(() => setCursor(undefined), [month, start, end, region.bbox]);
   const completed = entries.filter((entry) => entry.data || entry.error).length;
-  const adjustedP = useMemo(
-    () => adjustTrendFamily(entries, mode, ["regional"]),
-    [entries, mode],
+  const [trendsOnly, setTrendsOnly] = useState(false);
+  const scopes = useMemo<readonly ("global" | "regional")[]>(
+    () => (hasArea ? ["global", "regional"] : ["global"]),
+    [hasArea],
   );
-  const familySize = entries.length;
-  const domain = useMemo<[number, number]>(() => {
-    if (mode === "minmax") return [0, 100];
-    if (mode === "raw") {
-      const values = visibleEntries
-        .flatMap((entry) => [
-          ...(entry.data?.regional.observations ?? []).map((row) => row.value),
-          ...(entry.data?.regional.trends?.raw.line ?? []).map(
-            (row) => row.value,
-          ),
-        ])
-        .filter(
-          (value): value is number => value !== null && Number.isFinite(value),
-        );
-      if (!values.length) return [0, 1];
-      let min = values[0],
-        max = values[0];
-      for (const value of values) {
-        min = Math.min(min, value);
-        max = Math.max(max, value);
-      }
-      const padding =
-        max > min ? (max - min) * 0.06 : Math.max(Math.abs(min) * 0.05, 1e-6);
-      return [min - padding, max + padding];
-    }
-    let max = 2;
-    for (const entry of visibleEntries)
-      for (const row of [
-        ...(entry.data?.regional.observations ?? []).map((row) => ({
-          standardized: row.standardized,
-        })),
-        ...(entry.data?.regional.trends?.standardized.line ?? []).map(
-          (row) => ({ standardized: row.value }),
-        ),
-      ])
-        if (row.standardized !== null)
-          max = Math.max(max, Math.abs(row.standardized));
-    return [-max * 1.1, max * 1.1];
-  }, [visibleEntries, mode]);
-  if (!hasArea)
-    return (
-      <section className="comparison-analysis">
-        <h2>Selected area</h2>
-        <p className="comparison-empty">
-          Choose a country or draw an area on the globe to see its variables and
-          trends.
-        </p>
-      </section>
-    );
+  const adjustedP = useMemo(
+    () => adjustTrendFamily(entries, mode, scopes),
+    [entries, mode, scopes],
+  );
+  const familySize = entries.length * scopes.length;
+  const domain = useMemo(
+    () =>
+      chartDomain(
+        visibleEntries.map((entry) => entry.data),
+        mode,
+        scopes,
+      ),
+    [visibleEntries, mode, scopes],
+  );
+  const changeMode = (next: ComparisonMode) => {
+    onMode(next);
+    if (next === "raw") setTrendsOnly(false);
+  };
   return (
     <div className="comparison-analysis">
       {!available && (
@@ -211,13 +182,36 @@ function ComparisonAnalysisComponent({
         </div>
       )}
       <ComparisonChart
+        title="Global"
+        scope="global"
+        entries={entries}
+        hiddenVariables={hiddenVariables}
+        onToggleVariable={toggleVariable}
+        onMode={changeMode}
+        mode={mode}
+        trendsOnly={trendsOnly}
+        onTrendsOnly={setTrendsOnly}
+        domain={domain}
+        start={start}
+        end={end}
+        month={cursor ?? month}
+        onCursor={setCursor}
+        onMonth={onMonth}
+        noArea={false}
+        adjustedP={adjustedP}
+        familySize={familySize}
+        loading={completed < entries.length}
+      />
+      <ComparisonChart
         title={`Selected area · ${hasArea ? region.name : "no area selected"}`}
         scope="regional"
         entries={entries}
         hiddenVariables={hiddenVariables}
         onToggleVariable={toggleVariable}
-        onMode={onMode}
+        onMode={changeMode}
         mode={mode}
+        trendsOnly={trendsOnly}
+        onTrendsOnly={setTrendsOnly}
         domain={domain}
         start={start}
         end={end}

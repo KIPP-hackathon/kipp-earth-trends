@@ -1,3 +1,4 @@
+import { initialInvestigation } from "../lib/initialInvestigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { GeoPermissibleObjects } from "d3-geo";
 import "./global-comparison.css";
@@ -581,9 +582,11 @@ function SelectedRealPanel({
 
 export type RealPanelProps = Omit<Parameters<typeof SelectedRealPanel>[0], "preset"> & { preset?: PanelPreset };
 
-/** Do not mount data readers until variables are explicitly applied or restored. */
+/** Explore starts with real temperature; comparison panels remain opt-in. */
 export function RealPanel(props: RealPanelProps) {
-  const [initialPreset, setInitialPreset] = useState<PanelPreset>();
+  const [initialPreset, setInitialPreset] = useState<PanelPreset | undefined>(() => props.overview
+    ? initialInvestigation(props.catalog.variables, props.initialRegion ?? props.config.regions[0])
+    : undefined);
   const preset = props.preset ?? initialPreset;
   if (preset) return <SelectedRealPanel {...props} preset={preset} />;
   return <EmptyRealPanel {...props} onStart={(next) => {

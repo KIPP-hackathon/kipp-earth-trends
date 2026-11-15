@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  Compass,
   Columns2,
   Earth,
   FlaskConical,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 
 export const labTabs = [
+  { id: "start", label: "Start", icon: Compass },
   { id: "explore", label: "Explore", icon: Earth },
   { id: "compare", label: "Compare", icon: Columns2 },
   { id: "trend", label: "Trend Lab", icon: FlaskConical },

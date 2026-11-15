@@ -36,6 +36,8 @@ function ComparisonChartComponent({
   entries,
   mode,
   onMode,
+  trendsOnly,
+  onTrendsOnly,
   hiddenVariables,
   onToggleVariable,
   domain,
@@ -55,6 +57,8 @@ function ComparisonChartComponent({
   entries: ComparisonEntry[];
   mode: ComparisonMode;
   onMode: (mode: ComparisonMode) => void;
+  trendsOnly: boolean;
+  onTrendsOnly: (value: boolean) => void;
   hiddenVariables: Set<string>;
   onToggleVariable: (id: string) => void;
   domain: [number, number];
@@ -71,7 +75,6 @@ function ComparisonChartComponent({
 }) {
   const id = useId();
   const [preview, setPreview] = useState(false);
-  const [trendsOnly, setTrendsOnly] = useState(false);
   const valueKey = mode === "raw" ? "value" : mode;
   const nativeUnit = realUnit(
     entries[0]?.data?.unit ?? entries[0]?.variable.unit ?? "",
@@ -151,11 +154,11 @@ function ComparisonChartComponent({
               </summary>
               <p className="comparison-explainer">
                 {mode === "raw"
-                  ? `Monthly regional values in ${nativeUnit}, before chart normalization. Source aggregation and quality rules still apply.`
+                  ? `Monthly values in ${nativeUnit}, before chart normalization. Source aggregation and quality rules still apply.`
                   : mode === "standardized"
                     ? "Above or below the usual value for that calendar month · standard deviations from 2001–2020 · at least 10 reference years per month."
                     : "Compare curve shapes · 0 = each series’ lowest value, 100 = its highest in the study period. A constant series is 50."}{" "}
-                {mode !== "raw" && "The selected area has its own reference. "}
+                {mode !== "raw" && "Each scope has its own reference. "}
                 Hover for original units. Map opacity does not affect this
                 chart.
               </p>
@@ -185,7 +188,7 @@ function ComparisonChartComponent({
             }
             onClick={() => {
               onMode("raw");
-              setTrendsOnly(false);
+              onTrendsOnly(false);
             }}
           >
             Default
@@ -208,7 +211,7 @@ function ComparisonChartComponent({
             type="button"
             aria-pressed={trendsOnly}
             title="Hide the observed series and keep only season-adjusted trends"
-            onClick={() => setTrendsOnly((value) => !value)}
+            onClick={() => onTrendsOnly(!trendsOnly)}
           >
             Trends only
           </button>

@@ -56,7 +56,7 @@ function TrendResultsComponent({
               : mode === "standardized"
                 ? "historical deviation"
                 : "scale 0–100"}{" "}
-            · {familySize} selected-area tests
+            · {familySize} tests across the displayed scopes
           </caption>
           <thead>
             <tr>

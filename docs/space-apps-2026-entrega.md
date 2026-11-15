@@ -1087,3 +1087,29 @@ Integracao dos controles do Trend Lab em 15/11/2026: conflito de anexos no
 checklist resolvido preservando os registros do Trend Lab e Events. Main
 `19dc594` integrada com 87 testes frontend e builds frontend/API aprovados
 em Node.js 24. Conta `Marcelo-Kenji-Noda` autorizada pelo usuario nesta sessao.
+
+
+## Evidência incremental — jornada guiada em preview (15/11/2026)
+
+OpenAI Codex assistiu a entrada em inglês, atalhos Events → Trend Lab → Explore,
+seleção inicial com cobertura real, retorno do gráfico Global e sincronização
+de controles com Selected area. O domínio inclui ambos os escopos e a família
+Holm considera os testes mostrados; não altera dados, estimadores ou QA.
+[Método, carregamento, isolamento e limites](guided-user-journey.md).
+
+A introdução aparece durante a leitura do catálogo e módulos abrem sob demanda.
+Entry JS caiu de693,45para525,48kB (gzip234,81para179,87kB). API aquecida respondeu
+em216ms; isso não elimina o custo frio do Warehouse documentado anteriormente.
+Na conferência, as72variáveis passaram a ser ocultadas pela configuração de
+cobertura da fonte; não foram reativadas nem simuladas pelo preview.
+
+Node.js24:94testes frontend e builds frontend/backend aprovados antes da última
+conferência visual. Chromium1440/390/360px confirmou jornada e controles,
+com captura anterior real do catálogo explicitamente usada como fixture de
+metadados e consultas de comparação reais. Revisão independente identificou
+assistente sem autorização no preview; painel passou a explicar/desabilitar
+o envio e linkar produção, sem mudar IAM ou quotas. Capturas fora do Git.
+
+Branch `feat/guided-user-journey`, sem merge ou promoção. Publicação/URL e
+conferência final serão registradas após o deploy. Revisão humana, investigação
+científica final e submissão oficial permanecem pendentes.

@@ -1,5 +1,12 @@
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./lib/globeZoom";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -12,9 +19,23 @@ import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
 import { InvestigationControls } from "./components/InvestigationControls";
 import type { InvestigationView } from "./lib/investigations";
-import { EventExplorer } from "./components/EventExplorer";
-import { TrendLab } from "./components/TrendLab";
-import { RealPanel } from "./components/RealDataView";
+import { JourneyStart } from "./components/JourneyStart";
+import { DataLoading } from "./components/DataLoading";
+const EventExplorer = lazy(() =>
+  import("./components/EventExplorer").then((module) => ({
+    default: module.EventExplorer,
+  })),
+);
+const TrendLab = lazy(() =>
+  import("./components/TrendLab").then((module) => ({
+    default: module.TrendLab,
+  })),
+);
+const RealPanel = lazy(() =>
+  import("./components/RealDataView").then((module) => ({
+    default: module.RealPanel,
+  })),
+);
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { useCountryLocation } from "./lib/useCountryLocation";
 import { brazilCountry, loadCountries } from "./lib/countries";
@@ -268,7 +289,13 @@ function App() {
   const markChanged = useCallback(() => {
     version.current++;
   }, []);
-  const [active, setActive] = useState<LabTab>("explore");
+  const [active, setActive] = useState<LabTab>("start");
+  const [opened, setOpened] = useState<Set<LabTab>>(() => new Set(["start"]));
+  useEffect(() => {
+    setOpened((previous) =>
+      previous.has(active) ? previous : new Set([...previous, active]),
+    );
+  }, [active]);
   const exploration = useLabWorkspace(markChanged);
   const comparison = useLabWorkspace(markChanged);
   const location = useCountryLocation();
@@ -960,7 +987,7 @@ function App() {
           aria-label="KIPP home"
           onClick={(event) => {
             event.preventDefault();
-            showTab("explore");
+            showTab("start");
           }}
         >
           <span className="brand-mark">
@@ -986,10 +1013,16 @@ function App() {
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
+        {active === "start" && (
+          <section role="tabpanel" id="panel-start" aria-labelledby="tab-start">
+            <JourneyStart onNavigate={showTab} />
+          </section>
+        )}
         {(catalog.loading || config.loading) && (
-          <p className="real-notice" role="status">
-            Loading real variables and study areas…
-          </p>
+          <DataLoading
+            catalogReady={!!catalog.data}
+            configReady={!!config.data}
+          />
         )}
         {catalog.error && (
           <RequestFailure message={catalog.error} retry={catalog.retry} />
@@ -1008,31 +1041,39 @@ function App() {
             >
               {renderEventContext(exploration, false)}
               <div className="real-panels">
-                <RealPanel
-                  key="explore-A"
-                  instanceId="explore-A"
-                  overview
-                  initialRegion={startingCountry.region}
-                  initialOutline={startingCountry.geometry}
-                  initializationKey={startingCountry.countryCode}
-                  catalog={catalog.data}
-                  config={explorationConfig}
-                  side="A"
-                  view={exploration.camera.view}
-                  onView={exploration.changeView}
-                  onNavigate={exploration.navigateView}
-                  preset={exploration.presets.A}
-                  active={isExploration}
-                  colorRanges={exploration.colorRanges}
-                  onColorRange={exploration.changeColorRange}
-                  onSnapshot={exploration.receiveSnapshot}
-                  onManualChange={markChanged}
-                  playbackCommand={exploration.playbackCommands.A}
-                  onPlaybackApplied={exploration.acknowledgePlayback}
-                  onCustomRegion={exploration.registerRegion}
-                  onAreaChange={() => exploration.setEventContext(undefined)}
-                  eventWindow={exploration.eventContext?.window}
-                />
+                {(isExploration || opened.has("explore")) && (
+                  <Suspense
+                    fallback={<p role="status">Opening the explorer…</p>}
+                  >
+                    <RealPanel
+                      key="explore-A"
+                      instanceId="explore-A"
+                      overview
+                      initialRegion={startingCountry.region}
+                      initialOutline={startingCountry.geometry}
+                      initializationKey={startingCountry.countryCode}
+                      catalog={catalog.data}
+                      config={explorationConfig}
+                      side="A"
+                      view={exploration.camera.view}
+                      onView={exploration.changeView}
+                      onNavigate={exploration.navigateView}
+                      preset={exploration.presets.A}
+                      active={isExploration}
+                      colorRanges={exploration.colorRanges}
+                      onColorRange={exploration.changeColorRange}
+                      onSnapshot={exploration.receiveSnapshot}
+                      onManualChange={markChanged}
+                      playbackCommand={exploration.playbackCommands.A}
+                      onPlaybackApplied={exploration.acknowledgePlayback}
+                      onCustomRegion={exploration.registerRegion}
+                      onAreaChange={() =>
+                        exploration.setEventContext(undefined)
+                      }
+                      eventWindow={exploration.eventContext?.window}
+                    />
+                  </Suspense>
+                )}
               </div>
             </section>
             <section
@@ -1049,29 +1090,37 @@ function App() {
               </p>
               {renderEventContext(comparison, true)}
               <div className="real-panels is-comparing">
-                {(["A", "B"] as PanelSide[]).map((side) => (
-                  <RealPanel
-                    key={`compare-${side}`}
-                    instanceId={`compare-${side}`}
-                    catalog={catalog.data!}
-                    config={comparisonConfig}
-                    side={side}
-                    view={comparison.camera.view}
-                    onView={comparison.changeView}
-                    onNavigate={comparison.navigateView}
-                    preset={comparison.presets[side]}
-                    active={active === "compare"}
-                    colorRanges={comparison.colorRanges}
-                    onColorRange={comparison.changeColorRange}
-                    onSnapshot={comparison.receiveSnapshot}
-                    onManualChange={markChanged}
-                    playbackCommand={comparison.playbackCommands[side]}
-                    onPlaybackApplied={comparison.acknowledgePlayback}
-                    onCustomRegion={comparison.registerRegion}
-                    onAreaChange={() => comparison.setEventContext(undefined)}
-                    eventWindow={comparison.eventContext?.window}
-                  />
-                ))}
+                {(active === "compare" || opened.has("compare")) && (
+                  <Suspense
+                    fallback={<p role="status">Opening comparison tools…</p>}
+                  >
+                    {(["A", "B"] as PanelSide[]).map((side) => (
+                      <RealPanel
+                        key={`compare-${side}`}
+                        instanceId={`compare-${side}`}
+                        catalog={catalog.data!}
+                        config={comparisonConfig}
+                        side={side}
+                        view={comparison.camera.view}
+                        onView={comparison.changeView}
+                        onNavigate={comparison.navigateView}
+                        preset={comparison.presets[side]}
+                        active={active === "compare"}
+                        colorRanges={comparison.colorRanges}
+                        onColorRange={comparison.changeColorRange}
+                        onSnapshot={comparison.receiveSnapshot}
+                        onManualChange={markChanged}
+                        playbackCommand={comparison.playbackCommands[side]}
+                        onPlaybackApplied={comparison.acknowledgePlayback}
+                        onCustomRegion={comparison.registerRegion}
+                        onAreaChange={() =>
+                          comparison.setEventContext(undefined)
+                        }
+                        eventWindow={comparison.eventContext?.window}
+                      />
+                    ))}
+                  </Suspense>
+                )}
               </div>
               <p className="real-method-note">
                 Each regional series uses its own study rectangle. Visual
@@ -1085,13 +1134,23 @@ function App() {
               id="panel-trend"
               aria-labelledby="tab-trend"
             >
-              <TrendLab
-                onGuide={() => setModal("guide")}
-                catalog={catalog.data}
-                config={config.data!}
-                initialCountry={startingCountry}
-                active={active === "trend"}
-              />
+              {(active === "trend" || opened.has("trend")) && (
+                <Suspense
+                  fallback={
+                    <p className="real-notice" role="status">
+                      Opening Trend Lab…
+                    </p>
+                  }
+                >
+                  <TrendLab
+                    onGuide={() => setModal("guide")}
+                    catalog={catalog.data}
+                    config={config.data!}
+                    initialCountry={startingCountry}
+                    active={active === "trend"}
+                  />
+                </Suspense>
+              )}
             </section>
             {active === "events" && (
               <section
@@ -1099,11 +1158,19 @@ function App() {
                 id="panel-events"
                 aria-labelledby="tab-events"
               >
-                <EventExplorer
-                  catalog={catalog.data}
-                  onOpen={applyEvent}
-                  onExplore={() => showTab("explore")}
-                />
+                <Suspense
+                  fallback={
+                    <p className="real-notice" role="status">
+                      Opening historical events…
+                    </p>
+                  }
+                >
+                  <EventExplorer
+                    catalog={catalog.data}
+                    onOpen={applyEvent}
+                    onExplore={() => showTab("explore")}
+                  />
+                </Suspense>
               </section>
             )}
           </>
@@ -1125,7 +1192,7 @@ function App() {
             aria-label="KIPP home"
             onClick={(event) => {
               event.preventDefault();
-              showTab("explore");
+              showTab("start");
             }}
           >
             <Earth size={19} /> KIPP.
@@ -1155,12 +1222,14 @@ function App() {
           </div>
         </footer>
       </main>
-      <div hidden={active === "trend"}>
+      <div hidden={active === "trend" || active === "start"}>
         <Assistant
+          preview={import.meta.env.KIPP_PREVIEW}
           ready={
             !!catalog.data &&
             !!config.data &&
             active !== "trend" &&
+            active !== "start" &&
             (active === "compare" ? comparison.ready : exploration.ready)
           }
           getContext={getContext}

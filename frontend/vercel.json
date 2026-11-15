@@ -8,7 +8,8 @@
   "git": {
     "deploymentEnabled": {
       "*": false,
-      "main": true
+      "main": true,
+      "feat/guided-user-journey": true
     }
   },
   "functions": {
