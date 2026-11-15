@@ -12,6 +12,35 @@ dois sentidos, áreas diferentes, opacidade 37%, modos distintos e mudança de
 mês no destino sem alterar a origem antes de copiar. Configurações temporárias
 usaram dados reais; nenhum salvo foi criado. Publicação em verificação.
 
+## Seletor único, isolamento da camada e hover estável — 15/11/2026
+
+OpenAI Codex assistiu o refinamento solicitado pelo usuário: removida a caixa
+separada de grupo. Um único seletor oferece todas as variáveis selecionadas,
+organizadas por grupo; o campo fechado mostra ícone, grupo e nome com reticências
+quando excede a largura. Nome completo continua no seletor nativo e no tooltip.
+
+O botão ScanEye agora executa Show only this layer, em vez de recortar valores
+fora da escala. Isola a camada no mapa, reativa Data layer quando necessário e
+preserva todas as variáveis nos gráficos. Removidos botão textual redundante,
+estado Shown on map e painel Source & scale limits. Proveniência e valores
+continuam no modelo de dados/exportações; processamento mensal de IMERG e sua
+nota permanecem identificados. Escala com Apply/Reset vem antes de Opacity,
+com slider em largura total. Nenhum dado ou método científico foi alterado.
+
+Display cell at foi movido para overlay dentro do viewport: aparecer/desaparecer
+não adiciona altura ao fluxo da página. Integradas as mudanças recentes de
+loading states e regressão de duas camadas da main, preservando indicadores de
+carregamento. 136 testes frontend e build aprovados com Node.js 24. Chromium
+confirmou seletor único com reticências, isolamento de uma entre três camadas,
+preservação das três variáveis e ordem escala/opacidade. Hover com dados reais
+manteve a posição do playback em 717.44px antes e depois. Controles também
+conferidos em WebKit emulando iPhone; sem teste em iPhone físico. Publicação
+conferida em `f8ed439`: [workflow Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43750985411)
+concluído e Vercel também confirmou sucesso. Ambos os endereços servem o bundle
+`index-D1f0WgP3.js`. Chromium no site público da Vercel repetiu os testes de
+seletor, isolamento e ordem; hover preservou novamente 717.44px do playback.
+Esta entrada substitui a função anterior do segundo olho.
+
 ## Indicadores de carregamento — implementação local (15/11/2026)
 
 OpenAI Codex assistiu componentes compartilhados com animação orbital,
@@ -1512,3 +1541,7 @@ Integracao dos controles do Trend Lab em 15/11/2026: conflito de anexos no
 checklist resolvido preservando os registros do Trend Lab e Events. Main
 `19dc594` integrada com 87 testes frontend e builds frontend/API aprovados
 em Node.js 24. Conta `Marcelo-Kenji-Noda` autorizada pelo usuario nesta sessao.
+
+### Formatação do range — 15/11/2026
+
+OpenAI Codex ajustou localmente os campos de mínimo/máximo da escala para duas casas decimais no carregamento, sincronização e Reset. Precisão dos dados da API preservada. Node.js 24.22.3: 136 testes frontend e builds frontend/backend aprovados. Sem publicação ou alteração da submissão.

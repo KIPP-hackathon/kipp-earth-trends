@@ -509,3 +509,18 @@
     grid-template-columns: 44px minmax(300px, 1.3fr) minmax(300px, 1fr);
   }
 }
+.layer-variable-select { position: relative; min-width: 0; border: 1px solid var(--line); border-radius: 6px; background: #091326; }
+.layer-variable-selection { display: flex; align-items: center; gap: 6px; padding: 9px 8px; min-width: 0; color: #dfeafa; font-size: 12px; }
+.layer-variable-selection > span { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.layer-variable-selection > svg { flex-shrink: 0; }
+.layer-variable-select select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.layer-variable-select:focus-within { outline: 2px solid #8abbff; outline-offset: 2px; }
+.layer-variable-select option, .layer-variable-select optgroup { color: #dfeafa; background: #091326; }
+.real-globe-viewport .globe-probe-overlay {
+  position: absolute; z-index: 3; bottom: 8px; left: 10px; right: 10px;
+  margin: 0; padding: 6px 8px; border-radius: 5px; background: #071326d9;
+  font-size: 11px; line-height: 1.5; max-height: 64px; overflow: hidden; pointer-events: none;
+}
+.layer-cascade { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.layer-cascade > label { min-width: 0; }
+.layer-variable-select { width: 100%; max-width: 100%; overflow: hidden; }
