@@ -845,7 +845,9 @@ solicitação do usuário. Produto, unidade, cobertura, método e fonte continua
 nos detalhes por hover/foco/toque do nome da variável; regras e notas de
 qualidade também foram reunidas ali. Sem alteração dos dados ou cálculos.
 85 testes frontend e build aprovados; fonte e bundle conferidos quanto à
-ausência dos textos removidos. Publicação em verificação.
+ausência dos textos removidos. Publicação `694f4a2` confirmada pela
+[Vercel](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/F3TX6bHHEUzTvPuUpZSMqvqhw5XK)
+e pelo bundle público `index-Cxfht65a.js`, idêntico ao validado.
 
 
 ### Ajustes do Trend Lab - 15/11/2026
