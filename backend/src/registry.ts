@@ -33,7 +33,7 @@ const diverging = ["#273b91", "#4c9dce", "#e3eef2", "#ed9f69", "#a42d3c"];
 const defaultQuality = {
   rule: "finite_source_value",
   notes: [
-    "Ausências e sentinelas numéricas permanecem ausentes; a agregação é apenas para visualização.",
+    "Missing values and numeric sentinels remain missing; aggregation is for display only.",
   ],
 };
 function continuous(
@@ -58,12 +58,12 @@ function continuous(
       ...defaultQuality.notes,
       ...(input.column.startsWith("Var_")
         ? [
-            "A média das variâncias nativas não é variância espacial combinada nem incerteza propagada.",
+            "The mean of native variances is neither pooled spatial variance nor propagated uncertainty.",
           ]
         : []),
       ...(input.column === "Var_DISPH"
         ? [
-            "Pequenos negativos numéricos até -1e-9 são preservados; não há corte global de valores negativos.",
+            "Small numerical negatives down to -1e-9 are preserved; negative values are not globally clipped.",
           ]
         : []),
     ],
@@ -86,14 +86,14 @@ function continuous(
 const merraDefinitions = [
   {
     id: "merra2_cldprs",
-    name: "Pressão no topo das nuvens",
+    name: "Cloud-top pressure",
     quantity: "merra2_cldprs",
     unit: "hPa",
     sourceUnit: "Pa",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_cldprs",
     column: "CLDPRS",
-    description: "Pressão no topo das nuvens, em Pa.",
+    description: "Cloud-top pressure, in Pa.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -103,14 +103,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_cldtmp",
-    name: "Temperatura no topo das nuvens",
+    name: "Cloud-top temperature",
     quantity: "merra2_cldtmp",
     unit: "degC",
     sourceUnit: "K",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_cldtmp",
     column: "CLDTMP",
-    description: "Temperatura no topo das nuvens, em kelvin.",
+    description: "Cloud-top temperature, in kelvin.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -120,14 +120,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_disph",
-    name: "Altura de deslocamento do plano zero",
+    name: "Zero-plane displacement height",
     quantity: "merra2_disph",
     unit: "m",
     sourceUnit: "m",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_disph",
     column: "DISPH",
-    description: "Altura de deslocamento do plano zero, em metros.",
+    description: "Zero-plane displacement height, in meters.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -137,7 +137,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_h1000",
-    name: "Altura geopotencial a 1000 hPa",
+    name: "Geopotential height at 1000 hPa",
     quantity: "merra2_h1000",
     unit: "m",
     sourceUnit: "m",
@@ -145,7 +145,7 @@ const merraDefinitions = [
     table: "tb_merra2_h1000",
     column: "H1000",
     description:
-      "Altura geopotencial da superfície de pressão de 1000 hPa, em metros.",
+      "Geopotential height of the pressure surface at 1000 hPa, in meters.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -155,7 +155,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_h250",
-    name: "Altura geopotencial a 250 hPa",
+    name: "Geopotential height at 250 hPa",
     quantity: "merra2_h250",
     unit: "m",
     sourceUnit: "m",
@@ -163,7 +163,7 @@ const merraDefinitions = [
     table: "tb_merra2_h250",
     column: "H250",
     description:
-      "Altura geopotencial da superfície de pressão de 250 hPa, em metros.",
+      "Geopotential height of the pressure surface at 250 hPa, in meters.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -173,7 +173,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_h500",
-    name: "Altura geopotencial a 500 hPa",
+    name: "Geopotential height at 500 hPa",
     quantity: "merra2_h500",
     unit: "m",
     sourceUnit: "m",
@@ -181,7 +181,7 @@ const merraDefinitions = [
     table: "tb_merra2_h500",
     column: "H500",
     description:
-      "Altura geopotencial da superfície de pressão de 500 hPa, em metros.",
+      "Geopotential height of the pressure surface at 500 hPa, in meters.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -191,7 +191,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_h850",
-    name: "Altura geopotencial a 850 hPa",
+    name: "Geopotential height at 850 hPa",
     quantity: "merra2_h850",
     unit: "m",
     sourceUnit: "m",
@@ -199,7 +199,7 @@ const merraDefinitions = [
     table: "tb_merra2_h850",
     column: "H850",
     description:
-      "Altura geopotencial da superfície de pressão de 850 hPa, em metros.",
+      "Geopotential height of the pressure surface at 850 hPa, in meters.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -209,7 +209,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_omega500",
-    name: "Velocidade vertical a 500 hPa",
+    name: "Vertical velocity at 500 hPa",
     quantity: "merra2_omega500",
     unit: "Pa/s",
     sourceUnit: "Pa s-1",
@@ -217,7 +217,7 @@ const merraDefinitions = [
     table: "tb_merra2_omega500",
     column: "OMEGA500",
     description:
-      "Velocidade vertical em coordenada de pressão a 500 hPa, em Pa/s.",
+      "Pressure-coordinate vertical velocity at 500 hPa, in Pa/s.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -227,14 +227,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_pbltop",
-    name: "Pressão no topo da camada limite",
+    name: "Boundary-layer top pressure",
     quantity: "merra2_pbltop",
     unit: "hPa",
     sourceUnit: "Pa",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_pbltop",
     column: "PBLTOP",
-    description: "Pressão no topo da camada limite planetária, em Pa.",
+    description: "Planetary boundary-layer top pressure, in Pa.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -244,14 +244,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_ps",
-    name: "Pressão na superfície",
+    name: "Surface pressure",
     quantity: "merra2_ps",
     unit: "hPa",
     sourceUnit: "Pa",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_ps",
     column: "PS",
-    description: "Pressão atmosférica na superfície, em Pa.",
+    description: "Surface atmospheric pressure, in Pa.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -261,14 +261,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_q250",
-    name: "Umidade específica a 250 hPa",
+    name: "Specific humidity at 250 hPa",
     quantity: "merra2_q250",
     unit: "g/kg",
     sourceUnit: "kg kg-1",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_q250",
     column: "Q250",
-    description: "Umidade específica a 250 hPa, em kg/kg.",
+    description: "Specific humidity at 250 hPa, in kg/kg.",
     conversion: {
       scale: 1000,
       offset: 0,
@@ -278,14 +278,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_q500",
-    name: "Umidade específica a 500 hPa",
+    name: "Specific humidity at 500 hPa",
     quantity: "merra2_q500",
     unit: "g/kg",
     sourceUnit: "kg kg-1",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_q500",
     column: "Q500",
-    description: "Umidade específica a 500 hPa, em kg/kg.",
+    description: "Specific humidity at 500 hPa, in kg/kg.",
     conversion: {
       scale: 1000,
       offset: 0,
@@ -295,14 +295,14 @@ const merraDefinitions = [
   },
   {
     id: "merra2_q850",
-    name: "Umidade específica a 850 hPa",
+    name: "Specific humidity at 850 hPa",
     quantity: "merra2_q850",
     unit: "g/kg",
     sourceUnit: "kg kg-1",
     product: "MERRA-2 M2TMNXSLV 5.12.4",
     table: "tb_merra2_q850",
     column: "Q850",
-    description: "Umidade específica a 850 hPa, em kg/kg.",
+    description: "Specific humidity at 850 hPa, in kg/kg.",
     conversion: {
       scale: 1000,
       offset: 0,
@@ -312,7 +312,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_qv10m",
-    name: "Umidade específica a 10 m",
+    name: "Specific humidity at 10 m",
     quantity: "merra2_qv10m",
     unit: "g/kg",
     sourceUnit: "kg kg-1",
@@ -320,7 +320,7 @@ const merraDefinitions = [
     table: "tb_merra2_qv10m",
     column: "QV10M",
     description:
-      "Média mensal de QV10M (10-meter specific humidity), na unidade kg kg-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly QV10M (10-meter specific humidity), in units kg kg-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1000,
       offset: 0,
@@ -330,7 +330,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_qv2m",
-    name: "Umidade específica a 2 m",
+    name: "Specific humidity at 2 m",
     quantity: "merra2_qv2m",
     unit: "g/kg",
     sourceUnit: "kg kg-1",
@@ -338,7 +338,7 @@ const merraDefinitions = [
     table: "tb_merra2_qv2m",
     column: "QV2M",
     description:
-      "Média mensal de QV2M (2-meter specific humidity), na unidade kg kg-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly QV2M (2-meter specific humidity), in units kg kg-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1000,
       offset: 0,
@@ -348,7 +348,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_slp",
-    name: "Pressão ao nível do mar",
+    name: "Sea-level pressure",
     quantity: "merra2_slp",
     unit: "hPa",
     sourceUnit: "Pa",
@@ -356,7 +356,7 @@ const merraDefinitions = [
     table: "tb_merra2_slp",
     column: "SLP",
     description:
-      "Média mensal de SLP (sea level pressure), na unidade Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly SLP (sea level pressure), in units Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -366,7 +366,7 @@ const merraDefinitions = [
   },
   {
     id: "temperature",
-    name: "Temperatura do ar a 10 m",
+    name: "Air temperature at 10 m",
     quantity: "air_temperature_10m",
     unit: "degC",
     sourceUnit: "degree_Celsius",
@@ -374,7 +374,7 @@ const merraDefinitions = [
     table: "tb_merra2_t10m",
     column: "T10M_C",
     description:
-      "Temperatura do ar a 10 m em graus Celsius, com conversão de Kelvin por subtração de 273,15 no exportador.",
+      "Air temperature at 10 m in degrees Celsius, converted from Kelvin by subtracting 273.15 in the exporter.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -384,7 +384,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_t250",
-    name: "Temperatura do ar a 250 hPa",
+    name: "Air temperature at 250 hPa",
     quantity: "merra2_t250",
     unit: "degC",
     sourceUnit: "K",
@@ -392,7 +392,7 @@ const merraDefinitions = [
     table: "tb_merra2_t250",
     column: "T250",
     description:
-      "Média mensal de T250 (air temperature at 250 hPa), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly T250 (air temperature at 250 hPa), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -402,7 +402,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_t2m",
-    name: "Temperatura do ar a 2 m",
+    name: "Air temperature at 2 m",
     quantity: "merra2_t2m",
     unit: "degC",
     sourceUnit: "K",
@@ -410,7 +410,7 @@ const merraDefinitions = [
     table: "tb_merra2_t2m",
     column: "T2M",
     description:
-      "Média mensal de T2M (2-meter air temperature), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly T2M (2-meter air temperature), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -420,7 +420,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_t2mdew",
-    name: "Ponto de orvalho a 2 m",
+    name: "Dew point at 2 m",
     quantity: "merra2_t2mdew",
     unit: "degC",
     sourceUnit: "K",
@@ -428,7 +428,7 @@ const merraDefinitions = [
     table: "tb_merra2_t2mdew",
     column: "T2MDEW",
     description:
-      "Média mensal de T2MDEW (dew point temperature at 2 m), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly T2MDEW (dew point temperature at 2 m), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -438,7 +438,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_t2mwet",
-    name: "Temperatura de bulbo úmido a 2 m",
+    name: "Wet-bulb temperature at 2 m",
     quantity: "merra2_t2mwet",
     unit: "degC",
     sourceUnit: "K",
@@ -446,7 +446,7 @@ const merraDefinitions = [
     table: "tb_merra2_t2mwet",
     column: "T2MWET",
     description:
-      "Média mensal de T2MWET (wet bulb temperature at 2 m), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly T2MWET (wet bulb temperature at 2 m), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -456,7 +456,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_t500",
-    name: "Temperatura do ar a 500 hPa",
+    name: "Air temperature at 500 hPa",
     quantity: "merra2_t500",
     unit: "degC",
     sourceUnit: "K",
@@ -464,7 +464,7 @@ const merraDefinitions = [
     table: "tb_merra2_t500",
     column: "T500",
     description:
-      "Média mensal de T500 (air temperature at 500 hPa), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly T500 (air temperature at 500 hPa), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -474,7 +474,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_t850",
-    name: "Temperatura do ar a 850 hPa",
+    name: "Air temperature at 850 hPa",
     quantity: "merra2_t850",
     unit: "degC",
     sourceUnit: "K",
@@ -482,7 +482,7 @@ const merraDefinitions = [
     table: "tb_merra2_t850",
     column: "T850",
     description:
-      "Média mensal de T850 (air temperature at 850 hPa), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly T850 (air temperature at 850 hPa), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -492,7 +492,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_to3",
-    name: "Ozônio na coluna total",
+    name: "Total column ozone",
     quantity: "merra2_to3",
     unit: "DU",
     sourceUnit: "Dobsons",
@@ -500,7 +500,7 @@ const merraDefinitions = [
     table: "tb_merra2_to3",
     column: "TO3",
     description:
-      "Média mensal de TO3 (total column ozone), na unidade Dobsons indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TO3 (total column ozone), in units Dobsons as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -510,7 +510,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_tox",
-    name: "Oxigênio ímpar na coluna total",
+    name: "Total column odd oxygen",
     quantity: "merra2_tox",
     unit: "kg m-2",
     sourceUnit: "kg m-2",
@@ -518,7 +518,7 @@ const merraDefinitions = [
     table: "tb_merra2_tox",
     column: "TOX",
     description:
-      "Média mensal de TOX (total column odd oxygen), na unidade kg m-2 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TOX (total column odd oxygen), in units kg m-2 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -528,7 +528,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_tqi",
-    name: "Água de gelo na coluna",
+    name: "Total column ice water",
     quantity: "merra2_tqi",
     unit: "kg m-2",
     sourceUnit: "kg m-2",
@@ -536,7 +536,7 @@ const merraDefinitions = [
     table: "tb_merra2_tqi",
     column: "TQI",
     description:
-      "Média mensal de TQI (total precipitable ice water), na unidade kg m-2 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TQI (total precipitable ice water), in units kg m-2 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -546,7 +546,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_tql",
-    name: "Água líquida na coluna",
+    name: "Total column liquid water",
     quantity: "merra2_tql",
     unit: "kg m-2",
     sourceUnit: "kg m-2",
@@ -554,7 +554,7 @@ const merraDefinitions = [
     table: "tb_merra2_tql",
     column: "TQL",
     description:
-      "Média mensal de TQL (total precipitable liquid water), na unidade kg m-2 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TQL (total precipitable liquid water), in units kg m-2 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -564,7 +564,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_tqv",
-    name: "Vapor de água na coluna",
+    name: "Total column water vapor",
     quantity: "merra2_tqv",
     unit: "kg m-2",
     sourceUnit: "kg m-2",
@@ -572,7 +572,7 @@ const merraDefinitions = [
     table: "tb_merra2_tqv",
     column: "TQV",
     description:
-      "Média mensal de TQV (total precipitable water vapor), na unidade kg m-2 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TQV (total precipitable water vapor), in units kg m-2 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -582,7 +582,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_troppb",
-    name: "Pressão da tropopausa · combinada",
+    name: "Tropopause pressure · blended",
     quantity: "merra2_troppb",
     unit: "hPa",
     sourceUnit: "Pa",
@@ -590,7 +590,7 @@ const merraDefinitions = [
     table: "tb_merra2_troppb",
     column: "TROPPB",
     description:
-      "Média mensal de TROPPB (tropopause pressure based on blended estimate), na unidade Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TROPPB (tropopause pressure based on blended estimate), in units Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -600,7 +600,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_troppt",
-    name: "Pressão da tropopausa · térmica",
+    name: "Tropopause pressure · thermal",
     quantity: "merra2_troppt",
     unit: "hPa",
     sourceUnit: "Pa",
@@ -608,7 +608,7 @@ const merraDefinitions = [
     table: "tb_merra2_troppt",
     column: "TROPPT",
     description:
-      "Média mensal de TROPPT (tropopause pressure based on thermal estimate), na unidade Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TROPPT (tropopause pressure based on thermal estimate), in units Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -618,7 +618,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_troppv",
-    name: "Pressão da tropopausa · vorticidade",
+    name: "Tropopause pressure · vorticity",
     quantity: "merra2_troppv",
     unit: "hPa",
     sourceUnit: "Pa",
@@ -626,7 +626,7 @@ const merraDefinitions = [
     table: "tb_merra2_troppv",
     column: "TROPPV",
     description:
-      "Média mensal de TROPPV (tropopause pressure based on EPV estimate), na unidade Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TROPPV (tropopause pressure based on EPV estimate), in units Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.01,
       offset: 0,
@@ -636,7 +636,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_tropq",
-    name: "Umidade específica na tropopausa",
+    name: "Tropopause specific humidity",
     quantity: "merra2_tropq",
     unit: "g/kg",
     sourceUnit: "kg kg-1",
@@ -644,7 +644,7 @@ const merraDefinitions = [
     table: "tb_merra2_tropq",
     column: "TROPQ",
     description:
-      "Média mensal de TROPQ (tropopause specific humidity using blended TROPP estimate), na unidade kg kg-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TROPQ (tropopause specific humidity using blended TROPP estimate), in units kg kg-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1000,
       offset: 0,
@@ -654,7 +654,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_tropt",
-    name: "Temperatura da tropopausa",
+    name: "Tropopause temperature",
     quantity: "merra2_tropt",
     unit: "degC",
     sourceUnit: "K",
@@ -662,7 +662,7 @@ const merraDefinitions = [
     table: "tb_merra2_tropt",
     column: "TROPT",
     description:
-      "Média mensal de TROPT (tropopause temperature using blended TROPP estimate), na unidade K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly TROPT (tropopause temperature using blended TROPP estimate), in units K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: -273.15,
@@ -672,7 +672,7 @@ const merraDefinitions = [
   },
   {
     id: "surface_temperature",
-    name: "Temperatura de superfície",
+    name: "Surface temperature",
     quantity: "surface_temperature",
     unit: "degC",
     sourceUnit: "degree_Celsius",
@@ -680,7 +680,7 @@ const merraDefinitions = [
     table: "tb_merra2_ts",
     column: "TS_C",
     description:
-      "Temperatura da pele da superfície em graus Celsius, derivada por TS_K - 273,15.",
+      "Surface skin temperature in degrees Celsius, derived as TS_K - 273.15.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -690,7 +690,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_u10m",
-    name: "Vento zonal a 10 m",
+    name: "Eastward wind at 10 m",
     quantity: "merra2_u10m",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -698,7 +698,7 @@ const merraDefinitions = [
     table: "tb_merra2_u10m",
     column: "U10M",
     description:
-      "Média mensal de U10M (10-meter eastward wind), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly U10M (10-meter eastward wind), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -708,7 +708,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_u250",
-    name: "Vento zonal a 250 hPa",
+    name: "Eastward wind at 250 hPa",
     quantity: "merra2_u250",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -716,7 +716,7 @@ const merraDefinitions = [
     table: "tb_merra2_u250",
     column: "U250",
     description:
-      "Média mensal de U250 (eastward wind at 250 hPa), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly U250 (eastward wind at 250 hPa), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -726,7 +726,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_u2m",
-    name: "Vento zonal a 2 m",
+    name: "Eastward wind at 2 m",
     quantity: "merra2_u2m",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -734,7 +734,7 @@ const merraDefinitions = [
     table: "tb_merra2_u2m",
     column: "U2M",
     description:
-      "Média mensal de U2M (2-meter eastward wind), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly U2M (2-meter eastward wind), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -744,7 +744,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_u500",
-    name: "Vento zonal a 500 hPa",
+    name: "Eastward wind at 500 hPa",
     quantity: "merra2_u500",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -752,7 +752,7 @@ const merraDefinitions = [
     table: "tb_merra2_u500",
     column: "U500",
     description:
-      "Média mensal de U500 (eastward wind at 500 hPa), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly U500 (eastward wind at 500 hPa), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -762,7 +762,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_u50m",
-    name: "Vento zonal a 50 m",
+    name: "Eastward wind at 50 m",
     quantity: "merra2_u50m",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -770,7 +770,7 @@ const merraDefinitions = [
     table: "tb_merra2_u50m",
     column: "U50M",
     description:
-      "Média mensal de U50M (eastward wind at 50 meters), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly U50M (eastward wind at 50 meters), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -780,7 +780,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_u850",
-    name: "Vento zonal a 850 hPa",
+    name: "Eastward wind at 850 hPa",
     quantity: "merra2_u850",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -788,7 +788,7 @@ const merraDefinitions = [
     table: "tb_merra2_u850",
     column: "U850",
     description:
-      "Média mensal de U850 (eastward wind at 850 hPa), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly U850 (eastward wind at 850 hPa), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -798,7 +798,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_v10m",
-    name: "Vento meridional a 10 m",
+    name: "Northward wind at 10 m",
     quantity: "merra2_v10m",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -806,7 +806,7 @@ const merraDefinitions = [
     table: "tb_merra2_v10m",
     column: "V10M",
     description:
-      "Média mensal de V10M (10-meter northward wind), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly V10M (10-meter northward wind), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -816,7 +816,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_v250",
-    name: "Vento meridional a 250 hPa",
+    name: "Northward wind at 250 hPa",
     quantity: "merra2_v250",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -824,7 +824,7 @@ const merraDefinitions = [
     table: "tb_merra2_v250",
     column: "V250",
     description:
-      "Variável mensal V250 (northward wind at 250 hPa), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly V250 (northward wind at 250 hPa), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -834,7 +834,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_v2m",
-    name: "Vento meridional a 2 m",
+    name: "Northward wind at 2 m",
     quantity: "merra2_v2m",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -842,7 +842,7 @@ const merraDefinitions = [
     table: "tb_merra2_v2m",
     column: "V2M",
     description:
-      "Variável mensal V2M (2-meter northward wind), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly V2M (2-meter northward wind), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -852,7 +852,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_v500",
-    name: "Vento meridional a 500 hPa",
+    name: "Northward wind at 500 hPa",
     quantity: "merra2_v500",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -860,7 +860,7 @@ const merraDefinitions = [
     table: "tb_merra2_v500",
     column: "V500",
     description:
-      "Variável mensal V500 (northward wind at 500 hPa), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly V500 (northward wind at 500 hPa), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -870,7 +870,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_v50m",
-    name: "Vento meridional a 50 m",
+    name: "Northward wind at 50 m",
     quantity: "merra2_v50m",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -878,7 +878,7 @@ const merraDefinitions = [
     table: "tb_merra2_v50m",
     column: "V50M",
     description:
-      "Variável mensal V50M (northward wind at 50 meters), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly V50M (northward wind at 50 meters), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -888,7 +888,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_v850",
-    name: "Vento meridional a 850 hPa",
+    name: "Northward wind at 850 hPa",
     quantity: "merra2_v850",
     unit: "m/s",
     sourceUnit: "m s-1",
@@ -896,7 +896,7 @@ const merraDefinitions = [
     table: "tb_merra2_v850",
     column: "V850",
     description:
-      "Variável mensal V850 (northward wind at 850 hPa), na unidade m s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly V850 (northward wind at 850 hPa), in units m s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -906,7 +906,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_cldprs",
-    name: "Variância · Pressão no topo das nuvens",
+    name: "Variance · Cloud-top pressure",
     quantity: "merra2_var_cldprs",
     unit: "hPa²",
     sourceUnit: "Pa Pa",
@@ -914,7 +914,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_cldprs",
     column: "Var_CLDPRS",
     description:
-      "Variável mensal Var_CLDPRS (Variance of CLDPRS), na unidade Pa Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_CLDPRS (Variance of CLDPRS), in units Pa Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.0001,
       offset: 0,
@@ -924,7 +924,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_cldtmp",
-    name: "Variância · Temperatura no topo das nuvens",
+    name: "Variance · Cloud-top temperature",
     quantity: "merra2_var_cldtmp",
     unit: "degC²",
     sourceUnit: "K K",
@@ -932,7 +932,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_cldtmp",
     column: "Var_CLDTMP",
     description:
-      "Variável mensal Var_CLDTMP (Variance of CLDTMP), na unidade K K indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_CLDTMP (Variance of CLDTMP), in units K K as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -942,7 +942,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_disph",
-    name: "Variância · Altura de deslocamento do plano zero",
+    name: "Variance · Zero-plane displacement height",
     quantity: "merra2_var_disph",
     unit: "m²",
     sourceUnit: "m m",
@@ -950,7 +950,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_disph",
     column: "Var_DISPH",
     description:
-      "Variável mensal Var_DISPH (Variance of DISPH), na unidade m m indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_DISPH (Variance of DISPH), in units m m as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -960,7 +960,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_h1000",
-    name: "Variância · Altura geopotencial a 1000 hPa",
+    name: "Variance · Geopotential height at 1000 hPa",
     quantity: "merra2_var_h1000",
     unit: "m²",
     sourceUnit: "m m",
@@ -968,7 +968,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_h1000",
     column: "Var_H1000",
     description:
-      "Variável mensal Var_H1000 (Variance of H1000), na unidade m m indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_H1000 (Variance of H1000), in units m m as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -978,7 +978,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_h250",
-    name: "Variância · Altura geopotencial a 250 hPa",
+    name: "Variance · Geopotential height at 250 hPa",
     quantity: "merra2_var_h250",
     unit: "m²",
     sourceUnit: "m m",
@@ -986,7 +986,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_h250",
     column: "Var_H250",
     description:
-      "Variável mensal Var_H250 (Variance of H250), na unidade m m indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_H250 (Variance of H250), in units m m as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -996,7 +996,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_h500",
-    name: "Variância · Altura geopotencial a 500 hPa",
+    name: "Variance · Geopotential height at 500 hPa",
     quantity: "merra2_var_h500",
     unit: "m²",
     sourceUnit: "m m",
@@ -1004,7 +1004,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_h500",
     column: "Var_H500",
     description:
-      "Variável mensal Var_H500 (Variance of H500), na unidade m m indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_H500 (Variance of H500), in units m m as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -1014,7 +1014,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_h850",
-    name: "Variância · Altura geopotencial a 850 hPa",
+    name: "Variance · Geopotential height at 850 hPa",
     quantity: "merra2_var_h850",
     unit: "m²",
     sourceUnit: "m m",
@@ -1022,7 +1022,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_h850",
     column: "Var_H850",
     description:
-      "Variável mensal Var_H850 (Variance of H850), na unidade m m indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_H850 (Variance of H850), in units m m as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -1032,7 +1032,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_omega500",
-    name: "Variância · Velocidade vertical a 500 hPa",
+    name: "Variance · Vertical velocity at 500 hPa",
     quantity: "merra2_var_omega500",
     unit: "(Pa/s)²",
     sourceUnit: "Pa s-1 Pa s-1",
@@ -1040,7 +1040,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_omega500",
     column: "Var_OMEGA500",
     description:
-      "Variável mensal Var_OMEGA500 (Variance of OMEGA500), na unidade Pa s-1 Pa s-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_OMEGA500 (Variance of OMEGA500), in units Pa s-1 Pa s-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1,
       offset: 0,
@@ -1050,7 +1050,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_pbltop",
-    name: "Variância · Pressão no topo da camada limite",
+    name: "Variance · Boundary-layer top pressure",
     quantity: "merra2_var_pbltop",
     unit: "hPa²",
     sourceUnit: "Pa Pa",
@@ -1058,7 +1058,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_pbltop",
     column: "Var_PBLTOP",
     description:
-      "Variável mensal Var_PBLTOP (Variance of PBLTOP), na unidade Pa Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_PBLTOP (Variance of PBLTOP), in units Pa Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.0001,
       offset: 0,
@@ -1068,7 +1068,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_ps",
-    name: "Variância · Pressão na superfície",
+    name: "Variance · Surface pressure",
     quantity: "merra2_var_ps",
     unit: "hPa²",
     sourceUnit: "Pa Pa",
@@ -1076,7 +1076,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_ps",
     column: "Var_PS",
     description:
-      "Variável mensal Var_PS (Variance of PS), na unidade Pa Pa indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_PS (Variance of PS), in units Pa Pa as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 0.0001,
       offset: 0,
@@ -1086,7 +1086,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_q250",
-    name: "Variância · Umidade específica a 250 hPa",
+    name: "Variance · Specific humidity at 250 hPa",
     quantity: "merra2_var_q250",
     unit: "(g/kg)²",
     sourceUnit: "kg kg-1 kg kg-1",
@@ -1094,7 +1094,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_q250",
     column: "Var_Q250",
     description:
-      "Variável mensal Var_Q250 (Variance of Q250), na unidade kg kg-1 kg kg-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_Q250 (Variance of Q250), in units kg kg-1 kg kg-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1000000,
       offset: 0,
@@ -1104,7 +1104,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_q500",
-    name: "Variância · Umidade específica a 500 hPa",
+    name: "Variance · Specific humidity at 500 hPa",
     quantity: "merra2_var_q500",
     unit: "(g/kg)²",
     sourceUnit: "kg kg-1 kg kg-1",
@@ -1112,7 +1112,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_q500",
     column: "Var_Q500",
     description:
-      "Variável mensal Var_Q500 (Variance of Q500), na unidade kg kg-1 kg kg-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_Q500 (Variance of Q500), in units kg kg-1 kg kg-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1000000,
       offset: 0,
@@ -1122,7 +1122,7 @@ const merraDefinitions = [
   },
   {
     id: "merra2_var_q850",
-    name: "Variância · Umidade específica a 850 hPa",
+    name: "Variance · Specific humidity at 850 hPa",
     quantity: "merra2_var_q850",
     unit: "(g/kg)²",
     sourceUnit: "kg kg-1 kg kg-1",
@@ -1130,7 +1130,7 @@ const merraDefinitions = [
     table: "tb_merra2_var_q850",
     column: "Var_Q850",
     description:
-      "Variável mensal Var_Q850 (Variance of Q850), na unidade kg kg-1 kg kg-1 indicada pelo atributo units do arquivo MERRA-2.",
+      "Monthly Var_Q850 (Variance of Q850), in units kg kg-1 kg kg-1 as specified by the MERRA-2 file units attribute.",
     conversion: {
       scale: 1000000,
       offset: 0,
@@ -1149,7 +1149,7 @@ for (const run of ["Final", "Late"] as const) {
     variables.push(
       continuous({
         id: `${run === "Final" ? "rainfall" : "rainfall_late"}${rate ? "_rate" : ""}`,
-        name: `${rate ? "Taxa média de precipitação" : "Precipitação mensal"} · ${run}`,
+        name: `${rate ? "Mean precipitation rate" : "Monthly precipitation"} · ${run}`,
         quantity: rate ? "precipitation_rate" : "monthly_precipitation",
         unit: rate ? "mm/h" : "mm/month",
         sourceUnit: rate ? "mm h-1" : "mm month-1",
@@ -1159,13 +1159,13 @@ for (const run of ["Final", "Late"] as const) {
         column: rate ? "precipitation_mm_h" : "precipitation_mm_month",
         coverage: "valid_area_fraction",
         description:
-          "Estimativa mensal de precipitação do produto NASA IMERG; Final e Late são processamentos distintos.",
+          "Monthly precipitation estimate from NASA IMERG; Final and Late are distinct processing runs.",
         validRange: [0, null],
         domain: rate ? [0, 3] : [0, 1500],
         quality: {
           rule: "finite_nonnegative_with_valid_area_fraction",
           notes: [
-            "Cobertura do exportador preservada; erros nativos auxiliares não são intervalos de confiança.",
+            "Exporter coverage is preserved; auxiliary native errors are not confidence intervals.",
           ],
         },
       }),
@@ -1174,7 +1174,7 @@ for (const run of ["Final", "Late"] as const) {
 variables.push(
   continuous({
     id: "liquid_precipitation_probability",
-    name: "Probabilidade da fase líquida",
+    name: "Liquid-phase probability",
     quantity: "liquid_precipitation_probability",
     unit: "%",
     sourceUnit: "percent",
@@ -1184,7 +1184,7 @@ variables.push(
     column: "liquid_precipitation_probability_pct",
     coverage: "valid_area_fraction",
     description:
-      "Probabilidade da fase líquida do IMERG Final, não probabilidade de chover nem fração de volume líquido.",
+      "IMERG Final liquid-phase probability, not the probability of rain or liquid volume fraction.",
     validRange: [0, 100],
     domain: [0, 100],
   }),
@@ -1194,8 +1194,8 @@ for (const mass of [false, true])
     continuous({
       id: mass ? "grace_mass_anomaly" : "grace_water_equivalent",
       name: mass
-        ? "Anomalia de massa superficial total"
-        : "Anomalia de massa · água equivalente",
+        ? "Total surface mass anomaly"
+        : "Mass anomaly · water equivalent",
       quantity: mass
         ? "total_surface_mass_anomaly"
         : "surface_mass_anomaly_water_equivalent",
@@ -1206,14 +1206,14 @@ for (const mass of [false, true])
       column: mass ? "cell_mass_anomaly_gt" : "mass_anomaly_mm_we",
       coverage: "valid_area_fraction",
       description:
-        "Anomalia em relação à média 2004–2009. Inclui água continental, gelo e oceano; não isola água subterrânea. Ganhos hidrológicos não aplicados.",
+        "Anomaly relative to the 2004–2009 mean. Includes land water, ice and ocean; does not isolate groundwater. Hydrological gain factors are not applied.",
       aggregation: mass ? "sum" : "area_weighted_mean",
       domain: mass ? [-100, 100] : [-2000, 2000],
       quality: {
         rule: "finite_with_valid_area_fraction",
         notes: [
-          "A massa em Gt é somada por célula/região, sem uma segunda ponderação por área.",
-          "Incerteza nativa é auxiliar e não representa incerteza regional propagada.",
+          "Mass in Gt is summed by cell/region, without a second area weighting.",
+          "Native uncertainty is auxiliary and does not represent propagated regional uncertainty.",
         ],
       },
     }),
@@ -1222,7 +1222,7 @@ for (const index of ["ndvi", "evi"])
   variables.push(
     continuous({
       id: index,
-      name: `${index.toUpperCase()} · vegetação`,
+      name: `${index.toUpperCase()} · vegetation`,
       quantity: `vegetation_${index}`,
       unit: "1",
       sourceUnit: "1",
@@ -1230,7 +1230,7 @@ for (const index of ["ndvi", "evi"])
       table: "tb_modis_mod13c2_vegetation",
       column: index,
       description:
-        "Índice mensal calibrado na grade geográfica nativa de 0,05°. Valores raw e QA não são camadas científicas separadas.",
+        "Calibrated monthly index on the native 0.05° geographic grid. Raw values and QA are not separate scientific layers.",
       nativeGrid: [0.05, 0.05],
       factor: 32,
       validRange: [-0.2, 1],
@@ -1239,16 +1239,16 @@ for (const index of ["ndvi", "evi"])
       quality: {
         rule: "range[-0.2,1] AND pixel_reliability=0 AND vi_quality<>65535",
         notes: [
-          "Filtro conservador de pixels bons; não decodifica integralmente os bits de qualidade CMG 061.",
+          "Conservative good-pixel filter; does not fully decode CMG 061 quality bits.",
         ],
       },
     }),
   );
 for (const pole of ["arctic", "antarctic"]) {
-  const label = pole === "arctic" ? "Ártico" : "Antártida";
+  const label = pole === "arctic" ? "Arctic" : "Antarctic";
   const flag = continuous({
     id: `sea_ice_extent_${pole}`,
-    name: `Classe de extensão de gelo · ${label}`,
+    name: `Ice extent class · ${label}`,
     quantity: "sea_ice_extent_class",
     unit: "class",
     sourceUnit: "1",
@@ -1256,7 +1256,7 @@ for (const pole of ["arctic", "antarctic"]) {
     table: `tb_sea_ice_${pole}`,
     column: "sea_ice_extent_flag",
     description:
-      "Classe mensal no ponto: 0 oceano aberto, 1 gelo (limiar nativo 15%). Não é uma medida regional de extensão em km².",
+      "Monthly point class: 0 open ocean, 1 ice (native 15% threshold). This is not a regional extent measurement in km².",
     qa: "ice_valid",
     validRange: [0, 1],
     domain: [0, 1],
@@ -1264,7 +1264,7 @@ for (const pole of ["arctic", "antarctic"]) {
     quality: {
       rule: "valid_sample=1 AND class IN (0,1)",
       notes: [
-        "Moda ponderada por área; empate escolhe oceano aberto. Nenhuma amostra válida resulta em ausência.",
+        "Area-weighted mode; ties select open ocean. No valid samples produce a missing value.",
       ],
     },
   });
@@ -1274,15 +1274,15 @@ for (const pole of ["arctic", "antarctic"]) {
     colors: ["#143b64", "#dcf6ff"],
     factor: 2,
     categories: [
-      { value: 0, label: "Oceano aberto" },
-      { value: 1, label: "Gelo marinho ≥15%" },
+      { value: 0, label: "Open ocean" },
+      { value: 1, label: "Sea ice ≥15%" },
     ],
   };
   variables.push(
     flag,
     continuous({
       id: `sea_ice_concentration_${pole}`,
-      name: `Concentração de gelo marinho · ${label}`,
+      name: `Sea ice concentration · ${label}`,
       quantity: "sea_ice_concentration",
       unit: "%",
       sourceUnit: "percent",
@@ -1291,7 +1291,7 @@ for (const pole of ["arctic", "antarctic"]) {
       column: "sea_ice_concentration_pct",
       coverage: "valid_area_fraction",
       description:
-        "Concentração mensal contínua; remapeamento por quadratura aproximada. Terra/costa/pole hole são ausentes; limiar nativo 15% preservado.",
+        "Continuous monthly concentration; approximate quadrature remapping. Land/coast/pole hole remain missing; native 15% threshold is preserved.",
       validRange: [0, 100],
       domain: [0, 100],
     }),
@@ -1302,12 +1302,12 @@ export const excludedSources = [
     id: "legacy_surface_temperature",
     table: "merra2_ts",
     reason:
-      "Tabela legada substituída por tb_merra2_ts; não duplicar a temperatura de superfície.",
+      "Legacy table replaced by tb_merra2_ts; surface temperature is not duplicated.",
   },
   {
     id: "wind_speed",
     table: "tb_merra2_speed",
     reason:
-      "Exportador aplicou conversão Kelvin/Celsius indevida a SPEED. Unidade pendente de correção na origem; componentes U/V válidos estão disponíveis separadamente.",
+      "The exporter incorrectly applied Kelvin/Celsius conversion to SPEED. The unit needs correction at the source; valid U/V components are available separately.",
   },
 ];

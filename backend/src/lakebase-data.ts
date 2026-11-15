@@ -13,12 +13,12 @@ export { variables, excludedSources } from "./registry.ts";
 export type { Variable, RenderMetadata } from "./registry.ts";
 
 export const limitations = [
-  "Dados reais derivados de produtos NASA, sem classificação automática de eventos ou atribuição causal.",
-  "A grade retornada é agregada para visualização; não adiciona resolução à fonte.",
-  "Temperatura do ar a 10 m é distinta da temperatura a 2 m e da temperatura de superfície.",
-  "IMERG Final e Late permanecem separados por terem processamento e cobertura diferentes.",
-  "Anomalias GRACE usam referência 2004–2009 e não isolam água subterrânea; não há inferência causal ou previsão climática.",
-  "Escalas de cores são faixas de visualização fixas, não limites científicos ou observações globais mínimas/máximas.",
+  "Real data derived from NASA products; no automatic event classification or causal attribution.",
+  "The returned grid is aggregated for display; it does not increase source resolution.",
+  "Air temperature at 10 m differs from air temperature at 2 m and surface temperature.",
+  "IMERG Final and Late remain separate because their processing and coverage differ.",
+  "GRACE anomalies use a 2004–2009 reference and do not isolate groundwater; no causal inference or climate forecast is provided.",
+  "Color scales are fixed display ranges, not scientific limits or global observed minima/maxima.",
 ];
 export function variableFor(id: string): Variable {
   const variable = variables.find((v) => v.id === id);
@@ -26,7 +26,7 @@ export function variableFor(id: string): Variable {
     throw new ApiError(
       404,
       "VARIABLE_NOT_FOUND",
-      "Variável indisponível. Consulte /v1/catalog.",
+      "Variable unavailable. See /v1/catalog.",
     );
   return variable;
 }
@@ -61,7 +61,7 @@ export function parseBounds(input = "-180,-90,180,90"): Bounds {
     west === east ||
     (west === 180 && east === -180)
   )
-    throw new ApiError(400, "INVALID_BBOX", "Limites geográficos inválidos.");
+    throw new ApiError(400, "INVALID_BBOX", "Invalid geographic bounds.");
   return {
     west,
     south,
@@ -76,7 +76,7 @@ export function parseMonth(input: string): string {
     input < "1900-01" ||
     input > "2100-12"
   )
-    throw new ApiError(400, "INVALID_MONTH", "Use um mês no formato YYYY-MM.");
+    throw new ApiError(400, "INVALID_MONTH", "Use a month in YYYY-MM format.");
   return input;
 }
 export function monthAfter(month: string) {
@@ -119,7 +119,7 @@ export class DataService {
       throw new ApiError(
         404,
         "VARIABLE_NOT_FOUND",
-        "Variável indisponível nesta fonte. Consulte /v1/catalog.",
+        "Variable unavailable from this source. See /v1/catalog.",
       );
     return variable;
   }
@@ -285,7 +285,7 @@ export class DataService {
           throw new ApiError(
             504,
             "QUERY_TIMEOUT",
-            "Orçamento de consulta do catálogo excedido.",
+            "Catalog query budget exceeded.",
           );
         const branches = await Promise.all(
           indices.map((i) => this.availabilityGroup(groups[i], i)),
@@ -332,7 +332,7 @@ export class DataService {
             errors.set(v.id, {
               code,
               message:
-                "A fonte não pôde ser consultada nesta atualização do catálogo; nenhuma observação foi substituída.",
+                "The source could not be queried during this catalog refresh; no observations were substituted.",
             });
       }
     };
@@ -359,7 +359,7 @@ export class DataService {
       throw new ApiError(
         503,
         "CATALOG_BUSY",
-        "O catálogo está temporariamente ocupado. Tente novamente.",
+        "The catalog is temporarily busy. Try again.",
       );
     return this.variables.map((v) => {
       const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
@@ -381,7 +381,7 @@ export class DataService {
             : {
                 code: "NO_VALID_OBSERVATIONS",
                 message:
-                  "Sem observações válidas após os filtros de qualidade nesta fonte.",
+                  "No valid observations remain after source quality filters.",
               }),
       };
     });
@@ -474,7 +474,7 @@ export class DataService {
       throw new ApiError(
         404,
         "NO_DATA",
-        "Não há dados para a variável, mês e área solicitados.",
+        "No data for the requested variable, month and area.",
       );
     const count = width * height,
       values = new Float32Array(count),
@@ -499,7 +499,7 @@ export class DataService {
         throw new ApiError(
           502,
           "INVALID_GRID",
-          "A fonte retornou coordenadas de grade inválidas.",
+          "The source returned invalid grid coordinates.",
         );
       const i = y * width + x;
       coverage[i] = Math.min(1, Math.max(0, fraction ?? 0));
@@ -560,7 +560,7 @@ export class DataService {
       throw new ApiError(
         400,
         "INVALID_PERIOD",
-        "Selecione um período ordenado de até 120 meses.",
+        "Select an ordered period of at most 120 months.",
       );
     const { sql, parameters } = this.selected(
       variable,
@@ -580,7 +580,7 @@ export class DataService {
       throw new ApiError(
         404,
         "NO_DATA",
-        "Não há dados no período e área solicitados.",
+        "No data for the requested period and area.",
       );
     return {
       ...sourceMetadata(variable),

@@ -48,7 +48,7 @@ export class DatabricksOAuth {
           throw new ApiError(
             502,
             "UPSTREAM_AUTH",
-            "Falha na autenticação da fonte de dados.",
+            "Data source authentication failed.",
           );
         const token = (await response.text()).trim();
         try {
@@ -72,7 +72,7 @@ export class DatabricksOAuth {
           throw new ApiError(
             502,
             "UPSTREAM_AUTH",
-            "Resposta de autenticação inválida.",
+            "Invalid authentication response.",
           );
         }
       }
@@ -93,7 +93,7 @@ export class DatabricksOAuth {
         throw new ApiError(
           502,
           "UPSTREAM_AUTH",
-          "Falha na autenticação da fonte de dados.",
+          "Data source authentication failed.",
         );
       const data = (await response.json()) as {
         access_token: string;
@@ -103,7 +103,7 @@ export class DatabricksOAuth {
         throw new ApiError(
           502,
           "UPSTREAM_AUTH",
-          "Resposta de autenticação inválida.",
+          "Invalid authentication response.",
         );
       this.token = data.access_token;
       this.expires = Date.now() + data.expires_in * 1000;
@@ -136,7 +136,7 @@ export class DatabricksOAuth {
       throw new ApiError(
         response.status === 429 ? 503 : 502,
         "UPSTREAM_ERROR",
-        "A fonte de dados não conseguiu atender à consulta.",
+        "The data source could not complete the query.",
       );
     return response;
   }

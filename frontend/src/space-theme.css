@@ -504,47 +504,11 @@ textarea:focus-visible,
 .investigation-controls .button.investigation-delete {
   color: #ffad9f;
 }
-.trend-evidence {
-  color: #d5e2f3;
-  background: rgb(5 15 30 / 90%);
-  border-color: var(--line);
-}
-.trend-evidence-heading h2,
-.trend-evidence summary {
-  color: #b5d5ff;
-}
-.trend-evidence-kicker,
-.trend-evidence-caveat {
-  color: var(--muted);
-}
-.trend-evidence-badge,
-.trend-evidence-selection,
-.trend-evidence thead th {
-  color: #c8dffc;
-  background: #689bdf12;
-}
-.trend-evidence-notice {
-  color: #e3c997;
-  background: #a37a2815;
-  border-color: #c59a55;
-}
-.trend-evidence th,
-.trend-evidence td,
-.trend-evidence details {
-  border-color: var(--line);
-}
-.trend-evidence button,
-.trend-evidence li > button {
-  color: #c8dffc;
-  background: #689bdf16;
-  border-color: var(--line);
-}
 .series-event-window {
   color: #e3c997;
 }
 @media (prefers-reduced-transparency: reduce) {
-  .exploration-popover,
-  .trend-evidence {
+  .exploration-popover {
     background: #0c1a2e;
   }
 }

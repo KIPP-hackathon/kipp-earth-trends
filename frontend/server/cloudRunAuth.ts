@@ -1,11 +1,11 @@
 import { getVercelOidcToken } from "@vercel/oidc";
 
 // Public identifiers only. Authentication credentials are short-lived and server-side.
-export const cloudRunOrigin = "https://kipp-earth-api-2md4zr4rcq-uk.a.run.app";
+export const cloudRunOrigin = "https://kipp-earth-api-adsg5m6pua-uk.a.run.app";
 const provider =
-  "//iam.googleapis.com/projects/583662795760/locations/global/workloadIdentityPools/kipp-vercel/providers/production";
+  "//iam.googleapis.com/projects/696766216489/locations/global/workloadIdentityPools/kipp-vercel/providers/production";
 const invoker =
-  "kipp-vercel-invoker@nasa-earth-trends-lab.iam.gserviceaccount.com";
+  "kipp-vercel-invoker@kipp-space-apps-2026.iam.gserviceaccount.com";
 let cached: { token: string; expires: number } | undefined;
 let pending: Promise<string> | undefined;
 

@@ -1,9 +1,49 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
-> Diagnóstico baseado no checkout local `9f011a8` e nas alterações presentes em 14/11/2026. A `main` remota já continha commits posteriores no momento da publicação; revalidar os estados e pendências contra a versão atual antes de tratá-los como diagnóstico do produto publicado.
+> **Estado consolidado em 15/11/2026:** o KIPP atende ao núcleo técnico do desafio com dados reais, análise regional/temporal, taxa de mudança e significância reproduzidas. A entrega formal ainda não está comprovada. O checklist atual abaixo substitui o diagnóstico inicial de frontend simulado; os registros incrementais preservam o contexto e a data de cada verificação.
 
-Revisão inicial: **14/11/2026**. Base: [requisitos e fontes](space-apps-2026-requisitos.md).
-Checklist ainda **não aprovado**: itens só podem ser marcados com evidência verificável.
+Registro técnico de 15/11/2026: configurações locais para ampliar as extrações de
+concentração de gelo marinho, IMERG Final/Late e GRACE foram preparadas com
+assistência do OpenAI Codex; ver [configurações de extração](configuracoes-extracao-fontes-reduzidas.md).
+Período solicitado de 2000-01 a 2026-10, sujeito à cobertura real de cada fonte.
+Nenhum dado novo foi extraído nessa preparação; consolidação de tabelas e
+investigação científica permanecem etapas distintas. Revisão humana pendente.
+Consulta posterior ao bucket confirmou 135 CSVs e 135 metadados desses cinco
+prefixos. As configurações passaram a excluir os meses já presentes, com
+checagem separada por hemisfério e processamento; não houve extração ou
+sobrescrita de observações nessa mudança. Código e testes assistidos por Codex.
+Na execução histórica paralela, o GRACE encontrou soluções múltiplas em 2012-01
+e 2015-04. A opção explícita `--ambiguous-months skip` preserva essas lacunas e
+registra a exclusão nos metadados, sem misturar intervalos nem afirmar que a
+série está completa. Posteriormente, o usuário selecionou os intervalos nativos
+2012-01-01–2012-01-31 e 2015-04-01–2015-04-30. Os dois CSVs foram gerados com
+seleção única por limites de data, preservando índices e intervalos nos
+metadados. A campanha histórica tem 226 meses disponíveis exportados, com
+as demais lacunas da fonte preservadas; isso não encerra a investigação científica.
+Upload posterior conferido: os 226 CSVs históricos e 226 metadados GRACE foram
+publicados no prefixo de origem do bucket em 15/11/2026, com tamanho/CRC32C
+correspondentes aos arquivos locais e preservação dos 66 objetos anteriores.
+Total observado após o upload: 259 CSVs e 259 metadados; evidência em
+`artifacts/grace-historico-upload-validation.json`. Não comprova ingestão no
+Databricks nem consumo dessa ampliação pela aplicação.
+Concentração de gelo também concluída e enviada: 576 CSVs históricos e 576
+metadados (288 meses por polo, 2000-01–2023-12), com tamanho/CRC32C verificados
+e 136 objetos anteriores preservados. Cada polo passou a ter 322 meses,
+2000-01–2026-10, sem lacunas mensais. Evidência local:
+`artifacts/sea-ice-historico-upload-validation.json`; ingestão UC e consumo pela
+aplicação não foram executados nesta etapa.
+IMERG Final também concluído e enviado: 288 CSVs e 288 metadados históricos
+de 2000-01 a 2023-12, conferidos por tamanho/CRC32C, preservando os 42 objetos
+anteriores. O prefixo `transient/GPM_3IMERGM/` passou a conter 309 meses,
+2000-01–2025-09. Late permaneceu separado e foi pulado na extração por já
+estar presente. Evidência: `artifacts/imerg-final-historico-upload-validation.json`.
+Ingestão UC, integração na aplicação e análise científica não foram executadas
+nesta publicação de arquivos.
+
+> Os registros técnicos anteriores são históricos: evidência de upload não comprovava ingestão ou consumo naquela etapa. A auditoria de 15/11/2026, consolidada abaixo, verificou posteriormente o catálogo público e o exemplo estatístico real. Não atribui a esta sessão a execução dos deploys ou das ingestões intermediárias.
+
+Revisão inicial: **14/11/2026**; consolidação de aderência: **15/11/2026**. Base: [requisitos e fontes](space-apps-2026-requisitos.md).
+Entrega formal ainda **não aprovada**: itens técnicos marcados abaixo têm evidência; isso não equivale à revisão científica humana nem à submissão.
 A revisão do repositório não confirma inscrição, recursos privados ou submissão.
 
 ## Identificação a completar pela equipe
@@ -17,27 +57,52 @@ A revisão do repositório não confirma inscrição, recursos privados ou submi
 | Integrantes registrados e contribuições | Pendente; seguir 2–6 da orientação recebida |
 | Responsável pela submissão e substituto | Pendente |
 | Prazo efetivo e eventual prazo local anterior | Confirmar; mensagem recebida: 15/11/2026, 23h59 locais |
-| Protótipo | https://kipp-earth-trends-lab.vercel.app/ — testar sem login |
-| Código | https://github.com/KIPP-hackathon/kipp-earth-trends — confirmar visibilidade |
+| Protótipo | https://kipp-earth-trends-lab.vercel.app/ — acesso anônimo HTTP 200 conferido em 15/11/2026 |
+| Código | https://github.com/KIPP-hackathon/kipp-earth-trends — público na auditoria de 15/11/2026 |
 | Versão final: commit / deploy / arquivos | Pendente |
 | Confirmação de submissão e horário com fuso | Pendente |
 
-## Bloqueadores antes de declarar a entrega pronta
+## Núcleo técnico comprovado
 
-- [ ] **Cadastro:** cada integrante registrado, no mesmo evento; uma equipe por pessoa, um desafio por equipe; limites conferidos. Evidência: pendente.
-- [ ] **Regras:** ler guias completos de submissão, julgamento, IA e termos da edição; registrar links, versão/data e divergências com as mensagens locais. Evidência: pendente.
-- [ ] **Página oficial:** preencher todos os campos obrigatórios em inglês e atualizar a evolução durante o evento. Evidência: URL Project pendente.
-- [ ] **Uso NASA:** identificar ao menos um recurso NASA listado no desafio efetivamente utilizado, produto/versão e contribuição; linkar evidência no código, dados ou análise. Não basta lista de fontes. Evidência: pendente.
-- [ ] **Caso real completo:** variável, região, período, série temporal, taxa de mudança com unidade, significância e interpretação reproduzíveis. Frontend atual ainda simulado. Evidência: pendente.
-- [ ] **Método:** documentar QA/nulos, agregação, histórico, sazonalidade, IC ou teste, pressupostos e limitações; conferir os números com referência reproduzível. Evidência: pendente.
-- [ ] **Inglês:** página Project, demo/slides e percurso principal do protótipo compreensíveis aos jurados internacionais. Evidência: pendente.
-- [ ] **Apresentação:** vídeo ≤30 segundos OU slides ≤7; medir, testar link e mostrar resultado real sem confundir simulação com observação. Evidência: pendente.
-- [ ] **IA:** completar inventário abaixo, identificar conteúdos gerados e adaptar a declaração às regras oficiais e campos da plataforma. Evidência: pendente.
-- [ ] **Créditos:** consolidar datasets, ferramentas, código, imagens, fontes, artigos, licenças e materiais reaproveitados, com uso real identificado. Evidência: pendente.
-- [ ] **Links:** abrir Project, site, código, demo/slides e materiais em sessão sem login; nenhum deve pedir senha/permissão. Não usar links privados de jobs como única evidência pública. Evidência: pendente.
-- [ ] **Validação:** executar testes/build com Node.js 24 após mudanças funcionais; verificar manualmente o caso apresentado e correspondência com a versão publicada. Evidência: pendente.
-- [ ] **Submissão:** concluir o envio na plataforma antes do prazo efetivo e guardar confirmação/horário; rascunho não comprova envio. Evidência: pendente.
-- [ ] **Congelamento:** registrar commit, deploy e versões públicas finais antes do prazo; interromper atualizações dos materiais vinculados, inclusive publicação automática, conforme alerta recebido. Evidência: pendente.
+- [x] **Dados reais integrados:** catálogo público com 72 variáveis, `databricks-sql`, camada `trusted` e `simulated=false`; cobertura e proveniência por variável. Consulta anônima novamente conferida nesta atualização.
+- [x] **Região e período:** séries globais/regionais e seleção temporal; exemplo T10M de 321 meses, 2000-01–2026-09. Região por bbox, sem alegar máscara poligonal do país.
+- [x] **Taxa e significância:** regressão mensal com efeitos sazonais, Newey–West HAC12, IC de 95%, valor-p aproximado e ajuste Holm na interface; retas e metadados de tendência disponíveis na comparação pública.
+- [x] **Exemplo real reproduzível:** inclinação, erro-padrão e p de T10M conferidos independentemente com statsmodels para dois recortes. Método, IC e resultados versionados em [runtime-trends.md](runtime-trends.md).
+- [x] **Percurso do protótipo em inglês:** tradução publicada, `lang="en"` e evidências de navegador registradas abaixo. Não inclui automaticamente os materiais externos da candidatura.
+- [x] **Verificação técnica do checkout auditado:** 47 testes frontend e builds frontend/backend com Node.js 24 aprovados na sincronização; 60 testes Python da extração aprovados. Conferência adicional da API e do cálculo real na auditoria. Esta alteração apenas documental foi validada por revisão do diff, links locais e `git diff --check`.
+
+## Pendências antes de declarar a entrega pronta
+
+- [ ] **Cadastro:** comprovar integrantes, mesmo evento, limites e contribuições; indicar responsável pela submissão e substituto.
+- [ ] **Regras:** conferir guias completos de submissão, julgamento, IA e termos da edição; registrar divergências e confirmar evento/fuso e eventual prazo local anterior.
+- [ ] **Página oficial:** registrar URL Project e preencher campos obrigatórios em inglês; site e GitHub não substituem essa página.
+- [ ] **Uso NASA na candidatura:** apresentar produto/versão efetivamente usados e sua contribuição; explicitar a ligação com o recurso indicado no desafio. Uso real de MERRA-2/GPM comprovado tecnicamente, mas a condição formal específica ainda precisa ser conferida.
+- [ ] **Caso final revisado pela equipe:** aprovar pergunta, região, período, interpretação e limites do exemplo já reproduzido; guardar CSV/JSON e incorporar os resultados aos materiais finais. A validação numérica automatizada não substitui revisão científica humana.
+- [ ] **Inglês dos materiais finais:** conferir página Project e demo/slides; o percurso principal do protótipo já está em inglês.
+- [ ] **Apresentação:** confirmar material externo existente ou produzir vídeo ≤30 segundos OU slides ≤7; medir e testar link. Material final não encontrado no repositório nesta revisão não significa que inexista fora dele.
+- [ ] **IA e créditos:** consolidar inventário de dados, ferramentas, assets, licenças e IA; separar desenvolvimento assistido de IA executada no produto, identificar conteúdo gerado e revisar a declaração em inglês conforme o guia.
+- [ ] **Todos os links finais:** site/API e GitHub já conferidos; faltam Project, demo/slides e demais anexos sem senha/permissão.
+- [ ] **Submissão:** efetivamente enviar na plataforma e guardar confirmação com horário/fuso; rascunho não comprova envio.
+- [ ] **Congelamento:** registrar commit, deploy e arquivos finais; congelar materiais vinculados e deploys automáticos antes do prazo efetivo, conforme alerta recebido.
+
+## Consolidação da auditoria — 15/11/2026
+
+O diagnóstico antigo de frontend simulado, cálculo apenas anual com Student-t e inglês pendente foi superado. Em produção, o catálogo respondeu HTTP 200 com 72 variáveis trusted e `runtimeTrends=true`, revisão `kipp-earth-api-00006-hiz`. O site e as rotas `/api/earth/v1/catalog` e `/api/earth/v1/config` foram acessados sem login. Evidências históricas de Lakebase e versões anteriores abaixo não descrevem o provedor atual: esta auditoria observou Databricks SQL.
+
+O catálogo auditado já expunha as ampliações: T10M com 321 meses (2000-01–2026-09), IMERG Final com 309 (2000-01–2025-09), GRACE com 259 (2002-04–2026-09, com lacunas) e concentração de gelo com 322 por polo (2000-01–2026-10). Isso comprova cobertura anunciada pela API, sem afirmar que cada arquivo/célula foi cientificamente validado. IMERG Late permanece separado. Outros produtos ainda têm séries curtas.
+
+Caso candidato à apresentação: **como variou a temperatura do ar a 10 m no período 2000-01–2026-09?** Fonte: MERRA-2 M2TMNXSLV 5.12.4, tabela `earth-trend-data.trusted.tb_merra2_t10m`, 321 observações mensais por recorte. A região é o retângulo `[-73.98614, -33.76766, -34.73135, 5.24412]`, extensão do Brasil, incluindo áreas externas ao país; não deve ser anunciada como média territorial exata do Brasil.
+
+| Recorte | Taxa (°C/ano) | IC de 95% da taxa (°C/ano) | p aproximado sem ajuste |
+| --- | ---: | --- | ---: |
+| Global | 0,01982424 | 0,01248293 a 0,02716555 | 1,20574 × 10⁻⁷ |
+| Bbox do Brasil | 0,04024718 | 0,02348832 a 0,05700605 | 2,51459 × 10⁻⁶ |
+
+Esses valores são estimativas condicionais ao modelo, dados e período; não são previsão nem atribuição causal. O IC é da inclinação, não de previsão. O valor-p ajustado exibido na UI depende de todas as variáveis/recortes da família selecionada, inclusive curvas ocultas. A referência de normalização 2001–2020 não deve ser chamada de normal climatológica de 30 anos. Detalhes de sazonalidade, agregação espacial, amostra mínima, lacunas e limitações: [metodologia](runtime-trends.md).
+
+A conferência independente usou os valores reais retornados pela comparação pública e statsmodels OLS com efeitos mensais, HAC12, correção `n/(n−13)` e teste normal; inclinação, erro-padrão e p coincidiram nos dois recortes. Arquivos locais ignorados: `artifacts/auditoria-entrega/temperature-comparison.json` e `statistical-check.json`, com dois resultados `matched=true`. Os arquivos de auditoria não são anexos públicos; preservar exportações finais e links acessíveis na candidatura.
+
+**Prioridade de fechamento:** confirmar evento/fuso e cadastro; concluir Project; revisar e apresentar um caso real já reproduzido; finalizar demo/slides, créditos e IA; testar links, enviar e registrar/congelar a versão final. Novas fontes ou funcionalidades não são necessárias para demonstrar o núcleo técnico. Prazo informado: **15/11/2026 às 23h59 locais**, ainda sujeito à confirmação do evento; America/Sao_Paulo é referência provisória. As páginas oficiais não puderam ser reconfirmadas na auditoria; esta consolidação não declara elegibilidade completa.
 
 ## Qualidade da candidatura — dicas dos avaliadores
 
@@ -54,13 +119,13 @@ A revisão do repositório não confirma inscrição, recursos privados ou submi
 
 ## Registro de fontes e materiais
 
-Créditos existentes em [frontend/README.md](../frontend/README.md); inventário científico em [acompanhamento-fontes.md](acompanhamento-fontes.md). Completar e publicar as informações relevantes em inglês na entrega. Uma fonte candidata não deve aparecer como efetivamente utilizada.
+Créditos existentes em [frontend/README.md](../frontend/README.md); inventário científico em [acompanhamento-fontes.md](inventario-fontes-ingestao-reduzida.md). Completar e publicar as informações relevantes em inglês na entrega. Uma fonte candidata não deve aparecer como efetivamente utilizada.
 
 | Material | Uso identificado nesta revisão | Pendência para entrega |
 | --- | --- | --- |
 | NASA Blue Marble Next Generation, janeiro de 2004 | Textura estática do globo; link nos créditos do frontend. | Crédito público em inglês; não apresentar a textura como observação mensal ou série analisada. |
 | Natural Earth via world-atlas | Limites cartográficos; link no README do frontend. | Conferir atribuição e licença. |
-| MERRA-2 / GPM IMERG / MODIS | Estudos, extrações e pipelines documentados. | Indicar produto, versão, variáveis e arquivos efetivamente consumidos pelo caso final; distinguir reanálise e estimativas. |
+| MERRA-2 / GPM IMERG / MODIS | MERRA-2 e GPM IMERG efetivamente consumidos pela API pública; estudos e pipelines adicionais documentados. Não presumir integração de MODIS. | Indicar produto, versão, variáveis e arquivos efetivamente consumidos pelo caso final; distinguir reanálise e estimativas. |
 | Manrope / Instrument Serif / Lucide e dependências | Fontes, ícones e bibliotecas do frontend. | Consolidar ferramentas e licenças aplicáveis. |
 | Catálogo de eventos e artigos | Referências em `frontend/src/lib/events.ts` e estudos. | Conferir todos os materiais usados na narrativa final e suas atribuições. |
 | Recursos oficiais do desafio | Contexto documentado em `space-apps-2026-requisitos.md`. | Identificar qual recurso NASA listado foi efetivamente usado pela solução. |
@@ -68,6 +133,28 @@ Créditos existentes em [frontend/README.md](../frontend/README.md); inventário
 Para cada dado real entregue, preencher: **produtor; produto/versão; URL/DOI; variável/unidade; região/máscara; período/resolução; acesso; QA/nulos; transformações; arquivo público ou resultado; licença/termos; responsável pela revisão**.
 
 ## Registro de IA
+
+Preparação da publicação do mascote em 15/11/2026: integração isolada a partir
+da `main` remota `4c0281d`, preservando migração GCP, interface em inglês,
+comparação/legenda interativa, remoção de ações/aviso de localização e posição
+das camadas, legibilidade/tamanho de fonte, tendências/significância e extrações
+incrementais já publicadas pelo time. Inclui os dois mascotes animados do
+assistente, favicon GIF com PNG e alternativa de movimento reduzido, assets e
+créditos em inglês. Header/rodapé mantêm o logo original. Ver [registro de
+assets, ferramentas e IA](kipp-mascot.md). Publicação pela conta pessoal `Luckstai`,
+conforme orientação explícita da equipe registrada no AGENTS.md. Não declara
+deploy, submissão ou conclusão científica antes da verificação.
+Validação integrada: 47 testes frontend e builds frontend/API aprovados com
+Node.js 24; revisão independente sem problemas materiais. CUA conferiu desktop
+e 390 px com interface em inglês, logos originais, dois mascotes animados e
+layout atual do time preservados. Identidade pessoal configurada no escopo do
+repositório. Publicação verificada em 15/11/2026: commit `8ce8177` na `main`,
+[deploy Vercel READY em produção](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/5Es54WvvvQjsgzTT6KeHSvhWDMBR),
+assets públicos HTTP 200 e Chrome em desktop/390 px com os dois mascotes
+animados, logos originais, alternativa de movimento reduzido e sem overflow
+horizontal. Favicon GIF configurado; animação nativa da aba não foi verificada.
+Evidências detalhadas no [registro do mascote](kipp-mascot.md#verified-production-release).
+Esta publicação técnica não equivale à submissão no Space Apps.
 
 Evidência técnica adicional de 14/11/2026: a migração do backend para Lakebase
 conferiu as quatro tabelas de MERRA-2 e IMERG, nomes/tipos de colunas,
@@ -89,6 +176,7 @@ Não confundir IA usada no desenvolvimento com IA executada dentro do produto. A
 | Ferramenta/modelo | Data e finalidade | Conteúdo gerado/assistido | Revisão humana |
 | --- | --- | --- | --- |
 | OpenAI Codex; identificador exato do modelo não verificado | 14/11/2026 — leitura do repositório, consulta de páginas e organização de requisitos. | Documentos `docs/space-apps-2026-requisitos.md`, `docs/space-apps-2026-entrega.md` e seção de regras no `AGENTS.md`. | Pendente de revisão da equipe. |
+| OpenAI Codex; identificador exato do modelo não verificado | 15/11/2026 — auditoria de aderência e atualização documental solicitada pela equipe. | Consolidação destes dois documentos a partir do código, API pública e reprodução independente com statsmodels; sem alteração de observações ou métodos. | Revisão humana do caso científico e da candidatura pendente. |
 | Outras ferramentas ou usos anteriores | A completar pela equipe. | Código, textos, traduções, imagens, dados sintéticos, slides ou vídeo, se aplicável. | Pendente. |
 | OpenAI Codex; identificador exato do modelo não verificado | 14/11/2026 — migração da leitura backend para Lakebase e verificação das tabelas. | Configuração de deploy/smoke em `backend/scripts/`, exemplo de ambiente, README e documentação `docs/backend-lakebase.md` e plano/spec associados. | Validação automatizada e consultas reais executadas; revisão da equipe pendente. |
 
@@ -299,6 +387,7 @@ bbox em8× e sua reabertura por link, reset e câmeras independentes/sincronizad
 conforme o workspace. Layout390px sem overflow; gesto físico de pinça não foi
 exercitado. Permanecem as pendências científicas e de submissão do checklist.
 
+
 ## Evidência incremental — tema espacial translúcido, preview local (14/11/2026)
 
 OpenAI Codex assistiu a aplicação de um fundo espacial contínuo e tema escuro
@@ -361,3 +450,275 @@ Bandeiras: flag-icons7.6.0, MIT;168SVGs locais com licença e inspeção de cont
 Isso não encerra revisão humana, investigação científica, significância ou entrega
 Space Apps. Publicação e conferência da revisão Cloud Run/Vercel ficam registradas
 separadamente após o CI.
+
+
+### Evidência incremental — dois gráficos comparativos (15/11/2026)
+
+OpenAI Codex implementou o toggle Historical deviation / Scale0–100 escolhido
+pelo usuário. Dois gráficos (global e recorte) sobrepõem variáveis selecionadas;
+a API Warehouse trusted agrega e pós-processa em tempo de execução, preservando
+unidades, QA, cobertura e proveniência. Referência fixa2001–2020, mínimo10anos
+por mês do calendário; normalização descritiva sem teste de significância ou
+atribuição causal. [Método, fontes e evidências](comparison-charts.md).
+Node24:46checks existentes do frontend,6de autenticação e builds aprovados;
+verificação temporária de matemática/save e navegação com dados reais. Revisão
+independente identificou preservação do modo e pontos isolados; corrigidos e
+conferidos. Publicação conferida: release f17753a, bundle index-0MHaCikx.js, CI43671645405 aprovado e Cloud Run kipp-earth-api-00039-yiy com100% do tráfego. Browser em produção: dois gráficos com três curvas, restauração de Scale0–100 e troca para desvio histórico com lacunas explícitas. Acesso anônimo direto403; scan do bundle sem credencial privada/token.
+Isso não conclui a investigação científica nem a submissão ao Space Apps.
+
+## Evidência incremental — migração GCP em preparação (15/11/2026)
+
+A equipe autorizou mover a API e dependências Google para `kipp-space-apps-2026`
+(696766216489), conta `kipp.nasa@gmail.com`. Serviço novo privado, com identidades
+runtime/invoker/deployer separadas, WIF restrita e sem chaves JSON. Revisão
+`kipp-earth-api-00001-pb8` passou por consultas reais de catálogo72, frame, série,
+comparação, tendência armazenada e chat. Vertex e Firestore novos foram conferidos
+com a SA runtime. [Runbook e estado](gcp-migration.md).
+
+Troca do proxy Vercel, preservação da quota, CI novo e limpeza das permissões
+administrativas temporárias ainda pendentes nesta evidência. O serviço antigo
+permanece disponível para reversão. OpenAI Codex assistiu a migração e os registros;
+revisão técnica independente apontou proteção adicional da reversão de contadores,
+corrigida antes do corte. Não comprova nova análise científica nem submissão oficial.
+
+
+## Evidência incremental — migração GCP concluída (15/11/2026)
+
+Proxy publicado no [PR #11](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/11)
+e backend/CI no [PR #12](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/12),
+merge `6cd2e5e`. [CI 43674601450 aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43674601450),
+revisão `kipp-earth-api-00002-qay` a 100% em `kipp-space-apps-2026`. O site confirmou
+catálogo 72/72, chat real e 321 meses no navegador. CI conferiu frame/série,
+comparação e tendência armazenada, preservando proveniência e limites científicos.
+
+IAM privado, WIF restrita, sem chaves JSON, identidades distintas, contadores
+reconciliados e limites persistentes preservados. Concessões temporárias removidas;
+Editor automático da SA Compute não usada removido; sete membros mantidos.
+O serviço antigo foi preservado com invoker Vercel revogado. Ver [runbook,
+reversão e limitação herdada no Databricks](gcp-migration.md): grants compartilhados
+de `account users` incluem `MODIFY`, portanto não se afirma leitura exclusiva
+efetiva da SA no Warehouse. A política compartilhada não foi modificada.
+
+52 verificações preexistentes e builds Node.js 24 passaram; regressões temporárias
+conferiram reversão da quota entre horas/dias e operação Bash 3. OpenAI Codex
+assistiu configuração, código e documentação; revisão técnica independente
+executada e achados corrigidos. Revisão humana e submissão Space Apps continuam
+sob responsabilidade da equipe; esta evidência não conclui os itens científicos.
+
+
+
+### Evidência incremental — primeira tela do Explore (15/11/2026)
+
+OpenAI Codex assistiu a mudança de layout em `App.tsx` e
+`compact-exploration.css`: ferramentas de preset, salvar/compartilhar e
+localização foram movidas para depois da investigação. Variables/Country/Study
+period iniciam o conteúdo abaixo do header. Globo e gráficos adaptam o tamanho
+à altura do desktop; título e modo compartilham a linha quando há espaço.
+
+Playwright Chromium foi usado por ausência de ferramenta Browser/IAB conectada.
+Fixtures sintéticas locais serviram apenas ao QA, sem alteração dos dados do
+produto. Com duas variáveis selecionadas, globo, playback e dois gráficos
+couberam em 1854×759, 1366×768 e 1440×900; 390×844 manteve fluxo vertical sem
+overflow horizontal. Seleção múltipla e troca para Scale 0–100 funcionaram,
+sem exceções JavaScript. Referência: captura fornecida pelo usuário; comparação
+visual por `view_image` com a captura renderizada no tamanho nativo 1854×759.
+
+Conferência visual: (1) espaço anterior aos filtros removido; (2) dois gráficos
+inteiros na primeira tela; (3) globo e playback inteiros; (4) tipografia,
+ícones e paleta existentes preservados; (5) mobile mantém empilhamento e
+controles acessíveis. Textos/ferramentas da faixa removida foram realocados,
+sem novo conteúdo de produto. Diferenças intencionais: tamanho do globo e área
+dos gráficos ajustados à altura; dados sintéticos nas capturas de QA. Nenhuma
+publicação ou conclusão científica é comprovada por essa verificação.
+
+Build frontend com Node.js 24 aprovado. A suíte existente retornou 46 testes
+aprovados e uma falha em `earthApi.test.ts`, no caso de histórico trusted de
+temperatura (`response.status` de resposta indefinida). Essa alteração de
+layout não modifica o teste nem o cliente da API; esses arquivos já tinham
+alterações locais no início do trabalho. Revisão humana da equipe pendente.
+
+
+### Evidência incremental — inglês e legenda dos gráficos (15/11/2026)
+
+Checkout atualizado por rebase sobre `origin/main` (`266408f`). Alterações locais
+anteriores ao rebase foram preservadas no stash `pre-rebase local work 2026-11-15`;
+conflitos de contratos e acesso a dados mantiveram a implementação mais recente
+da main, sem reaplicar roteamento antigo.
+
+OpenAI Codex assistiu a tradução do percurso ativo, metadados de variáveis,
+configuração, eventos, mensagens de erro e formatos de data/número para inglês.
+A documentação interna permanece em português. Textos e dados digitados pelo
+usuário não são traduzidos automaticamente; o assistente continua respondendo
+no idioma da pergunta. Revisão humana da equipe pendente.
+
+A legenda permite ocultar/restaurar cada variável nos gráficos global e regional,
+com estado acessível por teclado, sem alterar camadas do mapa ou refazer consultas.
+O domínio vertical acompanha as séries visíveis. A explicação da escala foi
+movida para um ícone de informação expansível, preservando referência, unidades
+e limites científicos. Nenhuma observação ou cálculo estatístico foi modificado.
+
+QA local com fixtures sintéticas identificadas: Chromium confirmou duas curvas
+por gráfico, ocultação/restauração, todas ocultas, teclado, troca de escala sem
+novas consultas, explicação expansível e viewport de 390 px sem overflow ou
+texto da explicação fora da tela. Sem exceções JavaScript. Builds frontend e
+backend com Node.js 24 aprovados; 47 testes do frontend aprovados. A conferência é local; não comprova publicação,
+submissão nem conclusão da investigação científica.
+
+
+
+Publicação conferida em 15/11/2026: implementação `714a25f`, fallback do proxy
+`8b6568c`. [Vercel concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/HT6mCCiWZoXFSApzNkdCaHimutEK)
+e [Backend CI/CD aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43675707925).
+O site público entregou `lang="en"` e bundle `index-8ykPuuGZ.js`; configuração,
+eventos e catálogo responderam HTTP 200, com nomes em inglês e 72 variáveis.
+Chromium em produção confirmou ocultação/restauração pela legenda, mensagem
+quando todas as séries estão ocultas, explicação pelo ícone e viewport de
+390 px sem overflow ou texto cortado. Nenhuma exceção JavaScript nessa sessão.
+47 testes frontend, seis testes de autenticação e builds frontend/backend
+aprovados com Node.js 24. O pipeline também executou seus testes e smoke checks.
+Isso comprova a publicação técnica; não comprova submissão ao Space Apps.
+
+
+### Ajuste solicitado — remover faixa de ações (15/11/2026)
+
+OpenAI Codex assistiu a remoção da faixa de preset, Save/Saved/Share e seus
+avisos, junto à mensagem de país inicial e botão Use my location em `App.tsx`.
+O guia deixou de anunciar o salvamento removido. Eventos continuam acessíveis
+pela aba existente; seleção de país e desenho de área continuam nos filtros.
+Alteração de interface, sem mudança nos dados ou cálculos científicos.
+
+
+### Ajuste solicitado — Map layers abaixo do globo (15/11/2026)
+
+OpenAI Codex assistiu o reposicionamento de Map layers para a coluna do globo,
+logo após o playback e antes da proveniência. O painel inicia expandido e mantém
+visibilidade, opacidade e escalas existentes. Em telas estreitas os controles
+seguem no fluxo vertical. Gráficos continuam na coluna direita em desktop.
+Nenhuma alteração em observações, agregações ou interpretações científicas.
+
+Validação: 47 testes e build frontend com Node.js 24 aprovados. Chromium local
+com API pública confirmou Map layers a 12 px do playback na coluna esquerda,
+proveniência abaixo, controles Show all/Hide all e viewport de 390 px sem
+overflow horizontal ou exceções JavaScript. Capturas locais inspecionadas.
+
+
+### Evidência incremental — tendências e significância em execução (15/11/2026)
+
+OpenAI Codex implementou retas pontilhadas por variável nos dois gráficos e
+valores-p de regressão com efeitos mensais e covariância robusta Newey–West
+HAC12. A UI expõe taxa, p original e p ajustado por Holm para toda a família
+selecionada, incluindo curvas ocultas. Referência independente statsmodels/SciPy
+conferiu matemática e uma série real de temperatura com321meses em dois recortes.
+[Metodologia, exemplo real reproduzível e limitações](runtime-trends.md).
+Séries curtas/lacunas/variância degenerada não recebem significância inventada;
+33meses de temperatura de superfície são apenas descritivos. Exportação CSV de
+tendências contém bbox, datas, unidades, fontes e todos os testes selecionados.
+47checks existentes de frontend,6de autenticação e builds Node24 aprovados.
+Revisão independente e navegador conferiram clipping SVG, ajuste Holm,
+exportação e layout móvel. Publicação em produção será registrada após o deploy.
+Esta análise condicional não estabelece causalidade, previsão ou normalidade
+climática nem comprova submissão/aderência completa ao desafio. Revisão
+científica humana do caso, recursos NASA e submissão permanecem separados.
+
+
+### Preview local — textos maiores (15/11/2026)
+
+OpenAI Codex assistiu o aumento da tipografia: corpo de 15 px, controles de
+14 px, textos auxiliares de 13 px, campos de 16 px e títulos dos painéis de
+16–18 px. Legendas, proveniência, camadas e eixos dos gráficos também foram
+ampliados, com ajustes de quebra de linha e altura dos controles. Alteração
+local revisada pelo usuário, que autorizou a publicação em 15/11/2026.
+Dados e cálculos preservados.
+
+Preview em `http://localhost:5185`, com proxy para a API pública existente.
+47 testes aprovados; build aprovado com Node.js 24. Chromium confirmou
+posicionamento das camadas, tamanhos de texto maiores, controles funcionais e
+390 px sem overflow horizontal ou exceções JS. Captura mobile inspecionada.
+
+
+### Ajuste solicitado — remoção da página Evidence (15/11/2026)
+
+OpenAI Codex assistiu a remoção da aba Evidence, seu painel e estilos exclusivos.
+O guia deixou de anunciar a página e o contrato do assistente deixou de oferecer
+a navegação para ela. Configurações antigas com a aba `analysis` são normalizadas
+para Explore pelo validador. Consultas de tendências armazenadas continuam na
+API e no assistente, com métodos, proveniência e limitações preservados.
+
+Validação local com Node.js 24: 47 testes do frontend e builds do frontend e da
+API aprovados. Publicação e conferência em navegador não realizadas nesta
+alteração. Revisão humana e investigação científica reproduzível continuam
+pendentes; esta remoção não conclui os requisitos científicos ou a submissão.
+
+
+### Evidência incremental — setas de vento mensal no globo (15/11/2026)
+
+Consultas reais de leitura ao SQL Warehouse ativo confirmaram os 12 componentes
+trusted U/V do MERRA-2, nos níveis 2/10/50 m e 250/500/850 hPa. Os pares a 10 m
+e 850 hPa têm 321 meses (jan/2000–set/2026); os demais, 33 meses
+(jan/2024–set/2026). Proveniência, SQL reproduzível, identificadores das consultas,
+fontes primárias, método e limites estão em [vento no globo](wind-arrows.md).
+
+OpenAI Codex assistiu código, testes e documentação da visualização vetorial.
+Selecionar uma componente carrega automaticamente a outra do mesmo nível.
+Setas apontam para onde sopra a resultante das componentes médias mensais;
+comprimento fixo e cor da componente selecionada, em m/s. Não se usa a tabela
+SPEED com conversão incorreta. Faltas de par/cobertura são omitidas explicitamente;
+reanálise mensal não é tempo instantâneo, rajada ou média mensal de velocidades.
+Não houve geração de imagens ou dados científicos por IA nesta funcionalidade.
+
+Node.js 24: 57 testes frontend e builds frontend/backend aprovados, inclusive
+após integração de alterações paralelas. Chromium com dados reais conferiu
+carregamento automático, probe, rotação, zoom8×, playback com meses coerentes,
+deduplicação U/V do mesmo nível, opacidade/visibilidade e nível850hPa. Falha
+de V50 injetada apenas no navegador de QA omitiu setas e recuperou com Retry.
+390px sem overflow horizontal ou exceções JavaScript; capturas inspecionadas.
+Preview5186 e cópia estável de QA5187. Esta evidência não comprova publicação,
+submissão nem conclusão da investigação científica ou conformidade completa.
+
+## Evidência incremental — Trend Lab (15/11/2026)
+
+OpenAI Codex assistiu a nova aba em inglês com seleção independente de
+região/bbox, indicador contínuo e período (todo o histórico por padrão),
+regressão OLS mensal no navegador, pontos e reta, IC de 95% da inclinação,
+significância condicional e controles de dois pontos para mudança em 1–60 meses.
+Extensão tracejada identificada como projeção, com pressupostos e limitações
+de sazonalidade/autocorrelação; classes categóricas desabilitadas. Não usa
+série simulada como fallback nem atribui ao assistente o contexto de outra aba.
+Ver [método, fontes, validação e limites](trend-lab.md).
+
+Node.js 24: 69 testes frontend aprovados (23 da nova matemática), builds frontend
+e backend aprovados. Fixtures Git executadas em diretórios temporários.
+Revisão independente identificou e conferiu correções de legenda SVG, leitura
+mobile e inferência degenerada em reta perfeita com meses faltantes. Chromium
+com API pública real conferiu 321 meses de temperatura a 10 m no retângulo do
+Brasil (jan/2000–set/2026), geração, controles, persistência entre abas e aviso
+de filtros editados; 1440/390/360 px sem overflow e sem erros JavaScript.
+Fixtures sintéticas identificadas conferiram erro/retry, insuficiência,
+categóricos, teclado e bbox desenhado; não são evidência científica.
+
+Implementação local, sem commit/deploy ou alteração da página Project.
+Revisão humana, investigação científica reproduzível final e submissão
+permanecem pendentes. Não declara conformidade completa ou elegibilidade.
+
+Preparação para PRD autorizada pelo usuário em 15/11/2026: integração isolada
+na main `0fcf9df`, com 80 testes frontend e builds frontend/API aprovados.
+Recursos e remoções recentes da main preservados. Por orientação explícita
+do usuário, este projeto usa exclusivamente a conta pessoal `Luckstai`,
+com a identidade Git pessoal do projeto. Confirmação de publicação pendente.
+
+## Publicação verificada — 15/11/2026 03:10 -03
+
+Publicação pela conta pessoal `Luckstai`, PR [#16](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/16),
+commit `e7c0693fb41479cf748ffccfee1386087009201d`. A Vercel informou
+[deploy concluído](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/DZKjyHfJN6DyJLtiTPSRG1KtzLyK),
+e o [domínio público](https://kipp-earth-trends-lab.vercel.app/) entregou
+`index-Djm50shX.js`, correspondente ao build validado. Autoria do merge
+conferida pela API: Lucas Henrique, identidade pessoal do projeto.
+
+Chromium em produção confirmou Trend Lab entre Compare e Events, geração com
+321 meses reais de temperatura a 10 m no retângulo do Brasil, controles de
+24 meses, persistência entre abas e aviso de filtros alterados. Viewports
+1440/390/360 px sem overflow horizontal nem exceções JavaScript.
+80 testes frontend e builds frontend/API haviam passado na versão integrada.
+Isso comprova a publicação e o fluxo funcional; revisão científica humana
+e submissão na página Project continuam etapas distintas.

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Search, X } from "lucide-react";
 import type { EarthVariable } from "../lib/earthApi";
 import { realUnit } from "../lib/earthApi";
+import { windComponents } from "../lib/wind";
 import "./multivariable-layers.css";
 
 const normalize = (text: string) =>
@@ -211,6 +212,7 @@ export function MultiVariablePicker({
                     <small>
                       {variable.product} · {realUnit(variable.unit)}
                       {available ? "" : " · unavailable"}
+                      {windComponents(variable.id) ? " · ↗ paired wind arrows" : ""}
                     </small>
                   </span>
                 </label>

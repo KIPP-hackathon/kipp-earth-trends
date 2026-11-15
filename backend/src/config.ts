@@ -2,56 +2,56 @@
 export const regions = [
   {
     id: "saofrancisco",
-    name: "São Francisco · recorte",
+    name: "São Francisco · study area",
     bbox: "-47,-21,-38,-8",
     longitude: -43,
     latitude: -14,
   },
   {
     id: "amazonia",
-    name: "Amazônia central · recorte",
+    name: "Central Amazon · study area",
     bbox: "-66,-9,-58,-1",
     longitude: -62,
     latitude: -5,
   },
   {
     id: "pantanal",
-    name: "Pantanal · recorte",
+    name: "Pantanal · study area",
     bbox: "-59,-22,-54,-15",
     longitude: -56,
     latitude: -18,
   },
   {
     id: "pacifico",
-    name: "Pacífico equatorial · contexto ENSO",
+    name: "Equatorial Pacific · ENSO context",
     bbox: "-170,-5,-120,5",
     longitude: -145,
     latitude: 0,
   },
   {
     id: "caribe",
-    name: "Caribe e Golfo do México · recorte",
+    name: "Caribbean and Gulf of Mexico · study area",
     bbox: "-98,8,-55,32",
     longitude: -77,
     latitude: 20,
   },
   {
     id: "japao",
-    name: "Nordeste do Japão · recorte",
+    name: "Northeastern Japan · study area",
     bbox: "138,33,146,42",
     longitude: 142,
     latitude: 38,
   },
   {
     id: "arctico",
-    name: "Ártico · recorte",
+    name: "Arctic · study area",
     bbox: "-180,60,180,90",
     longitude: 0,
     latitude: 75,
   },
   {
     id: "antartida",
-    name: "Antártida · recorte",
+    name: "Antarctic · study area",
     bbox: "-180,-90,180,-60",
     longitude: 0,
     latitude: -75,
@@ -64,9 +64,9 @@ export const configuration = {
   playback: { cadenceMs: 1200, lookAhead: 3, initialBuffer: 2 },
   comparison: { maxGlobes: 2, synchronizedCamera: true },
   limitations: [
-    "Os recortes são retângulos de estudo, não limites exatos de bacias ou áreas atingidas.",
-    "A resolução mensal permite observar contexto ambiental; não resolve a trajetória de furacões ou ondas de tsunami.",
-    "Comparação visual não identifica automaticamente fenômenos semelhantes nem estabelece causalidade.",
+    "Study areas are rectangles, not exact basin boundaries or affected areas.",
+    "Monthly resolution provides environmental context; it cannot resolve hurricane tracks or tsunami waves.",
+    "Visual comparison does not automatically identify similar phenomena or establish causality.",
   ],
 };
 
@@ -85,16 +85,16 @@ export type HistoricalEvent = {
 export const historicalEvents: HistoricalEvent[] = [
   {
     id: "pantanal-2024",
-    title: "Incêndios no Pantanal · 2024",
-    category: "Queimadas",
-    location: "Pantanal · Brasil",
+    title: "Pantanal fires · 2024",
+    category: "Wildfires",
+    location: "Pantanal · Brazil",
     window: ["2024-06", "2024-09"],
     region: "pantanal",
     variable: "rainfall",
     description:
-      "Registros de satélite documentaram fogo no Pantanal em 2024. Explore o contexto mensal de chuva e temperatura no recorte.",
+      "Satellite records documented fires in the Pantanal in 2024. Explore monthly rainfall and temperature context in the study area.",
     limitation:
-      "O recorte não é uma área queimada. Não há focos de calor nem detecção de incêndios nesta camada; MODIS disponível apenas em parte de 2024.",
+      "The rectangle is not a burned-area footprint. This layer has no hotspots or fire detection; MODIS is available for only part of 2024.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/smoke-fills-south-american-skies-153295/",
@@ -102,16 +102,16 @@ export const historicalEvents: HistoricalEvent[] = [
   },
   {
     id: "elnino-2024",
-    title: "Fim do El Niño 2023–2024",
+    title: "End of El Niño 2023–2024",
     category: "El Niño",
-    location: "Pacífico equatorial",
+    location: "Equatorial Pacific",
     window: ["2024-01", "2024-05"],
     region: "pacifico",
     variable: "temperature",
     description:
-      "O episódio de 2023–2024 enfraqueceu no primeiro semestre de 2024. O preset permite comparar campos ambientais mensais nesse período.",
+      "The 2023–2024 episode weakened in the first half of 2024. This preset compares monthly environmental fields during that period.",
     limitation:
-      "Temperatura do ar não é temperatura da superfície do mar. Sem índice ONI ou climatologia, estes campos não diagnosticam El Niño.",
+      "Air temperature is not sea-surface temperature. Without an ONI index or climatology, these fields do not diagnose El Niño.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/el-nino-exits-153058/",
@@ -119,16 +119,16 @@ export const historicalEvents: HistoricalEvent[] = [
   },
   {
     id: "beryl-2024",
-    title: "Furacão Beryl",
-    category: "Furacões",
-    location: "Caribe · Golfo do México",
+    title: "Hurricane Beryl",
+    category: "Hurricanes",
+    location: "Caribbean · Gulf of Mexico",
     window: ["2024-06", "2024-07"],
     region: "caribe",
     variable: "rainfall",
     description:
-      "Beryl ocorreu entre 28 de junho e 9 de julho de 2024. Compare o contexto mensal de precipitação no Caribe e no Golfo.",
+      "Beryl occurred from June 28 to July 9, 2024. Compare monthly precipitation context in the Caribbean and the Gulf.",
     limitation:
-      "O bbox é ilustrativo, não uma trajetória. Médias mensais não mostram o pico de vento, a chuva diária ou o deslocamento do furacão.",
+      "The bbox is illustrative, not a storm track. Monthly means do not show peak winds, daily rainfall or hurricane movement.",
     source: {
       name: "NOAA · National Hurricane Center",
       url: "https://www.nhc.noaa.gov/data/tcr/AL022024_Beryl.pdf",
@@ -136,16 +136,16 @@ export const historicalEvents: HistoricalEvent[] = [
   },
   {
     id: "pantanal-2020",
-    title: "O Pantanal em chamas · 2020",
-    category: "Queimadas",
-    location: "Pantanal · Brasil",
+    title: "Pantanal fires · 2020",
+    category: "Wildfires",
+    location: "Pantanal · Brazil",
     window: ["2020-08", "2020-10"],
     region: "pantanal",
     variable: "rainfall",
     description:
-      "Registro histórico de incêndios extensos no Pantanal em 2020.",
+      "Historical record of extensive fires in the Pantanal in 2020.",
     limitation:
-      "Fora do histórico atualmente carregado. Não substituímos o período por uma simulação.",
+      "Outside the currently loaded record. The period is not replaced with a simulation.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/fires-char-the-pantanal-147269/",
@@ -155,14 +155,14 @@ export const historicalEvents: HistoricalEvent[] = [
     id: "elnino-2015",
     title: "El Niño 2015–2016",
     category: "El Niño",
-    location: "Pacífico equatorial",
+    location: "Equatorial Pacific",
     window: ["2015-03", "2016-05"],
     region: "pacifico",
     variable: "temperature",
     description:
-      "Ficha histórica para uma futura comparação entre episódios de ENSO.",
+      "Historical context for a future comparison between ENSO episodes.",
     limitation:
-      "Fora do histórico carregado; exige também índices ENSO e temperatura do mar para caracterizar o fenômeno.",
+      "Outside the loaded record; ENSO indices and sea temperature are also needed to characterize this phenomenon.",
     source: {
       name: "NOAA · ENSO",
       url: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ensofaq.shtml",
@@ -170,16 +170,16 @@ export const historicalEvents: HistoricalEvent[] = [
   },
   {
     id: "amazonia-2019",
-    title: "Fogo na Amazônia · 2019",
-    category: "Queimadas",
-    location: "Amazônia · Brasil",
+    title: "Amazon fires · 2019",
+    category: "Wildfires",
+    location: "Amazon · Brazil",
     window: ["2019-07", "2019-10"],
     region: "amazonia",
     variable: "rainfall",
     description:
-      "Imagens de satélite registraram atividade de fogo na Amazônia em 2019.",
+      "Satellite imagery recorded fire activity in the Amazon in 2019.",
     limitation:
-      "Fora do histórico carregado. O recorte não reproduz a distribuição dos incêndios.",
+      "Outside the loaded record. The rectangle does not reproduce the distribution of fires.",
     source: {
       name: "NASA Earth Observatory",
       url: "https://science.nasa.gov/earth/earth-observatory/uptick-in-amazon-fire-activity-in-2019-145498/",
@@ -187,16 +187,16 @@ export const historicalEvents: HistoricalEvent[] = [
   },
   {
     id: "katrina-2005",
-    title: "Furacão Katrina",
-    category: "Furacões",
-    location: "Golfo do México · Estados Unidos",
+    title: "Hurricane Katrina",
+    category: "Hurricanes",
+    location: "Gulf of Mexico · United States",
     window: ["2005-08", "2005-08"],
     region: "caribe",
     variable: "rainfall",
     description:
-      "Registro histórico do ciclone que atravessou o Golfo do México em agosto de 2005.",
+      "Historical record of the cyclone that crossed the Gulf of Mexico in August 2005.",
     limitation:
-      "Fora do histórico carregado; uma análise do furacão exige dados subdiários e trajetória.",
+      "Outside the loaded record; hurricane analysis requires subdaily data and a storm track.",
     source: {
       name: "NOAA · National Hurricane Center",
       url: "https://www.nhc.noaa.gov/data/tcr/AL122005_Katrina.pdf",
@@ -204,16 +204,16 @@ export const historicalEvents: HistoricalEvent[] = [
   },
   {
     id: "tohoku-2011",
-    title: "Tsunami de Tōhoku",
+    title: "Tōhoku tsunami",
     category: "Tsunamis",
-    location: "Japão · Oceano Pacífico",
+    location: "Japan · Pacific Ocean",
     window: ["2011-03", "2011-03"],
     region: "japao",
     variable: "rainfall",
     description:
-      "O terremoto de 11 de março de 2011 gerou um tsunami registrado no Pacífico.",
+      "The earthquake on March 11, 2011 generated a tsunami recorded across the Pacific.",
     limitation:
-      "Sem camada adequada: requer nível do mar, boias DART e registros sísmicos. Chuva e temperatura mensais não representam uma onda de tsunami.",
+      "No suitable layer: sea level, DART buoys and seismic records are required. Monthly rainfall and temperature do not represent a tsunami wave.",
     source: {
       name: "NOAA · Tsunami Research",
       url: "https://nctr.pmel.noaa.gov/honshu20110311/",

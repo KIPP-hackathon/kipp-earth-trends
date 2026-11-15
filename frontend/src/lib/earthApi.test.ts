@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadCatalog, loadConfig } from "./earthApi";
+import { loadCatalog, loadConfig, loadSeries } from "./earthApi";
 import { earthReadCache } from "./earthReadCache";
 
 const config = {
@@ -24,6 +24,28 @@ describe("Earth API connection recovery", () => {
     vi.restoreAllMocks();
   });
 
+  it("preserves the full trusted temperature history and missing-month gaps", async () => {
+    const variable = {
+      id: "temperature", name: "Temperature", quantity: "air_temperature_10m",
+      unit: "degC", product: "MERRA-2",
+      months: ["2000-01", "2026-09"].map(month => ({month, samples: 1, validSamples: 1})),
+    };
+    fetchMock.mockImplementation(async () => Response.json({
+      simulated: false, variable: "temperature",
+      observations: [
+        {month: "2000-01", value: 20, coverage: 1, samples: 1},
+        {month: "2026-09", value: 25, coverage: 1, samples: 1},
+      ],
+    }));
+    const result = await loadSeries(variable, "-60,-22,-54,-16", new AbortController().signal);
+    expect(result.observations).toHaveLength(321);
+    expect(result.observations[1].value).toBeNull();
+    expect(result.observations.at(-1)).toMatchObject({month: "2026-09", value: 25});
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("start=2000-01&end=2009-12");
+    expect(String(fetchMock.mock.calls[1][0])).toContain("start=2020-01&end=2026-09");
+  });
+
   it("loads the catalog after a temporary network interruption", async () => {
     const catalog = {
       simulated: false,
@@ -44,7 +66,7 @@ describe("Earth API connection recovery", () => {
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
     const result = expect(
       loadConfig(new AbortController().signal),
-    ).rejects.toThrow("Verifique sua conexão");
+    ).rejects.toThrow("Check your connection");
     await vi.advanceTimersByTimeAsync(3500);
     await result;
     expect(fetchMock).toHaveBeenCalledTimes(4);

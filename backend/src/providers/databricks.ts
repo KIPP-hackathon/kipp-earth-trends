@@ -65,7 +65,7 @@ export class DatabricksProvider implements Provider {
             throw new ApiError(
               504,
               "QUERY_TIMEOUT",
-              "Consulta excedeu o tempo disponível. Tente um recorte menor.",
+              "The query timed out. Try a smaller area.",
             );
           await new Promise((resolve) => setTimeout(resolve, 350));
           result = (await (
@@ -93,7 +93,7 @@ export class DatabricksProvider implements Provider {
           throw new ApiError(
             413,
             "RESULT_TOO_LARGE",
-            "Consulta grande demais; reduza a área ou o nível de detalhe.",
+            "Query too large; reduce the area or level of detail.",
           );
         const columns =
           result.manifest?.schema.columns.map((c) => c.name) ?? [];
@@ -109,7 +109,7 @@ export class DatabricksProvider implements Provider {
             throw new ApiError(
               413,
               "RESULT_TOO_LARGE",
-              "Resultado excedeu o limite de segurança.",
+              "The result exceeded the safety limit.",
             );
           if (
             chunk.next_chunk_index === undefined ||
@@ -120,7 +120,7 @@ export class DatabricksProvider implements Provider {
             throw new ApiError(
               504,
               "QUERY_TIMEOUT",
-              "Leitura dos dados excedeu o tempo disponível.",
+              "Reading the data timed out.",
             );
           // Construct our own path; never follow an upstream-supplied external URL.
           chunk = (await (
@@ -152,7 +152,7 @@ export class DatabricksProvider implements Provider {
           throw new ApiError(
             504,
             "QUERY_TIMEOUT",
-            "Consulta excedeu o tempo disponível. Tente um recorte menor.",
+            "The query timed out. Try a smaller area.",
           );
         throw error;
       }

@@ -102,8 +102,8 @@ api.setErrorHandler((error, request, reply) => {
         message: known
           ? error.message
           : validation
-            ? "Parâmetros inválidos. Consulte /v1 para o contrato."
-            : "Não foi possível atender à requisição.",
+            ? "Invalid parameters. See /v1 for the contract."
+            : "Could not complete the request.",
         requestId: request.id,
       },
     });
@@ -205,6 +205,9 @@ api.get("/v1", async () => ({
       "KIPP magic(4 bytes), headerLength uint32 LE(4), UTF-8 JSON header, zero padding to next multiple of 4, float32 LE values[width*height], float32 LE coverage[width*height]",
   },
   cache: { ttlSeconds: 300, scope: "per-instance bounded LRU plus HTTP cache" },
+  comparison: {route:"/v1/comparison/:variable?start=2024-01&end=2024-12&bbox=-60,-22,-54,-16",
+    modes:["standardized","minmax"],reference:{start:"2001-01",end:"2020-12",minimumYearsPerMonth:10},
+    scope:"Separate global and regional monthly aggregates; normalized at runtime with original values retained.",maxMonths:2400},
   limitations,
 }));
 // Share the catalog between the dataset and event endpoints during cold starts.
@@ -264,7 +267,7 @@ api.get("/v1/catalog", async (request, reply) =>
     json({
       provider: mode,
       sourceLayer: "trusted",
-      capabilities: {layeredAssistant:true},
+      capabilities: {layeredAssistant:true,comparisonCharts:true,runtimeTrends:true},
       simulated: false,
       revision: process.env.K_REVISION ?? "local",
       variables: await catalogData(),
@@ -424,6 +427,15 @@ api.get<{
     );
   },
 );
+api.get<{Params:{variable:string};Querystring:{start:string;end:string;bbox:string;analysis?:"trend-v1"}}>(
+  "/v1/comparison/:variable", {schema:{params:{type:"object",additionalProperties:false,required:["variable"],properties:{variable:{type:"string",maxLength:40}}},
+    querystring:{type:"object",additionalProperties:false,required:["start","end","bbox"],properties:{start:{type:"string",maxLength:7},end:{type:"string",maxLength:7},bbox:{type:"string",maxLength:100},analysis:{type:"string",enum:["trend-v1"]}}}}},
+  async(request,reply)=> {
+    variableFor(request.params.variable);
+    const {start,end,bbox}=request.query;
+    return serve(request,reply,`comparison:v2:${request.params.variable}:${start}:${end}:${bbox}`,300,
+      async()=>json(await data.comparison(request.params.variable,start,end,bbox)));
+  });
 api.addHook("onClose", async () => {
   await Promise.all(providers.map((provider) => provider.close()));
 });

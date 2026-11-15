@@ -1,5 +1,11 @@
 # Backend: CI/CD e identidade Google
 
+> Migração concluída em 15/11/2026: o destino ativo é `kipp-space-apps-2026`
+> (696766216489), com runtime, invoker e CI próprios. Ver
+> [estado e operação atuais](gcp-migration.md). As seções abaixo preservam
+> a configuração e evidências históricas do projeto anterior.
+
+
 Atualização Lakebase: o provider padrão de deploy agora é `lakebase-postgres`.
 As quatro tabelas foram conferidas no Lakebase; veja
 [backend-lakebase.md](backend-lakebase.md) para destino, identidade e validação.

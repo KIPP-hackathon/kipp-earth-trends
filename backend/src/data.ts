@@ -8,17 +8,18 @@ import type { Parameters, Provider } from "./core.ts";
 
 import { variables } from "./registry.ts";
 import { trustedColumns } from "./trusted-map.ts";
+import { comparisonReference, transformComparison } from "./comparison.ts";
 import type { Variable } from "./registry.ts";
 export { variables, excludedSources } from "./registry.ts";
 export type { Variable, RenderMetadata } from "./registry.ts";
 
 export const limitations = [
-  "Dados reais derivados de produtos NASA, sem classificação automática de eventos ou atribuição causal.",
-  "A grade retornada é agregada para visualização; não adiciona resolução à fonte.",
-  "Temperatura do ar a 10 m é distinta da temperatura a 2 m e da temperatura de superfície.",
-  "IMERG Final e Late permanecem separados por terem processamento e cobertura diferentes.",
-  "Anomalias GRACE usam referência 2004–2009 e não isolam água subterrânea; não há inferência causal ou previsão climática.",
-  "Escalas de cores são faixas de visualização fixas, não limites científicos ou observações globais mínimas/máximas.",
+  "Real data derived from NASA products; no automatic event classification or causal attribution.",
+  "The returned grid is aggregated for display; it does not increase source resolution.",
+  "Air temperature at 10 m differs from air temperature at 2 m and surface temperature.",
+  "IMERG Final and Late remain separate because their processing and coverage differ.",
+  "GRACE anomalies use a 2004–2009 reference and do not isolate groundwater; no causal inference or climate forecast is provided.",
+  "Color scales are fixed display ranges, not scientific limits or global observed minima/maxima.",
 ];
 export function variableFor(id: string): Variable {
   const variable = variables.find((v) => v.id === id);
@@ -26,7 +27,7 @@ export function variableFor(id: string): Variable {
     throw new ApiError(
       404,
       "VARIABLE_NOT_FOUND",
-      "Variável indisponível. Consulte /v1/catalog.",
+      "Variable unavailable. See /v1/catalog.",
     );
   return variable;
 }
@@ -61,7 +62,7 @@ export function parseBounds(input = "-180,-90,180,90"): Bounds {
     west === east ||
     (west === 180 && east === -180)
   )
-    throw new ApiError(400, "INVALID_BBOX", "Limites geográficos inválidos.");
+    throw new ApiError(400, "INVALID_BBOX", "Invalid geographic bounds.");
   return {
     west,
     south,
@@ -76,7 +77,7 @@ export function parseMonth(input: string): string {
     input < "1900-01" ||
     input > "2100-12"
   )
-    throw new ApiError(400, "INVALID_MONTH", "Use um mês no formato YYYY-MM.");
+    throw new ApiError(400, "INVALID_MONTH", "Use a month in YYYY-MM format.");
   return input;
 }
 export function monthAfter(month: string) {
@@ -119,7 +120,7 @@ export class DataService {
       throw new ApiError(
         404,
         "VARIABLE_NOT_FOUND",
-        "Variável indisponível nesta fonte. Consulte /v1/catalog.",
+        "Variable unavailable from this source. See /v1/catalog.",
       );
     return variable;
   }
@@ -230,7 +231,7 @@ export class DataService {
           throw new ApiError(
             504,
             "QUERY_TIMEOUT",
-            "Orçamento de consulta do catálogo excedido.",
+            "Catalog query budget exceeded.",
           );
         const branches = await Promise.all(
           indices.map((i) => this.availabilityGroup(groups[i], i)),
@@ -277,7 +278,7 @@ export class DataService {
             errors.set(v.id, {
               code,
               message:
-                "A fonte não pôde ser consultada nesta atualização do catálogo; nenhuma observação foi substituída.",
+                "The source could not be queried during this catalog refresh; no observations were substituted.",
             });
       }
     };
@@ -304,13 +305,13 @@ export class DataService {
       throw new ApiError(
         503,
         "CATALOG_BUSY",
-        "O catálogo está temporariamente ocupado. Tente novamente.",
+        "The catalog is temporarily busy. Try again.",
       );
     if (errors.size === this.variables.length)
       throw new ApiError(
         502,
         "CATALOG_UNAVAILABLE",
-        "Não foi possível consultar o catálogo de dados reais.",
+        "Could not query the real-data catalog.",
       );
     return this.variables.map((v) => {
       const availableMonths = (months.get(v.id) ?? []).sort((a, b) =>
@@ -332,7 +333,7 @@ export class DataService {
             : {
                 code: "NO_VALID_OBSERVATIONS",
                 message:
-                  "Sem observações válidas após os filtros de qualidade nesta fonte.",
+                  "No valid observations remain after source quality filters.",
               }),
       };
     });
@@ -424,7 +425,7 @@ export class DataService {
       throw new ApiError(
         404,
         "NO_DATA",
-        "Não há dados para a variável, mês e área solicitados.",
+        "No data for the requested variable, month and area.",
       );
     const count = width * height,
       values = new Float32Array(count),
@@ -449,7 +450,7 @@ export class DataService {
         throw new ApiError(
           502,
           "INVALID_GRID",
-          "A fonte retornou coordenadas de grade inválidas.",
+          "The source returned invalid grid coordinates.",
         );
       const i = y * width + x;
       coverage[i] = Math.min(1, Math.max(0, fraction ?? 0));
@@ -496,6 +497,45 @@ export class DataService {
     };
     return { metadata, values, coverage };
   }
+  async comparison(id: string, startInput: string, endInput: string, bbox: string) {
+    const variable=this.variable(id), start=parseMonth(startInput), end=parseMonth(endInput), bounds=parseBounds(bbox);
+    const span=(Number(end.slice(0,4))-Number(start.slice(0,4)))*12+Number(end.slice(5))-Number(start.slice(5));
+    if (span<0 || span>=2400) throw new ApiError(400,"INVALID_PERIOD","Select an ordered period of at most2400months.");
+    const first=start<comparisonReference.start?start:comparisonReference.start;
+    const last=end>comparisonReference.end?end:comparisonReference.end;
+    const {sql,parameters}=this.selected(variable,parseBounds(),`${first}-01`,monthAfter(last));
+    Object.assign(parameters,{areaWest:bounds.west,areaEast:bounds.wrap?bounds.east-360:bounds.east,
+      areaSouth:bounds.south,areaNorth:bounds.north});
+    const inside=`lat BETWEEN :areaSouth AND :areaNorth AND ${bounds.wrap?"(lon >= :areaWest OR lon <= :areaEast)":"lon BETWEEN :areaWest AND :areaEast"}`;
+    const categorical=variable.aggregation==="weighted_mode";
+    const aggregate=categorical?
+      "100.0*SUM(CASE WHEN value=1 THEN coverage*area_weight ELSE 0.0 END)/NULLIF(SUM(coverage*area_weight),0)":this.aggregate(variable);
+    // Share the source scan; regional conditional aggregates preserve the same QA/conversions as global.
+    const regional=aggregate.replace(/\bvalue\b/g,`(CASE WHEN ${inside} THEN value ELSE NULL END)`)
+      .replace(/\bcoverage\b/g,`(CASE WHEN ${inside} THEN coverage ELSE 0.0 END)`);
+    const rows=await this.provider.query(`WITH selected AS (${sql})
+      SELECT ${this.month("observed_time")} AS month, ${aggregate} AS global_value, ${regional} AS regional_value,
+      SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS global_coverage,
+      SUM(CASE WHEN ${inside} THEN coverage*area_weight ELSE 0.0 END)/NULLIF(SUM(CASE WHEN ${inside} THEN area_weight ELSE 0.0 END),0) AS regional_coverage,
+      COUNT(*) AS global_samples, SUM(CASE WHEN ${inside} THEN 1 ELSE 0 END) AS regional_samples
+      FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,parameters,2412);
+    const scope=(name:"global"|"regional")=>transformComparison(rows.map(row=>({month:String(row.month),
+      value:numeric(row[`${name}_value`]),coverage:numeric(row[`${name}_coverage`]),samples:numeric(row[`${name}_samples`])})),start,end);
+    return {...sourceMetadata(variable), variable:id, name:variable.name, product:variable.product, run:variable.run,
+      unit:categorical?"%":variable.unit, sourceUnit:variable.unit, simulated:false, start,end,
+      bbox:[bounds.west,bounds.south,bounds.wrap?bounds.east-360:bounds.east,bounds.north],
+      aggregation:categorical?"valid_area_ice_fraction":variable.aggregation,
+      method:categorical?"Ice-class1 fraction of valid area weighted by cos(latitude) and coverage; not a mean of category codes or ice extent in km²":this.aggregationDescription(variable),
+      reference:comparisonReference, quality:variable.quality,
+      trendAnalysis:{version:1,method:"OLS linear calendar time +12month effects; Newey-West HAC12 Bartlett; n/(n-13) correction; approximate two-sided normal Wald inference",
+        minimumFitMonths:24,minimumInferenceMonths:60,requiresConsecutiveMonthsForInference:true,
+        pValueNullHypothesis:"zero time slope in the indicated representation",alpha:.05,
+        multipleComparisons:"Holm adjustment is computed for the full selected family across available scopes in the frontend; per-variable API p-values are unadjusted.",
+        assumptions:"Adequate linear trend, fixed calendar-month seasonality and short-memory residual dependence. Historical normalization parameters are treated as fixed; their estimation uncertainty is not propagated."},
+      global:scope("global"),regional:scope("regional"),
+      limitations:[...limitations,"Historical reference2001–2020 is a project reference, not a30-year climate normal. At least10valid years per calendar month are required; zero reference variance is unavailable.",
+        "Each spatial scope has its own reference and min/max.0–100 uses the displayed period; a constant series is50. Normalized values compare relative behavior, not physical magnitudes, probabilities, statistical significance or causal effects."]};
+  }
   async series(id: string, startInput: string, endInput: string, bbox: string) {
     const variable = this.variable(id),
       start = parseMonth(startInput),
@@ -509,7 +549,7 @@ export class DataService {
       throw new ApiError(
         400,
         "INVALID_PERIOD",
-        "Selecione um período ordenado de até 120 meses.",
+        "Select an ordered period of at most 120 months.",
       );
     const { sql, parameters } = this.selected(
       variable,
@@ -529,7 +569,7 @@ export class DataService {
       throw new ApiError(
         404,
         "NO_DATA",
-        "Não há dados no período e área solicitados.",
+        "No data for the requested period and area.",
       );
     return {
       ...sourceMetadata(variable),

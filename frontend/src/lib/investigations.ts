@@ -1,10 +1,10 @@
 import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./globeZoom";
 import type { GlobeView } from "./comparison";
-import type { EarthColorRange, EarthRegion } from "./earthApi";
+import type { EarthColorRange, EarthRegion, ComparisonMode } from "./earthApi";
 import type { LayerSetting } from "./layers";
 
 export type InvestigationView = {
-  tab: "explore" | "compare" | "analysis";
+  tab: "explore" | "compare";
   panels: {
     side: "A" | "B";
     variable: string;
@@ -13,6 +13,7 @@ export type InvestigationView = {
     end: string;
     region: EarthRegion;
     layers?: LayerSetting[];
+    comparisonMode?:ComparisonMode;
   }[];
   camera: GlobeView;
   colorRanges: Record<string, EarthColorRange>;
@@ -161,7 +162,7 @@ export function validateInvestigationView(value: unknown): InvestigationView {
     const p = object(
       value,
       ["side", "variable", "month", "start", "end", "region"],
-      ["layers"],
+      ["layers","comparisonMode"],
     );
     if (p.side !== (index === 0 ? "A" : "B"))
       return fail("Investigation panels must be ordered A, B.");
@@ -171,9 +172,12 @@ export function validateInvestigationView(value: unknown): InvestigationView {
     if (start > end || current < start || current > end)
       return fail("Current month must be inside the investigation period.");
     const variable = identifier(p.variable);
+    if(p.comparisonMode!==undefined && p.comparisonMode!=="standardized" && p.comparisonMode!=="minmax")
+      return fail("Unsupported chart comparison mode.");
     return {
       side: p.side as "A" | "B",
       variable,
+      ...(p.comparisonMode!==undefined?{comparisonMode:p.comparisonMode as ComparisonMode}:{}),
       month: current,
       start,
       end,
@@ -231,7 +235,8 @@ export function validateInvestigationView(value: unknown): InvestigationView {
     colorRanges[key] = { domain, hideOutside: range.hideOutside };
   }
   return {
-    tab: v.tab,
+    // Older saved views used the removed Evidence workspace.
+    tab: v.tab === "analysis" ? "explore" : v.tab,
     panels,
     camera,
     colorRanges,

@@ -38,9 +38,9 @@ JS
 task_month="$(cat "$task_tmp/month")"
 [[ "$task_month" =~ ^[0-9]{4}-[0-9]{2}$ ]]
 curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
-  "$task_url/v1/frames/temperature/$task_month?factor=8&format=json${task_query/\?/\&}" -o "$task_tmp/frame.json"
+  "$task_url/v1/frames/temperature/$task_month?factor=8&format=json${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/frame.json"
 curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
-  "$task_url/v1/series/temperature?start=$task_month&end=$task_month&bbox=-60,-22,-54,-16${task_query/\?/\&}" -o "$task_tmp/series.json"
+  "$task_url/v1/series/temperature?start=$task_month&end=$task_month&bbox=-60,-22,-54,-16${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/series.json"
 node --input-type=module - "$task_tmp/frame.json" "$task_tmp/series.json" <<'JS'
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
@@ -56,7 +56,7 @@ console.log('Smoke OK: trusted frame and regional series');
 JS
 
 curl --fail --silent --show-error --connect-timeout 10 --max-time 60 \
-  "$task_url/v1/trends?variable=surface_temperature&bbox=-80,-20,-45,5&start=2024-01&end=2026-09${task_query/\?/\&}" -o "$task_tmp/trends.json"
+  "$task_url/v1/trends?variable=surface_temperature&bbox=-80,-20,-45,5&start=2024-01&end=2026-09${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/trends.json"
 node --input-type=module - "$task_tmp/trends.json" <<'JS'
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
@@ -67,3 +67,33 @@ assert.ok(data.results.length>0);
 assert.ok(data.results.every(row=>row.n_obs===33));
 console.log('Smoke OK: runtime stored trend reference (exact original 33-month period)');
 JS
+
+# Runtime comparison preserves physical values and provides both normalized chart modes.
+curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 --connect-timeout 10 --max-time 60 "$task_url/v1/comparison/temperature?start=2024-01&end=2024-12&bbox=-73.98614,-33.76766,-34.73135,5.24412${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/comparison.json"
+node --input-type=module - "$task_tmp/comparison.json" <<'JS_CHECK'
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+assert.equal(d.simulated,false);assert.equal(d.source,'databricks-sql');assert.equal(d.sourceLayer,'trusted');assert.equal(d.unit,'degC');assert.equal(d.reference.start,'2001-01');assert.equal(d.reference.end,'2020-12');
+for(const scope of ['global','regional']) {
+ assert.equal(d[scope].observations.length,12);
+ assert.ok(d[scope].reference.every(row=>row.count>=10));
+ assert.ok(d[scope].observations.every(row=>row.value!==null && Number.isFinite(row.standardized) && row.minmax>=0 && row.minmax<=100));
+}
+console.log('Runtime comparison smoke passed: trusted physical units, fixed monthly reference, global/regional z-scores and0–100.');
+JS_CHECK
+
+# Runtime season-adjusted slopes and robust inference need a long real record.
+curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 --connect-timeout 10 --max-time 60 "$task_url/v1/comparison/temperature?start=2000-01&end=2026-09&bbox=-73.98614,-33.76766,-34.73135,5.24412&analysis=trend-v1${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/runtime-trend.json"
+node --input-type=module - "$task_tmp/runtime-trend.json" <<'JS_TREND'
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+assert.equal(d.simulated,false);assert.equal(d.source,'databricks-sql');assert.equal(d.unit,'degC');
+for(const scope of ['global','regional']) for(const mode of ['raw','standardized','minmax']) {
+ const t=d[scope].trends[mode];assert.equal(t.status,'available');assert.equal(t.inferenceStatus,'available');
+ assert.equal(t.method,'ols_calendar_month_hac12');assert.equal(t.hacLags,12);assert.equal(t.n,321);
+ assert.equal(t.missingMonths,0);assert.equal(t.line.length,2);
+ assert.ok(Number.isFinite(t.slopePerYear));assert.ok(t.standardErrorPerYear>0);assert.ok(t.pValue>=0 && t.pValue<=1);
+ assert.ok(t.slopeCi95PerYear[0]<=t.slopePerYear && t.slopeCi95PerYear[1]>=t.slopePerYear);
+}
+console.log('Runtime trend smoke passed: real321-month series, two scopes, three representations, seasonal/HAC method and finite inference.');
+JS_TREND

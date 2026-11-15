@@ -6,12 +6,14 @@ import type {
   EarthColorRange,
   EarthConfig,
   EarthRegion,
+  ComparisonMode,
 } from "./earthApi";
 import type { GlobeView } from "./comparison";
 import type { LayerSetting } from "./layers";
 
 export type PanelSide = "A" | "B";
 export type PanelPreset = {
+  comparisonMode?:ComparisonMode;
   variable: string;
   month: string;
   region: string;
@@ -22,6 +24,7 @@ export type PanelPreset = {
 };
 export type PlaybackCommand = { playing: boolean; nonce: number };
 export type PanelSnapshot = {
+  comparisonMode?:ComparisonMode;
   side: PanelSide;
   variable: string;
   selectedMonth: string;
@@ -167,7 +170,7 @@ export function validateAssistantActions(
 ): AssistantAction[] | undefined {
   if (!Array.isArray(raw) || raw.length > 12) return undefined;
   const actions: AssistantAction[] = [];
-  const tabs = ["explore", "compare", "analysis", "events", "learn"];
+  const tabs = ["explore", "compare", "events", "learn"];
   const finite = (n: unknown): n is number =>
     typeof n === "number" && Number.isFinite(n);
   const side = (s: unknown) => s === "A" || s === "B";
@@ -304,7 +307,7 @@ export function validateAssistantActions(
   )
     return undefined;
   if (
-    !["explore", "compare", "analysis"].includes(tab) &&
+    !["explore", "compare"].includes(tab) &&
     actions.some((a) => a.type === "set_playback" && a.playing)
   )
     return undefined;

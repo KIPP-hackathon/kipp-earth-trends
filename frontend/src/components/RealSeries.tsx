@@ -3,7 +3,7 @@ import type { EarthSeries } from "../lib/earthApi";
 import { aggregationLabel, realMonth, realUnit } from "../lib/earthApi";
 
 const number = (v: number) =>
-  v.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  v.toLocaleString("en-US", { maximumFractionDigits: 2 });
 export function RealSeries({
   data,
   month,

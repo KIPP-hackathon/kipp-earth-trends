@@ -583,11 +583,7 @@ function RecordDetails({ record }: { record: SavedInvestigation }) {
     <>
       <h3>{record.name}</h3>
       <p className="investigation-detail">
-        {record.view.tab === "compare"
-          ? "Compare"
-          : record.view.tab === "analysis"
-            ? "Analysis"
-            : "Explore"}{" "}
+        {record.view.tab === "compare" ? "Compare" : "Explore"}{" "}
         · updated {new Date(record.updatedAt).toLocaleString()}
       </p>
       {record.view.panels.map((panel) => (

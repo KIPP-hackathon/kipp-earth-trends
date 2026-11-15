@@ -123,8 +123,8 @@ workflow **Backend CI/CD**, nos jobs `check` e `deploy`.
 
 O script manual constrói e envia a imagem linux/amd64 usando Docker local e
 reutiliza o mesmo deploy com smoke checks. Seleciona explicitamente
-`GCP_ACCOUNT=admin@kipptrend.space` (ou `lucas.henrique.tai@gmail.com`), sem
-trocar a conta padrão do gcloud. Projeto `nasa-earth-trends-lab`.
+`GCP_ACCOUNT=kipp.nasa@gmail.com` (ou `lucas.henrique.tai@gmail.com`), sem
+trocar a conta padrão do gcloud. Projeto `kipp-space-apps-2026`.
 O Dockerfile compila TypeScript; a imagem final executa Node 24 sem privilégios.
 Detalhes de IAM, operação e rollback em `docs/backend-cicd.md`.
 
@@ -142,10 +142,10 @@ sem segredo M2M montado, com Cloud Run privado e smoke pelo proxy Vercel.
 
 ## Publicação atual
 
-URL: https://kipp-earth-api-583662795760.us-east4.run.app
+URL: https://kipp-earth-api-696766216489.us-east4.run.app
 
 O deploy administrativo usa o perfil isolado `~/.config/gcloud-kipp-nasa` e a
-conta `admin@kipptrend.space`. O CI usa sua identidade dedicada. A SA de execução
+conta `kipp.nasa@gmail.com`. O CI usa sua identidade dedicada. A SA de execução
 autentica no Databricks com Google ID token, sem montar segredo na nova revisão.
 
 O serviço exige autenticação IAM. Somente a identidade de produção do aplicativo

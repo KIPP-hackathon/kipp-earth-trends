@@ -1,6 +1,7 @@
 import { validFrameBounds } from "./globeSelection";
 import { earthReadCache } from "./earthReadCache";
 import { queuedSeries } from "./seriesQueue";
+import type {RuntimeTrend} from "./runtimeTrends";
 
 export const earthApi = "/api/earth";
 
@@ -85,7 +86,7 @@ export type EarthVariable = {
   months: { month: string; samples: number; validSamples: number }[];
 };
 export type EarthCatalog = {
-  capabilities?: {layeredAssistant?: boolean};
+  capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean;runtimeTrends?:boolean};
   revision?: string;
   simulated: false;
   variables: EarthVariable[];
@@ -112,6 +113,10 @@ export type EarthFrame = {
   coverage: Float32Array;
 };
 export type EarthSeries = {
+  source?: string;
+  sourceLayer?: string;
+  sourceTable?: string | null;
+  sourceUC?: string | null;
   start?: string;
   end?: string;
   variable: string;
@@ -132,6 +137,38 @@ export type EarthSeries = {
   }[];
 };
 
+export type ComparisonMode = "standardized" | "minmax";
+export type ComparisonObservation = EarthSeries["observations"][number] & {
+  standardized:number|null;minmax:number|null;
+  standardizedStatus:"available"|"no_data"|"insufficient_reference"|"constant_reference";
+};
+export type ComparisonScope = {
+  trends?:{raw:RuntimeTrend;standardized:RuntimeTrend;minmax:RuntimeTrend};
+  reference:{month:number;count:number;mean:number|null;standardDeviation:number|null}[];
+  range:{min:number|null;max:number|null;constant:boolean};
+  observations:ComparisonObservation[];
+};
+export type EarthComparison = {
+  variable:string;name:string;unit:string;sourceUnit:string;product:string;run?:string;
+  simulated:false;start:string;end:string;bbox:number[];method:string;aggregation:string;
+  source:string;sourceLayer:string;sourceTable:string;sourceUC:string;
+  quality?:EarthQuality;limitations:string[];
+  reference:{start:string;end:string;minimumYearsPerMonth:number;method:string};
+  global:ComparisonScope;regional:ComparisonScope;
+};
+export function loadComparison(variable:EarthVariable,start:string,end:string,bbox:string,signal:AbortSignal,includeTrends=false):Promise<EarthComparison> {
+  const key=JSON.stringify(["comparison:v2",variableDataKey(variable),start,end,bbox,includeTrends]);
+  return earthReadCache.read(key,signal,60_000,async(requestSignal)=> {
+    const query=new URLSearchParams({start,end,bbox});
+    if(includeTrends)query.set("analysis","trend-v1");
+    const data:EarthComparison=await queuedSeries(requestSignal,async()=>
+      (await checked(`/v1/comparison/${encodeURIComponent(variable.id)}?${query}`,requestSignal)).json());
+    if (data.simulated!==false || data.variable!==variable.id || data.start!==start || data.end!==end ||
+      !Array.isArray(data.global?.observations) || !Array.isArray(data.regional?.observations))
+      throw new Error("Comparison data does not match this selection.");
+    return data;
+  });
+}
 export type EarthTrendRecord = {
   region_id: string;
   region_name: string;
@@ -220,7 +257,7 @@ async function checked(url: string, signal: AbortSignal) {
       // Only these read-only requests are repeated, within one shared deadline.
       if (attempt >= 3)
         throw new Error(
-          "Não foi possível conectar à fonte de dados. Verifique sua conexão e tente novamente.",
+          "Could not connect to the data source. Check your connection and try again.",
         );
       await retryDelay(500 * 2 ** attempt, budget);
       continue;
@@ -240,7 +277,7 @@ async function checked(url: string, signal: AbortSignal) {
       const error = await response.json().catch(() => null);
       throw Object.assign(new Error(
         error?.error?.message ||
-          `A fonte respondeu HTTP ${response.status}. Tente novamente.`,
+          `The source returned HTTP ${response.status}. Try again.`,
       ), {status: response.status, code: error?.error?.code});
     }
     return response;
@@ -256,7 +293,7 @@ async function readCatalog(signal: AbortSignal): Promise<EarthCatalog> {
     !Array.isArray(data.variables) ||
     !data.variables.length
   )
-    throw new Error("O catálogo não contém variáveis reais disponíveis.");
+    throw new Error("The catalog has no available real-data variables.");
   data.variables = data.variables.filter((v: EarthVariable) =>
     Array.isArray(v.months),
   );
@@ -266,7 +303,7 @@ async function readCatalog(signal: AbortSignal): Promise<EarthCatalog> {
     )
   )
     throw new Error(
-      "Nenhum mês disponível no catálogo. Tente atualizar após a carga dos dados.",
+      "No months are available in the catalog. Refresh after data has loaded.",
     );
   if (typeof data.revision === "string")
     data.variables = data.variables.map((variable: EarthVariable) => ({
@@ -286,7 +323,7 @@ async function readConfig(signal: AbortSignal): Promise<EarthConfig> {
     !data.playback ||
     !data.comparison
   )
-    throw new Error("A configuração de regiões não está disponível.");
+    throw new Error("Region configuration is unavailable.");
   return data;
 }
 export function loadEvents(signal: AbortSignal): Promise<EarthEvents> {
@@ -299,7 +336,7 @@ async function readEvents(signal: AbortSignal): Promise<EarthEvents> {
     data.detected !== false ||
     !Array.isArray(data.events)
   )
-    throw new Error("O catálogo de eventos históricos não está disponível.");
+    throw new Error("The historical event catalog is unavailable.");
   return data;
 }
 export function loadTrendEvidence(
@@ -389,10 +426,10 @@ export async function loadFrame(
   if (bytes.byteLength < 8) throw new Error("Quadro incompleto.");
   const view = new DataView(bytes);
   if (view.getUint32(0, false) !== 0x4b495050)
-    throw new Error("Formato de quadro inválido.");
+    throw new Error("Invalid frame format.");
   const headerSize = view.getUint32(4, true);
   if (headerSize > bytes.byteLength - 8)
-    throw new Error("Cabeçalho incompleto.");
+    throw new Error("Incomplete header.");
   const metadata = JSON.parse(
     new TextDecoder().decode(new Uint8Array(bytes, 8, headerSize)),
   );
@@ -418,7 +455,7 @@ export async function loadFrame(
     metadata.grid.orientation !== "north_to_south,west_to_east" ||
     !validFrameBounds(metadata.grid.bounds)
   )
-    throw new Error("A grade recebida não é compatível com o globo.");
+    throw new Error("The received grid is incompatible with the globe.");
   const expectedBounds = bbox
     ? bbox.split(",").map(Number)
     : [-180, -90, 180, 90];
@@ -429,7 +466,7 @@ export async function loadFrame(
       (value, index) => Math.abs(value - metadata.grid.bounds[index]) > 1e-6,
     )
   )
-    throw new Error("O quadro recebido não corresponde ao recorte solicitado.");
+    throw new Error("The received frame does not match the requested area.");
   // Decode explicitly as little-endian, including on a big-endian client.
   const values = new Float32Array(count),
     coverage = new Float32Array(count);
@@ -498,7 +535,7 @@ async function readSeries(
       throw error;
     }
     if (data.simulated !== false || data.variable !== variable.id || !Array.isArray(data.observations))
-      throw new Error("Série incompatível com a seleção.");
+      throw new Error("The series does not match the selection.");
     first ??= data;
     for (const observation of data.observations) {
       if (observation.month >= chunk[0] && observation.month <= chunk.at(-1)!)
@@ -513,16 +550,16 @@ async function readSeries(
 }
 export function aggregationLabel(aggregation?: EarthAggregation) {
   return aggregation === "sum"
-    ? "soma das células válidas, sem segunda ponderação por área"
+    ? "sum of valid cells, without a second area weighting"
     : aggregation === "weighted_mode"
-      ? "classe predominante ponderada por área"
-      : "média espacial ponderada por latitude e cobertura válida";
+      ? "area-weighted predominant class"
+      : "spatial mean weighted by latitude and valid coverage";
 }
 export function realUnit(unit: string) {
-  return unit === "degC" ? "°C" : unit === "mm/month" ? "mm/mês" : unit;
+  return unit === "degC" ? "°C" : unit === "mm/month" ? "mm/month" : unit;
 }
 export function realMonth(month: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
+  return new Intl.DateTimeFormat("en-US", {
     month: "short",
     year: "numeric",
     timeZone: "UTC",

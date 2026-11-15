@@ -1,0 +1,11 @@
+# Trend Lab
+
+Build the requested independent English workspace for selecting a rectangle or country extent, one available continuous indicator, and a monthly period (all available data by default). Reuse the existing globe and country search. A Generate trend button loads the existing real regional series and fits ordinary least squares in the browser.
+
+The playground has a compact setup column, a scatter plot with fitted line and dashed extrapolation, and controls selecting a starting month and a duration in months. Highlight the two fitted points and report the signed change in source units over that duration. Start with the last observed month and 12 months forward; allow 1–60 months. This is a linear trend projection, not a time-series forecast.
+
+Use actual calendar-month coordinates so missing values are excluded without compressing time. Require at least three valid, distinct months. Report monthly slope, its two-sided 95% Student-t interval (n−2 degrees of freedom), conditional significance at alpha .05, sample count and R². Constant data have no directional significance; zero residual variance makes inference unavailable. Explain uncorrected seasonality, autocorrelation, normal/independent/constant-variance residual assumptions, short records and extrapolation. Do not regress categorical classes. No simulated fallback.
+
+Keep immutable submitted filters beside the result so editing controls cannot relabel an earlier fit. Loading, no coverage, insufficient data and retry states must be clear. Preserve Trend Lab filters across tab switches, pause hidden network work, and isolate its state from Explore/Compare and their assistant context.
+
+Approaches considered: reuse RealPanel (couples playback and multi-variable analysis to a single-variable task); add a dedicated workspace reusing RealGlobe/SearchPicker/loadSeries (selected implementation choice because it keeps the requested workflow focused); server regression (unnecessary for this initial runtime model). No dependencies, deployment, commits or authentication required. Preserve existing uncommitted work. Record local evidence and AI assistance without claiming completion of the scientific investigation or official submission.

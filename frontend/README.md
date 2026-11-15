@@ -2,7 +2,7 @@
 
 Laboratório de exploração de campos mensais derivados de produtos NASA.
 Frontend React/TypeScript/Vite, Node.js 24. As cinco abas operacionais usam
-os dados reais da API: Explorar, Comparar, Eventos, Análise e Como funciona.
+os dados reais da API: Explore, Compare, Trend Lab, Events e Guide.
 
 O catálogo publica variáveis, unidades, disponibilidade, QA e escalas de cores.
 Regiões e presets históricos vêm de `/v1/config` e `/v1/events` no backend.
@@ -73,6 +73,17 @@ escuro. As escalas científicas do globo não são modificadas pelo tema.
 Módulos antigos de simulação e suas verificações foram preservados como material
 histórico, mas não são usados pelo fluxo operacional do App.
 
+## Trend Lab
+
+Workspace em inglês para escolher região/bbox, um indicador contínuo e período
+(todo o histórico por padrão). **Generate trend** ajusta regressão linear mensal
+no navegador e mostra pontos, reta, IC da inclinação e significância condicional.
+Dois controles percorrem a reta e calculam a mudança em 1–60 meses. A extensão
+tracejada é projeção da tendência, não previsão; sazonalidade e autocorrelação
+não são corrigidas. Filtros e controles permanecem ao alternar abas. O assistente
+das outras abas não recebe esse contexto.
+Ver [método, fontes, limites e validação](../docs/trend-lab.md).
+
 ## Publicação
 
 [Produção](https://kipp-earth-trends-lab.vercel.app/) · projeto Vercel
@@ -87,6 +98,16 @@ Veja [dados reais e Lakebase](../docs/dados-reais-playback-lakebase.md) e
 A imagem de base é NASA Blue Marble, janeiro de 2004, e não muda com o mês.
 A camada colorida representa o campo mensal indicado. Continentes Natural Earth
 via world-atlas; fontes locais Manrope e Instrument Serif.
+
+The KIPP mascot is AI-generated artwork inspired by the robot in *Interstellar*
+(2014), created with OpenAI ImageGen and Codex. Its forward/backward arm animation
+was authored with Three.js (MIT), captured with Playwright (Apache-2.0) and encoded
+with FFmpeg. It is not official film artwork; the screen graphics are decorative
+and are not scientific results. Two animated appearances remain in the assistant:
+its chat header and floating control, including while open. Header/footer keep
+the original Earth icon and KIPP text. The favicon provides the robot GIF with a
+PNG fallback; animation depends on the browser. Reduced motion selects still
+images. See [assets, credits and validation](../docs/kipp-mascot.md).
 
 ## Multivariable layers and country flags
 

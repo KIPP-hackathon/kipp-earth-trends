@@ -35,7 +35,7 @@ const foreground = (job: Job) =>
   [...job.consumers.values()].some(
     (consumer) => consumer.priority === "foreground",
   );
-const aborted = () => new DOMException("Consulta cancelada.", "AbortError");
+const aborted = () => new DOMException("Request cancelled.", "AbortError");
 function removeCached(key: string) {
   const previous = cache.get(key);
   if (!previous) return;

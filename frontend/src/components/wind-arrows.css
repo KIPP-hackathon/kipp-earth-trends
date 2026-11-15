@@ -1,0 +1,12 @@
+.real-wind-note {
+  margin: 6px 0;
+  color: #c5d8ed;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.real-wind-note > span {
+  color: #c1e8ff;
+  font-size: 18px;
+  margin-right: 4px;
+}

@@ -10,26 +10,23 @@ import {
 } from "lucide-react";
 import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
-import { InvestigationControls } from "./components/InvestigationControls";
-import type { InvestigationView } from "./lib/investigations";
 import { EventExplorer } from "./components/EventExplorer";
-import { TrendEvidence } from "./components/TrendEvidence";
+import { TrendLab } from "./components/TrendLab";
 import { RealPanel } from "./components/RealDataView";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { useCountryLocation } from "./lib/useCountryLocation";
-import { brazilCountry, loadCountries } from "./lib/countries";
+import { brazilCountry } from "./lib/countries";
 import type { CountrySelection } from "./lib/countries";
 import "./country-location.css";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
 import { useGlobeCamera } from "./lib/useGlobeCamera";
-import { loadCatalog, loadConfig, loadEvents, realMonth } from "./lib/earthApi";
+import { loadCatalog, loadConfig, realMonth } from "./lib/earthApi";
 import type {
   EarthColorRange,
   EarthConfig,
   EarthEvent,
   EarthVariable,
-  EarthTrendEvidence,
 } from "./lib/earthApi";
 import { useEarthResource } from "./lib/useEarthResource";
 import { invalidateFrames } from "./lib/earthFrameCache";
@@ -58,7 +55,7 @@ function RequestFailure({
     <div className="real-error" role="alert">
       <p>{message}</p>
       <button onClick={retry}>
-        <RefreshCw size={14} /> Tentar novamente
+        <RefreshCw size={14} /> Try again
       </button>
     </div>
   );
@@ -78,11 +75,7 @@ const guide = [
   },
   {
     title: "Assess change and uncertainty",
-    text: "Evidence shows stored trend estimates only when the variable, region and period match exactly. Inspect methods, coverage and uncertainty. This short record does not establish a long-term climate trend; a non-significant result does not establish no change.",
-  },
-  {
-    title: "Save a discovery",
-    text: "Save the current view in this browser, optionally name it and add notes. Reopen it from Saved, share its filters with a link, or export/import a JSON configuration. These are current-data views, not frozen observations or offline datasets.",
+    text: "Ask the assistant about stored trend studies and inspect their methods, coverage and uncertainty. Estimates apply only to their exact variable, region and period. This short record does not establish a long-term climate trend; a non-significant result does not establish no change.",
   },
 ];
 function Guide({ config }: { config?: EarthConfig }) {
@@ -144,7 +137,8 @@ function useLabWorkspace(onManualChange: () => void) {
         last.end === snapshot.end &&
         last.region.id === snapshot.region.id &&
         last.region.bbox === snapshot.region.bbox &&
-        JSON.stringify(last.layers) === JSON.stringify(snapshot.layers)
+        JSON.stringify(last.layers) === JSON.stringify(snapshot.layers) &&
+        last.comparisonMode === snapshot.comparisonMode
       )
         return previous;
       return { ...previous, [snapshot.side]: snapshot };
@@ -250,7 +244,6 @@ function App() {
       ? 1
       : 0,
   );
-  const initialShareVersion = useRef(version.current);
   const commandNonce = useRef(0);
   const markChanged = useCallback(() => {
     version.current++;
@@ -271,6 +264,7 @@ function App() {
       exploration.setPreset("A", {
         variable: panel.variable,
         ...(panel.layers ? {layers:panel.layers} : {}),
+        comparisonMode:panel.comparisonMode,
         month: panel.selectedMonth ?? panel.end,
         start: panel.start,
         end: panel.end,
@@ -301,7 +295,6 @@ function App() {
     // Only a new permission result bootstraps a country, not camera/data renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.status, location.country]);
-  const [studyError, setStudyError] = useState("");
   const [modal, setModal] = useState<"sources" | "guide" | null>(null);
   const catalog = useEarthResource("catalog", loadCatalog);
   const config = useEarthResource("configuration", loadConfig);
@@ -329,19 +322,22 @@ function App() {
   const activeTab = useRef(active);
   activeTab.current = active;
   const getWorkspaceContext = useCallback(
-    (tab: LabTab) =>
-      (tab === "compare" ? comparison : exploration).getContext(
+    (tab: LabTab): AssistantContext => {
+      const context=(tab === "compare" ? comparison : exploration).getContext(
         tab,
         version.current,
         catalog.data?.capabilities?.layeredAssistant === true,
       ),
-    [comparison.getContext, exploration.getContext,catalog.data?.capabilities?.layeredAssistant],
+      supportsComparison=catalog.data?.capabilities?.comparisonCharts===true;
+      return supportsComparison?context:{...context,panels:context.panels.map(({comparisonMode:_mode,...panel})=>panel)};
+    },
+    [comparison.getContext, exploration.getContext,catalog.data?.capabilities?.layeredAssistant,catalog.data?.capabilities?.comparisonCharts],
   );
   const getContext = useCallback(
     () => getWorkspaceContext(activeTab.current),
     [getWorkspaceContext],
   );
-  const isExploration = active === "explore" || active === "analysis";
+  const isExploration = active === "explore";
   const showTab = (tab: LabTab) => {
     markChanged();
     setActive(tab);
@@ -410,200 +406,6 @@ function App() {
       latitude: event.latitude,
     });
     showTab(compare ? "compare" : "explore");
-  };
-  const getInvestigationView = (): InvestigationView | null => {
-    const tab = activeTab.current;
-    if (tab !== "explore" && tab !== "compare" && tab !== "analysis")
-      return null;
-    const workspace = tab === "compare" ? comparison : exploration;
-    const context = workspace.getContext(tab, version.current, true);
-    const expected = tab === "compare" ? 2 : 1;
-    if (
-      context.panels.length !== expected ||
-      context.panels.some((panel) => !panel.selectedMonth)
-    )
-      return null;
-    const ids = new Set(context.panels.flatMap(panel =>
-      panel.layers?.map(layer => layer.variable) ?? [panel.variable]));
-    return {
-      tab,
-      panels: context.panels.map((panel) => ({
-        side: panel.side,
-        variable: panel.variable,
-        month: panel.selectedMonth,
-        ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
-        start: panel.start,
-        end: panel.end,
-        region: structuredClone(panel.region),
-      })),
-      camera: context.camera,
-      colorRanges: Object.fromEntries(
-        Object.entries(context.colorRanges).filter(([id]) => ids.has(id)),
-      ),
-      ...(workspace.eventContext ? { eventId: workspace.eventContext.id } : {}),
-    };
-  };
-  const restoreInvestigation = async (
-    view: InvestigationView,
-    automatic = false,
-  ) => {
-    if (automatic && version.current !== initialShareVersion.current)
-      throw new Error(
-        "You changed the view before the shared investigation was ready. Reload this link to open it.",
-      );
-    if (!catalog.data || !config.data)
-      throw new Error("The data catalog is not ready. Please retry.");
-    const requestedVersion = version.current;
-    const countries = await loadCountries();
-    const sameBounds = (a: string, b: string) =>
-      a
-        .split(",")
-        .map(Number)
-        .every((n, i) => Math.abs(n - Number(b.split(",")[i])) < 1e-7);
-    for (const panel of view.panels) {
-      const variable = catalog.data.variables.find(
-        (entry) => entry.id === panel.variable && entry.available !== false,
-      );
-      const layerIds = panel.layers?.map(layer => layer.variable) ?? [panel.variable];
-      const layerVariables = layerIds.map(id => catalog.data!.variables.find(entry =>
-        entry.id === id && entry.available !== false && entry.months.some(row => row.validSamples > 0)));
-      if (layerVariables.some(entry => !entry))
-        throw new Error("A saved variable is unavailable in the current catalog. No filters were changed.");
-      const months = new Set(
-        layerVariables.flatMap(entry => entry?.months ?? [])
-          .filter((row) => row.validSamples > 0)
-          .map((row) => row.month),
-      );
-      if (
-        !variable ||
-        ![panel.start, panel.end, panel.month].every((month) =>
-          months.has(month),
-        )
-      )
-        throw new Error(
-          `Saved dates for ${panel.variable} are not in the current catalog. No filters were changed.`,
-        );
-      const fixed = config.data.regions.find(
-        (region) => region.id === panel.region.id,
-      );
-      if (fixed && !sameBounds(fixed.bbox, panel.region.bbox))
-        throw new Error(
-          "This saved area conflicts with a current preset. No filters were changed.",
-        );
-      if (panel.region.id.startsWith("custom-country-")) {
-        const country = countries.find(
-          (entry) => entry.region.id === panel.region.id,
-        );
-        if (!country || !sameBounds(country.region.bbox, panel.region.bbox))
-          throw new Error(
-            "The saved country boundary could not be verified. No filters were changed.",
-          );
-      }
-      if (
-        panel.region.id === "custom-global" &&
-        !sameBounds(panel.region.bbox, globalStudyRegion.bbox)
-      )
-        throw new Error(
-          "Invalid global study extent. No filters were changed.",
-        );
-    }
-    for (const id of Object.keys(view.colorRanges)) {
-      const variable = catalog.data.variables.find((entry) => entry.id === id);
-      if (!variable || variable.render?.kind === "categorical")
-        throw new Error(
-          "A saved display range does not match the current variable. No filters were changed.",
-        );
-    }
-    let event: EarthEvent | undefined;
-    if (view.eventId) {
-      const events = await loadEvents(AbortSignal.timeout(30000));
-      event = events.events.find((entry) => entry.id === view.eventId);
-      if (
-        !event ||
-        !view.panels.every((panel) =>
-          sameBounds(panel.region.bbox, event!.bbox),
-        )
-      )
-        throw new Error(
-          "The saved event context does not match this study area. No filters were changed.",
-        );
-    }
-    if (version.current !== requestedVersion)
-      throw new Error(
-        "The view changed while opening this investigation. Retry to apply it.",
-      );
-    markChanged();
-    const workspace = view.tab === "compare" ? comparison : exploration;
-    const nonce = ++commandNonce.current;
-    for (const panel of view.panels) workspace.registerRegion(panel.region);
-    workspace.setPresets(
-      Object.fromEntries(
-        view.panels.map((panel) => [
-          panel.side,
-          {
-            variable: panel.variable,
-            ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
-            month: panel.month,
-            start: panel.start,
-            end: panel.end,
-            region: panel.region.id,
-            nonce,
-          },
-        ]),
-      ),
-    );
-    workspace.setColorRanges(structuredClone(view.colorRanges));
-    workspace.setEventContext(event);
-    workspace.setPlaybackCommands(
-      Object.fromEntries(
-        view.panels.map((panel) => [panel.side, { playing: false, nonce }]),
-      ),
-    );
-    workspace.camera.flyTo(view.camera);
-    setActive(view.tab);
-  };
-  const openStoredContext = (
-    context: EarthTrendEvidence["supportedContexts"][number],
-  ) => {
-    if (
-      context.bbox.length !== 4 ||
-      context.bbox.some((value) => value === null || !Number.isFinite(value))
-    )
-      return;
-    const [west, south, east, north] = context.bbox as number[];
-    const width = east >= west ? east - west : east + 360 - west;
-    const region: EarthRegion = {
-      id: `custom-reference-${context.regionId}`,
-      name: context.regionName.slice(0, 80),
-      bbox: context.bbox.join(","),
-      longitude: ((((west + width / 2 + 180) % 360) + 360) % 360) - 180,
-      latitude: (south + north) / 2,
-    };
-    void restoreInvestigation({
-      tab: "analysis",
-      panels: [
-        {
-          side: "A",
-          variable: context.variable,
-          month: context.end,
-          start: context.start,
-          end: context.end,
-          region,
-        },
-      ],
-      camera: {
-        ...exploration.camera.view,
-        longitude: region.longitude,
-        latitude: region.latitude,
-      },
-      colorRanges: {},
-    }).catch((error) =>
-      setStudyError(
-        error instanceof Error
-          ? error.message
-          : "This stored context could not be opened.",
-      ),
-    );
   };
   const applyAssistantResponse = (
     response: AssistantResponse,
@@ -716,6 +518,7 @@ function App() {
             : globalStudyRegion.id),
         start: panel?.start,
         end: panel?.end,
+        comparisonMode:panel?.comparisonMode,
         nonce,
       };
     };
@@ -732,6 +535,7 @@ function App() {
           region: action.regionId ?? previous.region,
           start: action.start ?? (same ? previous.start : undefined),
           end: action.end ?? (same ? previous.end : undefined),
+          comparisonMode:previous.comparisonMode,
           nonce,
         };
       }
@@ -970,61 +774,6 @@ function App() {
         <h1 className="sr-only">
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
-        <div className="workspace-actions">
-          {(active === "explore" || active === "analysis") && (
-            <button
-              className="preset-shortcut"
-              onClick={() => showTab("events")}
-            >
-              Try an event preset →
-            </button>
-          )}
-          <InvestigationControls
-            getView={getInvestigationView}
-            onRestore={restoreInvestigation}
-            ready={
-              !!catalog.data &&
-              !!config.data &&
-              (active === "explore" ||
-                active === "analysis" ||
-                active === "compare")
-            }
-          />
-        </div>
-        {studyError && (
-          <p role="alert" className="real-error">
-            {studyError}
-            <button onClick={() => setStudyError("")}>Dismiss</button>
-          </p>
-        )}
-        {active === "explore" && (
-          <div className="country-location-note">
-            <p role="status" aria-live="polite">
-              {location.status === "locating"
-                ? `Starting with ${startingCountry.name}. Location is optional; choose any area below.`
-                : location.status === "detected"
-                  ? location.country.countryCode === startingCountry.countryCode
-                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
-                    : `Country found: ${location.country.name}. Your current selection was preserved.`
-                  : location.status === "denied"
-                    ? `Started with ${startingCountry.name}. Choose any country or draw an area below.`
-                    : `Started with ${startingCountry.name}. Choose any country or draw an area below.`}
-            </p>
-            <div>
-              {location.status !== "locating" && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    locationVersion.current = version.current;
-                    location.requestLocation();
-                  }}
-                >
-                  Use my location
-                </button>
-              )}
-            </div>
-          </div>
-        )}
         {(catalog.loading || config.loading) && (
           <p className="real-notice" role="status">
             Loading real variables and study areas…
@@ -1041,9 +790,9 @@ function App() {
             <section
               hidden={!isExploration}
               role="tabpanel"
-              id={`panel-${active === "analysis" ? "analysis" : "explore"}`}
-              aria-labelledby={`tab-${active === "analysis" ? "analysis" : "explore"}`}
-              className={`real-workspace ${active === "analysis" ? "is-analysis" : ""}`}
+              id="panel-explore"
+              aria-labelledby="tab-explore"
+              className="real-workspace"
             >
               {renderEventContext(exploration, false)}
               <div className="real-panels">
@@ -1071,17 +820,6 @@ function App() {
                   onCustomRegion={exploration.registerRegion}
                   onAreaChange={() => exploration.setEventContext(undefined)}
                   eventWindow={exploration.eventContext?.window}
-                  analysisContent={
-                    active === "analysis" && exploration.studies.A ? (
-                      <TrendEvidence
-                        variable={exploration.studies.A.variable}
-                        bbox={exploration.studies.A.region.bbox}
-                        start={exploration.studies.A.start}
-                        end={exploration.studies.A.end}
-                        onSelectContext={openStoredContext}
-                      />
-                    ) : undefined
-                  }
                 />
               </div>
               <p className="real-method-note">
@@ -1134,6 +872,19 @@ function App() {
                 significance or causality.
               </p>
             </section>
+            <section
+              hidden={active !== "trend"}
+              role="tabpanel"
+              id="panel-trend"
+              aria-labelledby="tab-trend"
+            >
+              <TrendLab
+                catalog={catalog.data}
+                config={config.data!}
+                initialCountry={startingCountry}
+                active={active === "trend"}
+              />
+            </section>
             {active === "events" && (
               <section
                 role="tabpanel"
@@ -1163,6 +914,7 @@ function App() {
           <a
             href="#"
             className="footer-brand"
+            aria-label="KIPP home"
             onClick={(event) => {
               event.preventDefault();
               showTab("explore");
@@ -1195,15 +947,18 @@ function App() {
           </div>
         </footer>
       </main>
-      <Assistant
-        ready={
-          !!catalog.data &&
-          !!config.data &&
-          (active === "compare" ? comparison.ready : exploration.ready)
-        }
-        getContext={getContext}
-        applyResponse={applyAssistantResponse}
-      />
+      <div hidden={active === "trend"}>
+        <Assistant
+          ready={
+            !!catalog.data &&
+            !!config.data &&
+            active !== "trend" &&
+            (active === "compare" ? comparison.ready : exploration.ready)
+          }
+          getContext={getContext}
+          applyResponse={applyAssistantResponse}
+        />
+      </div>
       {modal && (
         <Modal
           title={
@@ -1219,17 +974,23 @@ function App() {
           ) : (
             <div className="real-source-modal">
               <p>
-                Os campos mensais são derivados de produtos NASA e servidos pelo
-                catálogo de dados do laboratório. Cada variável identifica o
-                produto, a unidade, a agregação e os filtros de qualidade. A
-                imagem de base é NASA Blue Marble, estática. O fundo estrelado é
-                uma ambientação decorativa, sem representar posições
-                astronômicas ou observações científicas.
+                Monthly fields are derived from NASA products and served by the
+                lab’s data catalog. Each variable identifies its product, unit,
+                aggregation and quality filters. The base image is static NASA
+                Blue Marble imagery. The star field is decorative and does not
+                represent astronomical positions or scientific observations.
               </p>
               <p>
-                As fichas de eventos são curadas e citam suas fontes históricas.
-                Uma coincidência entre campos e eventos não demonstra
-                causalidade.
+                Event cards are curated and cite their historical sources.
+                A coincidence between fields and events does not establish
+                causality.
+              </p>
+              <p>
+                KIPP mascot: AI-generated artwork inspired by the robot in
+                Interstellar (2014), with a locally authored 3D animation.
+                Created with OpenAI ImageGen, Codex, Three.js and FFmpeg.
+                The mascot is not official film artwork; its screen graphics
+                are decorative and do not represent scientific results.
               </p>
               {[
                 ...new Set([
@@ -1240,8 +1001,8 @@ function App() {
                 <p key={item}>{item}</p>
               ))}
               <p>
-                Explore a proveniência em “Fonte, qualidade & limites” e exporte
-                o JSON da série para preservar os metadados da consulta.
+                Explore provenance under “Source, quality & limitations” and export
+                the series JSON to preserve query metadata.
               </p>
               <a
                 href="https://earthdata.nasa.gov/"
