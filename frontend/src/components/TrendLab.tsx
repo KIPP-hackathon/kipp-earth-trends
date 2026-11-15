@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import {
   ArrowRight,
+  Compass,
   FlaskConical,
   MapPin,
   Play,
@@ -27,6 +28,8 @@ import { RealGlobe } from "./RealGlobe";
 import { SearchPicker } from "./ExplorationControls";
 import { MonthPicker } from "./MonthPicker";
 import { InvestigationResults } from "./InvestigationResults";
+import { GuidedTour } from "./GuidedTour";
+import { trendLabTourSteps } from "./trendLabTour";
 import "./trend-lab.css";
 
 type Study = {
@@ -206,7 +209,7 @@ export function TrendLab({
       !available.some((v) => v.id === y)
     ) {
       setSavedMessage("A preset indicator is not available in this catalog.");
-      return;
+      return false;
     }
     setSelectedVariable(x);
     setSecondId(y);
@@ -219,7 +222,46 @@ export function TrendLab({
       latitude: -19,
     });
     setSavedMessage("Preset loaded. Generate to apply it.");
+    return true;
   };
+  const submit = () => {
+    if (!variable || !validPeriod || !supported) return;
+    setSubmitted({
+      variable,
+      region: { ...region },
+      second,
+      request: { ...request },
+      key,
+    });
+    if (submitted?.key === key) series.retry();
+  };
+  // The tour's "run an example" loads a preset, then submits once the
+  // preset's state has rendered into a valid request.
+  const [autoRun, setAutoRun] = useState(false);
+  useEffect(() => {
+    if (!autoRun) return;
+    setAutoRun(false);
+    submit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRun, key]);
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const hasResults = !!data && !!submitted;
+  const tourSteps = trendLabTourSteps({
+    hasResults,
+    hasSecond: (data?.series.length ?? 0) > 1,
+    loading: series.loading,
+    onRunExample: () => {
+      if (preset("temperature", "merra2_flx_prectotcorr")) setAutoRun(true);
+    },
+  });
+  const runStep = tourSteps.findIndex((s) => s.id === "run");
+  const resultsStep = tourSteps.findIndex((s) => s.id === "tabs");
+  // Move on to the results automatically once they arrive during the tour.
+  useEffect(() => {
+    if (tourStep === runStep && hasResults && !series.loading)
+      setTourStep(resultsStep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasResults, series.loading]);
   return (
     <div className="trend-lab">
       <header className="trend-header">
@@ -234,6 +276,15 @@ export function TrendLab({
             Choose a place. Discover trends, unusual months, and relationships.
           </p>
         </div>
+        <button
+          type="button"
+          className="investigation-tour-start"
+          aria-expanded={tourStep !== null}
+          onClick={() => setTourStep(tourStep === null ? 0 : null)}
+        >
+          <Compass size={15} />{" "}
+          {tourStep === null ? "Take the guided tour" : "End tour"}
+        </button>
       </header>
       <div className="trend-layout">
         <section className="trend-setup" aria-label="Trend setup">
@@ -452,18 +503,7 @@ export function TrendLab({
                 className="trend-run"
                 type="button"
                 disabled={!validPeriod || !supported}
-                onClick={() => {
-                  if (variable && validPeriod) {
-                    setSubmitted({
-                      variable,
-                      region: { ...region },
-                      second,
-                      request: { ...request },
-                      key,
-                    });
-                    if (submitted?.key === key) series.retry();
-                  }
-                }}
+                onClick={submit}
               >
                 <Play size={16} fill="currentColor" />{" "}
                 {series.loading
@@ -491,6 +531,13 @@ export function TrendLab({
                 Select one or two indicators and a period to explore seasonal
                 trends, anomalies, and relationships with statistical evidence.
               </p>
+              <button
+                type="button"
+                className="investigation-tour-start"
+                onClick={() => setTourStep(0)}
+              >
+                <Compass size={15} /> New here? Take the guided tour
+              </button>
               <div>
                 <span>Region + data</span>
                 <ArrowRight size={16} />
@@ -532,10 +579,22 @@ export function TrendLab({
                 data={data}
                 regionName={submitted.region.name}
                 onGuide={onGuide}
+                tourView={
+                  tourStep === null ? undefined : tourSteps[tourStep]?.view
+                }
+                onTour={() => setTourStep(resultsStep)}
               />
             )}
         </div>
       </div>
+      {tourStep !== null && (
+        <GuidedTour
+          steps={tourSteps}
+          step={tourStep}
+          onStep={setTourStep}
+          onClose={() => setTourStep(null)}
+        />
+      )}
     </div>
   );
 }
