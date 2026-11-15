@@ -969,3 +969,40 @@ A verificação final inclui mudanças posteriores da main até `5655e01` e o ca
 normal já atualizado após expirar seu cache. [Evidências e método](trend-lab-relationships.md#production-verification--2026-11-15).
 OpenAI Codex assistiu integração, publicação e verificação. Revisão científica
 humana, previsão ENSO e submissão na página Project continuam etapas distintas.
+
+
+## Evidência incremental — Events, estudo visual local (15/11/2026)
+
+OpenAI Codex assistiu uma proposta local para análise humana: capas vetoriais
+conceituais por categoria (incêndio, El Niño, furacão e tsunami), ícones Lucide
+nas variáveis, cores decorativas, busca e filtros por fenômeno. As ilustrações
+SVG são geradas em código no componente `EventArtwork.tsx`, identificadas como
+"CONCEPTUAL ILLUSTRATION"; não são imagens de satélite, medições, trajetórias ou
+áreas atingidas. Lucide React já era dependência do projeto (licença ISC).
+Não foram incorporadas fotografias nem fontes externas de imagens.
+
+A tela mantém os eventos/fontes históricos da API, meses sobrepostos e unidades,
+variáveis sem cobertura desabilitadas e as limitações de interpretação. Não
+altera dados, cálculos de tendência, significância ou causalidade. Datas e unidades
+da tela Events são apresentadas em inglês; o restante do checkout não foi traduzido
+por esta proposta.
+
+Preview em `http://localhost:5182/`, aba Events, usando o proxy público já existente.
+Navegador com catálogo real confirmou filtros, busca sem resultado, caso Tōhoku
+sem camada apropriada e ações desabilitadas, abertura de temperatura do Pantanal
+em Explore e contexto Beryl em Compare. Layouts 1440, 390 e 360 px sem overflow
+horizontal; limitações expansíveis conferidas. 69 testes frontend e builds
+frontend/backend aprovados com Node.js 24. Captura de revisão local fora do Git.
+
+Estudo visual local para discussão, sem commit, push, publicação ou alteração da
+página Project. Revisão humana da proposta, investigação científica final e
+submissão permanecem pendentes; não declara elegibilidade ou conformidade completa.
+
+Preparação de publicação autorizada em 15/11/2026: grade com altura uniforme
+para todos os cards e ações alinhadas na base. Integração limitada aos três
+arquivos de Events e a este registro, sobre a main atual. Deploy pendente.
+
+Validação sobre a main `a24acb8`: 85 testes frontend e builds frontend/backend
+aprovados em Node.js24. Navegador mediu os sete cards disponíveis com767,98px
+e ações com o mesmo deslocamento vertical no desktop1440px. Incluindo o oitavo
+caso sem cobertura, os oito cards mediram955,33px no mobile390px, sem overflow.

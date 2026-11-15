@@ -1,9 +1,54 @@
 import { useState } from "react";
-import { ArrowRight, ExternalLink, Search } from "lucide-react";
-import { loadEvents, realMonth, realUnit } from "../lib/earthApi";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronRight,
+  CloudRain,
+  Columns2,
+  Compass,
+  Droplets,
+  ExternalLink,
+  Gauge,
+  Info,
+  Leaf,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  Thermometer,
+  Wind,
+  X,
+} from "lucide-react";
+import { loadEvents } from "../lib/earthApi";
 import type { EarthCatalog, EarthEvent } from "../lib/earthApi";
 import { useEarthResource } from "../lib/useEarthResource";
+import { EventArtwork, eventTheme, eventThemes } from "./EventArtwork";
+import type { EventTheme } from "./EventArtwork";
 import "../event-investigations.css";
+import "./event-explorer.css";
+
+const eventMonthFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const eventMonth = (month: string) =>
+  eventMonthFormatter.format(new Date(`${month}-01T00:00:00Z`));
+const eventUnit = (unit: string) => (unit === "degC" ? "°C" : unit);
+
+function variableVisual(id: string) {
+  if (id === "rainfall") return { icon: CloudRain, tone: "rain" };
+  if (id === "temperature") return { icon: Thermometer, tone: "heat" };
+  if (/ndvi|evi/.test(id)) return { icon: Leaf, tone: "leaf" };
+  if (/qv|humidity/.test(id)) return { icon: Droplets, tone: "water" };
+  if (/u10m|v10m|wind/.test(id)) return { icon: Wind, tone: "wind" };
+  if (/pressure|_ps$/.test(id)) return { icon: Gauge, tone: "pressure" };
+  return { icon: SlidersHorizontal, tone: "wind" };
+}
+const normalize = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 export function EventExplorer({
   catalog,
@@ -17,53 +62,101 @@ export function EventExplorer({
   const resource = useEarthResource("historical-events", loadEvents);
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
-  const matches =
-    resource.data?.events.filter(
-      (event) =>
-        (showAll || event.available) &&
-        `${event.title} ${event.category} ${event.location}`
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .includes(
-            query
-              .normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .toLowerCase(),
-          ),
-    ) ?? [];
+  const [category, setCategory] = useState<EventTheme | "all">("all");
+  const events = resource.data?.events ?? [];
+  const categories = [
+    ...new Set(events.map((event) => eventTheme(event.category))),
+  ];
+  const matches = events.filter(
+    (event) =>
+      (showAll || event.available) &&
+      (category === "all" || category === eventTheme(event.category)) &&
+      normalize(
+        `${event.title} ${event.category} ${eventThemes[eventTheme(event.category)].label} ${event.location}`,
+      ).includes(normalize(query.trim())),
+  );
+  const resetFilters = () => {
+    setQuery("");
+    setCategory("all");
+  };
+
   return (
-    <div className="event-explorer">
-      <div className="event-explorer-intro">
-        <p>
-          <strong>Start with a case.</strong> Presets suggest a place, period
-          and environmental variables. Every selection stays editable.
-        </p>
-        <button onClick={onExplore}>
-          Explore freely <ArrowRight size={14} />
+    <div className="event-explorer event-visual-preview">
+      <header className="events-heading">
+        <div>
+          <span className="events-eyebrow">
+            <Compass size={14} aria-hidden="true" /> THE EARTH, IN CONTEXT
+          </span>
+          <h2>
+            Every event starts <em>a question.</em>
+          </h2>
+          <p>Discover a real-world case. Follow the environmental clues.</p>
+        </div>
+        <button className="events-free-explore" onClick={onExplore}>
+          Explore freely <ArrowRight size={15} aria-hidden="true" />
         </button>
-      </div>
-      <div className="event-search-row">
-        <label>
-          <Search size={16} />
-          <input
-            aria-label="Find an event"
-            placeholder="Find an event or place…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-        <label className="event-all-toggle">
-          <input
-            type="checkbox"
-            checked={showAll}
-            onChange={(e) => setShowAll(e.target.checked)}
-          />{" "}
-          Include cases outside current data coverage
-        </label>
+      </header>
+      <div className="events-toolbar">
+        <div className="events-toolbar-top">
+          <div
+            className="events-category-filters"
+            role="group"
+            aria-label="Event category"
+          >
+            <button
+              aria-pressed={category === "all"}
+              onClick={() => setCategory("all")}
+            >
+              <Compass size={14} aria-hidden="true" /> All events
+            </button>
+            {categories.map((key) => {
+              const { icon: Icon, label } = eventThemes[key];
+              return (
+                <button
+                  key={key}
+                  data-theme={key}
+                  aria-pressed={category === key}
+                  onClick={() => setCategory(key)}
+                >
+                  <Icon size={14} aria-hidden="true" /> {label}
+                </button>
+              );
+            })}
+          </div>
+          <label className="events-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Find an event"
+              placeholder="Search events or places…"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="events-toolbar-bottom">
+          <span role="status" aria-live="polite">
+            {resource.loading
+              ? "Checking catalog coverage…"
+              : resource.error
+                ? "Catalog unavailable"
+                : `${matches.length} ${matches.length === 1 ? "case" : "cases"} to discover`}
+          </span>
+          <label className="events-coverage-toggle">
+            <input
+              type="checkbox"
+              checked={showAll}
+              onChange={(event) => setShowAll(event.target.checked)}
+            />{" "}
+            Include cases outside current data coverage
+          </label>
+        </div>
       </div>
       {resource.loading && (
-        <p role="status">Checking event presets and actual catalog coverage…</p>
+        <div className="events-skeleton" aria-hidden="true">
+          <div />
+          <div />
+        </div>
       )}
       {resource.error && (
         <div role="alert" className="real-error">
@@ -72,13 +165,22 @@ export function EventExplorer({
         </div>
       )}
       {!resource.loading && !resource.error && !matches.length && (
-        <p>
-          No matching cases. Try another search or explore your own place and
-          period.
-        </p>
+        <div className="events-empty">
+          <Search size={28} aria-hidden="true" />
+          <h3>No cases found</h3>
+          <p>
+            Try a different event, place or category, or include cases outside
+            current coverage.
+          </p>
+          <button onClick={resetFilters}>
+            Clear search & category <X size={14} aria-hidden="true" />
+          </button>
+        </div>
       )}
       <div className="event-case-grid">
         {matches.map((event) => {
+          const theme = eventTheme(event.category);
+          const { icon: Icon, label } = eventThemes[theme];
           const suggestions = event.suggestedVariables ?? [
             {
               id: event.variable,
@@ -88,91 +190,169 @@ export function EventExplorer({
               available: event.available,
             },
           ];
-          const usable = suggestions.filter((s) => s.available);
+          const usable = suggestions.filter(
+            (suggestion) => suggestion.available,
+          );
+          const years = [
+            ...new Set(event.window.map((month) => month.slice(0, 4))),
+          ].join("–");
           return (
-            <article className="event-case" key={event.id}>
-              <div className="event-case-meta">
-                <span>{event.category}</span>
-                <span>
-                  {event.available
-                    ? "Context data available"
-                    : "Outside current coverage"}
+            <article
+              className="event-case"
+              data-theme={theme}
+              key={event.id}
+              aria-labelledby={`event-title-${event.id}`}
+            >
+              <div className="events-card-cover">
+                <EventArtwork theme={theme} />
+                <span className="events-category-badge">
+                  <Icon size={14} aria-hidden="true" />{" "}
+                  {theme === "other" ? event.category : label}
+                </span>
+                <span className="events-cover-year">{years}</span>
+                <span className="events-cover-caption">
+                  CONCEPTUAL ILLUSTRATION
                 </span>
               </div>
-              <h2>{event.title}</h2>
-              <p className="event-case-place">
-                {event.location} · {realMonth(event.window[0])} –{" "}
-                {realMonth(event.window[1])}
-              </p>
-              <p>{event.description}</p>
-              <div className="event-clues">
-                <h3>Variables to investigate</h3>
-                {suggestions.map((s) => {
-                  const variable = catalog.variables.find((v) => v.id === s.id);
-                  return (
-                    <button
-                      key={s.id}
-                      disabled={!s.available}
-                      onClick={() => onOpen(event, false, s.id)}
-                      title={s.reason}
-                    >
-                      <span>{variable?.name ?? s.id}</span>
-                      <small>
-                        {s.available
-                          ? `${s.months.length} overlapping months · ${realUnit(variable?.unit ?? "")}`
-                          : "No overlapping months"}
-                      </small>
-                    </button>
-                  );
-                })}
-              </div>
-              <details>
-                <summary>What these data can tell us</summary>
-                <p>{event.limitation}</p>
-                <ul>
-                  {suggestions.map((suggestion) => (
-                    <li key={suggestion.id}>
-                      <strong>
-                        {catalog.variables.find(
-                          (variable) => variable.id === suggestion.id,
-                        )?.name ?? suggestion.id}
-                      </strong>
-                      : {suggestion.reason}
-                    </li>
-                  ))}
-                </ul>
-                <p>
-                  These are monthly environmental observations or estimates
-                  around a documented event. Catalog overlap does not guarantee
-                  valid cells throughout this area. It does not establish causes
-                  or detect the event.
-                </p>
-              </details>
-              <div className="event-case-actions">
-                <button
-                  disabled={!usable.length}
-                  onClick={() => onOpen(event, false, usable[0]?.id)}
+              <div className="events-card-body">
+                <div
+                  className={`events-availability ${event.available ? "is-available" : "is-unavailable"}`}
                 >
-                  Explore this case <ArrowRight size={14} />
-                </button>
-                <button
-                  disabled={!usable.length}
-                  onClick={() => onOpen(event, true, usable[0]?.id)}
-                >
-                  Compare context
-                </button>
-                <a href={event.source.url} target="_blank" rel="noreferrer">
-                  Source <ExternalLink size={12} />
-                </a>
+                  <span aria-hidden="true" />
+                  {event.available
+                    ? "Monthly context available"
+                    : "Outside current coverage"}
+                </div>
+                <h2 id={`event-title-${event.id}`}>{event.title}</h2>
+                <div className="events-location">
+                  <span>
+                    <MapPin size={13} aria-hidden="true" />
+                    {event.location}
+                  </span>
+                  <span>
+                    <CalendarDays size={13} aria-hidden="true" />
+                    {eventMonth(event.window[0])} –{" "}
+                    {eventMonth(event.window[1])}
+                  </span>
+                </div>
+                <p className="events-description">{event.description}</p>
+                <div className="event-clues">
+                  <h3>
+                    FOLLOW THE VARIABLES <span>{usable.length} available</span>
+                  </h3>
+                  <div className="events-variable-grid">
+                    {suggestions.map((suggestion) => {
+                      const variable = catalog.variables.find(
+                        (item) => item.id === suggestion.id,
+                      );
+                      const { icon: VariableIcon, tone } = variableVisual(
+                        suggestion.id,
+                      );
+                      return (
+                        <button
+                          key={suggestion.id}
+                          className="events-variable"
+                          disabled={!suggestion.available}
+                          onClick={() => onOpen(event, false, suggestion.id)}
+                          title={suggestion.reason}
+                        >
+                          <span
+                            className="events-variable-icon"
+                            data-tone={tone}
+                          >
+                            <VariableIcon
+                              size={18}
+                              strokeWidth={1.6}
+                              aria-hidden="true"
+                            />
+                          </span>
+                          <span className="events-variable-copy">
+                            <span>{variable?.name ?? suggestion.id}</span>
+                            <small>
+                              {suggestion.available
+                                ? `${suggestion.months.length} overlapping ${suggestion.months.length === 1 ? "month" : "months"} · ${eventUnit(variable?.unit ?? "")}`
+                                : "No overlapping months"}
+                            </small>
+                          </span>
+                          {suggestion.available ? (
+                            <ChevronRight
+                              className="events-variable-arrow"
+                              size={14}
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!suggestions.length && (
+                    <p className="events-no-variables">
+                      No suitable environmental layers in the current catalog.
+                    </p>
+                  )}
+                </div>
+                <details className="events-data-details">
+                  <summary>
+                    <Info size={14} aria-hidden="true" /> What these data can
+                    tell us <ChevronRight size={13} aria-hidden="true" />
+                  </summary>
+                  <p>{event.limitation}</p>
+                  <ul>
+                    {suggestions.map((suggestion) => (
+                      <li key={suggestion.id}>
+                        <strong>
+                          {catalog.variables.find(
+                            (variable) => variable.id === suggestion.id,
+                          )?.name ?? suggestion.id}
+                        </strong>
+                        : {suggestion.reason}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    Monthly environmental observations or estimates around a
+                    documented event. Catalog overlap does not guarantee valid
+                    cells throughout this area, establish causes or detect the
+                    event.
+                  </p>
+                </details>
+                <div className="event-case-actions">
+                  <button
+                    className="events-open-case"
+                    disabled={!usable.length}
+                    onClick={() => onOpen(event, false, usable[0]?.id)}
+                  >
+                    Explore this case{" "}
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </button>
+                  <button
+                    className="events-compare-case"
+                    disabled={!usable.length}
+                    onClick={() => onOpen(event, true, usable[0]?.id)}
+                  >
+                    <Columns2 size={14} aria-hidden="true" /> Compare context
+                  </button>
+                </div>
+                <div className="events-source-row">
+                  <span>Curated historical case</span>
+                  <a href={event.source.url} target="_blank" rel="noreferrer">
+                    {event.source.name}{" "}
+                    <ExternalLink size={11} aria-hidden="true" />
+                  </a>
+                </div>
               </div>
             </article>
           );
         })}
       </div>
-      <p className="event-case-footnote">
-        Have another question? Choose any area and available period in Explore.
-        You only name an investigation when you decide to save it.
-      </p>
+      <aside className="events-context-note">
+        <Info size={16} aria-hidden="true" />
+        <p>
+          <strong>A starting point, not a conclusion.</strong> Presets suggest a
+          place, period and variables. Every selection stays editable. Monthly
+          context does not detect events or establish their causes.
+        </p>
+      </aside>
     </div>
   );
 }
