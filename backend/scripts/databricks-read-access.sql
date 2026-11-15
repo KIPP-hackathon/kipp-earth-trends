@@ -1,4 +1,5 @@
--- Explicit SELECT only for the reviewed NASA refined tables. No future-table grants.
+-- Explicit SELECT only for reviewed NASA tables. No future-table grants.
+GRANT USE SCHEMA ON SCHEMA `earth-trend-data`.`trusted` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_cldprs` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_cldtmp` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_disph` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
@@ -15,7 +16,7 @@ GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_q850` TO `kipp-ear
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_qv10m` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_qv2m` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_slp` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
-GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_t10m` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
+GRANT SELECT ON TABLE `earth-trend-data`.`trusted`.`tb_merra2_t10m` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_t250` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_t2m` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;
 GRANT SELECT ON TABLE `earth-trend-data`.`refined`.`tb_merra2_t2mdew` TO `kipp-earth-api@nasa-earth-trends-lab.iam.gserviceaccount.com`;

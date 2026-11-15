@@ -115,13 +115,13 @@ const declarations: {
   {
     name: "analyze_series",
     description:
-      "Read up to 120 regional monthly aggregates in bbox west,south,east,north, including missing months and coverage. Descriptive statistics only; no significance test, prediction or causal attribution.",
+      "Read up to 360 regional monthly aggregates in bbox west,south,east,north, including missing months and coverage. Descriptive statistics only; no significance test, prediction or causal attribution.",
     parameters: objectSchema(periodArguments),
   },
   {
     name: "compare_periods",
     description:
-      "Compare two periods of at most 120 months each for the same variable and rectangle. Returns actual observed coverage, temporal means and B-minus-A difference (or category counts). No invented baseline or significance.",
+      "Compare two periods of at most 360 months each for the same variable and rectangle. Returns actual observed coverage, temporal means and B-minus-A difference (or category counts). No invented baseline or significance.",
     parameters: objectSchema({
       variable: variableSchema,
       bbox: bboxSchema,

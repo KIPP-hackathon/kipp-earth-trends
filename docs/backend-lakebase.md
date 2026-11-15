@@ -1,5 +1,9 @@
 # Backend com leitura Lakebase
 
+Migração incremental de temperatura para a camada trusted: ver
+[origem, mapeamentos e validações](lakebase-trusted-temperature.md).
+Os números abaixo registram a integração inicial, anterior a essa migração.
+
 Atualização: o deploy usa `DATA_PROVIDER=hybrid`, preservando estas quatro
 variáveis no RT e usando SQL para as demais fontes revisadas. A seleção é
 explícita por variável, sem fallback silencioso. O modo exclusivo

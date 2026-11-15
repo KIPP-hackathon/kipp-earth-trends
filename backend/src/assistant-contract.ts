@@ -273,11 +273,11 @@ export function validatePeriod(start: string, end: string): string[] {
     Number(m.slice(0, 4)) * 12 + Number(m.slice(5)) - 1;
   const first = index(start),
     last = index(end);
-  if (last < first || last - first >= 120)
+  if (last < first || last - first >= 360)
     throw new ApiError(
       400,
       "INVALID_PERIOD",
-      "Select an ordered period of at most 120 months.",
+      "Select an ordered period of at most 360 months.",
     );
   return Array.from(
     { length: last - first + 1 },
