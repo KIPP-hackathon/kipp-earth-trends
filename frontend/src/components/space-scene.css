@@ -55,6 +55,34 @@
   color: #fff;
   border-color: #0b3d91;
 }
+.real-globe .real-globe-toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.real-globe-month {
+  font-variant-numeric: tabular-nums;
+}
+.real-globe .real-globe-toolbar .globe-area-controls {
+  justify-content: flex-start;
+  margin: 0;
+}
+.real-globe .real-globe-toolbar .globe-area-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.real-globe-toolbar .globe-area-controls button svg {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
 .globe-area-hint {
   min-height: 18px;
   color: var(--muted);

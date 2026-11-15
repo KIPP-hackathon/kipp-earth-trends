@@ -584,3 +584,14 @@ Preview em `http://localhost:5185`, com proxy para a API pública existente.
 47 testes aprovados; build aprovado com Node.js 24. Chromium confirmou
 posicionamento das camadas, tamanhos de texto maiores, controles funcionais e
 390 px sem overflow horizontal ou exceções JS. Captura mobile inspecionada.
+
+
+### Ajuste de interface — barra do globo (15/11/2026)
+
+OpenAI Codex assistiu o alinhamento de Data layer, Draw area e Clear area em
+um único grupo flexível, com altura mínima de40px, padding, espaçamento e
+ícones uniformes. O mês fica acima e o recorte selecionado abaixo; os botões
+quebram de linha sem sobreposição em áreas estreitas. Controles, dados e
+cálculos preservados.47checks existentes e build frontend Node24 aprovados.
+A conexão de automação do navegador estava indisponível nesta conferência;
+não se declara verificação visual final nem publicação deste ajuste.

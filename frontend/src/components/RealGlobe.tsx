@@ -223,49 +223,52 @@ export function RealGlobe({
   return (
     <div className="real-globe">
       <div className="real-globe-toolbar">
-        <span>{frame ? realMonth(frame.month) : "Monthly field"}</span>
-        <button
-          aria-pressed={view.showLayer}
-          onClick={() => onView({ ...view, showLayer: !view.showLayer })}
-        >
-          <Layers3 size={14} /> Data layer
-        </button>
-      </div>
-      {onSelectArea && (
-        <div className="globe-area-controls">
+        <span className="real-globe-month">{frame ? realMonth(frame.month) : "Monthly field"}</span>
+        <div className="globe-area-controls" role="group" aria-label="Globe data and area controls">
           <button
             type="button"
-            aria-pressed={drawing}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.preventDefault();
-                cancelDrawing();
-              }
-            }}
-            onClick={() => {
-              clearDraft();
-              setDrawing(!drawing);
-              setAreaNotice("");
-            }}
+            aria-pressed={view.showLayer}
+            onClick={() => onView({ ...view, showLayer: !view.showLayer })}
           >
-            <Scan size={15} />
-            {drawing ? "Cancel drawing" : "Draw area"}
+            <Layers3 size={14} /> Data layer
           </button>
-          {region && onClearArea && (
-            <button
-              type="button"
-              onClick={() => {
-                cancelDrawing();
-                setAreaNotice("");
-                onClearArea();
-              }}
-            >
-              <X size={14} />
-              Clear area
-            </button>
+          {onSelectArea && (
+            <>
+              <button
+                type="button"
+                aria-pressed={drawing}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    cancelDrawing();
+                  }
+                }}
+                onClick={() => {
+                  clearDraft();
+                  setDrawing(!drawing);
+                  setAreaNotice("");
+                }}
+              >
+                <Scan size={15} />
+                {drawing ? "Cancel drawing" : "Draw area"}
+              </button>
+              {region && onClearArea && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    cancelDrawing();
+                    setAreaNotice("");
+                    onClearArea();
+                  }}
+                >
+                  <X size={14} />
+                  Clear area
+                </button>
+              )}
+            </>
           )}
         </div>
-      )}
+      </div>
       {onSelectArea && (
         <p className="globe-area-hint" role="status">
           {areaNotice ||
