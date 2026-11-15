@@ -1,5 +1,43 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+Registro técnico de 15/11/2026: configurações locais para ampliar as extrações de
+concentração de gelo marinho, IMERG Final/Late e GRACE foram preparadas com
+assistência do OpenAI Codex; ver [configurações de extração](configuracoes-extracao-fontes-reduzidas.md).
+Período solicitado de 2000-01 a 2026-10, sujeito à cobertura real de cada fonte.
+Nenhum dado novo foi extraído nessa preparação; consolidação de tabelas e
+investigação científica permanecem etapas distintas. Revisão humana pendente.
+Consulta posterior ao bucket confirmou 135 CSVs e 135 metadados desses cinco
+prefixos. As configurações passaram a excluir os meses já presentes, com
+checagem separada por hemisfério e processamento; não houve extração ou
+sobrescrita de observações nessa mudança. Código e testes assistidos por Codex.
+Na execução histórica paralela, o GRACE encontrou soluções múltiplas em 2012-01
+e 2015-04. A opção explícita `--ambiguous-months skip` preserva essas lacunas e
+registra a exclusão nos metadados, sem misturar intervalos nem afirmar que a
+série está completa. Posteriormente, o usuário selecionou os intervalos nativos
+2012-01-01–2012-01-31 e 2015-04-01–2015-04-30. Os dois CSVs foram gerados com
+seleção única por limites de data, preservando índices e intervalos nos
+metadados. A campanha histórica tem 226 meses disponíveis exportados, com
+as demais lacunas da fonte preservadas; isso não encerra a investigação científica.
+Upload posterior conferido: os 226 CSVs históricos e 226 metadados GRACE foram
+publicados no prefixo de origem do bucket em 15/11/2026, com tamanho/CRC32C
+correspondentes aos arquivos locais e preservação dos 66 objetos anteriores.
+Total observado após o upload: 259 CSVs e 259 metadados; evidência em
+`artifacts/grace-historico-upload-validation.json`. Não comprova ingestão no
+Databricks nem consumo dessa ampliação pela aplicação.
+Concentração de gelo também concluída e enviada: 576 CSVs históricos e 576
+metadados (288 meses por polo, 2000-01–2023-12), com tamanho/CRC32C verificados
+e 136 objetos anteriores preservados. Cada polo passou a ter 322 meses,
+2000-01–2026-10, sem lacunas mensais. Evidência local:
+`artifacts/sea-ice-historico-upload-validation.json`; ingestão UC e consumo pela
+aplicação não foram executados nesta etapa.
+IMERG Final também concluído e enviado: 288 CSVs e 288 metadados históricos
+de 2000-01 a 2023-12, conferidos por tamanho/CRC32C, preservando os 42 objetos
+anteriores. O prefixo `transient/GPM_3IMERGM/` passou a conter 309 meses,
+2000-01–2025-09. Late permaneceu separado e foi pulado na extração por já
+estar presente. Evidência: `artifacts/imerg-final-historico-upload-validation.json`.
+Ingestão UC, integração na aplicação e análise científica não foram executadas
+nesta publicação de arquivos.
+
 > Diagnóstico baseado no checkout local `9f011a8` e nas alterações presentes em 14/11/2026. A `main` remota já continha commits posteriores no momento da publicação; revalidar os estados e pendências contra a versão atual antes de tratá-los como diagnóstico do produto publicado.
 
 Revisão inicial: **14/11/2026**. Base: [requisitos e fontes](space-apps-2026-requisitos.md).

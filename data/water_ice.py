@@ -122,17 +122,59 @@ def write_month(output, product, month, fields, metadata, overwrite=False):
     return destination
 
 
-def selected_times(dataset, start, end):
+def selected_times(dataset, start, end, ambiguous_months="error", month_selections=None):
     if "time" not in dataset.coords or dataset.time.ndim != 1:
         raise ValueError("Expected a one-dimensional decoded time coordinate.")
-    found = {}
+    if ambiguous_months not in {"error", "skip"}:
+        raise ValueError("Unknown ambiguous-month policy.")
+    selections = month_selections or {}
+    if not isinstance(selections, dict):
+        raise ValueError("Month selections must be a JSON object keyed by YYYY-MM.")
+    for key, interval in selections.items():
+        datetime.strptime(key, "%Y-%m")
+        if not isinstance(interval, (list, tuple)) or len(interval) != 2:
+            raise ValueError(f"Expected two ISO dates for selected month {key}.")
+        if date_from_iso(interval[0]) > date_from_iso(interval[1]):
+            raise ValueError(f"Reversed native interval for {key}.")
+    groups = {}
     for index, value in enumerate(dataset.time.values):
         month = month_of(value)
         if start <= month <= end:
-            if month in found:
+            groups.setdefault(month, []).append(index)
+    found = {}
+    for month, indices in groups.items():
+        key = f"{month:%Y-%m}"
+        if key in selections:
+            bounds = dataset.time.attrs.get("bounds", "time_bounds")
+            if bounds not in dataset or "time" not in dataset[bounds].dims:
+                raise ValueError(f"Cannot validate selected interval without time bounds: {key}.")
+            wanted = tuple(date_from_iso(value) for value in selections[key])
+            matches = []
+            for index in indices:
+                values = dataset[bounds].isel(time=index).values.reshape(-1)
+                if len(values) != 2:
+                    raise ValueError("Expected exactly two native time bounds.")
+                actual = tuple(pd.Timestamp(value).date() for value in values)
+                if actual == wanted:
+                    matches.append(index)
+            if len(matches) != 1:
+                raise ValueError(f"Expected one native solution for {key} with interval {wanted}; found {len(matches)}.")
+            found[month] = matches[0]
+            LOGGER.info("Selected %s using explicit native interval %s to %s (index %d).",
+                        key, *selections[key], matches[0])
+            continue
+        if len(indices) > 1:
+            if ambiguous_months == "error":
                 raise ValueError(f"Multiple samples for {month:%Y-%m}; monthly originals required.")
-            found[month] = index
+            LOGGER.warning("Ambiguous month %s excluded: %d native solutions; no averaging or reassignment. Times: %s",
+                           f"{month:%Y-%m}", len(indices), [str(dataset.time.values[i]) for i in indices])
+            continue
+        found[month] = indices[0]
     return found
+
+
+def date_from_iso(value):
+    return datetime.strptime(value, "%Y-%m-%d").date()
 
 
 def provenance(path, dataset):
@@ -142,16 +184,25 @@ def provenance(path, dataset):
             "source_attributes": {key: dataset.attrs[key] for key in keys if key in dataset.attrs}}
 
 
-def export_netcdf(path, kind, start, end, output, minimum_coverage=1.0, overwrite=False):
+def export_netcdf(path, kind, start, end, output, minimum_coverage=1.0, overwrite=False,
+                  skip_months=None, ambiguous_months="error", month_selections=None):
     grace = kind == "grace"
     variable, step = ("lwe_thickness", 0.5) if grace else ("sla", 0.25)
     product = "GRACE_JPL_CRI_RL06.3Mv04" if grace else "DUACS_C3S_MONTHLY"
     with xr.open_dataset(path, decode_times=True, mask_and_scale=True) as dataset:
         factor = millimeters(dataset[variable])
-        selected = selected_times(dataset, start, end)
+        excluded = set(skip_months or [])
+        available = selected_times(dataset, start, end, ambiguous_months, month_selections)
+        selected = {m: i for m, i in available.items() if m not in excluded}
         if not selected:
             return set()
         metadata = provenance(path, dataset)
+        if grace:
+            native_months = {month_of(v) for v in dataset.time.values if start <= month_of(v) <= end}
+            metadata["ambiguous_month_policy"] = ambiguous_months
+            metadata["excluded_ambiguous_months"] = [f"{m:%Y-%m}" for m in sorted(native_months - set(available))]
+            metadata["explicit_month_selections"] = month_selections or {}
+            metadata["time_assignment"] = "Month of native solution timestamp. Explicit choices match native interval start/end dates; ambiguous solutions are never averaged or shifted."
         metadata.update({
             "collection": GRACE if grace else ALTIMETRY,
             "version": GRACE_VERSION if grace else "Source attributes and subset manifest",
@@ -199,7 +250,13 @@ def export_netcdf(path, kind, start, end, output, minimum_coverage=1.0, overwrit
                 metadata["uncertainty"] = (
                     "native_uncertainty_mean_mm_we, when present, is a descriptive mean of source "
                     "uncertainty, NOT propagated output uncertainty; mascon pixels are correlated.")
-            sample_meta = {**metadata, "source_time": str(dataset.time.values[index])}
+            sample_meta = {**metadata, "source_time": str(dataset.time.values[index]), "source_time_index": int(index)}
+            if f"{month:%Y-%m}" in (month_selections or {}):
+                sample_meta["selected_native_interval"] = {
+                    "start_date": month_selections[f"{month:%Y-%m}"][0],
+                    "end_date": month_selections[f"{month:%Y-%m}"][1],
+                    "selection_authority": "User explicitly selected this native interval; no temporal averaging or reassignment.",
+                }
             bounds = dataset.time.attrs.get("bounds", "time_bounds")
             if bounds in dataset:
                 sample_meta["source_time_bounds"] = [str(v) for v in dataset[bounds].isel(time=index).values]
@@ -405,6 +462,13 @@ def main(argv=None):
     parser.add_argument("--raw-dir", type=Path)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "data/data/processed/csv")
     parser.add_argument("--reference-csv", type=Path)
+    parser.add_argument("--skip-months", nargs="*", default=[],
+                        type=lambda value: pd.Timestamp(datetime.strptime(value, "%Y-%m")),
+                        help="GRACE months already present in GCS, in YYYY-MM form; never export them.")
+    parser.add_argument("--ambiguous-months", choices=["error", "skip"], default="error",
+                        help="GRACE only: stop on repeated timestamp months, or exclude all their solutions and record the gaps.")
+    parser.add_argument("--month-selections", type=json.loads, default={},
+                        help='GRACE native intervals, e.g. {"2012-01":["2012-01-01","2012-01-31"]}.')
     parser.add_argument("--minimum-coverage", type=float, default=1.0,
                         help="Minimum valid target-cell area for GRACE/DUACS (default 1).")
     parser.add_argument("--auth-strategy", choices=["interactive", "environment"], default="interactive")
@@ -416,6 +480,16 @@ def main(argv=None):
     if not 0 < args.minimum_coverage <= 1:
         parser.error("--minimum-coverage must be in (0, 1]")
     start, end = period(args.start, args.end)
+    skipped = set(args.skip_months)
+    if skipped and args.product != "grace":
+        parser.error("--skip-months is only supported for GRACE.")
+    if args.ambiguous_months != "error" and args.product != "grace":
+        parser.error("--ambiguous-months is only supported for GRACE.")
+    if args.month_selections and args.product != "grace":
+        parser.error("--month-selections is only supported for GRACE.")
+    if set(pd.date_range(start, end, freq="MS")) <= skipped:
+        print("All requested months already exist; no source lookup or export.")
+        return
     if args.reference_csv:
         check_reference(args.reference_csv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
@@ -441,16 +515,20 @@ def main(argv=None):
         found = set()
         for path in files:
             with xr.open_dataset(path) as dataset:
-                months = set(selected_times(dataset, start, end))
+                months = set(selected_times(dataset, start, end, args.ambiguous_months, args.month_selections)) - skipped
             if found & months:
                 raise ValueError("Overlapping source months; select a homogeneous set of originals.")
             found.update(months)
         if not found:
+            if skipped and files:
+                report_missing(start, end, skipped, args.product)
+                print("No additional available months in the selected original; existing months skipped.")
+                return
             raise RuntimeError("No monthly originals match the requested period.")
-        report_missing(start, end, found, args.product)
+        report_missing(start, end, found | skipped, args.product)
         for path in files:
             export_netcdf(path, args.product, start, end, args.output_dir,
-                          args.minimum_coverage, args.overwrite)
+                          args.minimum_coverage, args.overwrite, skipped, args.ambiguous_months, args.month_selections)
     if not args.plan:
         print("Monthly CSV export complete. No bucket upload performed.")
 
