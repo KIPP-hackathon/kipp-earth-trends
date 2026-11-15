@@ -818,6 +818,23 @@ Complemento solicitado: OpenAI Codex assistiu a remoção da data mensal que
 ainda aparecia acima dos botões Data layer / Draw area / Clear area.
 A seleção temporal permanece no campo e nos controles de reprodução.
 
+### Ações de investigação restauradas no header — 15/11/2026
+
+OpenAI Codex assistiu a restauração de Save, Saved e Share à direita do
+header, incluindo os callbacks de captura e reabertura removidos anteriormente.
+Reutiliza `kipp.investigations.v1`, validações e formato existentes; salvos
+anteriores permanecem compatíveis. Captura Explore/Compare, com camadas,
+região, período, câmera e escala; Saved abre de qualquer aba. Save/Share ficam
+desabilitados em abas sem esse contrato. Não salva dados nem histórico do chat.
+Links continuam sem nome/notas, e abrem dados atuais, não um snapshot congelado.
+No mobile, ações ficam como ícones acessíveis na primeira linha e abas abaixo.
+85 testes frontend e build aprovados. Chrome isolado com API real conferiu
+salvar, listar, reabrir após trocar país, abrir link em página nova, exclusão
+de nome/notas do link, reabrir a partir de Guide e compartilhar dois painéis.
+1440/390/360 px sem overflow; fixture local removida ao finalizar. Ambiente
+sem WebGL, portanto não valida renderização das camadas. Publicação em
+verificação; sem alteração da investigação científica ou submissão formal.
+
 
 ### Ajustes do Trend Lab - 15/11/2026
 

@@ -10,18 +10,20 @@ import {
 } from "lucide-react";
 import { LabTabs, labTabs } from "./components/LabTabs";
 import type { LabTab } from "./components/LabTabs";
+import { InvestigationControls } from "./components/InvestigationControls";
+import type { InvestigationView } from "./lib/investigations";
 import { EventExplorer } from "./components/EventExplorer";
 import { TrendLab } from "./components/TrendLab";
 import { RealPanel } from "./components/RealDataView";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
 import { useCountryLocation } from "./lib/useCountryLocation";
-import { brazilCountry } from "./lib/countries";
+import { brazilCountry, loadCountries } from "./lib/countries";
 import type { CountrySelection } from "./lib/countries";
 import "./country-location.css";
 import { Modal } from "./components/Modal";
 import { initialGlobeView } from "./lib/comparison";
 import { useGlobeCamera } from "./lib/useGlobeCamera";
-import { loadCatalog, loadConfig, realMonth } from "./lib/earthApi";
+import { loadCatalog, loadConfig, loadEvents, realMonth } from "./lib/earthApi";
 import type {
   EarthColorRange,
   EarthConfig,
@@ -261,6 +263,7 @@ function App() {
       ? 1
       : 0,
   );
+  const initialShareVersion = useRef(version.current);
   const commandNonce = useRef(0);
   const markChanged = useCallback(() => {
     version.current++;
@@ -437,6 +440,173 @@ function App() {
       latitude: event.latitude,
     });
     showTab(compare ? "compare" : "explore");
+  };
+  const getInvestigationView = (): InvestigationView | null => {
+    const tab = activeTab.current;
+    if (tab !== "explore" && tab !== "compare") return null;
+    const workspace = tab === "compare" ? comparison : exploration;
+    const context = workspace.getContext(tab, version.current, true);
+    const expected = tab === "compare" ? 2 : 1;
+    if (
+      context.panels.length !== expected ||
+      context.panels.some((panel) => !panel.selectedMonth)
+    )
+      return null;
+    const ids = new Set(
+      context.panels.flatMap(
+        (panel) =>
+          panel.layers?.map((layer) => layer.variable) ?? [panel.variable],
+      ),
+    );
+    return {
+      tab,
+      panels: context.panels.map((panel) => ({
+        side: panel.side,
+        variable: panel.variable,
+        month: panel.selectedMonth,
+        ...(panel.layers ? { layers: structuredClone(panel.layers) } : {}),
+        comparisonMode: panel.comparisonMode,
+        start: panel.start,
+        end: panel.end,
+        region: structuredClone(panel.region),
+      })),
+      camera: context.camera,
+      colorRanges: Object.fromEntries(
+        Object.entries(context.colorRanges).filter(([id]) => ids.has(id)),
+      ),
+      ...(workspace.eventContext ? { eventId: workspace.eventContext.id } : {}),
+    };
+  };
+  const restoreInvestigation = async (
+    view: InvestigationView,
+    automatic = false,
+  ) => {
+    if (automatic && version.current !== initialShareVersion.current)
+      throw new Error(
+        "You changed the view before the shared investigation was ready. Reload this link to open it.",
+      );
+    if (!catalog.data || !config.data)
+      throw new Error("The data catalog is not ready. Please retry.");
+    const requestedVersion = version.current;
+    const countries = await loadCountries();
+    const sameBounds = (a: string, b: string) =>
+      a
+        .split(",")
+        .map(Number)
+        .every((n, i) => Math.abs(n - Number(b.split(",")[i])) < 1e-7);
+    for (const panel of view.panels) {
+      const variable = catalog.data.variables.find(
+        (entry) => entry.id === panel.variable && entry.available !== false,
+      );
+      const layerIds = panel.layers?.map((layer) => layer.variable) ?? [
+        panel.variable,
+      ];
+      const layerVariables = layerIds.map((id) =>
+        catalog.data!.variables.find(
+          (entry) =>
+            entry.id === id &&
+            entry.available !== false &&
+            entry.months.some((row) => row.validSamples > 0),
+        ),
+      );
+      if (layerVariables.some((entry) => !entry))
+        throw new Error(
+          "A saved variable is unavailable in the current catalog. No filters were changed.",
+        );
+      const months = new Set(
+        layerVariables
+          .flatMap((entry) => entry?.months ?? [])
+          .filter((row) => row.validSamples > 0)
+          .map((row) => row.month),
+      );
+      if (
+        !variable ||
+        ![panel.start, panel.end, panel.month].every((month) =>
+          months.has(month),
+        )
+      )
+        throw new Error(
+          `Saved dates for ${panel.variable} are not in the current catalog. No filters were changed.`,
+        );
+      const fixed = config.data.regions.find(
+        (region) => region.id === panel.region.id,
+      );
+      if (fixed && !sameBounds(fixed.bbox, panel.region.bbox))
+        throw new Error(
+          "This saved area conflicts with a current preset. No filters were changed.",
+        );
+      if (panel.region.id.startsWith("custom-country-")) {
+        const country = countries.find(
+          (entry) => entry.region.id === panel.region.id,
+        );
+        if (!country || !sameBounds(country.region.bbox, panel.region.bbox))
+          throw new Error(
+            "The saved country boundary could not be verified. No filters were changed.",
+          );
+      }
+      if (
+        panel.region.id === "custom-global" &&
+        !sameBounds(panel.region.bbox, globalStudyRegion.bbox)
+      )
+        throw new Error(
+          "Invalid global study extent. No filters were changed.",
+        );
+    }
+    for (const id of Object.keys(view.colorRanges)) {
+      const variable = catalog.data.variables.find((entry) => entry.id === id);
+      if (!variable || variable.render?.kind === "categorical")
+        throw new Error(
+          "A saved display range does not match the current variable. No filters were changed.",
+        );
+    }
+    let event: EarthEvent | undefined;
+    if (view.eventId) {
+      const events = await loadEvents(AbortSignal.timeout(30000));
+      event = events.events.find((entry) => entry.id === view.eventId);
+      if (
+        !event ||
+        !view.panels.every((panel) =>
+          sameBounds(panel.region.bbox, event!.bbox),
+        )
+      )
+        throw new Error(
+          "The saved event context does not match this study area. No filters were changed.",
+        );
+    }
+    if (version.current !== requestedVersion)
+      throw new Error(
+        "The view changed while opening this investigation. Retry to apply it.",
+      );
+    markChanged();
+    const workspace = view.tab === "compare" ? comparison : exploration;
+    const nonce = ++commandNonce.current;
+    for (const panel of view.panels) workspace.registerRegion(panel.region);
+    workspace.setPresets(
+      Object.fromEntries(
+        view.panels.map((panel) => [
+          panel.side,
+          {
+            variable: panel.variable,
+            ...(panel.layers ? { layers: structuredClone(panel.layers) } : {}),
+            comparisonMode: panel.comparisonMode,
+            month: panel.month,
+            start: panel.start,
+            end: panel.end,
+            region: panel.region.id,
+            nonce,
+          },
+        ]),
+      ),
+    );
+    workspace.setColorRanges(structuredClone(view.colorRanges));
+    workspace.setEventContext(event);
+    workspace.setPlaybackCommands(
+      Object.fromEntries(
+        view.panels.map((panel) => [panel.side, { playing: false, nonce }]),
+      ),
+    );
+    workspace.camera.flyTo(view.camera);
+    setActive(view.tab);
   };
   const applyAssistantResponse = (
     response: AssistantResponse,
@@ -781,7 +951,7 @@ function App() {
       <a className="skip-link" href="#main-content">
         Skip to investigation
       </a>
-      <header className="site-header">
+      <header className="site-header has-investigation-actions">
         <a
           href="#"
           className="brand"
@@ -800,6 +970,15 @@ function App() {
           </span>
         </a>
         <LabTabs active={active} onChange={showTab} />
+        <InvestigationControls
+          getView={getInvestigationView}
+          onRestore={restoreInvestigation}
+          ready={!!catalog.data && !!config.data}
+          canCapture={
+            (active === "explore" && exploration.ready) ||
+            (active === "compare" && comparison.ready && !!comparison.studies.B)
+          }
+        />
       </header>
       <main id="main-content" className="workspace-main" tabIndex={-1}>
         <h1 className="sr-only">

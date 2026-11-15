@@ -48,10 +48,12 @@ export function InvestigationControls({
   getView,
   onRestore,
   ready,
+  canCapture = true,
 }: {
   getView: () => InvestigationView | null;
   onRestore: (view: InvestigationView, automatic?: boolean) => Promise<void>;
   ready: boolean;
+  canCapture?: boolean;
 }) {
   const [modal, setModal] = useState<"save" | "saved" | "share" | null>(null);
   const [records, setRecords] = useState<SavedInvestigation[]>([]);
@@ -305,25 +307,47 @@ export function InvestigationControls({
   return (
     <div className="investigation-controls">
       <div className="investigation-toolbar" aria-label="Investigation actions">
-        <button className="button" disabled={!ready || busy} onClick={openSave}>
-          <Save size={15} />
-          Save
+        <button
+          className="button"
+          disabled={!ready || !canCapture || busy}
+          onClick={openSave}
+          aria-label="Save investigation"
+          title={
+            canCapture
+              ? "Save investigation"
+              : "Available when an Explore or Compare view is ready"
+          }
+        >
+          <Save size={15} aria-hidden="true" />
+          <span className="investigation-action-label">Save</span>
         </button>
         <button
           className="button"
           disabled={busy}
+          aria-label="Saved investigations"
+          title="Saved investigations"
           onClick={() => {
             clearMessages();
             read();
             setModal("saved");
           }}
         >
-          <Bookmark size={15} />
-          Saved
+          <Bookmark size={15} aria-hidden="true" />
+          <span className="investigation-action-label">Saved</span>
         </button>
-        <button className="button" disabled={!ready || busy} onClick={share}>
-          <Share2 size={15} />
-          Share
+        <button
+          className="button"
+          disabled={!ready || !canCapture || busy}
+          onClick={share}
+          aria-label="Share investigation"
+          title={
+            canCapture
+              ? "Share investigation"
+              : "Available when an Explore or Compare view is ready"
+          }
+        >
+          <Share2 size={15} aria-hidden="true" />
+          <span className="investigation-action-label">Share</span>
         </button>
       </div>
       {!modal && feedback}
@@ -494,7 +518,7 @@ export function InvestigationControls({
                         </button>
                         <button
                           className="button"
-                          disabled={!ready || busy}
+                          disabled={!ready || !canCapture || busy}
                           onClick={() => updateRecord(record)}
                         >
                           Update from current view
@@ -583,8 +607,8 @@ function RecordDetails({ record }: { record: SavedInvestigation }) {
     <>
       <h3>{record.name}</h3>
       <p className="investigation-detail">
-        {record.view.tab === "compare" ? "Compare" : "Explore"}{" "}
-        · updated {new Date(record.updatedAt).toLocaleString()}
+        {record.view.tab === "compare" ? "Compare" : "Explore"} · updated{" "}
+        {new Date(record.updatedAt).toLocaleString()}
       </p>
       {record.view.panels.map((panel) => (
         <p className="investigation-detail" key={panel.side}>

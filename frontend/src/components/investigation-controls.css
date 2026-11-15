@@ -156,3 +156,69 @@
 .investigation-controls .button.investigation-delete {
   color: #a22218;
 }
+
+.site-header.has-investigation-actions > .investigation-controls {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.site-header.has-investigation-actions .investigation-toolbar {
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+}
+#root .site-header.has-investigation-actions .investigation-toolbar .button {
+  min-height: 34px;
+  padding: 6px 9px;
+  font-size: 12px;
+  background: #071526;
+  color: #dce9fc;
+  border-color: var(--line);
+}
+.site-header.has-investigation-actions .investigation-toolbar .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.site-header.has-investigation-actions .investigation-feedback:not(:empty) {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 90;
+  width: min(340px, calc(100vw - 48px));
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0c1a2e;
+  box-shadow: 0 8px 22px #0008;
+}
+.site-header.has-investigation-actions .investigation-feedback p {
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .site-header.has-investigation-actions {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    gap: 0 12px;
+    padding-top: 8px;
+  }
+  .site-header.has-investigation-actions > .brand {
+    order: 1;
+  }
+  .site-header.has-investigation-actions > .investigation-controls {
+    order: 2;
+  }
+  .site-header.has-investigation-actions > .lab-tabs {
+    order: 3;
+    flex: 1 0 100%;
+    height: 44px;
+    margin-top: 7px;
+  }
+  .site-header.has-investigation-actions .investigation-action-label {
+    display: none;
+  }
+  #root .site-header.has-investigation-actions .investigation-toolbar .button {
+    width: 34px;
+    padding: 7px;
+  }
+}
