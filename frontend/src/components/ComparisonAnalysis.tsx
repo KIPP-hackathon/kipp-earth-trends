@@ -132,7 +132,6 @@ function ComparisonAnalysisComponent({
       return next;
     });
   const hasArea = region.bbox !== "-180,-90,180,90";
-  const [trendsOnly, setTrendsOnly] = useState(false);
   const [cursor, setCursor] = useState<string>();
   useEffect(() => setCursor(undefined), [month, start, end, region.bbox]);
   const completed = entries.filter((entry) => entry.data || entry.error).length;
@@ -210,35 +209,24 @@ function ComparisonAnalysisComponent({
             </p>
           </details>
         </div>
-        <div className="comparison-view-controls">
-          <div
-            className="comparison-mode"
-            role="group"
-            aria-label="Chart comparison scale"
-          >
-            <button
-              type="button"
-              aria-pressed={mode === "standardized"}
-              onClick={() => onMode("standardized")}
-            >
-              Historical deviation
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === "minmax"}
-              onClick={() => onMode("minmax")}
-            >
-              Scale 0–100
-            </button>
-          </div>
+        <div
+          className="comparison-mode"
+          role="group"
+          aria-label="Chart comparison scale"
+        >
           <button
             type="button"
-            className="comparison-trends-only"
-            aria-pressed={trendsOnly}
-            title="Hide the observed series and keep only season-adjusted trends"
-            onClick={() => setTrendsOnly((value) => !value)}
+            aria-pressed={mode === "standardized"}
+            onClick={() => onMode("standardized")}
           >
-            Trends only
+            Historical deviation
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === "minmax"}
+            onClick={() => onMode("minmax")}
+          >
+            Scale 0–100
           </button>
         </div>
       </div>
@@ -300,7 +288,6 @@ function ComparisonAnalysisComponent({
         familySize={familySize}
         loading={completed < entries.length}
         familyTests={familyTests}
-        trendsOnly={trendsOnly}
       />
       <ComparisonChart
         title={`Selected area · ${hasArea ? region.name : "no area selected"}`}
@@ -319,7 +306,6 @@ function ComparisonAnalysisComponent({
         familySize={familySize}
         loading={completed < entries.length}
         familyTests={familyTests}
-        trendsOnly={trendsOnly}
       />
       {countryOutline && (
         <p className="comparison-explainer">

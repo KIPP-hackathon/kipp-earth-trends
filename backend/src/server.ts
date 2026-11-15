@@ -218,11 +218,20 @@ let catalogPending: ReturnType<DataService["catalog"]> | undefined;
 async function catalogData() {
   if (catalogMemo && catalogMemo.expires > Date.now()) return catalogMemo.data;
   if (!catalogPending)
-    catalogPending = data
-      .catalog()
-      .then((result) => {
-        catalogMemo = { expires: Date.now() + 300_000, data: result };
-        return result;
+    catalogPending = Promise.all([
+      data.catalog(),
+      indicatorReference.domainByTable(),
+    ])
+      .then(([result, domains]) => {
+        const tables = new Map(
+          data.variables.map((variable) => [variable.id, variable.table]),
+        );
+        const withDomains = result.map((variable) => {
+          const domain = domains[tables.get(variable.id) ?? ""];
+          return domain ? { ...variable, domain } : variable;
+        });
+        catalogMemo = { expires: Date.now() + 300_000, data: withDomains };
+        return withDomains;
       })
       .finally(() => {
         catalogPending = undefined;
@@ -231,10 +240,11 @@ async function catalogData() {
 }
 // Explicit reviewed Warehouse references live in refined; observations always use trusted.
 const trendReference = new TrendReferenceService(warehouse);
+const indicatorReference = new IndicatorReferenceService(warehouse);
 const assistant = createAssistant({
   data,
   catalog: catalogData,
-  indicatorReference: new IndicatorReferenceService(warehouse),
+  indicatorReference,
   trendReference,
 });
 api.post(
