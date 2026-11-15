@@ -18,6 +18,7 @@ export type AssistantRegion = {
   latitude: number;
 };
 export type AssistantPanel = {
+  comparisonMode?:"standardized"|"minmax";
   layers?: {variable:string;visible:boolean;opacity:number}[];
   layerMonths?: Record<string,string|null>;
   side: AssistantSide;
@@ -152,6 +153,7 @@ export const assistantRequestSchema = objectSchema({
         }),
         loading: bool,
         playing: bool,
+        comparisonMode:{type:"string",enum:["standardized","minmax"]},
         layers: {type:"array",minItems:1,maxItems:variables.length,items:objectSchema({
           variable:variableSchema,visible:bool,opacity:num(0,1),
         })},

@@ -53,7 +53,7 @@ export default async function handler(
       query.delete("path");
     // No arbitrary upstream URLs, SQL, methods, paths or browser authorization headers.
     if (
-      !/^\/v1\/(catalog|config|events|trends|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|series\/[a-z0-9_]{1,60})$/.test(
+      !/^\/v1\/(catalog|config|events|trends|frames\/[a-z0-9_]{1,60}\/\d{4}-(0[1-9]|1[0-2])|(?:series|comparison)\/[a-z0-9_]{1,60})$/.test(
         path,
       )
     )

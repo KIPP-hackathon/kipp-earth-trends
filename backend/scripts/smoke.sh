@@ -67,3 +67,17 @@ assert.ok(data.results.length>0);
 assert.ok(data.results.every(row=>row.n_obs===33));
 console.log('Smoke OK: runtime stored trend reference (exact original 33-month period)');
 JS
+
+# Runtime comparison preserves physical values and provides both normalized chart modes.
+curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 3 --connect-timeout 10 --max-time 60 "$task_url/v1/comparison/temperature?start=2024-01&end=2024-12&bbox=-73.98614,-33.76766,-34.73135,5.24412${EXPECTED_REVISION:+&deployment=$EXPECTED_REVISION}" -o "$task_tmp/comparison.json"
+node --input-type=module - "$task_tmp/comparison.json" <<'JS_CHECK'
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const d=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+assert.equal(d.simulated,false);assert.equal(d.source,'databricks-sql');assert.equal(d.sourceLayer,'trusted');assert.equal(d.unit,'degC');assert.equal(d.reference.start,'2001-01');assert.equal(d.reference.end,'2020-12');
+for(const scope of ['global','regional']) {
+ assert.equal(d[scope].observations.length,12);
+ assert.ok(d[scope].reference.every(row=>row.count>=10));
+ assert.ok(d[scope].observations.every(row=>row.value!==null && Number.isFinite(row.standardized) && row.minmax>=0 && row.minmax<=100));
+}
+console.log('Runtime comparison smoke passed: trusted physical units, fixed monthly reference, global/regional z-scores and0–100.');
+JS_CHECK

@@ -85,7 +85,7 @@ export type EarthVariable = {
   months: { month: string; samples: number; validSamples: number }[];
 };
 export type EarthCatalog = {
-  capabilities?: {layeredAssistant?: boolean};
+  capabilities?: {layeredAssistant?: boolean;comparisonCharts?:boolean};
   revision?: string;
   simulated: false;
   variables: EarthVariable[];
@@ -132,6 +132,36 @@ export type EarthSeries = {
   }[];
 };
 
+export type ComparisonMode = "standardized" | "minmax";
+export type ComparisonObservation = EarthSeries["observations"][number] & {
+  standardized:number|null;minmax:number|null;
+  standardizedStatus:"available"|"no_data"|"insufficient_reference"|"constant_reference";
+};
+export type ComparisonScope = {
+  reference:{month:number;count:number;mean:number|null;standardDeviation:number|null}[];
+  range:{min:number|null;max:number|null;constant:boolean};
+  observations:ComparisonObservation[];
+};
+export type EarthComparison = {
+  variable:string;name:string;unit:string;sourceUnit:string;product:string;run?:string;
+  simulated:false;start:string;end:string;bbox:number[];method:string;aggregation:string;
+  source:string;sourceLayer:string;sourceTable:string;sourceUC:string;
+  quality?:EarthQuality;limitations:string[];
+  reference:{start:string;end:string;minimumYearsPerMonth:number;method:string};
+  global:ComparisonScope;regional:ComparisonScope;
+};
+export function loadComparison(variable:EarthVariable,start:string,end:string,bbox:string,signal:AbortSignal):Promise<EarthComparison> {
+  const key=JSON.stringify(["comparison:v1",variableDataKey(variable),start,end,bbox]);
+  return earthReadCache.read(key,signal,60_000,async(requestSignal)=> {
+    const query=new URLSearchParams({start,end,bbox});
+    const data:EarthComparison=await queuedSeries(requestSignal,async()=>
+      (await checked(`/v1/comparison/${encodeURIComponent(variable.id)}?${query}`,requestSignal)).json());
+    if (data.simulated!==false || data.variable!==variable.id || data.start!==start || data.end!==end ||
+      !Array.isArray(data.global?.observations) || !Array.isArray(data.regional?.observations))
+      throw new Error("Comparison data does not match this selection.");
+    return data;
+  });
+}
 export type EarthTrendRecord = {
   region_id: string;
   region_name: string;

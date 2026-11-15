@@ -23,6 +23,7 @@ import type {
   EarthColorRange,
   EarthConfig,
   EarthRegion,
+  ComparisonMode,
 } from "../lib/earthApi";
 
 import {
@@ -32,7 +33,7 @@ import type { GlobeView } from "../lib/comparison";
 import { RealGlobe } from "./RealGlobe";
 import { MultiVariablePicker } from "./MultiVariablePicker";
 import { LayerCard } from "./LayerCard";
-import { LayerAnalysis } from "./LayerAnalysis";
+import { ComparisonAnalysis } from "./ComparisonAnalysis";
 import type { LayerSetting, MapLayer } from "../lib/layers";
 import { useLayerFrames } from "../lib/useLayerFrames";
 import "./multivariable-layers.css";
@@ -104,6 +105,7 @@ export function RealPanel({
   onView: (view: GlobeView) => void;
 }) {
   const id = useId();
+  const [comparisonMode,setComparisonMode]=useState<ComparisonMode>("standardized");
   const [selection, setSelection] = useState({
     variable: "temperature",
     month: "",
@@ -138,6 +140,7 @@ export function RealPanel({
     setPlaying(false);
     setSelection({ variable: preset.variable, month: preset.month });
     setLayerSettings(preset.layers ?? [{variable:preset.variable,visible:true,opacity:1}]);
+    setComparisonMode(preset.comparisonMode ?? "standardized");
     setRegionId(preset.region);
     if (config.regions.some((region) => region.id === preset.region))
       setDrawnRegion(undefined);
@@ -298,6 +301,7 @@ export function RealPanel({
     layers: effectiveSettings,
     layerMonths: Object.fromEntries(effectiveSettings.map(setting => [setting.variable,
       setting.visible && view.showLayer ? layerFrames.frames[setting.variable]?.month ?? null : null])),
+    comparisonMode,
     start,
     end,
     region,
@@ -538,9 +542,15 @@ export function RealPanel({
         ))}
       </details>
       <section className="real-series-comparison multivariable-analysis" aria-label="Selected variables and map layers">
+        <ComparisonAnalysis variables={selectedVariables} region={region} start={start} end={end}
+          month={month} onMonth={selectMonth} active={active} mode={comparisonMode}
+          onMode={mode=> {onManualChange();setComparisonMode(mode);}}
+          eventWindow={eventWindow} countryOutline={!!countryOutline} available={catalog.capabilities?.comparisonCharts===true}/>
+        <details className="comparison-map-controls">
+        <summary>Map layers · {selectedVariables.length} selected · visibility, opacity & scales</summary>
         <div className="layer-deck-heading">
           <div><h2>Variables & map layers</h2><p className="real-series-comparison-note">
-            Each chart keeps its own unit. Opacity blends colors, not measurements. Later visible layers appear on top.
+            Map layers keep their physical units and scales. Opacity blends colors, not measurements. Later visible layers appear on top.
           </p></div>
           <div className="layer-deck-actions">
             <button type="button" onClick={() => {
@@ -554,7 +564,7 @@ export function RealPanel({
             }}>Hide all</button>
           </div>
         </div>
-        <div className="layer-stack" role="region" aria-label="Scrollable variable charts and layer controls" tabIndex={0}>
+        <div className="layer-stack" role="region" aria-label="Scrollable map layer controls" tabIndex={0}>
           {selectedVariables.map(entry => {
             const setting = effectiveSettings.find(layer => layer.variable === entry.id)!;
             const hasMonth = entry.months.some(row => row.month === month && row.validSamples > 0);
@@ -570,13 +580,10 @@ export function RealPanel({
               loading={setting.visible && hasMonth && layerFrames.loading}
               error={layerFrames.errors[entry.id]}
               status={layerFrames.loading && layerFrames.displayedMonth ? `Preparing ${realMonth(month)}; map still shows ${realMonth(layerFrames.displayedMonth)}.` :
-                !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : undefined}>
-              <LayerAnalysis variable={entry} region={region} start={start} end={end}
-                month={layerFrames.frames[entry.id]?.month ?? ""} onMonth={selectMonth} active={active}
-                eventWindow={eventWindow} countryOutline={!!countryOutline} />
-            </LayerCard>;
+                !hasMonth ? `No observations for ${realMonth(month)}. This layer is not drawn.` : undefined}/>
           })}
         </div>
+        </details>
       </section>
 
     </article>

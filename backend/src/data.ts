@@ -8,6 +8,7 @@ import type { Parameters, Provider } from "./core.ts";
 
 import { variables } from "./registry.ts";
 import { trustedColumns } from "./trusted-map.ts";
+import { comparisonReference, transformComparison } from "./comparison.ts";
 import type { Variable } from "./registry.ts";
 export { variables, excludedSources } from "./registry.ts";
 export type { Variable, RenderMetadata } from "./registry.ts";
@@ -495,6 +496,40 @@ export class DataService {
       limitations,
     };
     return { metadata, values, coverage };
+  }
+  async comparison(id: string, startInput: string, endInput: string, bbox: string) {
+    const variable=this.variable(id), start=parseMonth(startInput), end=parseMonth(endInput), bounds=parseBounds(bbox);
+    const span=(Number(end.slice(0,4))-Number(start.slice(0,4)))*12+Number(end.slice(5))-Number(start.slice(5));
+    if (span<0 || span>=2400) throw new ApiError(400,"INVALID_PERIOD","Select an ordered period of at most2400months.");
+    const first=start<comparisonReference.start?start:comparisonReference.start;
+    const last=end>comparisonReference.end?end:comparisonReference.end;
+    const {sql,parameters}=this.selected(variable,parseBounds(),`${first}-01`,monthAfter(last));
+    Object.assign(parameters,{areaWest:bounds.west,areaEast:bounds.wrap?bounds.east-360:bounds.east,
+      areaSouth:bounds.south,areaNorth:bounds.north});
+    const inside=`lat BETWEEN :areaSouth AND :areaNorth AND ${bounds.wrap?"(lon >= :areaWest OR lon <= :areaEast)":"lon BETWEEN :areaWest AND :areaEast"}`;
+    const categorical=variable.aggregation==="weighted_mode";
+    const aggregate=categorical?
+      "100.0*SUM(CASE WHEN value=1 THEN coverage*area_weight ELSE 0.0 END)/NULLIF(SUM(coverage*area_weight),0)":this.aggregate(variable);
+    // Share the source scan; regional conditional aggregates preserve the same QA/conversions as global.
+    const regional=aggregate.replace(/\bvalue\b/g,`(CASE WHEN ${inside} THEN value ELSE NULL END)`)
+      .replace(/\bcoverage\b/g,`(CASE WHEN ${inside} THEN coverage ELSE 0.0 END)`);
+    const rows=await this.provider.query(`WITH selected AS (${sql})
+      SELECT ${this.month("observed_time")} AS month, ${aggregate} AS global_value, ${regional} AS regional_value,
+      SUM(coverage*area_weight)/NULLIF(SUM(area_weight),0) AS global_coverage,
+      SUM(CASE WHEN ${inside} THEN coverage*area_weight ELSE 0.0 END)/NULLIF(SUM(CASE WHEN ${inside} THEN area_weight ELSE 0.0 END),0) AS regional_coverage,
+      COUNT(*) AS global_samples, SUM(CASE WHEN ${inside} THEN 1 ELSE 0 END) AS regional_samples
+      FROM selected GROUP BY ${this.month("observed_time")} ORDER BY month`,parameters,2412);
+    const scope=(name:"global"|"regional")=>transformComparison(rows.map(row=>({month:String(row.month),
+      value:numeric(row[`${name}_value`]),coverage:numeric(row[`${name}_coverage`]),samples:numeric(row[`${name}_samples`])})),start,end);
+    return {...sourceMetadata(variable), variable:id, name:variable.name, product:variable.product, run:variable.run,
+      unit:categorical?"%":variable.unit, sourceUnit:variable.unit, simulated:false, start,end,
+      bbox:[bounds.west,bounds.south,bounds.wrap?bounds.east-360:bounds.east,bounds.north],
+      aggregation:categorical?"valid_area_ice_fraction":variable.aggregation,
+      method:categorical?"Ice-class1 fraction of valid area weighted by cos(latitude) and coverage; not a mean of category codes or ice extent in km²":this.aggregationDescription(variable),
+      reference:comparisonReference, quality:variable.quality,
+      global:scope("global"),regional:scope("regional"),
+      limitations:[...limitations,"Historical reference2001–2020 is a project reference, not a30-year climate normal. At least10valid years per calendar month are required; zero reference variance is unavailable.",
+        "Each spatial scope has its own reference and min/max.0–100 uses the displayed period; a constant series is50. Normalized values compare relative behavior, not physical magnitudes, probabilities, statistical significance or causal effects."]};
   }
   async series(id: string, startInput: string, endInput: string, bbox: string) {
     const variable = this.variable(id),

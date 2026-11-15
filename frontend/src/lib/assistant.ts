@@ -6,12 +6,14 @@ import type {
   EarthColorRange,
   EarthConfig,
   EarthRegion,
+  ComparisonMode,
 } from "./earthApi";
 import type { GlobeView } from "./comparison";
 import type { LayerSetting } from "./layers";
 
 export type PanelSide = "A" | "B";
 export type PanelPreset = {
+  comparisonMode?:ComparisonMode;
   variable: string;
   month: string;
   region: string;
@@ -22,6 +24,7 @@ export type PanelPreset = {
 };
 export type PlaybackCommand = { playing: boolean; nonce: number };
 export type PanelSnapshot = {
+  comparisonMode?:ComparisonMode;
   side: PanelSide;
   variable: string;
   selectedMonth: string;

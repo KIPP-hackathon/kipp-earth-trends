@@ -361,3 +361,18 @@ Bandeiras: flag-icons7.6.0, MIT;168SVGs locais com licença e inspeção de cont
 Isso não encerra revisão humana, investigação científica, significância ou entrega
 Space Apps. Publicação e conferência da revisão Cloud Run/Vercel ficam registradas
 separadamente após o CI.
+
+
+### Evidência incremental — dois gráficos comparativos (15/11/2026)
+
+OpenAI Codex implementou o toggle Historical deviation / Scale0–100 escolhido
+pelo usuário. Dois gráficos (global e recorte) sobrepõem variáveis selecionadas;
+a API Warehouse trusted agrega e pós-processa em tempo de execução, preservando
+unidades, QA, cobertura e proveniência. Referência fixa2001–2020, mínimo10anos
+por mês do calendário; normalização descritiva sem teste de significância ou
+atribuição causal. [Método, fontes e evidências](comparison-charts.md).
+Node24:46checks existentes do frontend,6de autenticação e builds aprovados;
+verificação temporária de matemática/save e navegação com dados reais. Revisão
+independente identificou preservação do modo e pontos isolados; corrigidos e
+conferidos. Publicação e evidência final serão registradas após o deploy.
+Isso não conclui a investigação científica nem a submissão ao Space Apps.

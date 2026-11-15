@@ -144,7 +144,8 @@ function useLabWorkspace(onManualChange: () => void) {
         last.end === snapshot.end &&
         last.region.id === snapshot.region.id &&
         last.region.bbox === snapshot.region.bbox &&
-        JSON.stringify(last.layers) === JSON.stringify(snapshot.layers)
+        JSON.stringify(last.layers) === JSON.stringify(snapshot.layers) &&
+        last.comparisonMode === snapshot.comparisonMode
       )
         return previous;
       return { ...previous, [snapshot.side]: snapshot };
@@ -271,6 +272,7 @@ function App() {
       exploration.setPreset("A", {
         variable: panel.variable,
         ...(panel.layers ? {layers:panel.layers} : {}),
+        comparisonMode:panel.comparisonMode,
         month: panel.selectedMonth ?? panel.end,
         start: panel.start,
         end: panel.end,
@@ -329,13 +331,16 @@ function App() {
   const activeTab = useRef(active);
   activeTab.current = active;
   const getWorkspaceContext = useCallback(
-    (tab: LabTab) =>
-      (tab === "compare" ? comparison : exploration).getContext(
+    (tab: LabTab): AssistantContext => {
+      const context=(tab === "compare" ? comparison : exploration).getContext(
         tab,
         version.current,
         catalog.data?.capabilities?.layeredAssistant === true,
       ),
-    [comparison.getContext, exploration.getContext,catalog.data?.capabilities?.layeredAssistant],
+      supportsComparison=catalog.data?.capabilities?.comparisonCharts===true;
+      return supportsComparison?context:{...context,panels:context.panels.map(({comparisonMode:_mode,...panel})=>panel)};
+    },
+    [comparison.getContext, exploration.getContext,catalog.data?.capabilities?.layeredAssistant,catalog.data?.capabilities?.comparisonCharts],
   );
   const getContext = useCallback(
     () => getWorkspaceContext(activeTab.current),
@@ -432,6 +437,7 @@ function App() {
         variable: panel.variable,
         month: panel.selectedMonth,
         ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
+        comparisonMode:panel.comparisonMode,
         start: panel.start,
         end: panel.end,
         region: structuredClone(panel.region),
@@ -543,6 +549,7 @@ function App() {
           {
             variable: panel.variable,
             ...(panel.layers ? {layers:structuredClone(panel.layers)} : {}),
+            comparisonMode:panel.comparisonMode,
             month: panel.month,
             start: panel.start,
             end: panel.end,
@@ -716,6 +723,7 @@ function App() {
             : globalStudyRegion.id),
         start: panel?.start,
         end: panel?.end,
+        comparisonMode:panel?.comparisonMode,
         nonce,
       };
     };
@@ -732,6 +740,7 @@ function App() {
           region: action.regionId ?? previous.region,
           start: action.start ?? (same ? previous.start : undefined),
           end: action.end ?? (same ? previous.end : undefined),
+          comparisonMode:previous.comparisonMode,
           nonce,
         };
       }
