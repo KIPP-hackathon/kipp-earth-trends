@@ -5,7 +5,11 @@
 Por solicitação do usuário, OpenAI Codex removeu Credits & data, Field guide
 e Refresh catalog do rodapé. Mantido o link da marca KIPP. Removidos imports
 que ficaram sem uso. 141 testes frontend e build aprovados com Node.js 24.
-Sem alteração de dados ou métodos científicos. Publicação em acompanhamento.
+Sem alteração de dados ou métodos científicos. Publicado em `aa1ed4c` na
+[Cloudflare](https://kipp-earth-trends.lucas-henrique-tai.workers.dev/), com
+[workflow](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43758337245)
+aprovado. Checagem pública confirmou rodapé sem botões. Vercel bloqueou novo
+build por limite de publicações.
 
 ## Filtro com altura natural — 15/11/2026
 
