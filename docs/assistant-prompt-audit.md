@@ -1,5 +1,10 @@
 # KIPP assistant: knowledge and prompt audit
 
+Update: [Trend Lab integration](assistant-trend-lab.md) adds a ninth tool and a dedicated
+Trend Lab context. Earlier descriptions of chat lacking Trend Lab access below
+describe the previous release.
+
+
 Local review and implementation assisted by OpenAI Codex on 15 November 2026.
 This records source inspection and local checks, not a deployment or a live-model
 quality evaluation. Human review remains pending.

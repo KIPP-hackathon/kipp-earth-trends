@@ -1,5 +1,10 @@
 # KIPP assistant v1
 
+Update: [Trend Lab integration](assistant-trend-lab.md) adds a ninth tool and a dedicated
+Trend Lab context. Earlier descriptions of chat lacking Trend Lab access below
+describe the previous release.
+
+
 Implemented with AI assistance on 14 November 2026. Team review remains pending.
 
 The floating assistant answers in the user's language and can select tabs, configure two comparison panels, choose observed months and study periods, move the shared globe camera, start/stop playback, set a shared numeric color range and select rectangular study areas. Study rectangles can cross the antimeridian; bounds and display sampling preserve the wrapped longitude interval. Areas are study rectangles, not event footprints. It cannot execute arbitrary code, SQL, shell commands or external requests.

@@ -218,7 +218,11 @@ export function TrendLab({
     const x = available.find((v) => v.id === s.x)!;
     const y = available.find((v) => v.id === s.y);
     const nextRequest: InvestigationRequest = {
-      ...s,
+      x: s.x,
+      ...(s.y ? {y:s.y} : {}),
+      bbox: s.bbox,
+      start: s.start,
+      end: s.end,
       baselineStart: s.start,
       baselineEnd: s.end,
       method: "relationships-v1",
