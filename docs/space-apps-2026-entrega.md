@@ -1,5 +1,14 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Tabelas compactas com poucas variáveis — 15/11/2026
+
+OpenAI Codex removeu a reserva mínima de altura nas tabelas do Explore quando
+há até três variáveis selecionadas. Os cartões usam a altura real das linhas,
+e o Global aparece logo após o país, sem vazio intermediário. Seleções maiores
+mantêm a área de rolagem ampliada e os cabeçalhos fixos. Sem alterar dados,
+inferência, escala ou período. 141 testes frontend e build aprovados com
+Node.js 24; publicação em acompanhamento.
+
 ## Ações do rodapé removidas — 15/11/2026
 
 Por solicitação do usuário, OpenAI Codex removeu Credits & data, Field guide

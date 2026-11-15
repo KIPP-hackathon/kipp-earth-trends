@@ -584,3 +584,12 @@
   #panel-explore .comparison-charts .runtime-trend-table-scroll { min-height: 120px; }
   #panel-explore .comparison-charts .runtime-trend-reasons { flex: 0 1 28px; min-height: 0; max-height: 28px; margin: 4px 0; }
 }
+/* Small selections need only the space occupied by their actual table rows. */
+@media (min-width: 1000px) {
+  #panel-explore .real-panel.is-overview > .compact-comparison-tables { height: auto; align-self: start; }
+  #panel-explore .compact-comparison-tables .comparison-analysis { height: auto; }
+  #panel-explore .compact-comparison-tables .comparison-charts { flex: none; grid-template-rows: auto auto; align-content: start; }
+  #panel-explore .compact-comparison-tables .comparison-chart { height: auto; align-self: start; }
+  #panel-explore .compact-comparison-tables .runtime-trend-results { flex: none; min-height: 0; }
+  #panel-explore .compact-comparison-tables .runtime-trend-table-scroll { flex: 0 1 auto; min-height: 0; max-height: 210px; }
+}
