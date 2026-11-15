@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   CDH: surface_exchange_coefficient_for_heat
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

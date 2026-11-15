@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   FRCCN: areal_fraction_of_convective_showers
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

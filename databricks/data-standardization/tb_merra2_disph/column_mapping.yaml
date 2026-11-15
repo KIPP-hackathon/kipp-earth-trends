@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   DISPH: zero_plane_displacement_height_meters
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

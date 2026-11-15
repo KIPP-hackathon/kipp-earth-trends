@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   FRSEAICE: ice_covered_fraction_of_tile
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

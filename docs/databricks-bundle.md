@@ -89,3 +89,9 @@ Os 218 jobs executam `extract` → `standardize`, com nomes `kipp-raw2trusted-*`
 Todos os mapeamentos definem latitude/longitude, `time: date`, PK composta e NOT NULL em latitude/longitude/time. A sessão usa UTC no cast. A validação das chaves ocorre após o cast e antes do overwrite; medidas ausentes continuam permitidas. Descrições são herdadas do contrato da fonte. O CSV continua sendo o catálogo das fontes.
 
 A fonte SPEED conserva dois campos problemáticos com nomes explícitos: `source_wind_speed_value_pending_validation` e `invalid_temperature_conversion_of_wind_speed`. O segundo preserva uma conversão inválida do produtor para rastreabilidade e não representa temperatura. Consulte o status nos metadados da fonte.
+
+## Reingestão e deduplicação
+
+A tarefa `standardize` deduplica pela PK `(latitude, longitude, time)` depois de converter time para DATE e antes da validação e escrita. Nas fontes reingeridas, `source_file_modified_at` e `source_file` registram a origem e ordenam a escolha pelo arquivo mais recente; empates usam URI e hash da linha. Os demais fluxos usam `dropDuplicates` pela PK. A transient mantém as repetições da origem para rastreabilidade; a trusted conserva uma linha por chave.
+
+T10M combina arquivos legados da raiz (T10M_K/T10M_C) com os CSVs nativos anuais (T10M em Kelvin); estes são adaptados para o contrato existente, derivando Celsius por T10M - 273,15. A leitura inclui as subpastas anuais. Os períodos e execuções estão no catálogo CSV.

@@ -1,7 +1,7 @@
 table:
   name: '`earth-trend-data`.transient.tb_merra2_cldtmp'
-  description: Diagnóstico mensal CLDTMP do produto MERRA-2 M2TMNXSLV 5.12.4, exportado em CSV por ano. Temperatura
-    no topo das nuvens, em kelvin.
+  description: Diagnóstico mensal CLDTMP do produto MERRA-2 M2TMNXSLV 5.12.4, exportado
+    em CSV por ano. Temperatura no topo das nuvens, em kelvin.
   theme: atmosfera
   product: M2TMNXSLV_CLDTMP
   source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_CLDTMP/
@@ -21,10 +21,21 @@ columns:
     unit: degrees_east
     source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
   time:
-    description: Timestamp do mês preservado da fonte. Cruzamentos entre produtos devem usar ano e mês.
+    description: Timestamp do mês preservado da fonte. Cruzamentos entre produtos
+      devem usar ano e mês.
     unit: null
     source: gs://nasa-earth-trends-lab-raw/transient/GRACE_JPL_CRI_RL06.3Mv04/GRACE_JPL_CRI_RL06.3Mv04_2024_01.metadata.json
   CLDTMP:
     description: Temperatura no topo das nuvens, em kelvin.
     unit: K
     source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  source_file:
+    description: URI do CSV de origem no GCS, preservada para rastreabilidade e desempate
+      de reingestões.
+    unit: null
+    source: Databricks _metadata.file_path.
+  source_file_modified_at:
+    description: Última atualização do arquivo de origem no GCS. A trusted prefere
+      o arquivo mais recente ao deduplicar latitude, longitude e data.
+    unit: null
+    source: Databricks _metadata.file_modification_time.

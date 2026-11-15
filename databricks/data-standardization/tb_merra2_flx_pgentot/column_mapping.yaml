@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   PGENTOT: total_column_production_of_precipitation
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

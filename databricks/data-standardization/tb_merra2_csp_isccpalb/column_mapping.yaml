@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   ISCCPALB: simulated_isccp_cloud_albedo
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

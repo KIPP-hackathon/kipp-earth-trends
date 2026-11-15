@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   MDSCLDTOPPS: simulated_modis_cloud_top_pressure_total_mean
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

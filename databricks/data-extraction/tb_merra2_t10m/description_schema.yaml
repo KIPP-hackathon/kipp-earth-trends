@@ -1,7 +1,8 @@
 table:
   name: '`earth-trend-data`.transient.tb_merra2_t10m'
-  description: Temperatura mensal do ar a 10 m acima da altura de deslocamento (T10M) da reanálise MERRA-2
-    M2TMNXSLV, versão 5.12.4. Preserva os valores Kelvin e Celsius recebidos nos CSVs.
+  description: Temperatura mensal do ar a 10 m (MERRA-2 M2TMNXSLV). Compatibiliza
+    CSVs legados T10M_K/T10M_C na raiz e CSVs nativos T10M nas subpastas anuais. O
+    campo nativo T10M é Kelvin; Celsius é derivado por subtração de 273,15.
   theme: calor
   product: M2TMNXSLV
   source_path: gs://nasa-earth-trends-lab-raw/transient/M2TMNXSLV_T10M/
@@ -18,20 +19,31 @@ columns:
     unit: degrees_north
     source: Cabeçalho CSV e coordenadas da fonte.
   lon:
-    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador para [-180, 180).
+    description: Longitude do ponto da grade, em graus leste, normalizada pelo exportador
+      para [-180, 180).
     unit: degrees_east
     source: Cabeçalho CSV e processamento do exportador.
   time:
-    description: Referência temporal do registro mensal preservada do CSV. O timestamp identifica o período
-      do produto.
+    description: Referência temporal do registro mensal preservada do CSV. O timestamp
+      identifica o período do produto.
     unit: null
     source: Cabeçalho CSV e convenção temporal do produtor.
   T10M_K:
     description: Temperatura do ar a 10 m acima da altura de deslocamento, em kelvin.
     unit: K
-    source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+    source: T10M_K dos CSVs legados ou T10M nativo das subpastas anuais (Kelvin).
   T10M_C:
-    description: Temperatura do ar a 10 m em graus Celsius, com conversão de Kelvin por subtração de 273,15
-      no exportador.
+    description: Temperatura do ar a 10 m em graus Celsius, com conversão de Kelvin
+      por subtração de 273,15 no exportador.
     unit: degree_Celsius
-    source: Cabeçalho CSV e conversão do exportador.
+    source: T10M_C legado; para o CSV nativo, T10M - 273,15.
+  source_file:
+    description: URI do CSV de origem no GCS, preservada para rastreabilidade e desempate
+      de reingestões.
+    unit: null
+    source: Databricks _metadata.file_path.
+  source_file_modified_at:
+    description: Última atualização do arquivo de origem no GCS. A trusted prefere
+      o arquivo mais recente ao deduplicar latitude, longitude e data.
+    unit: null
+    source: Databricks _metadata.file_modification_time.

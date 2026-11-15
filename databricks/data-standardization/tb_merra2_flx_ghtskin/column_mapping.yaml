@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   GHTSKIN: ground_heating_for_skin_temp
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

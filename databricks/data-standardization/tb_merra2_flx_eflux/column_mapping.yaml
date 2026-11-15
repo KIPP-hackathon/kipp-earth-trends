@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   EFLUX: total_latent_energy_flux
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

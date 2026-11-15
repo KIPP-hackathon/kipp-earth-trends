@@ -18,3 +18,5 @@ columns:
   lon: longitude
   time: time
   FRCAN: areal_fraction_of_anvil_showers
+  source_file: source_file
+  source_file_modified_at: source_file_modified_at

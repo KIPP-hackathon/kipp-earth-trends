@@ -5,6 +5,7 @@
 
 from pathlib import Path
 import sys
+from pyspark.sql import functions as F
 
 sys.path.insert(0, str(Path.cwd().parent))
 from table_metadata import load_description, validate_columns, apply_comments
@@ -28,12 +29,17 @@ df = (
     .option("timestampFormat", "yyyy-MM-dd HH:mm:ss")
     .option("nullValue", "")
     .csv(STORAGE_PATH, header=True)
+    .select(
+        "*",
+        F.col("_metadata.file_path").alias("source_file"),
+        F.col("_metadata.file_modification_time").alias("source_file_modified_at"),
+    )
 )
 
 validate_columns(description, df.columns)
 
 # COMMAND ----------
 
-df.write.format("delta").mode("overwrite").saveAsTable(TABLE)
+df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").saveAsTable(TABLE)
 
 apply_comments(spark, TABLE, description)

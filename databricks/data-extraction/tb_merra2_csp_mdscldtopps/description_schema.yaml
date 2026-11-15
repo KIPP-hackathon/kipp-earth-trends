@@ -34,3 +34,13 @@ columns:
       do simulador COSP; não representa observação direta do satélite MODIS/ISCCP.'
     unit: Pa
     source: https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+  source_file:
+    description: URI do CSV de origem no GCS, preservada para rastreabilidade e desempate
+      de reingestões.
+    unit: null
+    source: Databricks _metadata.file_path.
+  source_file_modified_at:
+    description: Última atualização do arquivo de origem no GCS. A trusted prefere
+      o arquivo mais recente ao deduplicar latitude, longitude e data.
+    unit: null
+    source: Databricks _metadata.file_modification_time.
