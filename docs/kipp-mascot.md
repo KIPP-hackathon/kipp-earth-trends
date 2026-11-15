@@ -56,6 +56,24 @@ architecture work are not part of the release. Publication uses the personal
 GitHub account `Luckstai` and repository-scoped personal Git identity, as explicitly
 instructed by the team. No deployment is claimed until verified.
 
+## Verified production release
+
+On 15/11/2026, commit `8ce81770a2bd866f1a687fa88f8d67fcc7c51c68` was
+published to `main` using `Luckstai`, with personal Git author and committer
+`Lucas Henrique <lucas.henrique.tai@gmail.com>`.
+[Vercel deployment](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/5Es54WvvvQjsgzTT6KeHSvhWDMBR)
+reported `READY`, target `production`, serving
+[the public application](https://kipp-earth-trends-lab.vercel.app/).
+
+Post-deploy checks confirmed HTTP 200 and the expected content types/sizes for
+all four mascot/favicon assets. Chrome loaded exactly two animated WebP mascot
+images with the assistant open at desktop and 390 × 844 mobile sizes. Original
+header/footer branding remained present; mobile document width was 390 px,
+and the panel stayed inside the viewport. Reduced-motion emulation selected
+both static posters. The public HTML supplies the GIF favicon and PNG fallback;
+native browser-tab animation was not verified. This records a technical
+release, not Space Apps submission or completion of scientific requirements.
+
 Validation on the integrated branch: 47 frontend tests pass; frontend and API
 builds pass with Node.js 24. A read-only independent review found no material
 issues or reversion of team changes. CUA checked desktop and 390px mobile using

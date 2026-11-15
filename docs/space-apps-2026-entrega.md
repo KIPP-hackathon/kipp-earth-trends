@@ -121,7 +121,13 @@ Validação integrada: 47 testes frontend e builds frontend/API aprovados com
 Node.js 24; revisão independente sem problemas materiais. CUA conferiu desktop
 e 390 px com interface em inglês, logos originais, dois mascotes animados e
 layout atual do time preservados. Identidade pessoal configurada no escopo do
-repositório; validação de publicação pendente.
+repositório. Publicação verificada em 15/11/2026: commit `8ce8177` na `main`,
+[deploy Vercel READY em produção](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/5Es54WvvvQjsgzTT6KeHSvhWDMBR),
+assets públicos HTTP 200 e Chrome em desktop/390 px com os dois mascotes
+animados, logos originais, alternativa de movimento reduzido e sem overflow
+horizontal. Favicon GIF configurado; animação nativa da aba não foi verificada.
+Evidências detalhadas no [registro do mascote](kipp-mascot.md#verified-production-release).
+Esta publicação técnica não equivale à submissão no Space Apps.
 
 Evidência técnica adicional de 14/11/2026: a migração do backend para Lakebase
 conferiu as quatro tabelas de MERRA-2 e IMERG, nomes/tipos de colunas,
