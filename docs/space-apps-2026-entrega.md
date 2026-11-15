@@ -391,3 +391,27 @@ administrativas temporárias ainda pendentes nesta evidência. O serviço antigo
 permanece disponível para reversão. OpenAI Codex assistiu a migração e os registros;
 revisão técnica independente apontou proteção adicional da reversão de contadores,
 corrigida antes do corte. Não comprova nova análise científica nem submissão oficial.
+
+
+## Evidência incremental — migração GCP concluída (15/11/2026)
+
+Proxy publicado no [PR #11](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/11)
+e backend/CI no [PR #12](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/12),
+merge `6cd2e5e`. [CI 43674601450 aprovado](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43674601450),
+revisão `kipp-earth-api-00002-qay` a 100% em `kipp-space-apps-2026`. O site confirmou
+catálogo 72/72, chat real e 321 meses no navegador. CI conferiu frame/série,
+comparação e tendência armazenada, preservando proveniência e limites científicos.
+
+IAM privado, WIF restrita, sem chaves JSON, identidades distintas, contadores
+reconciliados e limites persistentes preservados. Concessões temporárias removidas;
+Editor automático da SA Compute não usada removido; sete membros mantidos.
+O serviço antigo foi preservado com invoker Vercel revogado. Ver [runbook,
+reversão e limitação herdada no Databricks](gcp-migration.md): grants compartilhados
+de `account users` incluem `MODIFY`, portanto não se afirma leitura exclusiva
+efetiva da SA no Warehouse. A política compartilhada não foi modificada.
+
+52 verificações preexistentes e builds Node.js 24 passaram; regressões temporárias
+conferiram reversão da quota entre horas/dias e operação Bash 3. OpenAI Codex
+assistiu configuração, código e documentação; revisão técnica independente
+executada e achados corrigidos. Revisão humana e submissão Space Apps continuam
+sob responsabilidade da equipe; esta evidência não conclui os itens científicos.
