@@ -11,8 +11,9 @@ Catálogo, frame e comparação regional HTTP 200; origem externa do assistente
 e Cloud Run anônimo rejeitados (403). Proximidade `gcp:us-east4` aceita,
 com `cf-placement: remote-IAD`. Credencial de invocação somente em secret
 servidor; token de deploy limitado em secret GitHub, ambos autorizados pelo
-usuário. Workflow automático em verificação e domínio personalizado aguardando
-DNS da Spaceship. Sem upgrade pago. Os brilhos decorativos em forma de “+” foram
+usuário. Primeiro [workflow automático](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43739116784)
+concluído com sucesso, incluindo smoke real. Domínio personalizado vinculado,
+aguardando DNS da Spaceship. Sem upgrade pago. Os brilhos decorativos em forma de “+” foram
 removidos do fundo, preservando estrelas em pontos e o controle de zoom.
 Não altera conclusões científicas nem comprova submissão da página Project.
 

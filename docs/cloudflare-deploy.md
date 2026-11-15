@@ -59,7 +59,7 @@ Assets seguem distribuição global sem passar pelo proxy de API.
 
 O domínio solicitado é `kipp-nasa.space`. A zona Free preserva o TXT Google
 existente e aguarda nameservers na Spaceship: `christina.ns.cloudflare.com` e
-`nick.ns.cloudflare.com`. Vincular Custom Domain e conferir TLS após ativação.
+`nick.ns.cloudflare.com`. Custom Domain já vinculado ao Worker; conferir DNS/TLS após ativação.
 APIs de URLs de preview não estão autorizadas. Salvos locais pertencem à origem e não migram
 automaticamente entre provedores; links compartilhados transportam a seleção.
 
@@ -87,7 +87,11 @@ retorna 403; a política contém somente os invokers Vercel e Cloudflare. Origem
 externa/cross-site do assistente retorna 403; corpo inválido de mesma origem
 chega à validação backend e retorna 400, sem chamada de IA. Nenhuma chave ou
 binding privado encontrado nos assets públicos; secret confirmado como
-`secret_text`. DNS personalizado ainda pendente; workflow CI em verificação.
+`secret_text`. DNS personalizado ainda pendente. Primeiro workflow CI concluído com sucesso:
+https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43739116784
+(commit `2b975d3`), incluindo build, 95 testes, deploy e smoke real. Navegador
+em produção confirmou globo e série Brasil/T10M, 321 meses, sem salvar
+investigação ou fazer pedido de IA.
 
 Workers não aceita `redirect: error`: os handlers compartilhados usam `manual`
 com rejeição explícita de 3xx (exceto 304 no catálogo). Não seguem URLs de
