@@ -1,5 +1,24 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Prompt e conhecimento do assistente — 15/11/2026
+
+OpenAI Codex revisou o contexto efetivamente enviado ao assistente e suas oito
+ferramentas. A política de evidências, limites científicos e ações agora é
+compartilhada pelo planejamento e pela síntese final; instruções distinguem
+metadados, séries descritivas, estudos armazenados e inferência runtime que o
+chat não consegue ler. O roteamento prioriza consultas relevantes e preserva os
+limites existentes. As ferramentas mantêm notas e rótulos mensais Final/Late do
+IMERG, sem alterar valores científicos.
+
+Testes locais com fixtures sintéticas verificam proveniência/lacunas e os dois
+caminhos de síntese, preservando erros e excluindo ações inválidas. Validação
+com Node.js 24.22.3: 139 testes frontend, 46 testes backend (incluindo três
+regressões novas do assistente), builds frontend/API e `git diff --check`.
+Avaliação com modelo real e revisão humana permanecem pendentes; nenhuma
+melhoria de qualidade foi medida em produção. Ver [auditoria e casos de
+avaliação](assistant-prompt-audit.md). Este registro não encerra submissão,
+revisão científica ou regras formais de IA.
+
 ## Comparação global/regional e alinhamento dos painéis — 15/11/2026
 
 OpenAI Codex assistiu os ajustes solicitados: Display cell at voltou para fora

@@ -197,6 +197,7 @@ function definition(variable: CatalogVariable) {
     sourceUnit: variable.sourceUnit,
     product: variable.product,
     run: variable.run,
+    processingNote: variable.processingNote,
     dataType: dataType(variable.product),
     source: sourceFor(variable.product),
     simulated: false,
@@ -227,6 +228,7 @@ type Observation = {
   value: number | null;
   coverage: number | null;
   samples: number | null;
+  processingRun?: string;
 };
 function summarize(
   variable: CatalogVariable,
@@ -369,6 +371,7 @@ export function createAssistantTools({
         value,
         coverage,
         samples: finite(row?.samples) && row.samples >= 0 ? row.samples : null,
+        ...(row?.processingRun ? { processingRun: row.processingRun } : {}),
       };
     });
     const nowMonth = new Date().toISOString().slice(0, 7);
@@ -377,6 +380,7 @@ export function createAssistantTools({
       unit: variable.unit,
       product: variable.product,
       run: variable.run,
+      processingNote: variable.processingNote,
       source: sourceFor(variable.product),
       dataType: dataType(variable.product),
       simulated: false,
