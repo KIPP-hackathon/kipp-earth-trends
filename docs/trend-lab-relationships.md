@@ -131,13 +131,45 @@ run it with input/output JSON paths using an environment containing numpy and
 statsmodels. Python packages are verification-only, not production dependencies.
 
 OpenAI Codex assisted implementation, tests, queries and documentation. Human
-scientific review is pending. No warehouse writes, deployment, model training,
-official submission or change to evaluated public links was performed.
+scientific review is pending. The local validation above did not write to the
+warehouse, train models or submit the official project. Production evidence follows.
 
 
 Release integration: rebased onto main `cefe451`; preserves horizontal setup,
 collapsible area globe, methodology/Guide navigation and the newer chart controls.
 The historical/projected change controls now use the seasonal time slope and
 its robust parameter interval; they are not forecasts. The old OLS mean band
-is not carried into this model. Publication remains pending authentication as
-Luckstai, required by AGENTS.md.
+is not carried into this model.
+
+## Production verification — 2026-11-15
+
+The user explicitly authorized the available GitHub account `c0ffex` for this
+release after the initial account-policy block. Personal project Git authorship
+was retained. The release was rebased onto main `1e054ac`, including the unchanged
+wind-arrow fix, and merged in [PR #23](https://github.com/KIPP-hackathon/kipp-earth-trends/pull/23)
+as `beadd712`. The release touched no WindArrows or MultiVariablePicker code;
+unrelated local edits were left in the original checkout. All 85 frontend tests,
+14 backend tests and both Node.js 24 builds passed after integration.
+
+[Vercel deployment](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/C8jeJc93iD96LTANDeLFc9sbgfRc)
+completed with bundle `index-BJVw9LPx.js`.
+[Backend CI/CD](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43690141300)
+passed and promoted `kipp-earth-api-00014-wos`. Two public investigation requests
+returned HTTP 200 and matched the independent real-data reference across all
+seven lags, including sample counts, correlations, coefficients, eligible
+uncertainty and gap-related inference status. The catalog advertises
+`investigations=true`, 72 variables and real trusted data.
+
+At 13:23 UTC (10:23 America/Sao_Paulo), Chromium verified the public site with
+no request interception or fixtures: both Pantanal presets, historical change
+controls, relationship lag selection, adjusted scatterplot, standardized
+departures, JSON export, GRACE gap warning and Guide navigation. Desktop 1440 px
+and mobile 390/360 px had no horizontal overflow or JavaScript exceptions.
+This check also includes subsequent main UI changes through `5655e01`.
+The initial browser attempt encountered the old five-minute catalog cache;
+the final ordinary public request and browser session use the new capability.
+
+Ignored local evidence: `artifacts/trend-lab-release/production-api.json`,
+`production-check.json`, `production-export.json`, `production-desktop.png`,
+`production-390.png`, `production-360.png`. Deployment verifies the technical
+release; scientific review, ENSO forecasting and official submission remain separate.
