@@ -3,6 +3,7 @@ import type { EarthRegion, EarthSeries, EarthVariable } from "../lib/earthApi";
 import { loadSeries, realScale, variableDataKey } from "../lib/earthApi";
 import { useEarthResource } from "../lib/useEarthResource";
 import { RealSeries } from "./RealSeries";
+import { LoadingState, LoadingStatus } from "./Loading";
 import "./multivariable-layers.css";
 
 const globalBbox = "-180,-90,180,90";
@@ -266,12 +267,16 @@ function LayerAnalysisComponent({
         Missing observations remain gaps.
       </p>
       {loading && (
-        <p className="layer-series-loading" role="status">
-          Loading {region.name} and global series…
-          {retained
-            ? ` Showing previously loaded data for ${retained.regionName}, ${start}–${end}, until this selection is ready.`
-            : ""}
-        </p>
+        retained ? (
+          <LoadingStatus className="layer-series-loading">
+            Loading {region.name} and global series… Showing previously loaded data for {retained.regionName}, {start}–{end}, until this selection is ready.
+          </LoadingStatus>
+        ) : (
+          <LoadingState
+            title={`Loading ${region.name} and global series…`}
+            detail="Preparing monthly values for the selected area and period."
+          />
+        )
       )}
       {regional.error && (
         <div className="layer-series-error" role="alert">

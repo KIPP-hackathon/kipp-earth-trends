@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LoadingIcon } from "./Loading";
 import {
   ArrowRight,
   CalendarDays,
@@ -135,7 +136,8 @@ export function EventExplorer({
           </label>
         </div>
         <div className="events-toolbar-bottom">
-          <span role="status" aria-live="polite">
+          <span role="status" aria-live="polite" className={resource.loading ? "loading-status" : undefined}>
+            {resource.loading && <LoadingIcon />}
             {resource.loading
               ? "Checking catalog coverage…"
               : resource.error

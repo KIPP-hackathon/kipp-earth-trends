@@ -5,7 +5,6 @@ import {
   FlaskConical,
   MapPin,
   Play,
-  RefreshCw,
 } from "lucide-react";
 import type {
   EarthCatalog,
@@ -29,6 +28,7 @@ import { SearchPicker } from "./ExplorationControls";
 import { MonthPicker } from "./MonthPicker";
 import { InvestigationResults } from "./InvestigationResults";
 import { GuidedTour } from "./GuidedTour";
+import { LoadingIcon, LoadingState } from "./Loading";
 import { trendLabTourSteps } from "./trendLabTour";
 import "./trend-lab.css";
 
@@ -539,12 +539,15 @@ export function TrendLab({
               <button
                 className="trend-run"
                 type="button"
-                disabled={!validPeriod || !supported}
+                disabled={!validPeriod || !supported || (series.loading && !dirty)}
+                data-loading={series.loading && !dirty || undefined}
                 onClick={submit}
               >
-                <Play size={16} fill="currentColor" />{" "}
+                {series.loading ? <LoadingIcon /> : <Play size={16} fill="currentColor" />}{" "}
                 {series.loading
-                  ? "Generate new investigation"
+                  ? dirty
+                    ? "Generate new investigation"
+                    : "Generating investigation…"
                   : "Generate investigation"}
               </button>
             </div>
@@ -585,14 +588,10 @@ export function TrendLab({
             </div>
           )}
           {series.loading && (
-            <div className="trend-empty" role="status">
-              <RefreshCw size={26} />
-              <h3>Loading regional monthly values…</h3>
-              <p>
-                The API will compute all views from the same regional series.
-                Missing months remain missing.
-              </p>
-            </div>
+            <LoadingState
+              title="Loading regional monthly values…"
+              detail="Preparing trends, anomalies and relationships from the same regional series. Missing months remain missing."
+            />
           )}
           {series.error && (
             <div className="trend-empty" role="alert">

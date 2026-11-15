@@ -5,6 +5,7 @@ import type { ComparisonEntry } from "./ComparisonAnalysis";
 import { comparisonColor } from "../lib/comparisonColors";
 import { realUnit } from "../lib/earthApi";
 import { VariableExplanation } from "./VariableExplanation";
+import { LoadingIcon } from "./Loading";
 
 function TrendResultsComponent({
   entries,
@@ -188,12 +189,12 @@ function TrendResultsComponent({
                     }
                   >
                     {loading
-                      ? "Pending"
+                      ? <span className="loading-inline"><LoadingIcon />Pending</span>
                       : adjusted === undefined
                         ? error
                           ? "Source error"
                           : !data
-                            ? "Loading"
+                            ? "Unavailable"
                             : "Unavailable"
                         : adjusted < 0.05
                           ? "Significant"

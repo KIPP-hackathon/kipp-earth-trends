@@ -3,6 +3,7 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
+import { LoadingStatus } from "./Loading";
 import { WindArrows } from "./WindArrows";
 import { pairWindFrames, sampleWind, windComponents } from "../lib/wind";
 import "./wind-arrows.css";
@@ -89,6 +90,8 @@ export function RealGlobe({
 }) {
   const [land, setLand] = useState<GeoPermissibleObjects | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [surfaceReady, setSurfaceReady] = useState(false);
+  const [landLoading, setLandLoading] = useState(true);
   const [probe, setProbe] = useState<[number, number] | null>(null);
   const id = useId();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -189,7 +192,8 @@ export function RealGlobe({
       .then((data) => {
         if (mounted) setLand(data.default as GeoPermissibleObjects);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (mounted) setLandLoading(false); });
     return () => {
       mounted = false;
     };
@@ -286,6 +290,7 @@ export function RealGlobe({
             colorRange={colorRange}
             showField={view.showLayer}
             onUnavailable={() => setUnavailable(true)}
+            onReady={() => setSurfaceReady(true)}
           />
         <svg
           ref={svgRef}
@@ -695,9 +700,12 @@ export function RealGlobe({
           </> : " · no paired wind direction for this cell")}
         </p>
       )}
+      {!unavailable && (!surfaceReady || landLoading) && (
+        <LoadingStatus className="globe-assets-loading">Preparing Earth basemap…</LoadingStatus>
+      )}
       {unavailable && (
         <p role="alert">
-          WebGL is unavailable. The image basemap and color fields could not be drawn;
+          Globe rendering is unavailable. The image basemap or color fields could not be drawn;
           wind arrows and monthly series remain available when their data is loaded.
         </p>
       )}

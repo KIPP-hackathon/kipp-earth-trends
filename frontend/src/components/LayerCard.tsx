@@ -7,6 +7,7 @@ import type { LayerSetting } from "../lib/layers";
 import { ColorScaleControls } from "./ColorScaleControls";
 import { DomainIcon } from "../lib/domains";
 import { groupVariables } from "../lib/variableGroups";
+import { LoadingStatus } from "./Loading";
 import { windComponents } from "../lib/wind";
 import "./multivariable-layers.css";
 
@@ -128,8 +129,8 @@ export function LayerCard({
             ? "Visible layer · fully transparent"
             : "Shown on map"
           : "Charts only · hidden on map"}
-        {loading ? " · loading observations…" : ""}
       </p>
+      {loading && <LoadingStatus className="layer-map-loading">Loading observations…</LoadingStatus>}
       {onSolo && <button type="button" className="layer-solo" onClick={onSolo}>
         Show only this layer
       </button>}

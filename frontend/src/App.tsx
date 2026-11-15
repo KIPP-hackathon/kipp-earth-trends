@@ -16,6 +16,7 @@ import { EventExplorer } from "./components/EventExplorer";
 import { TrendLab } from "./components/TrendLab";
 import { RealPanel } from "./components/RealDataView";
 import { SpaceBackdrop } from "./components/SpaceBackdrop";
+import { LoadingState, LoadingStatus } from "./components/Loading";
 import { useCountryLocation } from "./lib/useCountryLocation";
 import { brazilCountry, loadCountries } from "./lib/countries";
 import type { CountrySelection } from "./lib/countries";
@@ -987,9 +988,13 @@ function App() {
           KIPP · {labTabs.find((tab) => tab.id === active)?.label}
         </h1>
         {(catalog.loading || config.loading) && (
-          <p className="real-notice" role="status">
-            Loading real variables and study areas…
-          </p>
+          <LoadingState
+            title="Preparing your Earth workspace"
+            detail="Loading real variables and study areas…"
+          />
+        )}
+        {isExploration && location.status === "locating" && catalog.data && config.data && (
+          <LoadingStatus>Finding your country… You can keep exploring.</LoadingStatus>
         )}
         {catalog.error && (
           <RequestFailure message={catalog.error} retry={catalog.retry} />

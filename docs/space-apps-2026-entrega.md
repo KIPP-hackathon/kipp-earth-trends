@@ -1,5 +1,37 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Indicadores de carregamento — implementação local (15/11/2026)
+
+OpenAI Codex assistiu componentes compartilhados com animação orbital,
+mensagens de espera e placeholders decorativos para a entrada do app,
+catálogo, localização, assets do globo, camadas, buffer de reprodução,
+séries/comparações, resultados do Trend Lab, Events, assistente e ações
+assíncronas de investigações salvas/importadas/compartilhadas. Estados de erro
+ou indisponibilidade não mantêm mensagens de carregamento indefinidamente.
+O Trend Lab impede reenvio da mesma investigação enquanto ela está em curso;
+uma seleção alterada continua permitindo iniciar a nova investigação.
+
+Mensagens em inglês, ícones decorativos com status acessível e animações
+desativadas por `prefers-reduced-motion`. Não foram adicionados dependências,
+imagens externas, dados, estimativas de progresso ou métodos científicos.
+Verificação local com Node.js 24: testes frontend e builds frontend/API
+aprovados. Chromium com respostas locais deliberadamente atrasadas conferiu
+entrada antes do JavaScript, catálogo, assets do globo, Events e Trend Lab,
+incluindo falha, retry e sucesso; larguras 1440/390/360 px e redução de movimento.
+Globo/comparações removem o loader em falha da fonte; cancelamento do assistente
+remove o status imediatamente, sem exceções JavaScript nesses cenários.
+Replay de medições previamente obtidas apenas para testar a interface; não é
+nova investigação nem validação de produção. Capturas e roteiro em `/tmp`,
+fora do Git. Implementação local, sem publicação ou submissão Project.
+
+Preparação para publicação: release isolado `feat/loading-states`, sobre a
+main `e4d15e0`, preserva o layout Explore em três colunas, os seletores nativos, o viewport retangular e os controles em cascata.
+125 testes frontend e builds frontend/API aprovados com Node.js 24; Chromium
+repetiu os cenários de espera/falha/retry/cancelamento em 1440/390/360 px,
+sem exceções JavaScript. O usuário autorizou explicitamente `c0ffex` para esta
+publicação e solicitou rebase sobre as mudanças remotas; autoria Git pessoal
+Lucas Henrique preservada. Publicação será conferida após integração.
+
 ## Viewport retangular e configuração por cascata — 15/11/2026
 
 OpenAI Codex assistiu os ajustes solicitados pelo usuário: globo ocupa toda a

@@ -3,6 +3,7 @@ import type { GeoPermissibleObjects } from "d3-geo";
 import "./global-comparison.css";
 import "./compact-exploration.css";
 import { loadCountries } from "../lib/countries";
+import { LoadingStatus } from "./Loading";
 import type { CountrySelection } from "../lib/countries";
 import { PeriodPicker, SearchPicker } from "./ExplorationControls";
 import {
@@ -486,9 +487,8 @@ function SelectedRealPanel({
           onColorRange={(value) => onColorRange(variable.id, value)}
         />
         {(frame.loading || buffering) && (
-          <div
+          <LoadingStatus
             className={`real-loading ${frame.data ? "has-frame" : ""}`}
-            role="status"
           >
             {frame.loading
               ? `Loading ${realMonth(month)}…`
@@ -498,7 +498,7 @@ function SelectedRealPanel({
             {frame.data &&
               frame.data.month !== month &&
               ` Showing ${realMonth(frame.data.month)}.`}
-          </div>
+          </LoadingStatus>
         )}
       </div>
       {frame.error && <Failure message={frame.error} retry={frame.retry} />}
