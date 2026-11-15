@@ -1,5 +1,29 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Explore em três colunas e datas nativas — 15/11/2026
+
+Por solicitação do usuário, OpenAI Codex assistiu a reorganização desktop do
+Explore: filtros de mapa em coluna de 220px à esquerda, globo central e gráfico
+à direita. Recolher os filtros reduz a coluna a 44px e libera espaço ao globo.
+Mantidos leitura das fontes, visibilidade, opacidade e controles analíticos.
+Limites da escala são editados diretamente nos números acima da barra, com
+Apply, Reset e validação de limites; eliminadas as caixas de mínimo/máximo
+separadas. Fonte e explicações da escala ficam em detalhes expansíveis.
+Ajustes visuais não modificam observações, séries, exportações ou inferência.
+
+Após novo relato de falha no iPhone, removido o calendário modal do componente
+compartilhado. Início, fim e mês da linha do tempo usam os mesmos selects nativos
+de mês/ano. Somente meses disponíveis são oferecidos; trocar o ano preserva o
+mês quando há dados e escolhe um mês disponível caso contrário. Abrir o período
+foca o diálogo sem acionar um seletor automaticamente.
+
+Validação: 102 testes frontend e build com Node.js 24; Chromium desktop em
+1440px e 1024px confirmou ordem das colunas, recolhimento, aplicação de escala,
+limites inválidos e reset. WebKit emulando iPhone alterou período para
+2001-02–2025-04 e mês exibido para 2002-06. Sem overflow horizontal ou erros
+de página nessas verificações; sem teste em iPhone físico. Publicação em
+acompanhamento. Alteração anterior com calendário modal fica substituída.
+
 ## Calendário da linha do tempo e velocidade — 15/11/2026
 
 Relato posterior do usuário mostrou que a validação anterior não cobria o
