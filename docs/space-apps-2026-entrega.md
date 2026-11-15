@@ -1,5 +1,14 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Legibilidade dos grupos de variáveis — 15/11/2026
+
+OpenAI Codex assistiu o ajuste CSS do seletor: ícone do grupo centralizado
+nas duas linhas, nomes de itens em 14px, unidades em 13px e textos auxiliares
+em 12px. Prévia no navegador confirmou centros coincidentes de ícone,
+checkbox e bloco de texto; lista continua com rolagem. Atualização do Trend Lab
+da main `ced5d3c` integrada. 96 testes frontend e build aprovados. Publicação
+em verificação; sem alteração de dados, método estatístico ou seleção.
+
 ## Hospedagem alternativa Cloudflare — 15/11/2026
 
 OpenAI Codex assistiu a preparação de uma segunda hospedagem solicitada pelo

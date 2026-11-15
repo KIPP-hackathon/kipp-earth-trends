@@ -173,6 +173,11 @@
   gap: 3px 7px;
   min-width: 0;
 }
+.multi-variable-group-name > svg {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
 .multi-variable-options .multi-variable-group-name strong {
   font-size: inherit;
 }
@@ -222,21 +227,21 @@
 }
 .multi-variable-options strong {
   color: #e3edfa;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.45;
   font-weight: 550;
   overflow-wrap: anywhere;
 }
 .multi-variable-options small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .multi-variable-options .multi-variable-unit {
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
 }
 .multi-variable-options .multi-variable-meta {
   display: flex;
