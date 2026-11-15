@@ -10,7 +10,12 @@ Botão desabilitado enquanto a origem não tem variáveis aplicadas.
 136 testes frontend e builds frontend/API aprovados. Navegador conferiu os
 dois sentidos, áreas diferentes, opacidade 37%, modos distintos e mudança de
 mês no destino sem alterar a origem antes de copiar. Configurações temporárias
-usaram dados reais; nenhum salvo foi criado. Publicação em verificação.
+usaram dados reais; nenhum salvo foi criado. Integradas as atualizações do time
+até `a0b0844`, com os 136 testes e build repetidos com sucesso.
+Publicado na main em `8eed32b`; [deploy Cloudflare](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43751895767)
+concluído, incluindo verificação do catálogo real e do backend privado.
+Chromium no endereço público confirmou os botões e a cópia entre painéis,
+com período, região, mês, modo e opacidade 37% preservados.
 
 ## Seletor único, isolamento da camada e hover estável — 15/11/2026
 
