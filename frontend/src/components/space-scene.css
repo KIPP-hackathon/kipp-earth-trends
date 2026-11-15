@@ -26,6 +26,21 @@
   height: 100%;
   pointer-events: none;
 }
+/* Share one CSS viewport between the HTML canvas and SVG interaction layer.
+   Avoid composited canvas content inside SVG foreignObject on mobile WebKit. */
+.real-globe-viewport {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+.real-globe-base,
+.real-globe-viewport > .globe-surface-viewport {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 .real-globe-scene .real-globe-svg {
   position: relative;
   z-index: 1;

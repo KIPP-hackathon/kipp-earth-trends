@@ -397,12 +397,26 @@ export function GlobeSurface({
     currentField.current = { frame, layers, showField, colorRange };
     updateField.current?.();
   }, [frame, layers, showField, colorRange]);
+  // Keep the live WebGL viewport in HTML. WebKit can composite a GPU canvas
+  // inside SVG foreignObject at unscaled SVG coordinates on iOS, shifting and
+  // enlarging the raster relative to the outlines and hit-testing geometry.
+  if (viewportMode) {
+    return (
+      <canvas
+        ref={canvas}
+        width={surfaceSize}
+        height={surfaceSize}
+        className="earth-surface globe-surface-viewport"
+        aria-hidden="true"
+      />
+    );
+  }
   return (
     <foreignObject
-      x={viewportMode ? 0 : 50}
-      y={viewportMode ? 0 : 50}
-      width={viewportMode ? 640 : 540}
-      height={viewportMode ? 640 : 540}
+      x={50}
+      y={50}
+      width={540}
+      height={540}
       pointerEvents="none"
     >
       <canvas

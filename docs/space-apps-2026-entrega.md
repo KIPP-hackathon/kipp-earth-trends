@@ -1,5 +1,25 @@
 # Space Apps 2026 — checklist de entrega e evidências
 
+## Correção local de layout no iPhone — 15/11/2026
+
+OpenAI Codex assistiu a correção dos filtros e da composição do globo após
+capturas reais fornecidas pelo usuário. A versão anterior reproduziu em WebKit
+os menus fora das bordas e o canvas WebGL ampliado/deslocado. O viewport ativo
+passou a empilhar canvas HTML e SVG, com a mesma projeção; os filtros abrem para
+dentro da tela e acompanham o espaço visível, incluindo calendários.
+
+[Reprodução, alteração e limites da validação](iphone-safari-layout.md).
+WebKit com perfil iPhone: 390×664, 320×568 e paisagem 844×390 aprovados;
+WebKit também conferido em 1440×900. Chromium com perfil Pixel: 412×839 e desktop 1440×900 aprovados. País, período e ambos os calendários
+conferidos, com zoom/rotação, alinhamento do raster/contornos e WebGL ativo;
+sem exceções JS ou rolagem horizontal nesses testes. Redução do visualViewport
+exercitada por evento de teste, sem teclado iOS nativo nem aparelho físico.
+90 testes frontend e builds frontend/backend aprovados com Node.js 24.
+Publicação na `main` autorizada pelo usuário; conferência de produção pendente.
+Não modifica observações, estatística ou conclusão científica nem comprova
+submissão. Revisão humana pendente.
+
+
 ## Migração para sete tabelas consolidadas — 15/11/2026
 
 O usuário confirmou que as sete tabelas consolidadas MERRA-2 são as fontes

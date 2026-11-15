@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, Search } from "lucide-react";
 import { DomainIcon } from "../lib/domains";
 import { MonthPicker } from "./MonthPicker";
+import { usePopoverPosition } from "../lib/usePopoverPosition";
 
 export type SearchOption = {
   id: string;
@@ -39,6 +40,33 @@ export function SearchPicker({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (!open) return;
+    // iOS keeps the layout viewport tall while the keyboard shrinks/pans the
+    // visual viewport. Let the list scroll within the space actually visible.
+    const viewport = window.visualViewport;
+    const fit = () => {
+      const popup = dialog.current;
+      if (!popup) return;
+      const bottom = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight);
+      popup.style.setProperty(
+        "--search-popover-max-height",
+        `${Math.max(0, bottom - popup.getBoundingClientRect().top - 8)}px`,
+      );
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    window.addEventListener("scroll", fit, true);
+    viewport?.addEventListener("resize", fit);
+    viewport?.addEventListener("scroll", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      window.removeEventListener("scroll", fit, true);
+      viewport?.removeEventListener("resize", fit);
+      viewport?.removeEventListener("scroll", fit);
+    };
+  }, [open]);
   const close = (focus = false) => {
     setOpen(false);
     if (focus) trigger.current?.focus();
@@ -103,6 +131,7 @@ export function SearchPicker({
       {open && (
         <div
           className="exploration-popover exploration-search-popover"
+          ref={dialog}
           role="dialog"
           aria-label={`Choose ${label.toLowerCase()}`}
           id={`${id}-dialog`}
@@ -199,6 +228,7 @@ export function PeriodPicker({
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const dialog = usePopoverPosition(open);
   useEffect(() => {
     if (!open) return;
     root.current
@@ -248,6 +278,7 @@ export function PeriodPicker({
       {open && (
         <div
           className="exploration-popover exploration-period-popover"
+          ref={dialog}
           role="dialog"
           aria-label="Choose study period"
           id={`${id}-dialog`}

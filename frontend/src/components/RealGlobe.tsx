@@ -295,6 +295,30 @@ export function RealGlobe({
       <div
         className={`real-globe-scene ${drawing ? "is-drawing" : ""}${view.zoom > 1.18 ? " is-zoomed" : ""}`}
       >
+        <div className="real-globe-viewport">
+          <svg
+            className="real-globe-base"
+            viewBox="0 0 640 640"
+            aria-hidden="true"
+          >
+            <g
+              transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
+            >
+              <circle cx="320" cy="320" r="278" fill="#548fdf" opacity=".16" />
+              <circle cx="320" cy="320" r="270" fill="#0b1830" />
+              <path d={paths.land} fill="#566b80" />
+            </g>
+          </svg>
+          <GlobeSurface
+            viewportZoom={view.zoom}
+            longitude={view.longitude}
+            latitude={view.latitude}
+            frame={frame && !windComponents(frame.variable) ? frame : undefined}
+            layers={layers?.filter(layer => !windComponents(layer.id))}
+            colorRange={colorRange}
+            showField={view.showLayer}
+            onUnavailable={() => setUnavailable(true)}
+          />
         <svg
           ref={svgRef}
           viewBox="0 0 640 640"
@@ -526,23 +550,6 @@ export function RealGlobe({
           <g
             transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
           >
-            <circle cx="320" cy="320" r="278" fill="#548fdf" opacity=".16" />
-            <circle cx="320" cy="320" r="270" fill="#0b1830" />
-            <path d={paths.land} fill="#566b80" />
-          </g>
-          <GlobeSurface
-            viewportZoom={view.zoom}
-            longitude={view.longitude}
-            latitude={view.latitude}
-            frame={frame && !windComponents(frame.variable) ? frame : undefined}
-            layers={layers?.filter(layer => !windComponents(layer.id))}
-            colorRange={colorRange}
-            showField={view.showLayer}
-            onUnavailable={() => setUnavailable(true)}
-          />
-          <g
-            transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
-          >
             <g clipPath={`url(#${id})`} pointerEvents="none">
               <path
                 d={paths.land}
@@ -613,6 +620,7 @@ export function RealGlobe({
             ))}
           </g>
         </svg>
+        </div>
       </div>
       <div className="real-globe-actions">
         <div>
