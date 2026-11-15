@@ -1,3 +1,4 @@
+import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./globeZoom";
 import type { GlobeView } from "./comparison";
 import type { EarthColorRange, EarthRegion } from "./earthApi";
 
@@ -173,7 +174,7 @@ export function validateInvestigationView(value: unknown): InvestigationView {
   if (typeof c.showLayer !== "boolean")
     return fail("Invalid layer visibility.");
   const camera: GlobeView = {
-    zoom: number(c.zoom, 0.8, 1.8),
+    zoom: number(c.zoom, MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM),
     longitude: number(c.longitude, -180, 180),
     latitude: number(c.latitude, -90, 90),
     showLayer: c.showLayer,

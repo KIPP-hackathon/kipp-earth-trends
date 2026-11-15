@@ -283,3 +283,55 @@ aba, comparação com áreas distintas, exportar/importar e viewport 390 px sem
 overflow. Revisão humana, investigação científica de histórico adequado e
 submissão continuam pendentes; não se declara conformidade completa ou entrega
 científica concluída.
+
+
+## Evidência incremental — zoom e nomes cartográficos (14/11/2026)
+
+OpenAI Codex assistiu zoom0,8–8×, renderização WebGL do trecho visível, nomes de
+países progressivos com prevenção de sobreposição, fronteiras Natural Earth e
+sensibilidade de arraste proporcional à aproximação. Configurações salvas e
+contratos do agente usam o mesmo limite. Zoom não altera recorte científico nem
+aumenta a resolução das observações. Ver [método e verificação](globe-zoom-labels.md).
+
+Builds Node24,46 verificações preexistentes do frontend, seis da API e revisão
+independente aprovados. O navegador confirmou nomes, teclado/limite8×, desenho de
+bbox em8× e sua reabertura por link, reset e câmeras independentes/sincronizadas
+conforme o workspace. Layout390px sem overflow; gesto físico de pinça não foi
+exercitado. Permanecem as pendências científicas e de submissão do checklist.
+
+## Evidência incremental — tema espacial translúcido, preview local (14/11/2026)
+
+OpenAI Codex assistiu a aplicação de um fundo espacial contínuo e tema escuro
+translúcido em painéis, campos, calendário, cards, modal e assistente. Os gráficos
+usam linhas e rótulos com contraste para o fundo escuro; valores, agregações e
+paletas científicas do globo permanecem os mesmos. Há respeito às preferências
+de movimento reduzido e, quando suportada, transparência reduzida.
+
+Preview local em `http://localhost:5180`, com proxy de desenvolvimento opcional
+para a API pública existente, sem credenciais no navegador. Nenhuma publicação
+deste tema foi realizada. 46 testes e build com Node.js 24 aprovados. Chromium
+carregou dados reais e conferiu abas independentes, calendário, assistente aberto,
+gráficos, guia e viewport de 390 px sem overflow horizontal ou exceções JS.
+Capturas foram inspecionadas localmente; revisão humana da equipe pendente.
+Esta alteração visual não encerra as pendências científicas ou de submissão.
+
+Ajuste posterior no mesmo preview: fundo junto aos planetas quase preto,
+estrelas mais visíveis e deslocamento local em três velocidades (14/18/25 s).
+O movimento fica restrito ao céu decorativo e respeita movimento reduzido;
+paletas, dados e câmera do planeta permanecem os mesmos.
+
+Integração para publicação: tema aplicado sobre a `main` com zoom/nomes de
+países, investigações salvas e controles compactos preservados. Menus novos,
+ações de salvar e painel de evidências também receberam superfícies escuras.
+46 testes e build Node.js 24 aprovados no checkout isolado; Chromium conferiu
+API real, controles escuros, estrelas locais animadas, movimento reduzido e
+layout de 390 px sem exceções JavaScript ou overflow horizontal. Edições locais
+de outros trabalhos foram preservadas fora desta publicação.
+
+Publicação confirmada: commit `bf8308a`,
+[deploy Vercel aprovado](https://vercel.com/lucas-projects-62e8b289/kipp-earth-trends-lab/8JVB3rKaq2i2eYtKUH3d7R1pk3u6).
+Site e catálogo públicos responderam HTTP 200, com 72 variáveis. Chromium em
+produção confirmou fonte Manrope carregada, menus escuros, céu local quase preto,
+movimento das estrelas, preferência de movimento reduzido e layout mobile sem
+overflow ou exceções JavaScript. Bundle publicado: `index-ByxD8o4r.js`, CSS
+`index-CSXaHGP5.css`. A publicação é visual; não altera observações científicas.

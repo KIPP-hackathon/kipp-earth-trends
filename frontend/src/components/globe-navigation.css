@@ -1,0 +1,55 @@
+.globe-country-labels text {
+  fill: #fff;
+  stroke: #071329;
+  stroke-width: 3.2px;
+  paint-order: stroke;
+  stroke-linejoin: round;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  user-select: none;
+  pointer-events: none;
+}
+.real-globe-actions {
+  gap: 10px;
+  align-items: center;
+}
+.real-globe-actions > small {
+  font-size: 10px;
+  line-height: 1.6;
+  max-width: 55%;
+}
+.globe-zoom-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  color: #d6e7ff;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.real-globe-actions > div {
+  align-items: center;
+}
+.real-globe-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+@media (max-width: 480px) {
+  .real-globe-actions {
+    align-items: flex-start;
+  }
+  .real-globe-actions > small {
+    max-width: 46%;
+  }
+  .real-globe-actions > div {
+    gap: 3px;
+  }
+  .real-globe-actions button {
+    width: 29px;
+  }
+}
+
+.compact-real-panel .real-globe-scene.is-zoomed {
+  margin: 8px auto 10px;
+  border-radius: 8px;
+}

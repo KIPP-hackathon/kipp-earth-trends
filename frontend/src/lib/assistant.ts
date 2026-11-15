@@ -1,3 +1,4 @@
+import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./globeZoom";
 import type { LabTab } from "../components/LabTabs";
 import { realScale, validColorDomain } from "./earthApi";
 import type {
@@ -250,7 +251,9 @@ export function validateAssistantActions(
         a.latitude < -90 ||
         a.latitude > 90 ||
         (a.zoom !== undefined &&
-          (!finite(a.zoom) || a.zoom < 0.8 || a.zoom > 1.8)))
+          (!finite(a.zoom) ||
+            a.zoom < MIN_GLOBE_ZOOM ||
+            a.zoom > MAX_GLOBE_ZOOM)))
     )
       return undefined;
     if (

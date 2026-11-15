@@ -1,3 +1,4 @@
+import { MIN_GLOBE_ZOOM, MAX_GLOBE_ZOOM } from "./lib/globeZoom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
@@ -713,7 +714,10 @@ function App() {
           ...nextView,
           longitude: Math.max(-180, Math.min(180, action.longitude)),
           latitude: Math.max(-90, Math.min(90, action.latitude)),
-          zoom: Math.max(0.8, Math.min(1.8, action.zoom ?? nextView.zoom)),
+          zoom: Math.max(
+            MIN_GLOBE_ZOOM,
+            Math.min(MAX_GLOBE_ZOOM, action.zoom ?? nextView.zoom),
+          ),
         };
       if (action.type === "set_range")
         ranges[action.variable] = {

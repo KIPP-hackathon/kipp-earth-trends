@@ -3,6 +3,7 @@ import { geoGraticule10, geoPath } from "d3-geo";
 import type { GeoPermissibleObjects } from "d3-geo";
 import { Layers3, Minus, Plus, RotateCcw, Scan, X } from "lucide-react";
 import { GlobeSurface } from "./GlobeSurface";
+import { SpaceBackdrop } from "./SpaceBackdrop";
 import "./space-scene.css";
 import {
   frameCellIndex,
@@ -14,6 +15,13 @@ import type { GlobeView } from "../lib/comparison";
 import { initialGlobeView } from "../lib/comparison";
 import type { EarthColorRange, EarthFrame, EarthRegion } from "../lib/earthApi";
 import { displayScale, realMonth, realScale, realUnit } from "../lib/earthApi";
+import { countryLabels, countryBorderGeometry } from "../lib/globeLabels";
+import {
+  clampGlobeZoom,
+  MIN_GLOBE_ZOOM,
+  MAX_GLOBE_ZOOM,
+} from "../lib/globeZoom";
+import "./globe-navigation.css";
 import { ColorScaleControls } from "./ColorScaleControls";
 
 function regionBoundary(bbox: string): GeoPermissibleObjects | null {
@@ -51,6 +59,7 @@ export function RealGlobe({
   frame,
   view,
   onView,
+  onNavigate,
   region,
   outlineGeometry,
   colorRange,
@@ -67,11 +76,58 @@ export function RealGlobe({
   onClearArea?: () => void;
   view: GlobeView;
   onView: (view: GlobeView) => void;
+  onNavigate?: (view: GlobeView) => void;
 }) {
   const [land, setLand] = useState<GeoPermissibleObjects | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [probe, setProbe] = useState<[number, number] | null>(null);
   const id = useId();
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [viewportPixels, setViewportPixels] = useState(440);
+  const live = useRef({ view, onView });
+  live.current = { view, onView };
+  const touches = useRef(new Map<number, [number, number]>());
+  const pinch = useRef<{ distance: number; view: GlobeView } | null>(null);
+  const pinching = useRef(false);
+  const zoomBy = (factor: number) =>
+    onView({ ...view, zoom: clampGlobeZoom(view.zoom * factor) });
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const observer = new ResizeObserver(() =>
+      setViewportPixels(svg.getBoundingClientRect().width || 440),
+    );
+    observer.observe(svg);
+    const wheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      const current = live.current;
+      const delta = Math.max(
+        -120,
+        Math.min(
+          120,
+          event.deltaY *
+            (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 200 : 1),
+        ),
+      );
+      clearDraft();
+      setDrawing(false);
+      setProbe(null);
+      current.onView({
+        ...current.view,
+        zoom: clampGlobeZoom(current.view.zoom * Math.exp(-delta * 0.006)),
+      });
+    };
+    svg.addEventListener("wheel", wheel, { passive: false });
+    return () => {
+      observer.disconnect();
+      svg.removeEventListener("wheel", wheel);
+    };
+  }, []);
+  const labels = useMemo(
+    () => countryLabels(view, viewportPixels),
+    [view.longitude, view.latitude, view.zoom, viewportPixels],
+  );
   const [drawing, setDrawing] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
   const [areaNotice, setAreaNotice] = useState("");
@@ -111,13 +167,17 @@ export function RealGlobe({
       mounted = false;
     };
   }, []);
+  const showCountryBorders = view.zoom >= 1.4;
   const paths = useMemo(() => {
     const path = geoPath(globeProjection(view)).digits(1);
     return {
       land: land ? (path(land) ?? "") : "",
       grid: path(geoGraticule10()) ?? "",
+      countries: showCountryBorders
+        ? (path(countryBorderGeometry()) ?? "")
+        : "",
     };
-  }, [view.longitude, view.latitude, land]);
+  }, [view.longitude, view.latitude, land, showCountryBorders]);
   const outline = useMemo(() => {
     const boundary =
       outlineGeometry ?? (region ? regionBoundary(region.bbox) : null);
@@ -192,15 +252,62 @@ export function RealGlobe({
                 : "Global view · choose a country or draw a study area.")}
         </p>
       )}
-      <div className={`real-globe-scene ${drawing ? "is-drawing" : ""}`}>
+      <div
+        className={`real-globe-scene ${drawing ? "is-drawing" : ""}${view.zoom > 1.18 ? " is-zoomed" : ""}`}
+      >
+        <SpaceBackdrop />
         <svg
+          ref={svgRef}
           viewBox="0 0 640 640"
           className="real-globe-svg"
           tabIndex={0}
           role="group"
-          aria-label="Earth data globe. Drag to rotate, or use arrow keys and Home."
+          aria-label="Earth data globe. Drag or use arrow keys to rotate. Plus and minus zoom. Ctrl or Command with scroll, or touch pinch, zooms. Home resets the camera."
+          onDoubleClick={(e) => {
+            if (drawing || areaDrag.current || pinching.current) return;
+            const point = geographicPointer(
+              e.currentTarget,
+              e.clientX,
+              e.clientY,
+              view,
+            );
+            if (point)
+              (onNavigate ?? onView)({
+                ...view,
+                longitude: point[0],
+                latitude: point[1],
+                zoom: clampGlobeZoom(view.zoom * 1.6),
+              });
+          }}
           onPointerDown={(e) => {
-            if (e.button !== 0 || drag.current || areaDrag.current) return;
+            if (e.pointerType === "touch") {
+              touches.current.set(e.pointerId, [e.clientX, e.clientY]);
+              if (touches.current.size >= 2) {
+                e.currentTarget.setPointerCapture(e.pointerId);
+                const [first, second] = [...touches.current.values()];
+                pinch.current = {
+                  distance: Math.max(
+                    1,
+                    Math.hypot(second[0] - first[0], second[1] - first[1]),
+                  ),
+                  view,
+                };
+                pinching.current = true;
+                drag.current = null;
+                clearDraft();
+                setDrawing(false);
+                setProbe(null);
+                onView(view);
+                return;
+              }
+            }
+            if (
+              e.button !== 0 ||
+              drag.current ||
+              areaDrag.current ||
+              pinching.current
+            )
+              return;
             if (drawing) {
               const first = geographicPointer(
                 e.currentTarget,
@@ -230,6 +337,25 @@ export function RealGlobe({
             e.currentTarget.setPointerCapture(e.pointerId);
           }}
           onPointerMove={(e) => {
+            if (touches.current.has(e.pointerId))
+              touches.current.set(e.pointerId, [e.clientX, e.clientY]);
+            if (pinching.current) {
+              if (touches.current.size === 2 && pinch.current) {
+                const [first, second] = [...touches.current.values()];
+                const distance = Math.hypot(
+                  second[0] - first[0],
+                  second[1] - first[1],
+                );
+                onView({
+                  ...pinch.current.view,
+                  zoom: clampGlobeZoom(
+                    (pinch.current.view.zoom * distance) /
+                      pinch.current.distance,
+                  ),
+                });
+              }
+              return;
+            }
             const selection = areaDrag.current;
             if (selection) {
               if (selection.pointerId !== e.pointerId) return;
@@ -268,6 +394,18 @@ export function RealGlobe({
             );
           }}
           onPointerUp={(e) => {
+            touches.current.delete(e.pointerId);
+            if (pinching.current) {
+              drag.current = null;
+              clearDraft();
+              if (!touches.current.size) {
+                pinching.current = false;
+                pinch.current = null;
+              }
+              if (e.currentTarget.hasPointerCapture(e.pointerId))
+                e.currentTarget.releasePointerCapture(e.pointerId);
+              return;
+            }
             const selection = areaDrag.current;
             if (selection && selection.pointerId === e.pointerId) {
               const last = geographicPointer(
@@ -291,13 +429,23 @@ export function RealGlobe({
             if (e.currentTarget.hasPointerCapture(e.pointerId))
               e.currentTarget.releasePointerCapture(e.pointerId);
           }}
-          onPointerCancel={() => {
+          onPointerCancel={(e) => {
+            touches.current.delete(e.pointerId);
             drag.current = null;
             clearDraft();
+            if (!touches.current.size) {
+              pinching.current = false;
+              pinch.current = null;
+            }
           }}
-          onLostPointerCapture={() => {
+          onLostPointerCapture={(e) => {
+            touches.current.delete(e.pointerId);
             drag.current = null;
             clearDraft();
+            if (!touches.current.size) {
+              pinching.current = false;
+              pinch.current = null;
+            }
           }}
           onPointerLeave={() => setProbe(null)}
           onKeyDown={(e) => {
@@ -306,7 +454,12 @@ export function RealGlobe({
               cancelDrawing();
               return;
             }
-            if (areaDrag.current) return;
+            if (areaDrag.current || pinching.current) return;
+            if (["+", "=", "-", "_"].includes(e.key)) {
+              e.preventDefault();
+              zoomBy(e.key === "+" || e.key === "=" ? 1.35 : 1 / 1.35);
+              return;
+            }
             const moves: Record<string, [number, number]> = {
               ArrowLeft: [-25, 0],
               ArrowRight: [25, 0],
@@ -334,14 +487,19 @@ export function RealGlobe({
             <circle cx="320" cy="320" r="278" fill="#548fdf" opacity=".16" />
             <circle cx="320" cy="320" r="270" fill="#0b1830" />
             <path d={paths.land} fill="#566b80" />
-            <GlobeSurface
-              longitude={view.longitude}
-              latitude={view.latitude}
-              frame={frame}
-              colorRange={colorRange}
-              showField={view.showLayer}
-              onUnavailable={() => setUnavailable(true)}
-            />
+          </g>
+          <GlobeSurface
+            viewportZoom={view.zoom}
+            longitude={view.longitude}
+            latitude={view.latitude}
+            frame={frame}
+            colorRange={colorRange}
+            showField={view.showLayer}
+            onUnavailable={() => setUnavailable(true)}
+          />
+          <g
+            transform={`translate(320,320) scale(${view.zoom}) translate(-320,-320)`}
+          >
             <g clipPath={`url(#${id})`} pointerEvents="none">
               <path
                 d={paths.land}
@@ -350,6 +508,16 @@ export function RealGlobe({
                 strokeWidth=".7"
                 opacity=".55"
               />
+              {showCountryBorders && (
+                <path
+                  d={paths.countries}
+                  fill="none"
+                  stroke="#eef5ff"
+                  strokeWidth="1.1"
+                  vectorEffect="non-scaling-stroke"
+                  opacity=".6"
+                />
+              )}
               <path
                 d={paths.grid}
                 fill="none"
@@ -380,6 +548,25 @@ export function RealGlobe({
               )}
             </g>
           </g>
+          <g
+            className="globe-country-labels"
+            pointerEvents="none"
+            aria-hidden="true"
+          >
+            {labels.map((label) => (
+              <text
+                key={label.id}
+                x={label.x}
+                y={label.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={label.fontSize}
+                opacity={label.opacity}
+              >
+                {label.name}
+              </text>
+            ))}
+          </g>
         </svg>
       </div>
       {region && (
@@ -391,21 +578,29 @@ export function RealGlobe({
         </p>
       )}
       <div className="real-globe-actions">
-        <small>Drag to rotate · arrow keys</small>
+        <small>
+          Drag to rotate · Ctrl/⌘ + scroll or pinch to zoom · double-click to
+          approach
+        </small>
         <div>
+          <output
+            className="globe-zoom-level"
+            aria-live="off"
+            aria-label="Globe zoom"
+          >
+            {view.zoom.toFixed(1)}×
+          </output>
           <button
             aria-label="Zoom in"
-            onClick={() =>
-              onView({ ...view, zoom: Math.min(1.8, view.zoom + 0.2) })
-            }
+            disabled={view.zoom >= MAX_GLOBE_ZOOM}
+            onClick={() => zoomBy(1.35)}
           >
             <Plus size={17} />
           </button>
           <button
             aria-label="Zoom out"
-            onClick={() =>
-              onView({ ...view, zoom: Math.max(0.8, view.zoom - 0.2) })
-            }
+            disabled={view.zoom <= MIN_GLOBE_ZOOM}
+            onClick={() => zoomBy(1 / 1.35)}
           >
             <Minus size={17} />
           </button>
