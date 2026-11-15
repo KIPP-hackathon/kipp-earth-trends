@@ -36,7 +36,12 @@ individual. Placeholder `Search variables`; explicação do rodapé removida.
 Clear, Cancel e Apply preservados, com navegação por teclado para grupos
 fechados. Navegador confirmou ausência dos controles removidos, fontes
 14/13px e alinhamento central do ícone com o texto. 96 testes e build aprovados;
-envio desta simplificação em andamento.
+Integração posterior da main `6dd6b22` preservada, incluindo os novos grupos
+por tema e o design do Trend Lab. 102 testes e builds frontend/API aprovados.
+[Deploy Cloudflare concluído](https://github.com/KIPP-hackathon/kipp-earth-trends/actions/runs/43743154708)
+na main `c6f4df1`. Navegador em produção confirmou placeholder, ausência de
+seleção em massa e explicação, fonte 14/13px e centros de ícone/texto
+coincidentes. Evidência local mantida sem nova publicação só de documentação.
 
 ## Hospedagem alternativa Cloudflare — 15/11/2026
 
