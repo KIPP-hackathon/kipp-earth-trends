@@ -1,0 +1,141 @@
+{
+  "package": "simple-icons",
+  "version": "16.38.0",
+  "adaptation": "Original paths rendered in catalog colors on neutral light tiles; source metadata retained.",
+  "icons": [
+    {
+      "title": "React",
+      "slug": "react",
+      "hex": "61DAFB",
+      "source": "https://github.com/facebook/create-react-app/blob/282c03f9525fdf8061ffa1ec50dce89296d916bd/test/fixtures/relative-paths/src/logo.svg",
+      "aliases": {
+        "dup": [
+          {
+            "title": "React Native",
+            "source": "https://reactnative.dev"
+          }
+        ]
+      }
+    },
+    {
+      "title": "TypeScript",
+      "slug": "typescript",
+      "hex": "3178C6",
+      "source": "https://www.typescriptlang.org/branding",
+      "guidelines": "https://www.typescriptlang.org/branding"
+    },
+    {
+      "title": "Vite",
+      "slug": "vite",
+      "hex": "9135FF",
+      "source": "https://github.com/voidzero-dev/community-design-resources/blob/55902097229cf01cf2a4ceb376f992f5cf306756/brand-assets/vite/vite-icon-color-bracketless.svg"
+    },
+    {
+      "title": "WebGL",
+      "slug": "webgl",
+      "hex": "990000",
+      "source": "https://www.khronos.org/legal/trademarks",
+      "guidelines": "https://www.khronos.org/files/legal/Khronos-Logo-Usage-Guide.pdf"
+    },
+    {
+      "title": "Node.js",
+      "slug": "nodedotjs",
+      "hex": "5FA04E",
+      "source": "https://nodejs.org/en/about/branding",
+      "guidelines": "https://nodejs.org/en/about/branding"
+    },
+    {
+      "title": "Fastify",
+      "slug": "fastify",
+      "hex": "000000",
+      "source": "https://github.com/fastify/graphics/blob/91e8a3d4754807de3b69440f66c72a737a5fde94/fastify-1000px-square-02.svg"
+    },
+    {
+      "title": "Python",
+      "slug": "python",
+      "hex": "3776AB",
+      "source": "https://www.python.org/community/logos/",
+      "guidelines": "https://www.python.org/community/logos/"
+    },
+    {
+      "title": "NumPy",
+      "slug": "numpy",
+      "hex": "013243",
+      "source": "https://numpy.org/press-kit/",
+      "guidelines": "https://github.com/numpy/numpy/blob/main/branding/logo/logoguidelines.md"
+    },
+    {
+      "title": "pandas",
+      "slug": "pandas",
+      "hex": "150458",
+      "source": "https://pandas.pydata.org/about/citing.html",
+      "guidelines": "https://pandas.pydata.org/about/citing.html"
+    },
+    {
+      "title": "SciPy",
+      "slug": "scipy",
+      "hex": "8CAAE6",
+      "source": "https://github.com/scikit-image/skimage-branding/blob/eafb65cbc3a700e3d9c8ba2ba15788fcc8703984/logo/scipy.svg"
+    },
+    {
+      "title": "Apache Spark",
+      "slug": "apachespark",
+      "hex": "E25A1C",
+      "source": "https://apache.org/logos",
+      "guidelines": "https://www.apache.org/foundation/marks",
+      "license": {
+        "type": "Apache-2.0"
+      }
+    },
+    {
+      "title": "Databricks",
+      "slug": "databricks",
+      "hex": "FF3621",
+      "source": "https://www.databricks.com",
+      "guidelines": "https://brand.databricks.com/Styleguide/Guide/"
+    },
+    {
+      "title": "Google Cloud",
+      "slug": "googlecloud",
+      "hex": "4285F4",
+      "source": "https://cloud.google.com"
+    },
+    {
+      "title": "Google Gemini",
+      "slug": "googlegemini",
+      "hex": "8E75B2",
+      "source": "https://gemini.google.com",
+      "aliases": {
+        "old": [
+          "Google Bard"
+        ]
+      }
+    },
+    {
+      "title": "Cloudflare",
+      "slug": "cloudflare",
+      "hex": "F38020",
+      "source": "https://www.cloudflare.com/logo/",
+      "guidelines": "https://www.cloudflare.com/trademark/"
+    },
+    {
+      "title": "Vercel",
+      "slug": "vercel",
+      "hex": "000000",
+      "source": "https://vercel.com/geist/brands",
+      "guidelines": "https://vercel.com/geist/brands"
+    },
+    {
+      "title": "Docker",
+      "slug": "docker",
+      "hex": "2496ED",
+      "source": "https://www.docker.com/company/newsroom/media-resources"
+    },
+    {
+      "title": "GitHub Actions",
+      "slug": "githubactions",
+      "hex": "2088FF",
+      "source": "https://github.com/features/actions"
+    }
+  ]
+}

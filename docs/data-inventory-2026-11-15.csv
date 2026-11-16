@@ -1,0 +1,12 @@
+source_table,registered_variables,available_variables,months,first_month,last_month,grid_records,products,api_revision
+earth-trend-data.trusted.tb_gpm_imerg_precipitation_final_late,2,2,322,2000-01,2026-10,66955392,GPM IMERG Final + Late V07,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_aerossois,14,14,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXADG 5.12.4; MERRA-2 M2TMNXAER 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_fluxos,30,25,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXFLX 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_nuvens,21,21,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXCSP 5.12.4 · COSP simulator diagnostic; MERRA-2 M2TMNXSLV 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_pressao_altura,14,11,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXSLV 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_quimica,2,2,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXCHM 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_temperatura,14,8,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXFLX 5.12.4; MERRA-2 M2TMNXSLV 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_umidade,12,9,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXFLX 5.12.4; MERRA-2 M2TMNXSLV 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_variancias,93,7,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXCSP 5.12.4 · COSP simulator diagnostic; MERRA-2 M2TMNXFLX 5.12.4; MERRA-2 M2TMNXSLV 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_merra2_vento,21,6,321,2000-01,2026-09,66747456,MERRA-2 M2TMNXFLX 5.12.4; MERRA-2 M2TMNXSLV 5.12.4,kipp-earth-api-00043-mev
+earth-trend-data.trusted.tb_sea_ice_concentration_global,1,1,322,2000-01,2026-10,66955392,NSIDC Sea Ice Index G02135 v4,kipp-earth-api-00043-mev

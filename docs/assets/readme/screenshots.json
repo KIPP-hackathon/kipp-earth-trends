@@ -1,0 +1,14 @@
+{
+  "explore.png": {
+    "source": "artifacts/readme-review/explore-wind.png",
+    "sha256": "69e6795089616d75f9881e5c2b8737c170af8485f7a3d34eb8824b9c32dee905"
+  },
+  "compare.png": {
+    "source": "artifacts/auto-demo/qa/compare.png",
+    "sha256": "ac450d59348b652f6c649abd85787322609fb9856173e375379b381a05b815a3"
+  },
+  "trend-lab.png": {
+    "source": "artifacts/auto-demo/qa/evidence.png",
+    "sha256": "b89054d562f171817997383a2575f704838c2252e21d4ae070d29f86e5225454"
+  }
+}
