@@ -7,7 +7,7 @@
 An interactive Earth-system investigation lab built by team **KIPP** for<br/>
 **NASA Space Apps 2026 · Be An Earth System Trend Detective!**
 
-**[Open the public application](https://kipp-nasa.space)** · **[Watch our demo](https://www.youtube.com/watch?v=hFzB7sUlQuY)** · **[Architecture](docs/architecture.md)** · **[Our data](docs/data-inventory.md)** · **[Documentation](docs/README.md)**
+**[Open the public application](https://kipp-nasa.space)** · **[Watch our demo](https://www.youtube.com/watch?v=hFzB7sUlQuY)** · **[Architecture](#how-kipp-is-built)** · **[Our data](#the-data-behind-kipp)** · **[Credits](#team-and-credits)**
 
 </div>
 
@@ -17,7 +17,7 @@ An interactive Earth-system investigation lab built by team **KIPP** for<br/>
 
 ![KIPP Explore workspace with MERRA-2 wind trails on the globe, regional time series and statistical evidence](docs/assets/readme/explore.png)
 
-*The real KIPP interface showing MERRA-2 winds at 10 m, captured locally using public Earth-data responses. The visible robot is AI-generated mascot artwork. [Image provenance and credits](docs/assets/readme/README.md).*
+*The real KIPP interface showing MERRA-2 winds at 10 m, captured locally using public Earth-data responses. The visible robot is AI-generated mascot artwork. [Image provenance and credits](#image-and-logo-attribution).*
 
 <table>
 <tr>
@@ -28,7 +28,7 @@ An interactive Earth-system investigation lab built by team **KIPP** for<br/>
 </tr>
 </table>
 
-*Snapshot: 15 November 2026. Counts describe prepared table records, not unique independent observations. [Counting method and full inventory](docs/data-inventory.md).*
+*Snapshot: 15 November 2026. Counts describe prepared table records, not unique independent observations. [Counting method](#what-the-scale-numbers-mean).*
 
 **Inside this README:** [Why KIPP](#why-kipp) · [The experience](#one-investigation-six-workspaces) · [NASA data](#the-data-behind-kipp) · [Stack](#our-technology-stack) · [Architecture](#how-kipp-is-built) · [A real investigation](#one-real-investigation) · [Scientific care](#built-for-responsible-interpretation) · [Team and credits](#team-and-credits)
 
@@ -144,7 +144,7 @@ The repository also preserves acquisition and processing work for **MODIS**, **G
 
 The audited catalog reported `databricks-sql`, `trusted` and revision `kipp-earth-api-00043-mev`. These are dated metadata counts, not a storage-size estimate or a count of independent valid measurements. Tables overlap in geography and time.
 
-[Read the complete inventory](docs/data-inventory.md) · [Download table-level metadata](docs/data-inventory-2026-11-15.csv) · [Explore source definitions](docs/fontes-transient-dados.csv)
+[Download table-level metadata](docs/data-inventory-2026-11-15.csv) · [Explore source definitions](docs/fontes-transient-dados.csv)
 
 ## Our technology stack
 
@@ -188,7 +188,7 @@ The stack connects scientific data processing, interactive visualization and a p
 | **Contextual AI** | Gemini, Vertex AI, Firestore | Bounded assistant tools and persistent usage quotas, separate from statistical computation. |
 | **Delivery and operations** | Cloudflare Workers, Vercel, Docker, Artifact Registry, GitHub Actions, Google IAM | Public application hosting, protected backend access and deployment checks. |
 
-Logo assets are stored locally in this repository. [Sources, versions and notices](docs/assets/readme/README.md) accompany them; the README does not depend on a third-party icon CDN.
+Logo assets are stored locally in this repository. [Sources, versions and notices](#image-and-logo-attribution) accompany them; the README does not depend on a third-party icon CDN.
 
 ## How KIPP is built
 
@@ -241,7 +241,7 @@ flowchart TB
 
 Cloudflare and Vercel share the same backend but use different server-side authentication mechanisms. Vercel uses OIDC federation; Cloudflare uses a server-only service identity to obtain a Google ID token. Visitors need no cloud credentials. SQL Warehouse is the sole active scientific provider; preserved Lakebase adapters are inactive.
 
-The diagram follows data/results and service dependencies, not continuous streaming. [The full architecture](docs/architecture.md) includes trust boundaries, ingestion and a Mermaid request sequence.
+The diagram follows data/results and service dependencies, not continuous streaming. The API and serving layer remain behind authenticated server-side boundaries; browsers access them through the application proxies.
 
 ## One real investigation
 
@@ -265,7 +265,7 @@ The diagram follows data/results and service dependencies, not continuous stream
 
 The estimated rate is positive under the chosen model, data and period. Independent statsmodels calculations matched the public API's slope, robust standard error and approximate p for both the regional and global series.
 
-The region is a **rectangle**, including land and ocean outside Brazil's exact boundary. The slope interval is not a prediction interval. This example does not identify a cause, forecast future temperature or constitute a peer-reviewed scientific discovery. [Method and reproducibility](docs/runtime-trends.md#verification-and-one-real-data-check) · [Dated verification](docs/repository-audit-2026-11-15.md)
+The region is a **rectangle**, including land and ocean outside Brazil's exact boundary. The slope interval is not a prediction interval. This example does not identify a cause, forecast future temperature or constitute a peer-reviewed scientific discovery. [Reproduce this case](#revisit-the-case-in-kipp).
 
 ### Revisit the case in KIPP
 
@@ -285,7 +285,7 @@ Open **Trend Lab**, select **Air temperature at 10 m**, choose the Brazil boundi
 
 IMERG Final/Late transitions retain processing provenance and can affect comparisons; the combined record is not described as homogenized. An anomaly reference is not automatically a 30-year climate normal. Resampling does not create resolution, significance does not establish causality, and extrapolating a fitted line does not establish predictive skill.
 
-[Seasonal trends](docs/runtime-trends.md) · [Anomalies and relationships](docs/trend-lab-relationships.md) · [Data contract](docs/contrato-dados-api-frontend.md)
+[Investigation workflow](#from-curiosity-to-evidence) · [Scientific example](#one-real-investigation) · [Architecture](#how-kipp-is-built)
 
 ## Designed for learning and further investigation
 
@@ -303,14 +303,14 @@ The regional selection and common data contract support investigating other plac
 | [backend/](backend/) | Data API, reviewed source registry, statistical methods and assistant tools. |
 | [data/](data/) | Acquisition, decoding, regridding and offline extraction checks. |
 | [databricks/](databricks/) | Scientific source contracts, notebooks, standardization, catalogs and job bundles. |
-| [docs/](docs/) | Architecture, source inventory, scientific methods and delivery evidence. |
+| [docs/](docs/) | README images, technology logos, license notices and source metadata. |
 | [context/](context/) · [ml_experiments/](ml_experiments/) | Challenge references and exploratory work, preserved separately from application claims. |
 
-For technical setup and operation, use the [frontend guide](frontend/README.md), [API guide](backend/README.md), [hosting guide](docs/cloudflare-deploy.md) and [backend CI/CD](docs/backend-cicd.md).
+For technical setup and operation, use the [frontend guide](frontend/README.md) and [API guide](backend/README.md).
 
 ## Project evidence and delivery
 
-The [repository review](docs/repository-audit-2026-11-15.md) records public catalog checks, data accounting, independent numerical reproduction and dated automated test/build results. Software checks, scientific review and official submission are separate forms of evidence.
+The data counts and scientific example above reflect the 15 November 2026 repository review, including public catalog checks and independent numerical reproduction. Software checks, scientific review and official submission are separate forms of evidence.
 
 The public application is available at **[kipp-nasa.space](https://kipp-nasa.space/)**, with a **[Vercel mirror](https://kipp-earth-trends-lab.vercel.app/)**. Screenshots in this README were captured locally and are not proof that every local interface revision is deployed.
 
@@ -319,7 +319,7 @@ The public application is available at **[kipp-nasa.space](https://kipp-nasa.spa
 
 The project demo is available on **[YouTube](https://www.youtube.com/watch?v=hFzB7sUlQuY)**. The official Project URL, event/timezone confirmation and submission receipt remain pending in the project records. The repository and website do not replace the official Project submission. Final materials, shared services and linked data must follow the confirmed submission freeze.
 
-[Submission narrative and source inventory](docs/submission.md) · [Submission checklist](docs/submission_checklist.md) · [Delivery evidence](docs/space-apps-2026-entrega.md)
+[Public application](https://kipp-nasa.space) · [Project demo](https://www.youtube.com/watch?v=hFzB7sUlQuY)
 
 </details>
 
@@ -332,14 +332,22 @@ We acknowledge NASA/GMAO, GPM and NOAA/NSIDC for the products identified in the 
 ### AI use
 
 - **OpenAI Codex** assisted code, tests, documentation, metadata review and media preparation.
-- **OpenAI ImageGen** generated the KIPP mascot artwork. The robot is interpretive artwork inspired by *Interstellar*, not official film art; its screen graphics are decorative. [Mascot credits](docs/kipp-mascot.md).
+- **OpenAI ImageGen** generated the KIPP mascot artwork. The robot is interpretive artwork inspired by *Interstellar*, not official film art; its screen graphics are decorative. No film frame or extracted film asset was used as input.
 - **Gemini through Vertex AI** provides the optional in-app assistant.
 
 NASA-derived scientific inputs are not AI-generated observations. Screenshots are captures of the real application. Human review remains necessary for scientific interpretation, attribution and final submission. KIPP does not claim NASA or technology-provider endorsement.
 
+### Image and logo attribution
+
+The three screenshots are unmodified captures of the local KIPP application using public Earth-data API responses. Explore shows January 2024 MERRA-2 winds at 10 m with paired U + V trails and regional/global histories; trail motion indicates direction, not speed. Compare and Trend Lab were captured from the prepared local demonstration. Screenshots are not proof that every local revision is deployed. Original capture paths and SHA-256 hashes are retained in the [screenshot manifest](docs/assets/readme/screenshots.json).
+
+NASA Blue Marble supplies the static Earth background; Natural Earth/world-atlas supplies map context. The visible mascot was generated with OpenAI ImageGen; the screenshots themselves are application captures, not AI-generated scientific imagery.
+
+The 18 technology logos come from **Simple Icons 16.38.0**, with original vector paths and listed colors on neutral light tiles. [Individual sources and license metadata](docs/assets/readme/stack/sources.json), the [Simple Icons license](docs/assets/readme/stack/simple-icons-LICENSE.md) and [disclaimer](docs/assets/readme/stack/simple-icons-DISCLAIMER.md) remain alongside the images. The collection is CC0; individual marks retain their respective trademark and license conditions. Their display does not imply partnership or endorsement.
+
 ### Sources and reuse
 
-[Scientific products and platform references](docs/submission.md) · [Image and logo attribution](docs/assets/readme/README.md) · [AI and delivery record](docs/space-apps-2026-entrega.md)
+[Scientific source definitions](docs/fontes-transient-dados.csv) · [Image and logo attribution](#image-and-logo-attribution) · [AI disclosure](#ai-use)
 
 The frontend package declares ISC, but a repository-wide code license has not been supplied. Data, logos, fonts, icons and artwork retain their respective terms; the package field does not establish a blanket license for these materials.
 

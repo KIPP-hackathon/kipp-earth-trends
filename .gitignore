@@ -22,3 +22,6 @@ gha-creds-*.json
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# Planos e registros locais de agentes
+superpowers/
